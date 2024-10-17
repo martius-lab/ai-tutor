@@ -1,0 +1,50 @@
+name: Linters
+
+# Run on pull requests and when merging to main branch
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  mypy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+      - name: Add matcher
+        run: |
+          echo "::add-matcher::.github/workflows/mypy-problem-matcher.json"
+      - name: Install package and mypy dependencies
+        run: |
+          pip install ".[mypy]"
+      - name: Run mypy
+        run: |
+          python3 -m mypy .
+
+  ruff:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+      - name: Install package and ruff
+        run: |
+          python -m pip install .
+          python -m pip install ruff
+      # Include `--output-format=github` to enable automatic inline annotations.
+      - name: Run Ruff
+        run: ruff check --output-format=github .
+
+  black:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+      - uses: psf/black@stable
