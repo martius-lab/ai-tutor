@@ -1,0 +1,39 @@
+[build-system]
+requires = ["setuptools>=61.0.0"]
+build-backend = "setuptools.build_meta"
+
+
+[project]
+name = "aitandem"
+version = "0.1.0"
+description = "AI tandem partner for learning languages -- Teamprojekt WS 24/25"
+authors = [
+    {name = "Author Name", email = "optional@example.com"},
+]
+
+requires-python = ">=3.9"
+dependencies = [
+]
+
+[project.optional-dependencies]
+# Here you can specify optional dependencies (e.g. for tools that are only needed during
+# development).  To install them use `pip install ".[dev]"` (the quotes are needed!).
+
+test = ["pytest"]
+mypy = ["mypy"]  # here you can also list `types-*` stub packages for third-party packages
+
+
+[tool.ruff]
+lint.select = [
+    "E",
+    "F",
+    "B",  # bugbear
+    "D100", "D101", "D102", "D103",  # Complain about missing docstrings
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["D"]  # don't enforce docstrings in test files
+
+
+[tool.mypy]
+exclude = ["build"]
