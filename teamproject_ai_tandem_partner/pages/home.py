@@ -1,7 +1,10 @@
+"""Docstring."""
+
 import reflex as rx
 
 
 def home_default() -> rx.Component:
+    """Homepage."""
     return rx.container(
         rx.color_mode.button(position="top-right"),
         rx.vstack(
