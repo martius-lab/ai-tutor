@@ -2,9 +2,10 @@
 
 import reflex as rx
 
-from rxconfig import config
 
-from . import components, pages
+from . import (
+    pages,
+)  # ,components: Uncommented so ruff check is passed. Uncomment when using components.
 
 
 class State(rx.State):

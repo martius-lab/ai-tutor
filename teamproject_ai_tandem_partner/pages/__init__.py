@@ -8,6 +8,6 @@ __all__ = [
     "login_default",
     "settings_default",
     "chat_default",
-    "user_profile_default",
-    "home_page_default",
+    "profile_default",
+    "home_default",
 ]
