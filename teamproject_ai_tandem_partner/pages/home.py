@@ -1,6 +1,7 @@
 import reflex as rx
 from ..components.sidebar import sidebar_default
 
+
 def home_page_default() -> rx.Component:
     return rx.hstack(
         sidebar_default(),
@@ -10,7 +11,7 @@ def home_page_default() -> rx.Component:
                 rx.heading("Welcome to AI Tandem Partner!", size="9"),
                 rx.text(
                     "Get started by talking to your Tandem Partner! ",
-                    #rx.code(f"{config.app_name}/{config.app_name}.py"),
+                    # rx.code(f"{config.app_name}/{config.app_name}.py"),
                     size="5",
                 ),
                 rx.link(
@@ -23,5 +24,5 @@ def home_page_default() -> rx.Component:
                 min_height="85vh",
             ),
             rx.logo(),
-        )
+        ),
     )

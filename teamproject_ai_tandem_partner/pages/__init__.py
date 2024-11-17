@@ -5,9 +5,8 @@ from .user_profile import user_profile_default
 from .home import home_page_default
 
 __all__ = [
-    'login_default',
-    'settings_default',
-    'chat_default',
-    'user_profile_default'
-    'home_page_default'
+    "login_default",
+    "settings_default",
+    "chat_default",
+    "user_profile_default" "home_page_default",
 ]

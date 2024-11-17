@@ -1,9 +1,8 @@
 # We should either go for a sidebar or a navbar (at the top)
 import reflex as rx
 
-def sidebar_item(
-    text: str, icon: str, href: str
-) -> rx.Component:
+
+def sidebar_item(text: str, icon: str, href: str) -> rx.Component:
     return rx.link(
         rx.hstack(
             rx.icon(icon),
@@ -29,7 +28,7 @@ def sidebar_item(
 
 def sidebar_items() -> rx.Component:
     return rx.vstack(
-        sidebar_item("Dashboard", "layout-dashboard", "/#"), #Name, Icon, adress
+        sidebar_item("Dashboard", "layout-dashboard", "/#"),  # Name, Icon, adress
         sidebar_item("Projects", "square-library", "/#"),
         sidebar_item("Analytics", "bar-chart-4", "/#"),
         sidebar_item("Messages", "mail", "/#"),
@@ -49,24 +48,18 @@ def sidebar_default() -> rx.Component:
                         height="auto",
                         border_radius="25%",
                     ),
-                    rx.heading(
-                        "Reflex", size="7", weight="bold"
-                    ),
+                    rx.heading("Reflex", size="7", weight="bold"),
                     align="center",
                     justify="start",
                     padding_x="0.5rem",
                     width="100%",
                 ),
-                sidebar_items(), #Lists items from sidebar_items in a vertical stack
-                rx.spacer(), #Ensures that settings are at the bottom of the sidebar
+                sidebar_items(),  # Lists items from sidebar_items in a vertical stack
+                rx.spacer(),  # Ensures that settings are at the bottom of the sidebar
                 rx.vstack(
                     rx.vstack(
-                        sidebar_item(
-                            "Settings", "settings", "/settings"
-                        ),
-                        sidebar_item(
-                            "Log out", "log-out", "/login"
-                        ),
+                        sidebar_item("Settings", "settings", "/settings"),
+                        sidebar_item("Log out", "log-out", "/login"),
                         spacing="1",
                         width="100%",
                     ),
@@ -105,33 +98,29 @@ def sidebar_default() -> rx.Component:
                     spacing="5",
                 ),
                 spacing="5",
-                position="fixed", # Ensures the positon of the sidebar is fixed
-                left="0px", # Sidebar is placed on the left
+                position="fixed",  # Ensures the positon of the sidebar is fixed
+                left="0px",  # Sidebar is placed on the left
                 top="0px",  # Sidebar is placed at the top
-                bottom="0px", # Sidebar extends to the bottom
+                bottom="0px",  # Sidebar extends to the bottom
                 # z_index="5",
                 padding_x="1em",
                 padding_y="1.5em",
                 bg=rx.color("accent", 3),
                 align="start",
-                height="100hv", #Makes sures sidebar extends to the whole screen
-                #height="650px",
+                height="100hv",  # Makes sures sidebar extends to the whole screen
+                # height="650px",
                 width="16em",
             ),
         ),
         rx.mobile_and_tablet(
             rx.drawer.root(
-                rx.drawer.trigger(
-                    rx.icon("align-justify", size=30)
-                ),
+                rx.drawer.trigger(rx.icon("align-justify", size=30)),
                 rx.drawer.overlay(z_index="5"),
                 rx.drawer.portal(
                     rx.drawer.content(
                         rx.vstack(
                             rx.box(
-                                rx.drawer.close(
-                                    rx.icon("x", size=30)
-                                ),
+                                rx.drawer.close(rx.icon("x", size=30)),
                                 width="100%",
                             ),
                             sidebar_items(),

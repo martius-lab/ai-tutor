@@ -6,9 +6,9 @@ from .sidebar import sidebar_default
 
 
 __all__ = [
-    'base_layout',
-    'chat_box_default',
-    'login_box_default',
-    'settings_box_default',
-    'sidebar_default',
+    "base_layout",
+    "chat_box_default",
+    "login_box_default",
+    "settings_box_default",
+    "sidebar_default",
 ]
