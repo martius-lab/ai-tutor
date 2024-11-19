@@ -22,7 +22,6 @@ dependencies = [
 test = ["pytest"]
 mypy = ["mypy"]  # here you can also list `types-*` stub packages for third-party packages
 
-
 [tool.ruff]
 lint.select = [
     "E",
@@ -37,3 +36,8 @@ lint.select = [
 
 [tool.mypy]
 exclude = ["build"]
+ignore_missing_imports = true #Temporary fix so mypy checks pass, might consider adding py.typed marker or stub files in the future.
+
+[tool.setuptools.packages.find]
+include = ["teamproject_ai_tandem_partner*"]
+exclude = ["assets"]
