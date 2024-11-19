@@ -14,6 +14,15 @@ def home_default() -> rx.Component:
                 # rx.code(f"{config.app_name}/{config.app_name}.py"),
                 size="5",
             ),
+            # register button that redirects to /register
+            rx.center(
+                rx.button(
+                    "Register",
+                    color_scheme="blue",
+                    on_click=rx.redirect("/register"),
+                ),
+                width="100%",
+            ),
             spacing="5",
             justify="center",
             min_height="85vh",
