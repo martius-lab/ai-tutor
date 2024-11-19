@@ -11,5 +11,5 @@ __all__ = [
     "chat_default",
     "profile_default",
     "home_default",
-    "registration_default"
+    "registration_default",
 ]

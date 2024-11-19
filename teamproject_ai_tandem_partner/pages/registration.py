@@ -1,9 +1,10 @@
-import reflex as rx
+"""Docstring."""
 
-""""Graphical Registration Form"""
+import reflex as rx
 
 
 def registration_default() -> rx.Component:
+    """ "Graphical Registration Form"""
     return rx.center(
         rx.card(
             rx.vstack(
@@ -81,5 +82,5 @@ def registration_default() -> rx.Component:
             size="4",
             width="100%",
         ),
-        height="100vh"
+        height="100vh",
     )
