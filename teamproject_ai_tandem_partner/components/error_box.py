@@ -1,17 +1,19 @@
+"""Docstring"""
+
 import reflex as rx
-
-"""
-output: displays an error popup with the input message shown as a warning
-input: error message as a string (you can define it individually depending on what errr should be showing up)
-
-use it as
-     example_popup = error_popup("Error 404")
-     if event_trigger:
-         show example_popup
-"""
 
 
 def error_popup(message: str):
+    """
+    output: displays an error popup with the input message shown as a warning
+    input: error message as a string (you can define it individually depending on
+    what errr should be showing up)
+
+    use it as
+        example_popup = error_popup("Error 404")
+        if event_trigger:
+            show example_popup
+    """
     return rx.modal(
         rx.modal_overlay(
             rx.modal_content(
