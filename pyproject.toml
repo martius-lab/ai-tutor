@@ -29,15 +29,19 @@ lint.select = [
     "B",  # bugbear
     "D100", "D101", "D102", "D103",  # Complain about missing docstrings
 ]
+exclude = ["alembic"]
 
 [tool.ruff.lint.per-file-ignores]
 "tests/*" = ["D"]  # don't enforce docstrings in test files
 
 
 [tool.mypy]
-exclude = ["build"]
+exclude = ["build", "alembic"]
 ignore_missing_imports = true #Temporary fix so mypy checks pass, might consider adding py.typed marker or stub files in the future.
 
 [tool.setuptools.packages.find]
 include = ["teamproject_ai_tandem_partner*"]
 exclude = ["assets"]
+
+[tool.black]
+exclude = ["alembic"]
