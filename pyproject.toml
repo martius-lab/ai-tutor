@@ -44,4 +44,4 @@ include = ["teamproject_ai_tandem_partner*"]
 exclude = ["assets"]
 
 [tool.black]
-exclude = ["alembic"]
+exclude = "alembic"
