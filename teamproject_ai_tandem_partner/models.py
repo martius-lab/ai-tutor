@@ -1,6 +1,6 @@
 """Module defining User database model."""
 
-import refelx as rx
+import reflex as rx
 
 
 class User(rx.Model):
