@@ -31,6 +31,7 @@ class RegistrationState(State):
         with rx.session() as session:
             email = form_data["email"]
             valid_email_pattern = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
+            special_char_pattern = r"[!@#$%^&*(),.?\":{}|<>]"
             if not email:
                 self.error_message = "E-Mail cannot be empty"
                 yield rx.set_focus("email")
@@ -51,6 +52,19 @@ class RegistrationState(State):
             password = form_data["password"]
             if not password:
                 self.error_message = "Password cannot be empty"
+                yield rx.set_focus("password")
+                return
+            if len(password) < 8:
+                self.error_message = (
+                    "Password too short. Password must be at least 8 characters"
+                )
+                yield rx.set_focus("password")
+                return
+            if not re.search(special_char_pattern, password):
+                self.error_message = (
+                    "Password must contain at least one these "
+                    'special characters: [!@#$%^&*(),.?":{}|<>]'
+                )
                 yield rx.set_focus("password")
                 return
             if password != form_data["confirm_password"]:
