@@ -40,7 +40,7 @@ exclude = ["build", "alembic"]
 ignore_missing_imports = true #Temporary fix so mypy checks pass, might consider adding py.typed marker or stub files in the future.
 
 [tool.setuptools.packages.find]
-include = ["teamproject_ai_tandem_partner*"]
+include = ["aitandem*"]
 exclude = ["assets"]
 
 [tool.black]
