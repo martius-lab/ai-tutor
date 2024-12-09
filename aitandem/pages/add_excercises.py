@@ -21,7 +21,7 @@ def add_exercise_button() -> rx.Component:
                 ),
                 rx.vstack(
                     rx.dialog.title(
-                        "Add New Exercise",
+                        "New Exercise",
                         weight="bold",
                         margin="0",
                     ),
@@ -115,7 +115,7 @@ def header_cell(text: str, icon: str):
     )
 
 
-def head_element():
+def exercise_table():
     return rx.fragment(
         rx.flex(
             rx.box(
@@ -124,6 +124,8 @@ def head_element():
                     placeholder="Search tasks...",
                     size="3",
                     max_width="250px",
+                    style={"_hover": {"bg": rx.color("gray", 2)}},
+
                 ),
                 flex="1",
             ),
@@ -140,12 +142,19 @@ def head_element():
                     header_cell("Tag", "tag"),
                 ),
             ),
+            rx.table.body(
+                rx.table.row(
+                    rx.table.cell("Test-task"),
+                    rx.table.cell("This is just a test description"),
+                    rx.table.cell("001"),
+                ),
+                style={"_hover": {"bg": rx.color("gray", 3)}},
+            ),
             variant="surface",
             size="3",
             width="85vw",
         ),
     )
-
 
 
 @rx.page(route="/add-exercises")
@@ -154,7 +163,12 @@ def add_exercises_default() -> rx.Component:
     return rx.center(
         rx.color_mode.button(position="top-right", type="button"),
         rx.vstack(
-            head_element(),
+            rx.center(
+                rx.heading("Exercises", size="8"),
+                padding_bottom="2em",
+                width="100%",
+            ),
+            exercise_table(),
         ),
         height="40vh",
     )
