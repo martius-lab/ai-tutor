@@ -1,4 +1,4 @@
-"""Module defining User database model."""
+"""Module defining database models."""
 
 import reflex as rx
 from passlib.context import CryptContext
@@ -43,3 +43,19 @@ class User(
             secret,
             self.password_hash,
         )
+
+
+class Tag(rx.Model):
+    """Database model for storing allowed tags."""
+
+    tag: str = rx.var(unique=True)
+
+
+class Exercise(rx.Model):
+    """Database model for storing exercise informations."""
+
+    exeID: int = rx.var(unique=True)
+    title: str
+    prompt: str
+    tags: list[str]
+    image: str
