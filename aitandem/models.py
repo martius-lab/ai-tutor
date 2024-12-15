@@ -1,8 +1,8 @@
 """Module defining database models."""
 
-import reflex as rx
-from passlib.context import CryptContext
-from sqlmodel import Field
+import reflex as rx  # type: ignore
+from passlib.context import CryptContext  # type: ignore
+from sqlmodel import Field, Relationship  # type: ignore
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -45,17 +45,19 @@ class User(
         )
 
 
-class Tag(rx.Model):
+class Tag(rx.Model, table=True):  # type: ignore  # Tag-Tabelle
     """Database model for storing allowed tags."""
 
-    tag: str = rx.var(unique=True)
+    id: int = Field(primary_key=True)
+    name: str = Field(unique=True, nullable=False)
 
 
-class Exercise(rx.Model):
-    """Database model for storing exercise informations."""
+class Exercise(rx.Model, table=True):  # type: ignore  # Exercise-Tabelle
+    """Database model for storing exercise information."""
 
-    exeID: int = rx.var(unique=True)
-    title: str
-    prompt: str
-    tags: list[str]
-    image: str
+    id: int = Field(primary_key=True)
+    exeID: int = Field(unique=True)
+    title: str = Field(nullable=False)
+    prompt: str = Field(nullable=False)
+    tags: list[Tag] = Relationship(back_populates="exercises")  # Many-to-Many
+    image: str = Field(nullable=False)
