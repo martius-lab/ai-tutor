@@ -1,8 +1,8 @@
 """Module defining database models."""
 
-import reflex as rx  # type: ignore
-from passlib.context import CryptContext  # type: ignore
-from sqlmodel import Field, Relationship  # type: ignore
+import reflex as rx
+from passlib.context import CryptContext
+from sqlmodel import Field, Relationship
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -59,5 +59,6 @@ class Exercise(rx.Model, table=True):  # type: ignore  # Exercise-Tabelle
     exeID: int = Field(unique=True)
     title: str = Field(nullable=False)
     prompt: str = Field(nullable=False)
+    description: str = Field(nullable=False)
     tags: list[Tag] = Relationship(back_populates="exercises")  # Many-to-Many
     image: str = Field(nullable=False)
