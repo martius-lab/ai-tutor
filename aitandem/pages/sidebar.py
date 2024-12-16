@@ -1,4 +1,7 @@
+"""This module contains the sidebar component and its links."""
+
 import reflex as rx
+
 
 def sidebar_default() -> rx.Component:
     """Render the sidebar component with links, styled to match registration page."""
@@ -21,7 +24,7 @@ def sidebar_default() -> rx.Component:
                 rx.link(
                     "Home",  # Home-Link hinzugefügt
                     href="/",
-                    style=rx.Style(font_size="16px", margin="10px", color="#007bff"),  # Blau für Links
+                    style=rx.Style(font_size="16px", margin="10px", color="#007bff"),
                 ),
                 rx.link(
                     "Login",  # Login-Link hinzugefügt
@@ -34,31 +37,31 @@ def sidebar_default() -> rx.Component:
                     style=rx.Style(font_size="16px", margin="10px", color="#007bff"),
                 ),
                 rx.link(
-                    "Profile",   # Profil-Link hinzugefügt
+                    "Profile",  # Profil-Link hinzugefügt
                     href="/profile",
                     style=rx.Style(font_size="16px", margin="10px", color="#007bff"),
                 ),
                 rx.link(
-                    "Chat",   # Chat-Link hinzugefügt
+                    "Chat",  # Chat-Link hinzugefügt
                     href="/chat",
                     style=rx.Style(font_size="16px", margin="10px", color="#007bff"),
                 ),
                 rx.link(
-                    "Settings",   # Einstellungen-Link hinzugefügt
+                    "Settings",  # Einstellungen-Link hinzugefügt
                     href="/settings",
                     style=rx.Style(font_size="16px", margin="10px", color="#007bff"),
                 ),
                 direction="column",  # Links vertikal
-                align_items="flex-start",  # Links linksbündig ausgerichtet
+                align_items="flex-start",  # Links linksbündig
                 width="100%",
             ),
             max_width="15em",  # Sidebar Breite
             size="4",
             width="100%",
-            border_radius="10px",  # Abgerundete Ecken für ein weiches Aussehen
-            box_shadow="0px 4px 8px rgba(0, 0, 0, 0.1)",  # Schatten für mehr Tiefe
+            border_radius="10px",  # Abgerundete Ecken
+            box_shadow="0px 4px 8px rgba(0, 0, 0, 0.1)",  # Schatten
         ),
         padding="1rem",  # Padding für die Sidebar
         background_color="#f8f9fa",  # Heller Hintergrund
-        height="100vh",  # Sidebar soll die ganze Höhe einnehmen
+        height="100vh",  # Sidebar soll ganze Höhe einnehmen
     )

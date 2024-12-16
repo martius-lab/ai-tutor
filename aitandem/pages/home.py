@@ -1,5 +1,9 @@
+"""This module contains the home page and related components."""
+
+
 import reflex as rx
-from aitandem.pages.sidebar import sidebar_default  # Importiere die Sidebar aus dem 'pages'-Ordner
+from aitandem.pages.sidebar import sidebar_default
+
 
 @rx.page(route="/")
 def home_default() -> rx.Component:
