@@ -16,6 +16,7 @@ def handle_teacher_login(session_id: str) -> rx.Component:
 
 def login_default() -> rx.Component:
     """Login page."""
+
     def handle_login(session_id: str):
         user_role = get_user_role(session_id)
         if user_role == "student":
@@ -23,5 +24,6 @@ def login_default() -> rx.Component:
         elif user_role == "teacher":
             return handle_teacher_login(session_id)
         else:
-            pass # include a corresponding error popup
+            pass  # include a corresponding error popup
+
     return rx.box()
