@@ -17,7 +17,7 @@ def create_link(text: str, href: str) -> rx.Component:
 
 def sidebar_default() -> rx.Component:
     """Render the sidebar component with links, styled to match registration page."""
-    return rx.container(
+    return rx.box(
         rx.card(
             rx.vstack(
                 rx.center(
