@@ -11,5 +11,5 @@ __all__ = [
     "login_window_default",
     "settings_window_default",
     "sidebar_default",
-    "error_popup"
+    "error_popup",
 ]
