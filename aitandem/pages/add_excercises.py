@@ -18,6 +18,10 @@ class ExerciseState(rx.State):
 
     def submit_exercise(self, form_data: dict):
         with rx.session() as session:
+
+            if not form_data["title"]:
+                return rx.window_alert("Please enter a title for the exercise.")
+
             # create instance and fill its fields
             new_exercise = Exercise()
             new_exercise.title = form_data["title"]
@@ -147,9 +151,46 @@ def add_exercise_button() -> rx.Component:
                 on_submit=ExerciseState.submit_exercise,
                 reset_on_submit=False,
             ),
+            tag_dialog(),
         ),
         unmount_on_exit=False
     )
+
+def tag_dialog():
+    return rx.dialog.root(
+        rx.dialog.trigger(
+            rx.button(
+                "add new tag",
+            ),
+        ),
+        rx.dialog.content(
+            rx.form(
+                rx.text("Name"),
+                rx.input(
+                    placeholder="Enter new tag here",
+                    name="tag",
+                ),
+                rx.center(
+                    rx.dialog.close(
+                        rx.button(
+                            "Cancel",
+                            color_scheme="red",
+                        ),
+                    ),
+                    rx.form.submit(
+                        rx.dialog.close(
+                            rx.button("Add Tag",
+                                      color_scheme="grass",
+                                      type="submit",
+                                      ),
+                        ),
+                    ),
+                    padding_top="1em",
+                    spacing="2",
+                ),
+            ),
+        ),
+    ),
 
 def show_exercise(exercise: Exercise):
     """Show exercises on page in a table row."""
