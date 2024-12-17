@@ -2,6 +2,28 @@
 
 import reflex as rx
 
+from ..models import Exercise
+
+
+class ExerciseState(rx.State):
+    exercises: list[Exercise] = []
+
+    def submit_exercise(self, form_data: dict):
+        with rx.session() as session:
+            new_exercise = Exercise()
+            new_exercise.title = form_data["title"]
+            new_exercise.description = form_data["description"]
+            new_exercise.tags = form_data["ex-tag"]
+            session.add(new_exercise)
+            session.commit()
+
+        return rx.toast.success(
+            "Exercise has been added.",
+            duration=2500,
+            position="bottom-center",
+            invert=True,
+        )
+
 
 def add_exercise_button() -> rx.Component:
     return rx.dialog.root(
@@ -86,7 +108,7 @@ def add_exercise_button() -> rx.Component:
                         rx.select(
                             ["test"],
                             placeholder="Select a tag here",
-                            name = "ex-tag"
+                            name="ex-tag"
                         ),
                         flex="1",
                     ),
@@ -110,10 +132,11 @@ def add_exercise_button() -> rx.Component:
                         ),
                     ),
                 ),
+                on_submit=ExerciseState.submit_exercise,
                 reset_on_submit=False,
             ),
         ),
-        unmount_on_exit = False
+        unmount_on_exit=False
     )
 
 
