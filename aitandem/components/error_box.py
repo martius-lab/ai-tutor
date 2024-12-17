@@ -27,5 +27,5 @@ def error_popup(trigger_component, description: str):
                 rx.button("Close", size="3"),  # closing button
             ),
         ),
-        on_open_change=DialogState.count_opens,  # changes the state
+        on_open_change=DialogState.set_opened,  # changes the state
     )
