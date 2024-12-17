@@ -39,68 +39,81 @@ def add_exercise_button() -> rx.Component:
                 align_items="start",
                 width="100%",
             ),
-            rx.text(
-                "Title: ",
-                size="3",
-                weight="medium",
-                text_align="left",
-                width="100%",
-                padding_bottom="0.5em",
-            ),
-            rx.input(
-                placeholder="exercise title",
-                size="3",
-                width="100%",
-            ),
-            rx.text(
-                "Description: ",
-                size="3",
-                weight="medium",
-                text_align="left",
-                width="100%",
-                padding_top="1.5em",
-                padding_bottom="0.5em",
-            ),
-            rx.text_area(
-                placeholder="describe the task here",
-                size="3",
-                width="100%",
-                height="150px",
-            ),
-            rx.text(
-                "Tag: ",
-                size="3",
-                weight="medium",
-                text_align="left",
-                width="100%",
-                padding_top="1.5em",
-                padding_bottom="0.5em",
-            ),
-            rx.input(
-                placeholder="set the tag for this task",
-                size="3",
-                width="100%",
-            ),
-            rx.flex(
-                rx.dialog.close(
-                    rx.button(
-                        "Cancel",
-                        color_scheme="gray",
+            rx.form(
+                rx.text(
+                    "Title: ",
+                    size="3",
+                    weight="medium",
+                    text_align="left",
+                    width="100%",
+                    padding_bottom="0.5em",
+                ),
+                rx.input(
+                    placeholder="exercise title",
+                    size="3",
+                    width="100%",
+                    type="text",
+                    name="title",
+                ),
+                rx.text(
+                    "Description: ",
+                    size="3",
+                    weight="medium",
+                    text_align="left",
+                    width="100%",
+                    padding_top="1.5em",
+                    padding_bottom="0.5em",
+                ),
+                rx.text_area(
+                    placeholder="describe the task here",
+                    size="3",
+                    width="100%",
+                    height="150px",
+                    type="text",
+                    name="description",
+                ),
+                rx.text(
+                    "Tag: ",
+                    size="3",
+                    weight="medium",
+                    text_align="left",
+                    width="100%",
+                    padding_top="1.5em",
+                    padding_bottom="0.5em",
+                ),
+                rx.hstack(
+                    rx.box(
+                        rx.select(
+                            ["test"],
+                            placeholder="Select a tag here",
+                            name = "ex-tag"
+                        ),
+                        flex="1",
+                    ),
+                    rx.box(
+                        rx.dialog.close(
+                            rx.button(
+                                "Cancel",
+                                color_scheme="gray",
+                            ),
+                        ),
+                        rx.form.submit(
+                            rx.dialog.close(
+                                rx.button("Add Task",
+                                          color_scheme="grass",
+                                          type="submit",
+                                          ),
+                                as_child=True,
+                            ),
+                            padding_left="0.5em",
+                            padding_bottom="0.5em",
+                        ),
                     ),
                 ),
-                rx.form.submit(
-                    rx.dialog.close(
-                        rx.button("Add Task",
-                                  color_scheme="grass",
-                                  ),
-                    ),
-                ),
-                padding_top="1.5em",
-                spacing="3",
-                justify="end",
+                reset_on_submit=False,
             ),
         ),
-        unmount_on_exit=False,
+        unmount_on_exit = False
     )
 
 
