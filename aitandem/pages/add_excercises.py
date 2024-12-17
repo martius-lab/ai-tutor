@@ -2,7 +2,7 @@
 
 import reflex as rx
 
-from ..models import Exercise
+from ..models import Exercise, Tag
 from sqlmodel import select
 
 
@@ -15,6 +15,26 @@ class ExerciseState(rx.State):
             # load exercises
             query_exercises = select(Exercise)
             self.exercises = session.exec(query_exercises).all()
+
+    def submit_tag(self, form_data: dict):
+
+        with rx.session() as session:
+
+            # check if tag is not None
+            if form_data["tag"] == "":
+                return rx.window_alert("Please enter a tag name.")
+
+            else:
+                new_tag = Tag(name=form_data["tag"])
+                session.add(new_tag)
+                session.commit()
+
+            return rx.toast.success(
+                "Tag has been added and can now be selected.",
+                duration=2500,
+                position="bottom-center",
+                invert=True,
+            )
 
     def submit_exercise(self, form_data: dict):
         with rx.session() as session:
@@ -188,6 +208,7 @@ def tag_dialog():
                     padding_top="1em",
                     spacing="2",
                 ),
+                on_submit=ExerciseState.submit_tag,
             ),
         ),
     ),
