@@ -1,7 +1,6 @@
 """This function displays a popup with a customizable error message.
 Remember to import the file and the state"""
 
-
 import reflex as rx
 from aitandem.states.dialog_state import DialogState
 

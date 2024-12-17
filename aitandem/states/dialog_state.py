@@ -10,13 +10,15 @@ class DialogState(rx.State):
     Attributes:
         opened (bool): Indicates whether the dialog is currently open
     """
+
     opened: bool = False
 
     @rx.event
     def set_opened(self, value: bool):
         """Updates the dialog state
         Args:
-            value (bool): A flag indicating whether the dialog is open (True) or closed (False).
-        This function sets the `opened` attribute to the given value.
+            value (bool): A flag indicating whether the dialog is open (True)
+            or closed (False)
+        This function sets the `opened` attribute to the given value
         """
         self.opened = value
