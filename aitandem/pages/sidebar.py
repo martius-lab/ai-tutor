@@ -2,6 +2,18 @@
 
 import reflex as rx
 
+# Gemeinsame Style-Definition für die Links
+LINK_STYLE = rx.Style(font_size="16px", margin="10px", color="#007bff")
+
+
+def create_link(text: str, href: str) -> rx.Component:
+    """Helper function to create styled links."""
+    return rx.link(
+        text,
+        href=href,
+        style=LINK_STYLE,
+    )
+
 
 def sidebar_default() -> rx.Component:
     """Render the sidebar component with links, styled to match registration page."""
@@ -21,36 +33,12 @@ def sidebar_default() -> rx.Component:
                     width="100%",
                 ),
                 # Sidebar Links
-                rx.link(
-                    "Home",  # Home-Link hinzugefügt
-                    href="/",
-                    style=rx.Style(font_size="16px", margin="10px", color="#007bff"),
-                ),
-                rx.link(
-                    "Login",  # Login-Link hinzugefügt
-                    href="/login",
-                    style=rx.Style(font_size="16px", margin="10px", color="#007bff"),
-                ),
-                rx.link(
-                    "Registration",  # Registrierungs-Link hinzugefügt
-                    href="/register",
-                    style=rx.Style(font_size="16px", margin="10px", color="#007bff"),
-                ),
-                rx.link(
-                    "Profile",  # Profil-Link hinzugefügt
-                    href="/profile",
-                    style=rx.Style(font_size="16px", margin="10px", color="#007bff"),
-                ),
-                rx.link(
-                    "Chat",  # Chat-Link hinzugefügt
-                    href="/chat",
-                    style=rx.Style(font_size="16px", margin="10px", color="#007bff"),
-                ),
-                rx.link(
-                    "Settings",  # Einstellungen-Link hinzugefügt
-                    href="/settings",
-                    style=rx.Style(font_size="16px", margin="10px", color="#007bff"),
-                ),
+                create_link("Home", "/"),
+                create_link("Login", "/login"),
+                create_link("Registration", "/register"),
+                create_link("Profile", "/profile"),
+                create_link("Chat", "/chat"),
+                create_link("Settings", "/settings"),
                 direction="column",  # Links vertikal
                 align_items="flex-start",  # Links linksbündig
                 width="100%",
