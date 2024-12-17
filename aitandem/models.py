@@ -2,7 +2,8 @@
 
 import reflex as rx
 from passlib.context import CryptContext
-from sqlmodel import Field, Relationship
+from sqlmodel import Field, Column, JSON
+from typing import Optional, List
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -45,20 +46,27 @@ class User(
         )
 
 
-class Tag(rx.Model, table=True):  # type: ignore  # Tag-Tabelle
-    """Database model for storing allowed tags."""
+class Tag(rx.Model, table=True):
+    """Tag model for storing allowed tags."""
 
-    id: int = Field(primary_key=True)
-    name: str = Field(unique=True, nullable=False)
+    id: Optional[int] = Field(default=None, primary_key=True)  # Automatische ID
+    name: str = Field(unique=True, nullable=False, index=True)  # Tag-Name, einzigartig
+
+    def __repr__(self):
+        return f"<Tag(name='{self.name}')>"
 
 
-class Exercise(rx.Model, table=True):  # type: ignore  # Exercise-Tabelle
-    """Database model for storing exercise information."""
+class Exercise(rx.Model, table=True):
+    """Exercise model for storing exercises."""
 
-    id: int = Field(primary_key=True)
-    exeID: int = Field(unique=True)
-    title: str = Field(nullable=False)
-    prompt: str = Field(nullable=False)
-    description: str = Field(nullable=False)
-    tags: list[Tag] = Relationship(back_populates="exercises")  # Many-to-Many
-    image: str = Field(nullable=False)
+    id: Optional[int] = Field(default=None, primary_key=True)  # Automatische ID
+    title: str = Field(nullable=False)  # Titel der Übung
+    prompt: str = Field(nullable=False)  # Prompt für das LLM
+    description: Optional[str] = Field(default=None)  # Beschreibung der Übung
+    tags: List[str] = Field(
+        sa_column=Column(JSON), default=[]
+    )  # Liste der Tags als JSON
+    image: Optional[str] = Field(default=None)  # Pfad oder URL zum Bild
+
+    def __repr__(self):
+        return f"<Exercise(title='{self.title}', tags={self.tags})>"
