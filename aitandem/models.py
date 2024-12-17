@@ -46,7 +46,7 @@ class User(
         )
 
 
-class Tag(rx.Model, table=True):
+class Tag(rx.Model, table=True):  # type: ignore
     """Tag model for storing allowed tags."""
 
     id: Optional[int] = Field(default=None, primary_key=True)  # Automatische ID
@@ -56,7 +56,7 @@ class Tag(rx.Model, table=True):
         return f"<Tag(name='{self.name}')>"
 
 
-class Exercise(rx.Model, table=True):
+class Exercise(rx.Model, table=True):  # type: ignore
     """Exercise model for storing exercises."""
 
     id: Optional[int] = Field(default=None, primary_key=True)  # Automatische ID
