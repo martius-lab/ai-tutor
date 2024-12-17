@@ -1,33 +1,45 @@
 """Page for the teacher to add new exercises."""
 
 import reflex as rx
-
 from ..models import Exercise, Tag
 from sqlmodel import select
 
-
 class ExerciseState(rx.State):
     exercises: list[Exercise] = []
+    tag_list: list[Tag] = []
+    tag_names: list[str] = []
 
     def load_exercises(self):
-        """Get exercises and tags from DB."""
+        """Get exercises from DB."""
         with rx.session() as session:
             # load exercises
             query_exercises = select(Exercise)
             self.exercises = session.exec(query_exercises).all()
 
-    def submit_tag(self, form_data: dict):
-
+    def load_tags(self):
+        """Get tags from DB."""
         with rx.session() as session:
+            # load tags
+            query_tags = select(Tag)
+            self.tag_list = session.exec(query_tags).all()
+            self.tag_names = [tag.name for tag in self.tag_list]
 
+    def submit_tag(self, form_data: dict):
+        """add tags to DB."""
+        with rx.session() as session:
             # check if tag is not None
             if form_data["tag"] == "":
                 return rx.window_alert("Please enter a tag name.")
 
-            else:
-                new_tag = Tag(name=form_data["tag"])
-                session.add(new_tag)
-                session.commit()
+            # check if tag exists
+            existing_tag = session.exec(select(Tag).where(Tag.name == form_data["tag"])).one_or_none()
+            if existing_tag is not None:
+                return rx.window_alert("Tag exists already.")
+
+            new_tag = Tag(name=form_data["tag"])
+            session.add(new_tag)
+            session.commit()
+            self.load_tags()
 
             return rx.toast.success(
                 "Tag has been added and can now be selected.",
@@ -37,11 +49,11 @@ class ExerciseState(rx.State):
             )
 
     def submit_exercise(self, form_data: dict):
+        """add exercises to DB."""
         with rx.session() as session:
-
+            # check if title is empty
             if not form_data["title"]:
                 return rx.window_alert("Please enter a title for the exercise.")
-
             # create instance and fill its fields
             new_exercise = Exercise()
             new_exercise.title = form_data["title"]
@@ -59,7 +71,6 @@ class ExerciseState(rx.State):
             position="bottom-center",
             invert=True,
         )
-
 
 def add_exercise_button() -> rx.Component:
     return rx.dialog.root(
@@ -142,7 +153,7 @@ def add_exercise_button() -> rx.Component:
                 rx.hstack(
                     rx.box(
                         rx.select(
-                            ["test"],
+                            ExerciseState.tag_names,
                             placeholder="Select a tag here",
                             name="ex-tag"
                         ),
@@ -168,6 +179,7 @@ def add_exercise_button() -> rx.Component:
                         ),
                     ),
                 ),
+                on_mount=ExerciseState.load_tags,
                 on_submit=ExerciseState.submit_exercise,
                 reset_on_submit=False,
             ),
@@ -234,7 +246,6 @@ def header_cell(text: str, icon: str):
         ),
     )
 
-
 def exercise_table():
     return rx.fragment(
         rx.flex(
@@ -245,7 +256,6 @@ def exercise_table():
                     size="3",
                     max_width="250px",
                     style={"_hover": {"bg": rx.color("gray", 2)}},
-
                 ),
                 flex="1",
             ),
@@ -272,7 +282,6 @@ def exercise_table():
             max_height="70vh",
         ),
     ),
-
 
 @rx.page(route="/add-exercises")
 def add_exercises_default() -> rx.Component:
