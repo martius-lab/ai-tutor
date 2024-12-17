@@ -3,19 +3,31 @@
 import reflex as rx
 
 from ..models import Exercise
+from sqlmodel import select
 
 
 class ExerciseState(rx.State):
     exercises: list[Exercise] = []
 
+    def load_exercises(self):
+        """Get exercises and tags from DB."""
+        with rx.session() as session:
+            # load exercises
+            query_exercises = select(Exercise)
+            self.exercises = session.exec(query_exercises).all()
+
     def submit_exercise(self, form_data: dict):
         with rx.session() as session:
+            # create instance and fill its fields
             new_exercise = Exercise()
             new_exercise.title = form_data["title"]
             new_exercise.description = form_data["description"]
             new_exercise.tags = form_data["ex-tag"]
+            # add exercises to db
             session.add(new_exercise)
             session.commit()
+            # reload exercises
+            self.load_exercises()
 
         return rx.toast.success(
             "Exercise has been added.",
@@ -139,6 +151,16 @@ def add_exercise_button() -> rx.Component:
         unmount_on_exit=False
     )
 
+def show_exercise(exercise: Exercise):
+    """Show exercises on page in a table row."""
+    return rx.table.row(
+        rx.table.cell(exercise.id),
+        rx.table.cell(exercise.title),
+        rx.table.cell(exercise.description),
+        rx.table.cell(exercise.tags),
+        style={"_hover": {"bg": rx.color("gray", 3)}},
+        align="center",
+    )
 
 def header_cell(text: str, icon: str):
     return rx.table.column_header_cell(
@@ -173,24 +195,21 @@ def exercise_table():
         rx.table.root(
             rx.table.header(
                 rx.table.row(
+                    header_cell("ID", "file-digit"),
                     header_cell("Task", "briefcase-business"),
                     header_cell("Description", "book-open-text"),
                     header_cell("Tag", "tag"),
                 ),
             ),
-            rx.table.body(
-                rx.table.row(
-                    rx.table.cell("Test-task"),
-                    rx.table.cell("This is just a test description"),
-                    rx.table.cell("001"),
-                ),
-                style={"_hover": {"bg": rx.color("gray", 3)}},
-            ),
+            rx.table.body(rx.foreach(ExerciseState.exercises, show_exercise)),
+            on_mount=ExerciseState.load_exercises(),
             variant="surface",
             size="3",
             width="85vw",
+            overflow_y="auto",
+            max_height="70vh",
         ),
-    )
+    ),
 
 
 @rx.page(route="/add-exercises")
@@ -200,11 +219,10 @@ def add_exercises_default() -> rx.Component:
         rx.color_mode.button(position="top-right", type="button"),
         rx.vstack(
             rx.center(
-                rx.heading("Exercises", size="8"),
+                rx.heading("Exercises", size="8", padding_top="2em"),
                 padding_bottom="2em",
                 width="100%",
             ),
             exercise_table(),
         ),
-        height="40vh",
     )
