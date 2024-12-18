@@ -4,10 +4,11 @@ import reflex as rx
 from ..models import Exercise, Tag
 from sqlmodel import select, or_
 
+
 class ExerciseState(rx.State):
     exercises: list[Exercise] = []
     tag_list: list[Tag] = []
-    tag_names: list[str] = [] # the tag.names as a str
+    tag_names: list[str] = []  # the tag.names as a str
     search_value: str = ""
 
     def search_exercises(self, search_value):
@@ -16,7 +17,7 @@ class ExerciseState(rx.State):
         self.load_exercises()
 
     def load_exercises(self):
-        """Get exercises from DB."""
+        """Get exercises from db."""
         with rx.session() as session:
             # load exercises
             query_exercises = select(Exercise)
@@ -34,7 +35,7 @@ class ExerciseState(rx.State):
             self.exercises = session.exec(query_exercises).all()
 
     def load_tags(self):
-        """Get tags from DB."""
+        """Get tags from db."""
         with rx.session() as session:
             # load tags
             query_tags = select(Tag)
@@ -42,7 +43,7 @@ class ExerciseState(rx.State):
             self.tag_names = [tag.name for tag in self.tag_list]
 
     def submit_tag(self, form_data: dict):
-        """add tags to DB."""
+        """add tags to db."""
         with rx.session() as session:
             # check if tag is not None
             if form_data["tag"] == "":
@@ -67,7 +68,7 @@ class ExerciseState(rx.State):
             )
 
     def submit_exercise(self, form_data: dict):
-        """add exercises to DB."""
+        """add exercises to db."""
         with rx.session() as session:
             # check if title is empty
             if not form_data["title"]:
@@ -89,6 +90,22 @@ class ExerciseState(rx.State):
             position="bottom-center",
             invert=True,
         )
+
+    def delete_exercise(self, id: int):
+        """Delete an exercise from the db."""
+        with rx.session() as session:
+            exercise = session.exec(select(Exercise).where(Exercise.id == id)).first()
+            session.delete(exercise)
+            session.commit()
+        self.load_exercises()
+
+        return rx.toast.success(
+            "Exercise has been deleted.",
+            duration=2500,
+            position="bottom-center",
+            invert=True,
+        )
+
 
 def add_exercise_button() -> rx.Component:
     """button for adding new exercises."""
@@ -174,41 +191,40 @@ def add_exercise_button() -> rx.Component:
                         rx.select(
                             ExerciseState.tag_names,
                             placeholder="Select a tag here",
-                            name="ex-tag"
+                            name="ex-tag",
                         ),
                         flex="1",
                     ),
-                    rx.box(
-                        rx.dialog.close(
-                            rx.button(
-                                "Cancel",
-                                color_scheme="gray",
-                            ),
-                        ),
-                        rx.form.submit(
-                            rx.dialog.close(
-                                rx.button("Add Task",
-                                          color_scheme="grass",
-                                          type="submit",
-                                          ),
-                                as_child=True,
-                            ),
-                            padding_left="0.5em",
-                            padding_bottom="0.5em",
+                    rx.dialog.close(
+                        rx.button(
+                            "Cancel",
+                            color_scheme="gray",
                         ),
                     ),
+                    rx.form.submit(
+                        rx.dialog.close(
+                            rx.button("Add Task",
+                                      color_scheme="grass",
+                                      type="submit",
+                                      ),
+                            as_child=True,
+                        ),
+                        padding_bottom="0.5em",
+                    ),
+                    spacing="2",
                 ),
                 # load new tags
                 on_mount=ExerciseState.load_tags,
                 # submit new exercises
                 on_submit=ExerciseState.submit_exercise,
                 reset_on_submit=False,
+                enter_key_submit=True,
             ),
             # add new tags
             tag_dialog(),
         ),
-        unmount_on_exit=False
     )
+
 
 def tag_dialog():
     """dialog for adding new tags."""
@@ -230,6 +246,7 @@ def tag_dialog():
                         rx.button(
                             "Cancel",
                             color_scheme="red",
+                            type="button",
                         ),
                     ),
                     rx.form.submit(
@@ -249,16 +266,29 @@ def tag_dialog():
         ),
     ),
 
+
 def show_exercise(exercise: Exercise):
     """Show exercises on page in a table row."""
     return rx.table.row(
         rx.table.cell(exercise.id),
         rx.table.cell(exercise.title, max_width="175px"),
         rx.table.cell(exercise.description, max_width="400px"),
-        rx.table.cell(exercise.tags, max_width="100px"),
+        rx.table.cell(exercise.tags, max_width="115px"),
+        rx.table.cell(
+            rx.center(
+                rx.icon_button(
+                    rx.icon("circle-x"),
+                    on_click=lambda: ExerciseState.delete_exercise(getattr(exercise, "id")),
+                    size="2",
+                    variant="ghost",
+                    color_scheme="red",
+                ),
+            ),
+        ),
         style={"_hover": {"bg": rx.color("gray", 3)}},
-        align="center",
+        align="center"
     )
+
 
 def header_cell(text: str, icon: str):
     """create header cells."""
@@ -271,6 +301,7 @@ def header_cell(text: str, icon: str):
         ),
     )
 
+
 def exercise_table():
     """the main table"""
     return rx.fragment(
@@ -279,7 +310,7 @@ def exercise_table():
                 # search bar
                 rx.input(
                     rx.input.slot(rx.icon("search")),
-                    placeholder="Search tasks...",
+                    placeholder="Search...",
                     size="3",
                     max_width="250px",
                     style={"_hover": {"bg": rx.color("gray", 2)}},
@@ -301,11 +332,12 @@ def exercise_table():
                     header_cell("Task", "briefcase-business"),
                     header_cell("Description", "book-open-text"),
                     header_cell("Tag", "tag"),
+                    rx.table.column_header_cell("Delete", align="center"),
                 ),
             ),
             # dynamically render each new entry
             rx.table.body(rx.foreach(ExerciseState.exercises, show_exercise)),
-            on_mount=ExerciseState.load_exercises(),
+            on_mount=ExerciseState.load_exercises,
             variant="surface",
             size="3",
             width="85vw",
@@ -313,6 +345,7 @@ def exercise_table():
             max_height="70vh",
         ),
     ),
+
 
 @rx.page(route="/add-exercises")
 def add_exercises_default() -> rx.Component:
