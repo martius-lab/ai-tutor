@@ -5,6 +5,12 @@ from sqlmodel import Session
 from aitandem.components.error_box import error_popup
 
 
+class RoleNotFoundError(Exception):
+    """Custom exception for unknown roles"""
+
+    pass
+
+
 def get_user_role(session_id: str) -> str:
     """
     retrieve the users role based on the session id
@@ -21,3 +27,4 @@ def get_user_role(session_id: str) -> str:
             return auth_session.role
         else:
             error_popup("Unknown role!")
+            raise RoleNotFoundError("The user has an invalid role!")
