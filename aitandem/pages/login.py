@@ -2,6 +2,7 @@
 
 import reflex as rx
 from aitandem.components.user_roles import get_user_role
+from aitandem.components.error_box import error_popup
 
 
 def handle_student_login(session_id: str) -> rx.Component:
@@ -17,13 +18,13 @@ def handle_teacher_login(session_id: str) -> rx.Component:
 def login_default() -> rx.Component:
     """Login page."""
 
-    def handle_login(session_id: str):
+    def handle_login(session_id: str) -> rx.Component:
         user_role = get_user_role(session_id)
         if user_role == "student":
             return handle_student_login(session_id)
         elif user_role == "teacher":
             return handle_teacher_login(session_id)
         else:
-            pass  # include a corresponding error popup
+            error_popup("Unknown role!")
 
     return rx.box()
