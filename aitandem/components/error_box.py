@@ -18,7 +18,6 @@ def error_popup(trigger_component, description: str):
     )
     """
     return rx.dialog.root(
-        rx.dialog.trigger(trigger_component),  # trigger element
         rx.dialog.content(
             rx.dialog.title("Error!"),  # error title
             rx.dialog.description(description),  # error description
@@ -26,5 +25,6 @@ def error_popup(trigger_component, description: str):
                 rx.button("Close", size="3"),  # closing button
             ),
         ),
+        open=True,
         on_open_change=DialogState.set_opened,  # changes the state
     )

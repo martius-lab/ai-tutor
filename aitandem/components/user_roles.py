@@ -2,6 +2,7 @@
 
 from aitandem.auth_session import AuthSession
 from sqlmodel import Session
+from aitandem.components.error_box import error_popup
 
 
 def get_user_role(session_id: str) -> str:
@@ -19,4 +20,4 @@ def get_user_role(session_id: str) -> str:
         if auth_session:
             return auth_session.role
         else:
-            return "unknown"
+            error_popup("Unknown role!")
