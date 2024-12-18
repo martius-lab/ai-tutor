@@ -5,7 +5,7 @@ import reflex as rx
 from aitandem.states.dialog_state import DialogState
 
 
-def error_popup(trigger_component, description: str):
+def error_popup(description: str):
     """
     output: displays an error popup with the input message shown as a warning
     input: error message as a string (you can define it individually depending on
