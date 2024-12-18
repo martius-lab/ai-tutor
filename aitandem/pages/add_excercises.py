@@ -7,10 +7,11 @@ from sqlmodel import select, or_
 class ExerciseState(rx.State):
     exercises: list[Exercise] = []
     tag_list: list[Tag] = []
-    tag_names: list[str] = []
+    tag_names: list[str] = [] # the tag.names as a str
     search_value: str = ""
 
     def search_exercises(self, search_value):
+        """Search for a specific exercise."""
         self.search_value = search_value
         self.load_exercises()
 
@@ -53,6 +54,7 @@ class ExerciseState(rx.State):
                 return rx.window_alert("Tag exists already.")
 
             new_tag = Tag(name=form_data["tag"])
+            # add tag to db
             session.add(new_tag)
             session.commit()
             self.load_tags()
@@ -89,6 +91,7 @@ class ExerciseState(rx.State):
         )
 
 def add_exercise_button() -> rx.Component:
+    """button for adding new exercises."""
     return rx.dialog.root(
         rx.dialog.trigger(
             rx.button(
@@ -195,16 +198,20 @@ def add_exercise_button() -> rx.Component:
                         ),
                     ),
                 ),
+                # load new tags
                 on_mount=ExerciseState.load_tags,
+                # submit new exercises
                 on_submit=ExerciseState.submit_exercise,
                 reset_on_submit=False,
             ),
+            # add new tags
             tag_dialog(),
         ),
         unmount_on_exit=False
     )
 
 def tag_dialog():
+    """dialog for adding new tags."""
     return rx.dialog.root(
         rx.dialog.trigger(
             rx.button(
@@ -236,6 +243,7 @@ def tag_dialog():
                     padding_top="1em",
                     spacing="2",
                 ),
+                # submit new tags
                 on_submit=ExerciseState.submit_tag,
             ),
         ),
@@ -245,14 +253,15 @@ def show_exercise(exercise: Exercise):
     """Show exercises on page in a table row."""
     return rx.table.row(
         rx.table.cell(exercise.id),
-        rx.table.cell(exercise.title),
-        rx.table.cell(exercise.description),
-        rx.table.cell(exercise.tags),
+        rx.table.cell(exercise.title, max_width="175px"),
+        rx.table.cell(exercise.description, max_width="400px"),
+        rx.table.cell(exercise.tags, max_width="100px"),
         style={"_hover": {"bg": rx.color("gray", 3)}},
         align="center",
     )
 
 def header_cell(text: str, icon: str):
+    """create header cells."""
     return rx.table.column_header_cell(
         rx.hstack(
             rx.icon(icon, size=18),
@@ -263,9 +272,11 @@ def header_cell(text: str, icon: str):
     )
 
 def exercise_table():
+    """the main table"""
     return rx.fragment(
         rx.flex(
             rx.box(
+                # search bar
                 rx.input(
                     rx.input.slot(rx.icon("search")),
                     placeholder="Search tasks...",
@@ -276,11 +287,13 @@ def exercise_table():
                 ),
                 flex="1",
             ),
+            # the button for adding exercises
             rx.box(
                 add_exercise_button(),
             ),
             width="100%",
         ),
+        # head cells for the main table
         rx.table.root(
             rx.table.header(
                 rx.table.row(
@@ -290,6 +303,7 @@ def exercise_table():
                     header_cell("Tag", "tag"),
                 ),
             ),
+            # dynamically render each new entry
             rx.table.body(rx.foreach(ExerciseState.exercises, show_exercise)),
             on_mount=ExerciseState.load_exercises(),
             variant="surface",
