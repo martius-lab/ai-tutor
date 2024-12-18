@@ -2,18 +2,34 @@
 
 import reflex as rx
 from ..models import Exercise, Tag
-from sqlmodel import select
+from sqlmodel import select, or_
 
 class ExerciseState(rx.State):
     exercises: list[Exercise] = []
     tag_list: list[Tag] = []
     tag_names: list[str] = []
+    search_value: str = ""
+
+    def search_exercises(self, search_value):
+        self.search_value = search_value
+        self.load_exercises()
 
     def load_exercises(self):
         """Get exercises from DB."""
         with rx.session() as session:
             # load exercises
             query_exercises = select(Exercise)
+            # search for distinct entries
+            if self.search_value:
+                search_value = f"%{str(self.search_value).lower()}%"
+                query_exercises = query_exercises.where(
+                    or_(
+                        *[
+                            getattr(Exercise, field).ilike(search_value)
+                            for field in Exercise.get_fields()
+                        ],
+                    )
+                )
             self.exercises = session.exec(query_exercises).all()
 
     def load_tags(self):
@@ -192,12 +208,12 @@ def tag_dialog():
     return rx.dialog.root(
         rx.dialog.trigger(
             rx.button(
-                "add new tag",
+                "New tag",
             ),
         ),
         rx.dialog.content(
             rx.form(
-                rx.text("Name"),
+                rx.text("Name", padding_bottom="0.5em"),
                 rx.input(
                     placeholder="Enter new tag here",
                     name="tag",
@@ -256,6 +272,7 @@ def exercise_table():
                     size="3",
                     max_width="250px",
                     style={"_hover": {"bg": rx.color("gray", 2)}},
+                    on_change=lambda value: ExerciseState.search_exercises(value),
                 ),
                 flex="1",
             ),
