@@ -10,6 +10,10 @@ class ExerciseState(rx.State):
     tag_list: list[Tag] = []
     tag_names: list[str] = []  # the tag.names as a str
     search_value: str = ""
+    current_tag: str = ""
+
+    def set_current_tag(self, tag: str):
+        self.current_tag = tag
 
     def search_exercises(self, search_value):
         """Search for a specific exercise."""
@@ -43,7 +47,7 @@ class ExerciseState(rx.State):
             self.tag_names = [tag.name for tag in self.tag_list]
 
     def submit_tag(self, form_data: dict):
-        """add tags to db."""
+        """Add tags to db."""
         with rx.session() as session:
             # check if tag is not None
             if form_data["tag"] == "":
@@ -68,7 +72,7 @@ class ExerciseState(rx.State):
             )
 
     def submit_exercise(self, form_data: dict):
-        """add exercises to db."""
+        """Add exercises to db."""
         with rx.session() as session:
             # check if title is empty
             if not form_data["title"]:
@@ -91,6 +95,36 @@ class ExerciseState(rx.State):
             invert=True,
         )
 
+    def delete_tag(self, tag_name: str):
+        """Delete a tag from the db."""
+        with rx.session() as session:
+            # fetch the tag by its name
+            tag_to_delete = session.exec(select(Tag).where(Tag.name == tag_name)).first()
+
+            # no tag selected
+            if tag_to_delete is None:
+                return rx.window_alert("Tag not found. Please select a tag.")
+
+            # check if the tag has a valid id
+            if tag_to_delete.id is None:
+                return rx.window_alert("Tag has no valid id.")
+
+            # reset current tag, so that placeholder text reappears
+            self.current_tag = ""
+
+            # If tag is found and has a valid id, delete it
+            session.delete(tag_to_delete)
+            session.commit()
+            # reload tags
+            self.load_tags()
+
+            return rx.toast.success(
+               "Tag has been deleted",
+                duration=2500,
+                position="bottom-center",
+                invert=True,
+            )
+
     def delete_exercise(self, id: int):
         """Delete an exercise from the db."""
         with rx.session() as session:
@@ -108,7 +142,7 @@ class ExerciseState(rx.State):
 
 
 def add_exercise_button() -> rx.Component:
-    """button for adding new exercises."""
+    """Button for adding new exercises."""
     return rx.dialog.root(
         rx.dialog.trigger(
             rx.button(
@@ -187,11 +221,25 @@ def add_exercise_button() -> rx.Component:
                     padding_bottom="0.5em",
                 ),
                 rx.hstack(
-                    rx.box(
-                        rx.select(
-                            ExerciseState.tag_names,
-                            placeholder="Select a tag here",
-                            name="ex-tag",
+                    rx.hstack(
+                        rx.center(
+                            rx.select(
+                                items=ExerciseState.tag_names,
+                                placeholder="Select a tag here",
+                                name="ex-tag",
+                                value=ExerciseState.current_tag,
+                                on_change=lambda value: ExerciseState.set_current_tag(value),
+                            ),
+                            rx.icon_button(
+                                rx.icon("circle-x"),
+                                on_click=lambda: ExerciseState.delete_tag(ExerciseState.current_tag),
+                                size="2",
+                                variant="ghost",
+                                color_scheme="red",
+                                spacing="3",
+                                type="button",
+                            ),
+                            spacing="3",
                         ),
                         flex="1",
                     ),
@@ -227,7 +275,7 @@ def add_exercise_button() -> rx.Component:
 
 
 def tag_dialog():
-    """dialog for adding new tags."""
+    """Dialog for adding new tags."""
     return rx.dialog.root(
         rx.dialog.trigger(
             rx.button(
@@ -291,7 +339,7 @@ def show_exercise(exercise: Exercise):
 
 
 def header_cell(text: str, icon: str):
-    """create header cells."""
+    """Create header cells."""
     return rx.table.column_header_cell(
         rx.hstack(
             rx.icon(icon, size=18),
@@ -303,7 +351,7 @@ def header_cell(text: str, icon: str):
 
 
 def exercise_table():
-    """the main table"""
+    """The main table"""
     return rx.fragment(
         rx.flex(
             rx.box(
@@ -349,7 +397,7 @@ def exercise_table():
 
 @rx.page(route="/add-exercises")
 def add_exercises_default() -> rx.Component:
-    """add exercises page."""
+    """Add exercises page."""
     return rx.center(
         rx.color_mode.button(position="top-right", type="button"),
         rx.vstack(
