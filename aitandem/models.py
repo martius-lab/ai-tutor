@@ -6,10 +6,6 @@ from sqlmodel import Field, Column, JSON, Relationship, DateTime
 from typing import Optional, List
 from datetime import datetime, timezone
 from sqlalchemy.sql import func
-import json
-from openai import OpenAI
-
-client = OpenAI()
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -114,16 +110,17 @@ class ExerciseResult(rx.Model, table=True):
     time_stamp: datetime = Field(
         sa_column=Column(
             type_=DateTime(timezone=True),
-            default=func.now(),
-            onupdate=func.now(),
+            default=func.now(), #datetime of server 
+            onupdate=func.now(), #time_stamp gets updated if database entry is modified
             nullable=False,
         )
     )
 
     # TODO When passing messages to the OpenAI API to create prompts, the message is
     # passed as a list of dictionaries. Each individual message is represented as a
-    # dictionary. Dictionaries must be converted to JSON before being stored in the DB. 
-    conversation_text: JSON = Field(sa_column=Column(type_=JSON, default=[]))
+    # dictionary. Dictionaries must be converted to JSON before being stored in the DB.
+    # FIXME Consider chaning default value. Depends on further implementation. 
+    conversation_text: JSON = Field(sa_column=Column(type_=JSON, default=lambda: []))
 
     # Connects to Exercise.submissions
     exercise: Optional["Exercise"] = Relationship(back_populates="submissions")
