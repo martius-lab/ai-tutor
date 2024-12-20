@@ -110,8 +110,8 @@ class ExerciseResult(rx.Model, table=True):
     time_stamp: datetime = Field(
         sa_column=Column(
             type_=DateTime(timezone=True),
-            default=func.now(), #datetime of server 
-            onupdate=func.now(), #time_stamp gets updated if database entry is modified
+            default=func.now(),  # datetime of server
+            onupdate=func.now(),  # time_stamp gets updated if database entry is modified
             nullable=False,
         )
     )
@@ -119,10 +119,19 @@ class ExerciseResult(rx.Model, table=True):
     # TODO When passing messages to the OpenAI API to create prompts, the message is
     # passed as a list of dictionaries. Each individual message is represented as a
     # dictionary. Dictionaries must be converted to JSON before being stored in the DB.
-    # FIXME Consider chaning default value. Depends on further implementation. 
+    # FIXME Consider chaning default value. Depends on further implementation.
     conversation_text: JSON = Field(sa_column=Column(type_=JSON, default=lambda: []))
 
     # Connects to Exercise.submissions
     exercise: Optional["Exercise"] = Relationship(back_populates="submissions")
     # Connects to User.user_exercise_results
     user: Optional["User"] = Relationship(back_populates="user_exercise_results")
+
+    def __repr__(self):
+        return f"""
+        <ExerciseResult(
+        ExerciseName='{self.exercise.title}', 
+        UserEmail='{self.user.email}', 
+        LastUpdate='{self.time_stamp}'
+        )>
+        """
