@@ -1,14 +1,21 @@
+"""Display different exercises for teachers
+to view and add new exercises."""
+
 import reflex as rx
 from sqlmodel import select
 from aitandem.models import Exercise
 from typing import List, Optional
 
 def fetch_exercises(session_id: Optional[str] = None) -> List[Exercise]:
+    """
+    Fetch exercises from the database
+    """
     with rx.session() as session:
         exercises = session.exec(select(Exercise)).all()
         return exercises
     
 def render_exercise_card(exercise: Exercise) -> rx.Component:
+    """Render exercises as cards"""
     return rx.card(
         rx.vstack(
             rx.heading(exercise.title, size="4"),
@@ -46,6 +53,7 @@ def render_exercise_card(exercise: Exercise) -> rx.Component:
     )
 
 def render_exercises() -> rx.Component:
+    """Render the list of exercises"""
     exercises = fetch_exercises()
     return rx.cond(
         len(exercises) > 0,
@@ -62,6 +70,7 @@ def render_exercises() -> rx.Component:
     )
 
 def exercises() -> rx.Component:
+    """Exercises page for teachers"""
     return rx.container(
         rx.vstack(
             rx.heading("Your Exercises:", size="9"),
@@ -86,4 +95,5 @@ def exercises() -> rx.Component:
     )
 
 def exercises_default() -> rx.Component:
+    """Default wrapper for exercises page"""
     return exercises()
