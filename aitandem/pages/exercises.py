@@ -44,6 +44,7 @@ def render_exercise_card(exercise: Exercise) -> rx.Component:
         variant="surface",
         width="100%",
     )
+
 def render_exercises() -> rx.Component:
     exercises = fetch_exercises()
     return rx.cond(
@@ -54,8 +55,35 @@ def render_exercises() -> rx.Component:
             width="100%"
         ),
         rx.text(
-            "No exercises found. Click 'Ad' to create your first exercise!", 
+            "No exercises found. Click 'Add' to create your first exercise!", 
             color="gray", 
             size="4"
         )
     )
+
+def exercises() -> rx.Component:
+    return rx.container(
+        rx.vstack(
+            rx.heading("Your Exercises:", size="9"),
+            rx.text(
+                "Add new exercises by clicking 'Add'! ",
+                size="5",
+            ),
+            render_exercises(),
+            rx.center(
+                rx.button(
+                    "Add",
+                    color_scheme="green",
+                    #on_click=lambda: rx.redirect("/add-exercise", replace=True), #redirect to add-exercise page when available
+                    width="full",
+                ),
+                width="100%",
+            ),
+            spacing="5",
+            justify="center",
+            min_height="85vh",
+        ),
+    )
+
+def exercises_default() -> rx.Component:
+    return exercises()
