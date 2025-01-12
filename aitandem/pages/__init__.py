@@ -6,7 +6,7 @@ from .home import home_default
 from .registration import registration_default
 from .exercises import exercises_default
 
-_all_ = [
+__all__ = [
     "login_default",
     "settings_default",
     "chat_default",
