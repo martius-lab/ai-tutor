@@ -11,19 +11,19 @@ def fetch_exercises(session_id: Optional[str] = None) -> List[Exercise]:
     Fetch exercises from the database
     """
     with rx.session() as session:
-        exercises = session.exec(select(Exercise)).all()
+        exercises = session.exec(select(Exercise)).all() #select all exercises from database
         return exercises
     
 def render_exercise_card(exercise: Exercise) -> rx.Component:
     """Render exercises as cards"""
-    return rx.card(
+    return rx.card( #create a card for each exercise
         rx.vstack(
-            rx.heading(exercise.title, size="4"),
-            rx.cond(
+            rx.heading(exercise.title, size="4"), #display title
+            rx.cond( #display description if it exists
                 exercise.description is not None,
                 rx.text(f"Description: {exercise.description}", size="2")
             ),
-            rx.cond(
+            rx.cond( #display tags if they exist
                 len(exercise.tags) > 0,
                 rx.hstack(
                     rx.text("Tags:", weight="bold"),
@@ -36,7 +36,7 @@ def render_exercise_card(exercise: Exercise) -> rx.Component:
                     )
                 )
             ),
-            rx.cond(
+            rx.cond( #display image if it exists
                 exercise.image is not None,
                 rx.image(
                     src=exercise.image,
@@ -54,15 +54,15 @@ def render_exercise_card(exercise: Exercise) -> rx.Component:
 
 def render_exercises() -> rx.Component:
     """Render the list of exercises"""
-    exercises = fetch_exercises()
+    exercises = fetch_exercises() #create a list of the fetched exercises
     return rx.cond(
-        len(exercises) > 0,
+        len(exercises) > 0, #if they exist
         rx.vstack(
             *[render_exercise_card(exercise) for exercise in exercises],
             spacing="4",
             width="100%"
         ),
-        rx.text(
+        rx.text( #if no exercises exist
             "No exercises found. Click 'Add' to create your first exercise!", 
             color="gray", 
             size="4"
@@ -73,14 +73,14 @@ def exercises() -> rx.Component:
     """Exercises page for teachers"""
     return rx.container(
         rx.vstack(
-            rx.heading("Your Exercises:", size="9"),
+            rx.heading("Your Exercises:", size="9"), #page title
             rx.text(
                 "Add new exercises by clicking 'Add'! ",
                 size="5",
             ),
             render_exercises(),
             rx.center(
-                rx.button(
+                rx.button( #add button
                     "Add",
                     color_scheme="green",
                     #on_click=lambda: rx.redirect("/add-exercise", replace=True), #redirect to add-exercise page when available
