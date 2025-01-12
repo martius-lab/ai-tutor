@@ -1,7 +1,6 @@
 """Welcome to Reflex! This file outlines the steps to create a basic app."""
 
 import reflex as rx
-from .models import Exercise, Tag
 from sqlmodel import SQLModel
 
 from . import (
@@ -14,8 +13,9 @@ class State(rx.State):
 
     ...
 
-with rx.session() as session: #create a session
-    SQLModel.metadata.create_all(session.bind) #create the database
+
+with rx.session() as session:  # create a session
+    SQLModel.metadata.create_all(session.bind)  # create the database
 
 app = rx.App()
 app.add_page(pages.home_default, route="/")
