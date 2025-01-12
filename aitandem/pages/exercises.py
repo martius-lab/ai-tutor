@@ -44,3 +44,18 @@ def render_exercise_card(exercise: Exercise) -> rx.Component:
         variant="surface",
         width="100%",
     )
+def render_exercises() -> rx.Component:
+    exercises = fetch_exercises()
+    return rx.cond(
+        len(exercises) > 0,
+        rx.vstack(
+            *[render_exercise_card(exercise) for exercise in exercises],
+            spacing="4",
+            width="100%"
+        ),
+        rx.text(
+            "No exercises found. Click 'Ad' to create your first exercise!", 
+            color="gray", 
+            size="4"
+        )
+    )
