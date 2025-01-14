@@ -11,8 +11,10 @@ class ExerciseState(rx.State):
     tag_names: list[str] = []  # the tag.names as a str
     search_value: str = ""
     current_tag: str = ""
+    current_exercise: Exercise = Exercise()
 
     def set_current_tag(self, tag: str):
+        """Set the current tag."""
         self.current_tag = tag
 
     def search_exercises(self, search_value):
@@ -95,6 +97,32 @@ class ExerciseState(rx.State):
             invert=True,
         )
 
+    def update_exercise(self, form_data: dict):
+        """Update exercises in db."""
+        with rx.session() as session:
+            updated_exercise = session.exec(
+                select(Exercise).where(Exercise.id == self.current_exercise.id)
+            ).first()
+            # delete old entry
+            form_data.pop("id", None)
+            # update exercise in db
+            updated_exercise.title = form_data["title"]
+            updated_exercise.description = form_data["description"]
+            updated_exercise.tags = form_data["ex-tag"]
+            # add exercises to db
+            session.add(updated_exercise)
+            session.commit()
+            # reload exercises
+            self.load_exercises()
+
+
+        return rx.toast.success(
+            "Exercise updated successfully.",
+            duration=2500,
+            position="bottom-center",
+            invert=True,
+        )
+
     def delete_tag(self, tag_name: str):
         """Delete a tag from the db."""
         with rx.session() as session:
@@ -119,7 +147,7 @@ class ExerciseState(rx.State):
             self.load_tags()
 
             return rx.toast.success(
-               "Tag has been deleted",
+                "Tag has been deleted",
                 duration=2500,
                 position="bottom-center",
                 invert=True,
@@ -140,6 +168,15 @@ class ExerciseState(rx.State):
             invert=True,
         )
 
+    def get_exercise(self, exercise: Exercise):
+        """Get an exercise from the db."""
+        self.current_exercise = exercise
+        with rx.session() as session:
+            exercise = session.exec(
+            select(Exercise)
+            .where(Exercise.id == self.current_exercise.id)
+        ).first()
+        self.current_tag = exercise.tags
 
 def add_exercise_button() -> rx.Component:
     """Button for adding new exercises."""
@@ -324,17 +361,145 @@ def show_exercise(exercise: Exercise):
         rx.table.cell(exercise.tags, max_width="115px"),
         rx.table.cell(
             rx.center(
-                rx.icon_button(
-                    rx.icon("circle-x"),
-                    on_click=lambda: ExerciseState.delete_exercise(getattr(exercise, "id")),
-                    size="2",
-                    variant="ghost",
-                    color_scheme="red",
+                rx.hstack(
+                    rx.icon_button(
+                        rx.icon("circle-x"),
+                        on_click=lambda: ExerciseState.delete_exercise(getattr(exercise, "id")),
+                        size="2",
+                        variant="ghost",
+                        color_scheme="red",
+                    ),
+                    edit_exercise(exercise),
                 ),
+                padding_left="1em",
             ),
         ),
         style={"_hover": {"bg": rx.color("gray", 3)}},
         align="center"
+    )
+
+
+def edit_exercise(exercise: Exercise):
+    """Edit exercises on page."""
+    return rx.dialog.root(
+        rx.dialog.trigger(
+            rx.button(
+                rx.icon("wrench", size=22),
+                color_scheme="orange",
+                size="2",
+                variant="ghost",
+                on_click=lambda: ExerciseState.get_exercise(exercise),
+            ),
+            padding_left="1em",
+        ),
+        rx.dialog.content(
+            rx.hstack(
+                rx.badge(
+                    rx.icon(tag="wrench", size=34),
+                    color_scheme="orange",
+                    radius="full",
+                ),
+                rx.vstack(
+                    rx.dialog.title(
+                        "Edit Exercise",
+                        weight="bold",
+                        margin="0",
+                    ),
+                    rx.dialog.description(
+                        "Update already existing exercise",
+                    ),
+                    spacing="1",
+                    height="100%",
+                    align_items="start",
+                    justify_content="start",
+                ),
+                height="100%",
+                spacing="4",
+                margin_bottom="1.5em",
+                align_items="start",
+                width="100%",
+            ),
+            rx.form(
+                rx.text(
+                    "Title: ",
+                    size="3",
+                    weight="medium",
+                    text_align="left",
+                    width="100%",
+                    padding_bottom="0.5em",
+                ),
+                rx.input(
+                    default_value=exercise.title,
+                    placeholder="exercise title",
+                    size="3",
+                    width="100%",
+                    type="text",
+                    name="title",
+                ),
+                rx.text(
+                    "Description: ",
+                    size="3",
+                    weight="medium",
+                    text_align="left",
+                    width="100%",
+                    padding_top="1.5em",
+                    padding_bottom="0.5em",
+                ),
+                rx.text_area(
+                    exercise.description,
+                    placeholder="describe the task here",
+                    size="3",
+                    width="100%",
+                    height="150px",
+                    type="text",
+                    name="description",
+                ),
+                rx.text(
+                    "Tag: ",
+                    size="3",
+                    weight="medium",
+                    text_align="left",
+                    width="100%",
+                    padding_top="1.5em",
+                    padding_bottom="0.5em",
+                ),
+                rx.hstack(
+                    rx.hstack(
+                        rx.center(
+                            rx.select(
+                                items=ExerciseState.tag_names,
+                                name="ex-tag",
+                                value=ExerciseState.current_tag,
+                                on_change=lambda value: ExerciseState.set_current_tag(value),
+                            ),
+                            spacing="3",
+                        ),
+                        flex="1",
+                    ),
+                    rx.dialog.close(
+                        rx.button(
+                            "Cancel",
+                            color_scheme="gray",
+                        ),
+                    ),
+                    rx.form.submit(
+                        rx.dialog.close(
+                            rx.button("Update Task",
+                                      color_scheme="orange",
+                                      type="submit",
+                                      ),
+                            as_child=True,
+                        ),
+                        padding_bottom="0.5em",
+                    ),
+                    spacing="2",
+                ),
+                # update exercise
+                on_submit=ExerciseState.update_exercise,
+                reset_on_submit=False,
+                enter_key_submit=True,
+            ),
+        ),
     )
 
 
@@ -380,7 +545,7 @@ def exercise_table():
                     header_cell("Task", "briefcase-business"),
                     header_cell("Description", "book-open-text"),
                     header_cell("Tag", "tag"),
-                    rx.table.column_header_cell("Delete", align="center"),
+                    rx.table.column_header_cell("Delete | Edit", align="center"),
                 ),
             ),
             # dynamically render each new entry
