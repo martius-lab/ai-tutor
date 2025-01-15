@@ -86,7 +86,7 @@ class Exercise(rx.Model, table=True):  # type: ignore
         return f"<Exercise(title='{self.title}', tags={self.tags})>"
 
 
-class ExerciseResult(rx.Model, table=True):
+class ExerciseResult(rx.Model, table=True): # type: ignore
     """
     ExerciseResult model for storing the result of an exercise submitted by a user.
 
