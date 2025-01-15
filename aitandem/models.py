@@ -4,7 +4,7 @@ import reflex as rx
 from passlib.context import CryptContext
 from sqlmodel import Field, Column, JSON, Relationship, DateTime
 from typing import Optional, List
-from datetime import datetime, timezone
+from datetime import datetime
 from sqlalchemy.sql import func
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -111,7 +111,7 @@ class ExerciseResult(rx.Model, table=True):
         sa_column=Column(
             type_=DateTime(timezone=True),
             default=func.now(),  # datetime of server
-            onupdate=func.now(),  # time_stamp gets updated if database entry is modified
+            onupdate=func.now(),  # time_stamp pdated when database entry is modified
             nullable=False,
         )
     )
