@@ -1,8 +1,9 @@
 """retrieve the users role"""
 
 from aitandem.auth_session import AuthSession
-from sqlmodel import Session
+from sqlmodel import Session, select
 from aitandem.components.error_box import error_popup
+from aitandem.models import User
 
 
 class RoleNotFoundError(Exception):
@@ -20,11 +21,22 @@ def get_user_role(session_id: str) -> str:
         str: The users role ("student" or "teacher"), or an error
     """
     with Session() as session:
-        auth_session = session.get(
-            AuthSession, session_id
-        )  # get the current session details
+        # find user ID based on session ID
+        auth_session = session.get(AuthSession, session_id)
+
         if auth_session:
-            return auth_session.role
+            # get user from user ID
+            user = session.exec(
+                select(User).where(User.id == auth_session.user_id)
+            ).first()
+
+            if user:
+                return user.role  # if it exists, return the role
+            else:
+                error_popup("User not found!")
+                raise RoleNotFoundError(
+                    "Cannot find user associated with this session!"
+                )
         else:
-            error_popup("Unknown role!")
-            raise RoleNotFoundError("The user has an invalid role!")
+            error_popup("Invalid session!")
+            raise RoleNotFoundError("No valid session found!")
