@@ -6,6 +6,11 @@ from sqlmodel import select
 from aitandem.models import Exercise
 from typing import List, Optional
 
+class ExercisesState(rx.State):
+    """State for managing exercises."""
+
+    
+
 
 def fetch_exercises(session_id: Optional[str] = None) -> List[Exercise]:
     """
