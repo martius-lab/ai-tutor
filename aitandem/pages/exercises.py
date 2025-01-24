@@ -11,6 +11,12 @@ class ExercisesState(rx.State):
 
     exercises: List[Exercise] = [] 
 
+    def on_mount(self):
+        """
+        Automatically fetch exercises when page loads
+        """
+        self.fetch_exercises()
+        
     def fetch_exercises(self):
         """
         Fetch exercises from database
