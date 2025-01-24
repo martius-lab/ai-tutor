@@ -11,6 +11,7 @@ class ExercisesState(rx.State):
 
     exercises: List[Exercise] = []
     has_exercises: bool = False
+    has_tags: bool = False
 
     def on_mount(self):
         """
@@ -27,7 +28,8 @@ class ExercisesState(rx.State):
                 select(Exercise)
             ).all()  # select all exercises from database
             self.exercises = exercises
-            has_exercises = len(exercises) > 0  # check if exercises exist
+            self.has_exercises = len(exercises) > 0  # check if exercises exist
+            self.has_tags = any(len(exercise.tags) > 0 for exercise in exercises)  # check if tags exist
 
 def render_exercise_card(exercise: Exercise) -> rx.Component:
     """Render exercises as cards"""
@@ -39,16 +41,17 @@ def render_exercise_card(exercise: Exercise) -> rx.Component:
                 rx.text(f"Description: {exercise.description}", size="2"),
             ),
             rx.cond(  # display tags if they exist
-                len(exercise.tags) > 0,
+                ExercisesState.has_tags, # if there are tags
                 rx.hstack(
                     rx.text("Tags:", weight="bold"),
                     rx.hstack(
-                        *[
-                            rx.badge(tag, variant="soft", color_scheme="blue")
-                            for tag in exercise.tags
-                        ],
+                        rx.foreach(
+                            exercise.tags,
+                            lambda tag: rx.badge(tag, variant="soft", color_scheme="blue")
+                        ),
                         spacing="2",
                     ),
+                ),
                 ),
             ),
             rx.cond(  # display image if it exists
