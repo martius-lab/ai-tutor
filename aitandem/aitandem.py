@@ -13,10 +13,6 @@ class State(rx.State):
 
     ...
 
-
-with rx.session() as session:  # create a session
-    SQLModel.metadata.create_all(session.bind)  # create the database
-
 app = rx.App()
 app.add_page(pages.home_default, route="/")
 app.add_page(pages.settings_default, route="/settings")
