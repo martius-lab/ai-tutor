@@ -1,7 +1,6 @@
 """Welcome to Reflex! This file outlines the steps to create a basic app."""
 
 import reflex as rx
-from sqlmodel import SQLModel
 
 from . import (
     pages,
@@ -13,6 +12,7 @@ class State(rx.State):
 
     ...
 
+
 app = rx.App()
 app.add_page(pages.home_default, route="/")
 app.add_page(pages.settings_default, route="/settings")
@@ -20,6 +20,7 @@ app.add_page(pages.login_default, route="/login")
 app.add_page(pages.profile_default, route="/profile")
 app.add_page(pages.registration_default, route="/register")
 app.add_page(
-    pages.exercises_default, route="/exercises",
-    on_load=pages.exercises.ExercisesState.fetch_exercises
+    pages.exercises_default,
+    route="/exercises",
+    on_load=pages.exercises.ExercisesState.fetch_exercises,
 )

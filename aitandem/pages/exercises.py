@@ -4,7 +4,8 @@ to view and add new exercises."""
 import reflex as rx
 from sqlmodel import select
 from aitandem.models import Exercise
-from typing import List, Optional
+from typing import List
+
 
 class ExercisesState(rx.State):
     """State for managing exercises."""
@@ -18,7 +19,7 @@ class ExercisesState(rx.State):
         Automatically fetch exercises when page loads
         """
         self.fetch_exercises()
-        
+
     def fetch_exercises(self):
         """
         Fetch exercises from database
@@ -29,7 +30,9 @@ class ExercisesState(rx.State):
             ).all()  # select all exercises from database
             self.exercises = exercises
             self.has_exercises = len(exercises) > 0  # check if exercises exist
-            self.has_tags = any(len(exercise.tags) > 0 for exercise in exercises)  # check if tags exist
+            self.has_tags = any(
+                len(exercise.tags) > 0 for exercise in exercises
+            )  # check if tags exist
 
 
 def render_exercise_card(exercise: Exercise) -> rx.Component:
@@ -48,7 +51,9 @@ def render_exercise_card(exercise: Exercise) -> rx.Component:
                     rx.hstack(
                         rx.foreach(
                             exercise.tags,
-                            lambda tag: rx.badge(tag, variant="soft", color_scheme="blue")
+                            lambda tag: rx.badge(
+                                tag, variant="soft", color_scheme="blue"
+                            ),
                         ),
                         spacing="2",
                     ),
@@ -75,7 +80,7 @@ def render_exercises() -> rx.Component:
         rx.vstack(
             rx.foreach(
                 ExercisesState.exercises,  # iterate through exercises and render cards
-                render_exercise_card
+                render_exercise_card,
             ),
             spacing="4",
             width="100%",
