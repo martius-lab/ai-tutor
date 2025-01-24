@@ -19,4 +19,7 @@ app.add_page(pages.settings_default, route="/settings")
 app.add_page(pages.login_default, route="/login")
 app.add_page(pages.profile_default, route="/profile")
 app.add_page(pages.registration_default, route="/register")
-app.add_page(pages.exercises_default, route="/exercises")
+app.add_page(
+    pages.exercises_default, route="/exercises",
+    on_load=pages.exercises.ExercisesState.fetch_exercises
+)
