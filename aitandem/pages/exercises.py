@@ -9,7 +9,8 @@ from typing import List, Optional
 class ExercisesState(rx.State):
     """State for managing exercises."""
 
-    exercises: List[Exercise] = [] 
+    exercises: List[Exercise] = []
+    has_exercises: bool = False
 
     def on_mount(self):
         """
@@ -26,6 +27,7 @@ class ExercisesState(rx.State):
                 select(Exercise)
             ).all()  # select all exercises from database
             self.exercises = exercises
+            has_exercises = len(exercises) > 0  # check if exercises exist
 
 def render_exercise_card(exercise: Exercise) -> rx.Component:
     """Render exercises as cards"""
@@ -65,11 +67,13 @@ def render_exercise_card(exercise: Exercise) -> rx.Component:
 
 def render_exercises() -> rx.Component:
     """Render the list of exercises"""
-    exercises = fetch_exercises()  # create a list of the fetched exercises
     return rx.cond(
-        len(exercises) > 0,  # if they exist
+        ExercisesState.has_exercises,  # if they exist
         rx.vstack(
-            *[render_exercise_card(exercise) for exercise in exercises],
+            rx.foreach(
+                ExercisesState.exercises,  # iterate through exercises and render cards
+                render_exercise_card
+            ),
             spacing="4",
             width="100%",
         ),
