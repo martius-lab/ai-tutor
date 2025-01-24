@@ -9,19 +9,17 @@ from typing import List, Optional
 class ExercisesState(rx.State):
     """State for managing exercises."""
 
-    
+    exercises: List[Exercise] = [] 
 
-
-def fetch_exercises(session_id: Optional[str] = None) -> List[Exercise]:
-    """
-    Fetch exercises from the database
-    """
-    with rx.session() as session:
-        exercises = session.exec(
-            select(Exercise)
-        ).all()  # select all exercises from database
-        return exercises
-
+    def fetch_exercises(self):
+        """
+        Fetch exercises from database
+        """
+        with rx.session() as session:
+            exercises = session.exec(
+                select(Exercise)
+            ).all()  # select all exercises from database
+            self.exercises = exercises
 
 def render_exercise_card(exercise: Exercise) -> rx.Component:
     """Render exercises as cards"""
