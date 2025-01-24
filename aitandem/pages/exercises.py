@@ -31,6 +31,7 @@ class ExercisesState(rx.State):
             self.has_exercises = len(exercises) > 0  # check if exercises exist
             self.has_tags = any(len(exercise.tags) > 0 for exercise in exercises)  # check if tags exist
 
+
 def render_exercise_card(exercise: Exercise) -> rx.Component:
     """Render exercises as cards"""
     return rx.card(  # create a card for each exercise
@@ -41,7 +42,7 @@ def render_exercise_card(exercise: Exercise) -> rx.Component:
                 rx.text(f"Description: {exercise.description}", size="2"),
             ),
             rx.cond(  # display tags if they exist
-                ExercisesState.has_tags, # if there are tags
+                ExercisesState.has_tags,
                 rx.hstack(
                     rx.text("Tags:", weight="bold"),
                     rx.hstack(
@@ -51,7 +52,6 @@ def render_exercise_card(exercise: Exercise) -> rx.Component:
                         ),
                         spacing="2",
                     ),
-                ),
                 ),
             ),
             rx.cond(  # display image if it exists
