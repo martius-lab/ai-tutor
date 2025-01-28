@@ -6,6 +6,8 @@ from sqlmodel import select, or_
 
 
 class ExerciseState(rx.State):
+    """State for the exercises page."""
+
     exercises: list[Exercise] = []
     tag_list: list[Tag] = []
     tag_names: list[str] = []  # the tag.names as a str
@@ -17,6 +19,7 @@ class ExerciseState(rx.State):
     def set_current_tag(self, tag: str):
         """Set the current tag."""
         self.current_tag = tag
+        print("current tag is", self.current_tag)
 
     def add_selected_tag(self):
         """Add the currently selected tag to the list of selected tags."""
@@ -27,7 +30,6 @@ class ExerciseState(rx.State):
             # reset current tag after adding
             self.current_tag = ""
         print("tags in der liste momentan: ", self.selected_tags)
-
 
     def remove_selected_tag(self, tag: str):
         """Remove a tag from the list of selected tags."""
@@ -101,7 +103,9 @@ class ExerciseState(rx.State):
                 return rx.window_alert("Please enter a tag name.")
 
             # check if tag exists
-            existing_tag = session.exec(select(Tag).where(Tag.name == form_data["tag"])).one_or_none()
+            existing_tag = session.exec(
+                select(Tag).where(Tag.name == form_data["tag"])
+            ).one_or_none()
             if existing_tag is not None:
                 return rx.window_alert("Tag exists already.")
 
@@ -143,11 +147,13 @@ class ExerciseState(rx.State):
             invert=True,
         )
 
-    def delete_tag(self, tag_name: str):
+    def delete_tag(self):
         """Delete a tag from the db."""
         with rx.session() as session:
             # fetch the tag by its name
-            tag_to_delete = session.exec(select(Tag).where(Tag.name == tag_name)).first()
+            tag_to_delete = session.exec(
+                select(Tag).where(Tag.name == self.current_tag)
+            ).first()
 
             # no tag selected
             if tag_to_delete is None:
@@ -286,12 +292,12 @@ def add_exercise_button() -> rx.Component:
                                 items=ExerciseState.tag_names,
                                 placeholder="Select a tag here",
                                 value=ExerciseState.current_tag,
-                                on_change=lambda value: ExerciseState.set_current_tag(value),
+                                on_change=ExerciseState.set_current_tag,
                                 multiple=True,
                             ),
                             rx.icon_button(
                                 rx.icon("circle-x"),
-                                on_click=lambda: ExerciseState.delete_tag(ExerciseState.current_tag),
+                                on_click=ExerciseState.delete_tag,
                                 size="2",
                                 variant="ghost",
                                 color_scheme="red",
@@ -310,10 +316,11 @@ def add_exercise_button() -> rx.Component:
                     ),
                     rx.form.submit(
                         rx.dialog.close(
-                            rx.button("Add Task",
-                                      color_scheme="grass",
-                                      type="submit",
-                                      ),
+                            rx.button(
+                                "Add Task",
+                                color_scheme="grass",
+                                type="submit",
+                            ),
                             as_child=True,
                         ),
                         padding_bottom="0.5em",
@@ -342,7 +349,7 @@ def add_exercise_button() -> rx.Component:
                                     spacing="1",
                                     align_items="center",
                                 ),
-                                on_click=lambda: ExerciseState.remove_selected_tag(tag),
+                                on_click=lambda: ExerciseState.remove_selected_tag(tag),  # type: ignore
                                 color_scheme="grass",
                                 cursor="pointer",
                                 size="3",
@@ -373,46 +380,50 @@ def add_exercise_button() -> rx.Component:
 
 def tag_dialog():
     """Dialog for adding new tags."""
-    return rx.dialog.root(
-        rx.dialog.trigger(
-            rx.button(
-                "New Selectable Tags",
-                margin_top="0.5em",
-                color_scheme="orange",
-                shade="7",
-            ),
-        ),
-        rx.dialog.content(
-            rx.form(
-                rx.text("Name", padding_bottom="0.5em"),
-                rx.input(
-                    placeholder="Enter a new tag here. It can be selected afterwards.",
-                    name="tag",
+    return (
+        rx.dialog.root(
+            rx.dialog.trigger(
+                rx.button(
+                    "New Selectable Tags",
+                    margin_top="0.5em",
+                    color_scheme="orange",
+                    shade="7",
                 ),
-                rx.center(
-                    rx.dialog.close(
-                        rx.button(
-                            "Cancel",
-                            color_scheme="red",
-                            type="button",
-                        ),
+            ),
+            rx.dialog.content(
+                rx.form(
+                    rx.text("Name", padding_bottom="0.5em"),
+                    rx.input(
+                        placeholder="Enter a new tag here. "
+                        "It can be selected afterwards.",
+                        name="tag",
                     ),
-                    rx.form.submit(
+                    rx.center(
                         rx.dialog.close(
-                            rx.button("Add Tag",
-                                      color_scheme="grass",
-                                      type="submit",
-                                      ),
+                            rx.button(
+                                "Cancel",
+                                color_scheme="red",
+                                type="button",
+                            ),
                         ),
+                        rx.form.submit(
+                            rx.dialog.close(
+                                rx.button(
+                                    "Add Tag",
+                                    color_scheme="grass",
+                                    type="submit",
+                                ),
+                            ),
+                        ),
+                        padding_top="1em",
+                        spacing="2",
                     ),
-                    padding_top="1em",
-                    spacing="2",
+                    # submit new tags
+                    on_submit=ExerciseState.submit_tag,
                 ),
-                # submit new tags
-                on_submit=ExerciseState.submit_tag,
             ),
         ),
-    ),
+    )
 
 
 def show_exercise(exercise: Exercise):
@@ -425,9 +436,7 @@ def show_exercise(exercise: Exercise):
             rx.flex(
                 rx.foreach(
                     exercise.tags,
-                    lambda tag: rx.text(
-                        tag + ","
-                    ),
+                    lambda tag: rx.text(tag + ","),
                 ),
                 wrap="wrap",
             ),
@@ -441,7 +450,7 @@ def show_exercise(exercise: Exercise):
                 rx.hstack(
                     rx.icon_button(
                         rx.icon("circle-x"),
-                        on_click=lambda: ExerciseState.delete_exercise(getattr(exercise, "id")),
+                        on_click=lambda: ExerciseState.delete_exercise(exercise.id),  # type: ignore
                         size="2",
                         variant="ghost",
                         color_scheme="red",
@@ -452,7 +461,7 @@ def show_exercise(exercise: Exercise):
             ),
         ),
         style={"_hover": {"bg": rx.color("gray", 3)}},
-        align="center"
+        align="center",
     )
 
 
@@ -465,7 +474,7 @@ def edit_exercise(exercise: Exercise):
                 color_scheme="orange",
                 size="2",
                 variant="ghost",
-                on_click=lambda: ExerciseState.get_exercise(exercise),
+                on_click=lambda: ExerciseState.get_exercise(exercise),  # type: ignore
             ),
             padding_left="1em",
         ),
@@ -547,7 +556,7 @@ def edit_exercise(exercise: Exercise):
                                 items=ExerciseState.tag_names,
                                 placeholder="Select a tag here",
                                 value=ExerciseState.current_tag,
-                                on_change=lambda value: ExerciseState.set_current_tag(value),
+                                on_change=ExerciseState.set_current_tag,
                                 multiple=True,
                             ),
                         ),
@@ -561,10 +570,11 @@ def edit_exercise(exercise: Exercise):
                     ),
                     rx.form.submit(
                         rx.dialog.close(
-                            rx.button("Add Task",
-                                      color_scheme="grass",
-                                      type="submit",
-                                      ),
+                            rx.button(
+                                "Add Task",
+                                color_scheme="grass",
+                                type="submit",
+                            ),
                             as_child=True,
                         ),
                         padding_bottom="0.5em",
@@ -593,7 +603,7 @@ def edit_exercise(exercise: Exercise):
                                     spacing="1",
                                     align_items="center",
                                 ),
-                                on_click=lambda: ExerciseState.remove_selected_tag(tag),
+                                on_click=lambda: ExerciseState.remove_selected_tag(tag),  # type: ignore
                                 color_scheme="grass",
                                 cursor="pointer",
                                 size="3",
@@ -634,47 +644,49 @@ def header_cell(text: str, icon: str):
 
 def exercise_table():
     """The main table"""
-    return rx.fragment(
-        rx.flex(
-            rx.box(
-                # search bar
-                rx.input(
-                    rx.input.slot(rx.icon("search")),
-                    placeholder="Search...",
-                    size="3",
-                    max_width="250px",
-                    style={"_hover": {"bg": rx.color("gray", 2)}},
-                    on_change=lambda value: ExerciseState.search_exercises(value),
+    return (
+        rx.fragment(
+            rx.flex(
+                rx.box(
+                    # search bar
+                    rx.input(
+                        rx.input.slot(rx.icon("search")),
+                        placeholder="Search...",
+                        size="3",
+                        max_width="250px",
+                        style={"_hover": {"bg": rx.color("gray", 2)}},
+                        on_change=lambda value: ExerciseState.search_exercises(value),
+                    ),
+                    flex="1",
                 ),
-                flex="1",
-            ),
-            # the button for adding exercises
-            rx.box(
-                add_exercise_button(),
-            ),
-            width="100%",
-        ),
-        # head cells for the main table
-        rx.table.root(
-            rx.table.header(
-                rx.table.row(
-                    header_cell("ID", "file-digit"),
-                    header_cell("Task", "briefcase-business"),
-                    header_cell("Description", "book-open-text"),
-                    header_cell("Tags", "tag"),
-                    rx.table.column_header_cell("Delete | Edit", align="center"),
+                # the button for adding exercises
+                rx.box(
+                    add_exercise_button(),
                 ),
+                width="100%",
             ),
-            # dynamically render each new entry
-            rx.table.body(rx.foreach(ExerciseState.exercises, show_exercise)),
-            on_mount=ExerciseState.load_exercises,
-            variant="surface",
-            size="3",
-            width="85vw",
-            overflow_y="auto",
-            max_height="70vh",
+            # head cells for the main table
+            rx.table.root(
+                rx.table.header(
+                    rx.table.row(
+                        header_cell("ID", "file-digit"),
+                        header_cell("Task", "briefcase-business"),
+                        header_cell("Description", "book-open-text"),
+                        header_cell("Tags", "tag"),
+                        rx.table.column_header_cell("Delete | Edit", align="center"),
+                    ),
+                ),
+                # dynamically render each new entry
+                rx.table.body(rx.foreach(ExerciseState.exercises, show_exercise)),
+                on_mount=ExerciseState.load_exercises,
+                variant="surface",
+                size="3",
+                width="85vw",
+                overflow_y="auto",
+                max_height="70vh",
+            ),
         ),
-    ),
+    )
 
 
 @rx.page(route="/add-exercises")
