@@ -19,7 +19,6 @@ class ExerciseState(rx.State):
     def set_current_tag(self, tag: str):
         """Set the current tag."""
         self.current_tag = tag
-        print("current tag is", self.current_tag)
 
     def add_selected_tag(self):
         """Add the currently selected tag to the list of selected tags."""
@@ -29,7 +28,6 @@ class ExerciseState(rx.State):
             self.selected_tags.append(self.current_tag)
             # reset current tag after adding
             self.current_tag = ""
-        print("tags in der liste momentan: ", self.selected_tags)
 
     def remove_selected_tag(self, tag: str):
         """Remove a tag from the list of selected tags."""
@@ -38,7 +36,6 @@ class ExerciseState(rx.State):
 
     def submit_exercise(self, form_data: dict):
         """Add exercises to db."""
-        print("tags vor adden momentan: ", self.selected_tags)
         with rx.session() as session:
             # check if title is empty
             if not form_data["title"]:
