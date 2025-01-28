@@ -10,12 +10,57 @@ class ExerciseState(rx.State):
     tag_list: list[Tag] = []
     tag_names: list[str] = []  # the tag.names as a str
     search_value: str = ""
-    current_tag: str = ""
+    current_tag: str = ""  # the currently selected tag from the select window
     current_exercise: Exercise = Exercise()
+    selected_tags: list[str] = []  # List to store selected tags temporarily
 
     def set_current_tag(self, tag: str):
         """Set the current tag."""
         self.current_tag = tag
+
+    def add_selected_tag(self):
+        """Add the currently selected tag to the list of selected tags."""
+        if not self.current_tag:
+            return rx.window_alert("Select a tag first.")
+        if self.current_tag and self.current_tag not in self.selected_tags:
+            self.selected_tags.append(self.current_tag)
+            # reset current tag after adding
+            self.current_tag = ""
+        print("tags in der liste momentan: ", self.selected_tags)
+
+
+    def remove_selected_tag(self, tag: str):
+        """Remove a tag from the list of selected tags."""
+        if tag in self.selected_tags:
+            self.selected_tags.remove(tag)
+
+    def submit_exercise(self, form_data: dict):
+        """Add exercises to db."""
+        print("tags vor adden momentan: ", self.selected_tags)
+        with rx.session() as session:
+            # check if title is empty
+            if not form_data["title"]:
+                return rx.window_alert("Please enter a title for the exercise.")
+            # create instance and fill its fields
+            new_exercise = Exercise()
+            new_exercise.title = form_data["title"]
+            new_exercise.description = form_data["description"]
+            # use the selected tags
+            new_exercise.tags = self.selected_tags
+            # add exercises to db
+            session.add(new_exercise)
+            session.commit()
+            # reload exercises
+            self.load_exercises()
+            # Clear the selected tags after submission
+            self.selected_tags = []
+
+        return rx.toast.success(
+            "Exercise has been added.",
+            duration=2500,
+            position="bottom-center",
+            invert=True,
+        )
 
     def search_exercises(self, search_value):
         """Search for a specific exercise."""
@@ -73,48 +118,23 @@ class ExerciseState(rx.State):
                 invert=True,
             )
 
-    def submit_exercise(self, form_data: dict):
-        """Add exercises to db."""
-        with rx.session() as session:
-            # check if title is empty
-            if not form_data["title"]:
-                return rx.window_alert("Please enter a title for the exercise.")
-            # create instance and fill its fields
-            new_exercise = Exercise()
-            new_exercise.title = form_data["title"]
-            new_exercise.description = form_data["description"]
-            new_exercise.tags = form_data["ex-tag"]
-            # add exercises to db
-            session.add(new_exercise)
-            session.commit()
-            # reload exercises
-            self.load_exercises()
-
-        return rx.toast.success(
-            "Exercise has been added.",
-            duration=2500,
-            position="bottom-center",
-            invert=True,
-        )
-
     def update_exercise(self, form_data: dict):
         """Update exercises in db."""
         with rx.session() as session:
             updated_exercise = session.exec(
                 select(Exercise).where(Exercise.id == self.current_exercise.id)
             ).first()
-            # delete old entry
-            form_data.pop("id", None)
-            # update exercise in db
+            # update fields
             updated_exercise.title = form_data["title"]
             updated_exercise.description = form_data["description"]
-            updated_exercise.tags = form_data["ex-tag"]
-            # add exercises to db
+            updated_exercise.tags = self.selected_tags
+
             session.add(updated_exercise)
             session.commit()
-            # reload exercises
             self.load_exercises()
 
+        # reset selected tags
+        self.selected_tags = []
 
         return rx.toast.success(
             "Exercise updated successfully.",
@@ -172,11 +192,13 @@ class ExerciseState(rx.State):
         """Get an exercise from the db."""
         self.current_exercise = exercise
         with rx.session() as session:
+            # load exercise object from db
             exercise = session.exec(
-            select(Exercise)
-            .where(Exercise.id == self.current_exercise.id)
-        ).first()
-        self.current_tag = exercise.tags
+                select(Exercise).where(Exercise.id == self.current_exercise.id)
+            ).first()
+        # save Tags in selected_tags
+        self.selected_tags = exercise.tags.copy() if exercise.tags else []
+
 
 def add_exercise_button() -> rx.Component:
     """Button for adding new exercises."""
@@ -225,7 +247,7 @@ def add_exercise_button() -> rx.Component:
                     padding_bottom="0.5em",
                 ),
                 rx.input(
-                    placeholder="exercise title",
+                    placeholder="Exercise title",
                     size="3",
                     width="100%",
                     type="text",
@@ -241,7 +263,7 @@ def add_exercise_button() -> rx.Component:
                     padding_bottom="0.5em",
                 ),
                 rx.text_area(
-                    placeholder="describe the task here",
+                    placeholder="Describe the task here",
                     size="3",
                     width="100%",
                     height="150px",
@@ -249,7 +271,7 @@ def add_exercise_button() -> rx.Component:
                     name="description",
                 ),
                 rx.text(
-                    "Tag: ",
+                    "Tags: ",
                     size="3",
                     weight="medium",
                     text_align="left",
@@ -263,9 +285,9 @@ def add_exercise_button() -> rx.Component:
                             rx.select(
                                 items=ExerciseState.tag_names,
                                 placeholder="Select a tag here",
-                                name="ex-tag",
                                 value=ExerciseState.current_tag,
                                 on_change=lambda value: ExerciseState.set_current_tag(value),
+                                multiple=True,
                             ),
                             rx.icon_button(
                                 rx.icon("circle-x"),
@@ -283,7 +305,7 @@ def add_exercise_button() -> rx.Component:
                     rx.dialog.close(
                         rx.button(
                             "Cancel",
-                            color_scheme="gray",
+                            color_scheme="red",
                         ),
                     ),
                     rx.form.submit(
@@ -297,6 +319,44 @@ def add_exercise_button() -> rx.Component:
                         padding_bottom="0.5em",
                     ),
                     spacing="2",
+                ),
+                rx.vstack(
+                    # a button to link the tags to the current exercise
+                    rx.button(
+                        "Link Tag To Exercise",
+                        type="button",
+                        on_click=ExerciseState.add_selected_tag,
+                        margin_top="0.5em",
+                    ),
+                    # show the linked tags visually
+                    rx.hstack(
+                        rx.foreach(
+                            ExerciseState.selected_tags,
+                            lambda tag: rx.badge(
+                                rx.hstack(
+                                    rx.text(tag),
+                                    rx.icon(
+                                        "circle-x",
+                                        size=16,
+                                    ),
+                                    spacing="1",
+                                    align_items="center",
+                                ),
+                                on_click=lambda: ExerciseState.remove_selected_tag(tag),
+                                color_scheme="grass",
+                                cursor="pointer",
+                                size="3",
+                                style={
+                                    "_hover": {
+                                        "background_color": "red",
+                                        "color": "black",
+                                    }
+                                },
+                            ),
+                        ),
+                        margin_top="0.5em",
+                        margin_bottom="0.5em",
+                    ),
                 ),
                 # load new tags
                 on_mount=ExerciseState.load_tags,
@@ -316,14 +376,17 @@ def tag_dialog():
     return rx.dialog.root(
         rx.dialog.trigger(
             rx.button(
-                "New tag",
+                "New Selectable Tags",
+                margin_top="0.5em",
+                color_scheme="orange",
+                shade="7",
             ),
         ),
         rx.dialog.content(
             rx.form(
                 rx.text("Name", padding_bottom="0.5em"),
                 rx.input(
-                    placeholder="Enter new tag here",
+                    placeholder="Enter a new tag here. It can be selected afterwards.",
                     name="tag",
                 ),
                 rx.center(
@@ -358,7 +421,21 @@ def show_exercise(exercise: Exercise):
         rx.table.cell(exercise.id),
         rx.table.cell(exercise.title, max_width="175px"),
         rx.table.cell(exercise.description, max_width="400px"),
-        rx.table.cell(exercise.tags, max_width="115px"),
+        rx.table.cell(
+            rx.flex(
+                rx.foreach(
+                    exercise.tags,
+                    lambda tag: rx.text(
+                        tag + ","
+                    ),
+                ),
+                wrap="wrap",
+            ),
+            max_width="100px",
+            max_height="100px",
+            overflow="auto",
+            padding="1em",
+        ),
         rx.table.cell(
             rx.center(
                 rx.hstack(
@@ -430,7 +507,7 @@ def edit_exercise(exercise: Exercise):
                 ),
                 rx.input(
                     default_value=exercise.title,
-                    placeholder="exercise title",
+                    placeholder="Exercise title",
                     size="3",
                     width="100%",
                     type="text",
@@ -447,7 +524,7 @@ def edit_exercise(exercise: Exercise):
                 ),
                 rx.text_area(
                     exercise.description,
-                    placeholder="describe the task here",
+                    placeholder="Describe the task here",
                     size="3",
                     width="100%",
                     height="150px",
@@ -455,7 +532,7 @@ def edit_exercise(exercise: Exercise):
                     name="description",
                 ),
                 rx.text(
-                    "Tag: ",
+                    "Tags: ",
                     size="3",
                     weight="medium",
                     text_align="left",
@@ -468,24 +545,24 @@ def edit_exercise(exercise: Exercise):
                         rx.center(
                             rx.select(
                                 items=ExerciseState.tag_names,
-                                name="ex-tag",
+                                placeholder="Select a tag here",
                                 value=ExerciseState.current_tag,
                                 on_change=lambda value: ExerciseState.set_current_tag(value),
+                                multiple=True,
                             ),
-                            spacing="3",
                         ),
                         flex="1",
                     ),
                     rx.dialog.close(
                         rx.button(
                             "Cancel",
-                            color_scheme="gray",
+                            color_scheme="red",
                         ),
                     ),
                     rx.form.submit(
                         rx.dialog.close(
-                            rx.button("Update Task",
-                                      color_scheme="orange",
+                            rx.button("Add Task",
+                                      color_scheme="grass",
                                       type="submit",
                                       ),
                             as_child=True,
@@ -494,6 +571,46 @@ def edit_exercise(exercise: Exercise):
                     ),
                     spacing="2",
                 ),
+                rx.vstack(
+                    # a button to link the tags to the current exercise
+                    rx.button(
+                        "Link Tag To Exercise",
+                        type="button",
+                        on_click=ExerciseState.add_selected_tag,
+                        margin_top="0.5em",
+                    ),
+                    # show the linked tags visually
+                    rx.hstack(
+                        rx.foreach(
+                            ExerciseState.selected_tags,
+                            lambda tag: rx.badge(
+                                rx.hstack(
+                                    rx.text(tag),
+                                    rx.icon(
+                                        "circle-x",
+                                        size=16,
+                                    ),
+                                    spacing="1",
+                                    align_items="center",
+                                ),
+                                on_click=lambda: ExerciseState.remove_selected_tag(tag),
+                                color_scheme="grass",
+                                cursor="pointer",
+                                size="3",
+                                style={
+                                    "_hover": {
+                                        "background_color": "red",
+                                        "color": "black",
+                                    }
+                                },
+                            ),
+                        ),
+                        margin_top="0.5em",
+                        margin_bottom="0.5em",
+                    ),
+                ),
+                # load tags
+                on_mount=ExerciseState.load_tags,
                 # update exercise
                 on_submit=ExerciseState.update_exercise,
                 reset_on_submit=False,
@@ -544,7 +661,7 @@ def exercise_table():
                     header_cell("ID", "file-digit"),
                     header_cell("Task", "briefcase-business"),
                     header_cell("Description", "book-open-text"),
-                    header_cell("Tag", "tag"),
+                    header_cell("Tags", "tag"),
                     rx.table.column_header_cell("Delete | Edit", align="center"),
                 ),
             ),
