@@ -2,7 +2,6 @@
 
 import reflex as rx
 
-
 from . import (
     pages,
 )  # ,components: Uncommented so ruff check is passed. Uncomment when using components.
@@ -21,3 +20,8 @@ app.add_page(pages.login_default, route="/login")
 app.add_page(pages.profile_default, route="/profile")
 app.add_page(pages.registration_default, route="/register")
 app.add_page(pages.add_exercises_default, route="/add-exercises")
+app.add_page(
+    pages.exercises_default,
+    route="/exercises",
+    on_load=pages.exercises.ExercisesState.fetch_exercises,
+)
