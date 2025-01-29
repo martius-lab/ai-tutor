@@ -5,6 +5,7 @@ from .profile import profile_default
 from .home import home_default
 from .registration import registration_default
 from .add_excercises import add_exercises_default
+from .exercises import exercises_default
 
 __all__ = [
     "login_default",
@@ -14,4 +15,5 @@ __all__ = [
     "home_default",
     "registration_default",
     "add_exercises_default",
+    "exercises_default",
 ]
