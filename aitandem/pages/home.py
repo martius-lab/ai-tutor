@@ -1,31 +1,18 @@
-"""Docstring."""
+"""This module contains the home page and related components."""
 
 import reflex as rx
+from aitandem.pages.sidebar import sidebar_default
 
 
+@rx.page(route="/")
 def home_default() -> rx.Component:
-    """Homepage."""
-    return rx.container(
-        rx.color_mode.button(position="top-right"),
-        rx.vstack(
-            rx.heading("Welcome to AI Tandem Partner!", size="9"),
-            rx.text(
-                "Get started by talking to your Tandem Partner! ",
-                # rx.code(f"{config.app_name}/{config.app_name}.py"),
-                size="5",
-            ),
-            # register button that redirects to /register
-            rx.center(
-                rx.button(
-                    "Register",
-                    color_scheme="blue",
-                    on_click=rx.redirect("/register"),
-                ),
-                width="100%",
-            ),
-            spacing="5",
-            justify="center",
-            min_height="85vh",
+    """Render the homepage with sidebar."""
+    return rx.hstack(
+        sidebar_default(),  # Sidebar hinzufügen
+        rx.container(
+            rx.heading("Welcome to AI-Tandempartner", size="3"),
+            rx.text("This is the main content area."),
+            width="80%",  # Der Inhalt nimmt 80% der Breite ein
         ),
-        rx.logo(),
+        spacing="4",  # Abstand zwischen den Komponenten
     )
