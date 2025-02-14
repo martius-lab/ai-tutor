@@ -568,8 +568,8 @@ def edit_exercise(exercise: Exercise):
                     rx.form.submit(
                         rx.dialog.close(
                             rx.button(
-                                "Add Task",
-                                color_scheme="grass",
+                                "Update Task",
+                                color_scheme="yellow",
                                 type="submit",
                             ),
                             as_child=True,
