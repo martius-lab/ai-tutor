@@ -18,7 +18,7 @@ class RegistrationState(State):
     success: bool = False  # Boolean to check if registration was a success
 
     async def handle_registration(
-            self, form_data
+        self, form_data
     ) -> AsyncGenerator[rx.event.EventSpec | list[rx.event.EventSpec] | None, None]:
         """Handle registration form on_submit.
 
@@ -93,7 +93,7 @@ class RegistrationState(State):
                 yield rx.toast.error(
                     "Password must contain at least one these "
                     'special characters: [!@#$%^&*(),.?":{}|<>] '
-                    'a blank space also works.',
+                    "a blank space also works.",
                     duration=3500,
                     position="bottom-center",
                     invert=True,
