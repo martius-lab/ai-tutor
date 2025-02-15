@@ -16,10 +16,9 @@ class RegistrationState(State):
     and redirect to login page after registration."""
 
     success: bool = False  # Boolean to check if registration was a success
-    error_message: str = ""  # Empty string for error messages
 
     async def handle_registration(
-        self, form_data
+            self, form_data
     ) -> AsyncGenerator[rx.event.EventSpec | list[rx.event.EventSpec] | None, None]:
         """Handle registration form on_submit.
 
@@ -33,49 +32,84 @@ class RegistrationState(State):
             valid_email_pattern = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
             special_char_pattern = r"[!@#$%^&*(),.?\":{}|<>]"
             if not email:
-                self.error_message = "E-Mail cannot be empty"
+                yield rx.toast.error(
+                    "E-Mail cannot be empty.",
+                    duration=3500,
+                    position="bottom-center",
+                    invert=True,
+                )
                 yield rx.set_focus("email")
                 return
             if not re.match(valid_email_pattern, email):
-                self.error_message = "Please enter a valid E-Mail address"
+                yield rx.toast.error(
+                    "Please enter a valid e-mail address.",
+                    duration=3500,
+                    position="bottom-center",
+                    invert=True,
+                )
                 yield rx.set_focus("email")
                 return
             existing_user = session.exec(
                 select(User).where(User.email == email)
             ).one_or_none()
             if existing_user is not None:
-                self.error_message = (
-                    f"{email} is already registered. Try a different E-Mail"
+                yield rx.toast.error(
+                    f"{email} is already registered. Try a different E-Mail",
+                    duration=3500,
+                    position="bottom-center",
+                    invert=True,
                 )
                 yield [rx.set_value("email", ""), rx.set_focus("email")]
                 return
             password = form_data["password"]
             if not password:
-                self.error_message = "Password cannot be empty"
+                yield rx.toast.error(
+                    "Password cannot be empty.",
+                    duration=3500,
+                    position="bottom-center",
+                    invert=True,
+                )
                 yield rx.set_focus("password")
                 return
             if len(password) < 8:
-                self.error_message = (
-                    "Password too short. Password must be at least 8 characters"
+                yield rx.toast.error(
+                    "Password too short. Password must be at least 8 characters.",
+                    duration=3500,
+                    position="bottom-center",
+                    invert=True,
                 )
                 yield rx.set_focus("password")
                 return
             if not re.search(special_char_pattern, password):
-                self.error_message = (
+                yield rx.toast.error(
                     "Password must contain at least one these "
-                    'special characters: [!@#$%^&*(),.?":{}|<>]'
+                    'special characters: [!@#$%^&*(),.?":{}|<>]',
+                    duration=3500,
+                    position="bottom-center",
+                    invert=True,
                 )
                 yield rx.set_focus("password")
                 return
             if password != form_data["confirm_password"]:
-                self.error_message = "Passwords do not match"
+                yield rx.toast.error(
+                    "Passwords do not match.",
+                    duration=3500,
+                    position="bottom-center",
+                    invert=True,
+                )
+                # reset pw and set focus
                 yield [
                     rx.set_value("confirm_password", ""),
                     rx.set_focus("confirm_password"),
                 ]
                 return
             if not form_data["checkbox"]:
-                self.error_message = "You have to agree to the Terms and Conditions"
+                yield rx.toast.error(
+                    "You have to agree to the Terms and Conditions.",
+                    duration=3500,
+                    position="bottom-center",
+                    invert=True,
+                )
                 yield rx.set_focus("checkbox")
                 return
             # Create the new user and add it to the database.
@@ -86,7 +120,6 @@ class RegistrationState(State):
             session.add(new_user)
             session.commit()
         # Set success and redirect to login page after a brief delay.
-        self.error_message = ""
         self.success = True
         yield rx.set_value("email", "")
         await asyncio.sleep(2)
@@ -210,11 +243,4 @@ def registration_default() -> rx.Component:
             ),
         ),
         register_form,
-        rx.cond(  # conditionally show error messages
-            RegistrationState.error_message != "",
-            rx.text(
-                RegistrationState.error_message,
-                align="center",
-            ),
-        ),
     )
