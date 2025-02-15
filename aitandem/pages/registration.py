@@ -85,12 +85,12 @@ class RegistrationState(State):
             new_user.enabled = True
             session.add(new_user)
             session.commit()
-        # Set success and redirect to home page after a brief delay.
+        # Set success and redirect to login page after a brief delay.
         self.error_message = ""
         self.success = True
         yield rx.set_value("email", "")
         await asyncio.sleep(2)
-        yield [rx.redirect("/"), RegistrationState.set_success(False)]
+        yield [rx.redirect("/login"), RegistrationState.set_success(False)]
 
 
 @rx.page(route="/register")
@@ -176,7 +176,7 @@ def registration_default() -> rx.Component:
                     rx.button("Register", type="submit", size="3", width="100%"),
                     rx.center(
                         rx.text("Already registered?", size="3"),
-                        rx.link("Sign in", href="#", size="3"),
+                        rx.link("Sign in", href="/login", size="3"),
                         opacity="0.8",
                         spacing="2",
                         direction="row",
@@ -201,7 +201,7 @@ def registration_default() -> rx.Component:
                     rx.heading("Registration Successful!"),
                     rx.text(
                         "Your registration was successful,"
-                        " you will be redirected home now."
+                        " you will be redirected to the login page now."
                     ),
                     rx.spinner(size="3"),
                     align="center",
