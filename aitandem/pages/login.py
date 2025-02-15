@@ -24,6 +24,7 @@ class LoginState(State):
         """
         email = form_data["email"]
         password = form_data["password"]
+
         # fetch user
         with rx.session() as session:
             user = (
@@ -31,6 +32,7 @@ class LoginState(State):
                 .scalars()
                 .one_or_none()
             )
+
         # error message for users with enabled != 1
         if user is not None and not user.enabled:
             return rx.toast.error(
@@ -39,6 +41,7 @@ class LoginState(State):
                 position="bottom-center",
                 invert=True,
             )
+
         # error message for non-existing users /wrong E-Mail/password
         if user is None or password is None or not user.verify(password):
             return rx.toast.error(
@@ -47,6 +50,7 @@ class LoginState(State):
                 position="bottom-center",
                 invert=True,
             )
+
         # successful login
         if (
             user is not None
@@ -63,12 +67,16 @@ class LoginState(State):
         if not self.is_hydrated:
             # wait until after hydration to ensure auth_token is known
             return LoginState.redir()  # type: ignore
+
         page = self.router.page.path
+
         if not self.is_authenticated and page != LOGIN_ROUTE:
             self.redirect_to = page
             return rx.redirect(LOGIN_ROUTE)
+
         elif page == LOGIN_ROUTE:
             return rx.redirect("/")
+
         else:
             return None
 

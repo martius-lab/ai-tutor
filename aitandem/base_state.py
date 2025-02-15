@@ -73,11 +73,14 @@ class State(rx.State):
         # already authenticated -> logout
         if self.is_authenticated:
             self.do_logout()
+
         if user_id < 0:
             return
+
         # create token with secrets
         if not self.auth_token:
             self.auth_token = secrets.token_hex(32)
+
         # add authenticated session to DB.
         with rx.session() as session:
             session.add(
