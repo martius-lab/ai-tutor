@@ -5,7 +5,7 @@ import reflex as rx
 from aitandem.states.dialog_state import DialogState
 
 
-def error_popup(trigger_component, description: str):
+def error_popup(description: str):
     """
     output: displays an error popup with the input message shown as a warning
     input: error message as a string (you can define it individually depending on
@@ -18,7 +18,6 @@ def error_popup(trigger_component, description: str):
     )
     """
     return rx.dialog.root(
-        rx.dialog.trigger(trigger_component),  # trigger element
         rx.dialog.content(
             rx.dialog.title("Error!"),  # error title
             rx.dialog.description(description),  # error description
@@ -26,5 +25,6 @@ def error_popup(trigger_component, description: str):
                 rx.button("Close", size="3"),  # closing button
             ),
         ),
+        open=True,
         on_open_change=DialogState.set_opened,  # changes the state
     )
