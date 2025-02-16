@@ -45,7 +45,7 @@ class ExerciseState(rx.State):
             new_exercise.title = form_data["title"]
             new_exercise.description = form_data["description"]
             # use the selected tags
-            new_exercise.tags = self.selected_tags
+            new_exercise.tags = list(self.selected_tags)
             # add exercises to db
             session.add(new_exercise)
             session.commit()
