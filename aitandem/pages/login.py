@@ -1,10 +1,11 @@
-"""Login page, authentication logic and protected pages."""
+"""Login page, authentication logic,
+assign roles when logging in and protected pages."""
 
 import reflex as rx
-
+from aitandem.components.user_roles import get_user_role
+from aitandem.components.error_box import error_popup
 from ..base_state import State
 from ..models import User
-
 from sqlalchemy import select
 
 LOGIN_ROUTE = "/login"
@@ -81,6 +82,16 @@ class LoginState(State):
             return None
 
 
+def handle_student_login(session_id: str) -> rx.Component:
+    """students dashboard"""
+    return rx.redirect("/student_dashboard")
+
+
+def handle_teacher_login(session_id: str) -> rx.Component:
+    """teachers dashboard"""
+    return rx.redirect("/teacher_dashboard")
+
+
 @rx.page(route=LOGIN_ROUTE)
 def login_default() -> rx.Component:
     """Render the login page.
@@ -88,6 +99,16 @@ def login_default() -> rx.Component:
     Returns:
         A reflex component.
     """
+
+    def handle_login(session_id: str) -> rx.Component:
+        user_role = get_user_role(session_id)
+        if user_role == "student":
+            return handle_student_login(session_id)
+        elif user_role == "teacher":
+            return handle_teacher_login(session_id)
+        else:
+            error_popup("Unknown role!")
+
     login_form = rx.form(
         rx.center(
             rx.color_mode.button(position="top-right", type="button"),
