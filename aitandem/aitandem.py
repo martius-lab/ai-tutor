@@ -1,4 +1,5 @@
 """Welcome to Reflex! This file outlines the steps to create a basic app."""
+
 import reflex as rx
 from . import (
     pages,
@@ -10,8 +11,8 @@ class State(rx.State):
     """The app state."""
 
     async def mount(self):
+        """Mount admin user method"""
         await create_admin_user()
-
 
 
 app = rx.App()

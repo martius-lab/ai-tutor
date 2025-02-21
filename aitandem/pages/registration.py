@@ -1,4 +1,5 @@
 """New user registration form and validation logic."""
+
 from __future__ import annotations
 
 import os
@@ -106,7 +107,7 @@ async def create_admin_user():
     with rx.session() as session:
         # check if admin already exists
         existing_admin = session.exec(
-            select(User).where(User.email == admin_email) # type:ignore
+            select(User).where(User.email == admin_email)  # type:ignore
         ).one_or_none()
 
         # if admin does not exist
