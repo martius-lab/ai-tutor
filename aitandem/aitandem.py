@@ -1,20 +1,21 @@
 """Welcome to Reflex! This file outlines the steps to create a basic app."""
-
 import reflex as rx
-
 from . import (
     pages,
 )  # ,components: Uncommented so ruff check is passed. Uncomment when using components.
+from .pages.registration import create_admin_user
 
 
 class State(rx.State):
     """The app state."""
 
-    ...
+    async def mount(self):
+        await create_admin_user()
+
 
 
 app = rx.App()
-app.add_page(pages.home_default, route="/")
+app.add_page(pages.home_default, route="/", on_load=State.mount)
 app.add_page(pages.settings_default, route="/settings")
 app.add_page(pages.login_default, route="/login")
 app.add_page(pages.profile_default, route="/profile")
