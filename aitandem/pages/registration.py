@@ -1,10 +1,12 @@
 """New user registration form and validation logic."""
-
 from __future__ import annotations
+
+import os
 import reflex as rx
 import re
 import asyncio
 
+from dotenv import load_dotenv
 from collections.abc import AsyncGenerator
 from sqlalchemy import select
 from ..base_state import State
@@ -91,6 +93,34 @@ class RegistrationState(State):
         yield rx.set_value("email", "")
         await asyncio.sleep(2)
         yield [rx.redirect("/"), RegistrationState.set_success(False)]
+
+
+async def create_admin_user():
+    """Creates admin user if it does not exist."""
+    # load .env data
+    load_dotenv()
+    # set hardcoded admin credentials
+    admin_email = os.getenv("ADMIN_EMAIL")
+    admin_pw = os.getenv("ADMIN_PW")
+
+    with rx.session() as session:
+        # check if admin already exists
+        existing_admin = session.exec(
+            select(User).where(User.email == admin_email) # type:ignore
+        ).one_or_none()
+
+        # if admin does not exist
+        if not existing_admin:
+            # create admin
+            admin = User()
+            admin.email = admin_email
+            admin.password_hash = User.hash_password(admin_pw)
+            admin.enabled = True
+            admin.role = "teacher"
+
+            # write to db
+            session.add(admin)
+            session.commit()
 
 
 @rx.page(route="/register")
