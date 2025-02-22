@@ -98,15 +98,14 @@ class RegistrationState(State):
 
 async def create_admin_user():
     """Creates admin user if it does not exist."""
-    # error message for non existing admin credentials
+    # error message / load .env variables
     if not load_dotenv():
         yield rx.window_alert(
             "Admin was not created because admin credentials were not set correctly"
             " in the .env file. Please read the manual."
         )
         return
-    # load .env data
-    load_dotenv()
+
     # set hardcoded admin credentials
     admin_email = os.getenv("ADMIN_EMAIL")
     admin_pw = os.getenv("ADMIN_PW")
