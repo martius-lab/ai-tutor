@@ -22,7 +22,7 @@ class RegistrationState(State):
     error_message: str = ""  # Empty string for error messages
 
     async def handle_registration(
-        self, form_data
+            self, form_data
     ) -> AsyncGenerator[rx.event.EventSpec | list[rx.event.EventSpec] | None, None]:
         """Handle registration form on_submit.
 
@@ -98,6 +98,10 @@ class RegistrationState(State):
 
 async def create_admin_user():
     """Creates admin user if it does not exist."""
+    # error message for non existing admin credentials
+    if not load_dotenv():
+        yield rx.window_alert("Admin was not created because admin credentials were not set correctly in the .env file. Please read the manual. ")
+        return
     # load .env data
     load_dotenv()
     # set hardcoded admin credentials
