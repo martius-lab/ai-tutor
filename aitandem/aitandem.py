@@ -16,7 +16,6 @@ class State(rx.State):
             yield result
 
 
-
 app = rx.App()
 app.add_page(pages.home_default, route="/", on_load=State.mount)
 app.add_page(pages.settings_default, route="/settings")
