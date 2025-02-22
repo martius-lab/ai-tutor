@@ -72,7 +72,7 @@ class Exercise(rx.Model, table=True):  # type: ignore
 
     id: Optional[int] = Field(default=None, primary_key=True)  # Automatische ID
     title: str = Field(nullable=False)  # Titel der Übung
-    prompt: str = Field(nullable=False)  # Prompt für das LLM
+    prompt: str = Field(nullable=False, default="")  # Prompt für das LLM
     description: Optional[str] = Field(default=None)  # Beschreibung der Übung
     tags: List[str] = Field(
         sa_column=Column(JSON), default=[]
