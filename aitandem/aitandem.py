@@ -12,7 +12,8 @@ class State(rx.State):
 
     async def mount(self):
         """Mount admin user method"""
-        await create_admin_user()
+        async for result in create_admin_user():
+            yield result
 
 
 app = rx.App()
