@@ -347,7 +347,7 @@ def add_exercise_button() -> rx.Component:
                             type="button",
                         ),
                         rx.text(
-                            "Drag and drop or click on the button to select",
+                            "Drag and drop or click the button to select",
                         ),
                         rx.text(rx.selected_files("upload1"), color="yellow", size="3"),
                         align="center",
