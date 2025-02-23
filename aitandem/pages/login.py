@@ -1,7 +1,10 @@
 """Login page, authentication logic,
 assign roles when logging in and protected pages."""
+from typing import Callable
 
 import reflex as rx
+from reflex import Component
+
 from aitandem.components.user_roles import get_user_role
 from aitandem.components.error_box import error_popup
 from ..base_state import State
@@ -77,9 +80,6 @@ class LoginState(State):
 
         elif page == LOGIN_ROUTE:
             return rx.redirect("/")
-
-        else:
-            return None
 
 
 def handle_student_login(session_id: str) -> rx.Component:
@@ -194,29 +194,63 @@ def login_default() -> rx.Component:
     )
 
 
-def require_login(page: rx.app.ComponentCallable) -> rx.app.ComponentCallable:
-    """Decorator to require authentication before rendering a protected page.
-
-    If the user is not authenticated, he will be redirected to the login page.
+def require_login(role: str = None) -> Callable[[Callable[[], Component]], Callable[[], Component]]:
+    """Decorator to require authentication and optionally a specific role.
 
     Args:
-        page: The page to wrap.
+        role: Optional role to restrict access (e.g. "teacher").
 
     Returns:
         The wrapped page component.
     """
 
-    def protected_page():
-        return rx.fragment(
-            rx.cond(
-                State.is_hydrated & State.is_authenticated,  # type: ignore
-                page(),
-                rx.center(
-                    # if user is not authenticated, he will be redirected
-                    rx.spinner(on_mount=LoginState.redir),
-                ),
-            )
-        )
+    def decorator(page: rx.app.ComponentCallable) -> rx.app.ComponentCallable:
+        """Wraps the page component with access control logic.
 
-    protected_page.__name__ = page.__name__
-    return protected_page
+        Args:
+            page (rx.app.ComponentCallable): The page component to be protected.
+
+        Returns:
+            rx.app.ComponentCallable: A wrapped version of the page component that enforces
+            authentication and role-based access control.
+        """
+
+        def protected_page():
+            """Renders the protected page or access denied message based on authentication and role.
+
+            Returns:
+                rx.Component: The protected page if the user is authenticated and has the required role,
+                otherwise access denied message or a redirect to the login page.
+            """
+            return rx.fragment(
+                rx.cond(
+                    # if user is authenticated
+                    State.is_hydrated & State.is_authenticated,  # type: ignore
+                    rx.cond(
+                        # and no role was specified or role is correct
+                        (role is None) | (State.authenticated_user.role == role),
+                        # show page
+                        page(),
+                        # else show this message
+                        rx.center(
+                            rx.vstack(
+                                rx.heading("Access Denied", size="8"),
+                                rx.text(f"Only {role}s can view this page."),
+                                rx.link("Login", href=LOGIN_ROUTE),
+                                spacing="4",
+                                align="center",
+                            ),
+                            height="100vh",
+                        ),
+                    ),
+                    # if user is not authenticated: redirect
+                    rx.center(
+                        rx.spinner(on_mount=LoginState.redir),
+                    ),
+                )
+            )
+
+        protected_page.__name__ = page.__name__
+        return protected_page
+
+    return decorator
