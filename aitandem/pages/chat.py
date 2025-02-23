@@ -3,6 +3,8 @@
 import reflex as rx
 import asyncio
 
+from aitandem.pages.login import require_login
+
 
 class ChatMessage(rx.Base):
     """
@@ -105,7 +107,7 @@ def chat_form() -> rx.Component:
         reset_on_submit=True,
     )
 
-
+@require_login()
 def chat_default() -> rx.Component:
     """Renders the web page."""
     return rx.container(
