@@ -75,13 +75,25 @@ class ExerciseState(rx.State):
             new_exercise.description = form_data["description"]
             # use the selected tags
             new_exercise.tags = list(self.selected_tags)
+            # add prompt element
+            new_exercise.prompt = ("You will act as a learning assistant. The university student is given this exercise-title: - " + form_data["title"] +
+                                   " - and this task-description: - " + form_data["description"] +
+                                   " - This extracted-pdf was uploaded by the teacher as a theoretical basis for this exercise: - " + self.lesson_file +
+                                   " - Analyze the answers of the university student based on these * rules:"
+                                   " * Ask rhetorical questions from time to time which indicate that the students answer is not fully correct "
+                                   "in order to guide them in the right direction. if the students persists that their answer is right, correct them."
+                                   " * ask relevant questions if the student acts unsure."
+                                   " * Always be constructive and pedagogically valuable."
+                                   " * Try to give the student a score at the end (e.g. 7/10) and some feedback.")
             # add exercises to db
             session.add(new_exercise)
             session.commit()
             # reload exercises
             self.load_exercises()
-            # Clear the selected tags after submission
+            # clear fields after submission
             self.selected_tags = []
+            self.lesson_file = ""
+            self.lesson_file_name = ""
 
         return rx.toast.success(
             "Exercise has been added.",
