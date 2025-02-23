@@ -1,6 +1,8 @@
 """Page for the teacher to add new exercises."""
 
 import reflex as rx
+import pdfplumber
+import io
 from ..models import Exercise, Tag
 from sqlmodel import select, or_
 
@@ -15,6 +17,28 @@ class ExerciseState(rx.State):
     current_tag: str = ""  # the currently selected tag from the select window
     current_exercise: Exercise = Exercise()
     selected_tags: list[str] = []  # List to store selected tags temporarily
+    lesson_file: str = ""  # the lesson file as a string
+    lesson_file_name: str = ""  # name of the PDF
+
+    async def extract_lesson_material(
+        self, files: list[rx.UploadFile]
+    ):
+        """Extract the lesson material as text. """
+        for file in files:
+            upload_data = await file.read()
+            # extract text from PDF
+            with pdfplumber.open(io.BytesIO(upload_data)) as pdf:
+                text = ""
+                for page in pdf.pages:
+                    text += page.extract_text()
+
+            # remove line breaks and double spaces
+            text = ' '.join(text.replace('\n', ' ').split())
+
+            # save PDF text in lesson_file
+            self.lesson_file = text
+            # save PDF name
+            self.lesson_file_name = file.filename
 
     def set_current_tag(self, tag: str):
         """Set the current tag."""
@@ -299,6 +323,9 @@ def add_exercise_button() -> rx.Component:
                     padding="5em",
                     padding_top="1em",
                     padding_bottom="1em",
+                    on_drop=ExerciseState.extract_lesson_material(
+                        rx.upload_files(upload_id="upload1")
+                    ),
                 ),
                 rx.text(
                     "Tags: ",
