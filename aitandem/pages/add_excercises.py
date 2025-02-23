@@ -1,6 +1,8 @@
 """Page for the teacher to add new exercises."""
 
 import reflex as rx
+import pdfplumber
+import io
 from ..models import Exercise, Tag
 from sqlmodel import select, or_
 
@@ -15,6 +17,26 @@ class ExerciseState(rx.State):
     current_tag: str = ""  # the currently selected tag from the select window
     current_exercise: Exercise = Exercise()
     selected_tags: list[str] = []  # List to store selected tags temporarily
+    lesson_file: str = ""  # the lesson file as a string
+    lesson_file_name: str = ""  # name of the PDF
+
+    async def extract_lesson_material(self, files: list[rx.UploadFile]):
+        """Extract the lesson material as text."""
+        for file in files:
+            upload_data = await file.read()
+            # extract text from PDF
+            with pdfplumber.open(io.BytesIO(upload_data)) as pdf:
+                text = ""
+                for page in pdf.pages:
+                    text += page.extract_text()
+
+            # remove line breaks and double spaces
+            text = " ".join(text.replace("\n", " ").split())
+
+            # save PDF text in lesson_file
+            self.lesson_file = text
+            # save PDF name
+            self.lesson_file_name = file.filename
 
     def set_current_tag(self, tag: str):
         """Set the current tag."""
@@ -40,19 +62,48 @@ class ExerciseState(rx.State):
             # check if title is empty
             if not form_data["title"]:
                 return rx.window_alert("Please enter a title for the exercise.")
+
+            # check if PDF has been selected
+            if self.lesson_file == "":
+                return rx.window_alert(
+                    "No lesson file was selected. Please upload lesson file."
+                )
+
             # create instance and fill its fields
             new_exercise = Exercise()
             new_exercise.title = form_data["title"]
             new_exercise.description = form_data["description"]
             # use the selected tags
             new_exercise.tags = list(self.selected_tags)
+            # add prompt element
+            new_exercise.prompt = (
+                "You will act as a learning assistant. The university student is"
+                " given this exercise-title: - "
+                + form_data["title"]
+                + " - and this task-description: - "
+                + form_data["description"]
+                + " - This extracted-pdf was uploaded by the teacher as a theoretical"
+                " basis for this exercise: - "
+                + self.lesson_file
+                + " - Analyze the answers of the student based on these * rules:"
+                " * Ask rhetorical questions from time to time which indicate that the"
+                " students answer is not fully correct "
+                "in order to guide them in the right direction. if the student"
+                " persists that their answer is right, correct them."
+                " * ask relevant questions if the student acts unsure."
+                " * Always be constructive and pedagogically valuable."
+                " * Try to give the student a score at the end (e.g. 7/10)"
+                " and some feedback."
+            )
             # add exercises to db
             session.add(new_exercise)
             session.commit()
             # reload exercises
             self.load_exercises()
-            # Clear the selected tags after submission
+            # clear fields after submission
             self.selected_tags = []
+            self.lesson_file = ""
+            self.lesson_file_name = ""
 
         return rx.toast.success(
             "Exercise has been added.",
@@ -143,6 +194,12 @@ class ExerciseState(rx.State):
             position="bottom-center",
             invert=True,
         )
+
+    def unstage_lesson_file(self):
+        """Unstage the lesson file."""
+        # reset lesson variables
+        self.lesson_file = ""
+        self.lesson_file_name = ""
 
     def delete_tag(self):
         """Delete a tag from the db."""
@@ -272,6 +329,56 @@ def add_exercise_button() -> rx.Component:
                     height="150px",
                     type="text",
                     name="description",
+                ),
+                # lesson file upload area
+                rx.text(
+                    "Upload lesson material (PDF): ",
+                    size="3",
+                    weight="medium",
+                    text_align="left",
+                    width="100%",
+                    padding_top="1.5em",
+                    padding_bottom="0.5em",
+                ),
+                rx.upload(
+                    rx.vstack(
+                        rx.button(
+                            "Select File",
+                            type="button",
+                        ),
+                        rx.text(
+                            "Drag and drop or click the button to select",
+                        ),
+                        rx.text(rx.selected_files("upload1"), color="yellow", size="3"),
+                        align="center",
+                    ),
+                    id="upload1",
+                    padding="5em",
+                    padding_top="1em",
+                    padding_bottom="1em",
+                    on_drop=ExerciseState.extract_lesson_material(
+                        rx.upload_files(upload_id="upload1")
+                    ),  # type: ignore
+                ),
+                # show file icon with file name
+                rx.cond(
+                    ExerciseState.lesson_file_name,
+                    rx.box(
+                        rx.hstack(
+                            rx.icon("file-text", size=25),
+                            rx.text(ExerciseState.lesson_file_name, color="green"),
+                            rx.icon_button(
+                                rx.icon("circle-x"),
+                                on_click=ExerciseState.unstage_lesson_file(),  # type: ignore
+                                size="2",
+                                variant="ghost",
+                                color_scheme="red",
+                                spacing="3",
+                                type="button",
+                            ),
+                        ),
+                        padding_top="1.5em",
+                    ),
                 ),
                 rx.text(
                     "Tags: ",
