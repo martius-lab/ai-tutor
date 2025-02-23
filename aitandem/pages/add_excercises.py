@@ -273,6 +273,33 @@ def add_exercise_button() -> rx.Component:
                     type="text",
                     name="description",
                 ),
+                # lesson file upload area
+                rx.text(
+                    "Upload lesson material (PDF): ",
+                    size="3",
+                    weight="medium",
+                    text_align="left",
+                    width="100%",
+                    padding_top="1.5em",
+                    padding_bottom="0.5em",
+                ),
+                rx.upload(
+                    rx.vstack(
+                        rx.button(
+                            "Select File",
+                            type="button",
+                        ),
+                        rx.text(
+                            "Drag and drop or click on the button to select",
+                        ),
+                        rx.text(rx.selected_files("upload1"), color="yellow", size="3"),
+                        align="center",
+                    ),
+                    id="upload1",
+                    padding="5em",
+                    padding_top="1em",
+                    padding_bottom="1em",
+                ),
                 rx.text(
                     "Tags: ",
                     size="3",
