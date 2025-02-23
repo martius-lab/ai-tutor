@@ -76,10 +76,10 @@ class LoginState(State):
 
         if not self.is_authenticated and page != LOGIN_ROUTE:
             self.redirect_to = page
-            return rx.redirect(LOGIN_ROUTE)
+            return rx.redirect(LOGIN_ROUTE, replace=True)
 
         elif page == LOGIN_ROUTE:
-            return rx.redirect("/")
+            return rx.redirect("/", replace=True)
 
 
 def handle_student_login(session_id: str) -> rx.Component:
