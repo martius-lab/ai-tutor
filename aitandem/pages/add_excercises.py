@@ -20,10 +20,8 @@ class ExerciseState(rx.State):
     lesson_file: str = ""  # the lesson file as a string
     lesson_file_name: str = ""  # name of the PDF
 
-    async def extract_lesson_material(
-        self, files: list[rx.UploadFile]
-    ):
-        """Extract the lesson material as text. """
+    async def extract_lesson_material(self, files: list[rx.UploadFile]):
+        """Extract the lesson material as text."""
         for file in files:
             upload_data = await file.read()
             # extract text from PDF
@@ -33,7 +31,7 @@ class ExerciseState(rx.State):
                     text += page.extract_text()
 
             # remove line breaks and double spaces
-            text = ' '.join(text.replace('\n', ' ').split())
+            text = " ".join(text.replace("\n", " ").split())
 
             # save PDF text in lesson_file
             self.lesson_file = text
@@ -67,7 +65,9 @@ class ExerciseState(rx.State):
 
             # check if PDF has been selected
             if self.lesson_file == "":
-                return rx.window_alert("No lesson file was selected. Please upload lesson file.")
+                return rx.window_alert(
+                    "No lesson file was selected. Please upload lesson file."
+                )
 
             # create instance and fill its fields
             new_exercise = Exercise()
@@ -76,15 +76,25 @@ class ExerciseState(rx.State):
             # use the selected tags
             new_exercise.tags = list(self.selected_tags)
             # add prompt element
-            new_exercise.prompt = ("You will act as a learning assistant. The university student is given this exercise-title: - " + form_data["title"] +
-                                   " - and this task-description: - " + form_data["description"] +
-                                   " - This extracted-pdf was uploaded by the teacher as a theoretical basis for this exercise: - " + self.lesson_file +
-                                   " - Analyze the answers of the university student based on these * rules:"
-                                   " * Ask rhetorical questions from time to time which indicate that the students answer is not fully correct "
-                                   "in order to guide them in the right direction. if the students persists that their answer is right, correct them."
-                                   " * ask relevant questions if the student acts unsure."
-                                   " * Always be constructive and pedagogically valuable."
-                                   " * Try to give the student a score at the end (e.g. 7/10) and some feedback.")
+            new_exercise.prompt = (
+                "You will act as a learning assistant. The university student is"
+                " given this exercise-title: - "
+                + form_data["title"]
+                + " - and this task-description: - "
+                + form_data["description"]
+                + " - This extracted-pdf was uploaded by the teacher as a theoretical"
+                " basis for this exercise: - "
+                + self.lesson_file
+                + " - Analyze the answers of the student based on these * rules:"
+                " * Ask rhetorical questions from time to time which indicate that the"
+                " students answer is not fully correct "
+                "in order to guide them in the right direction. if the student"
+                " persists that their answer is right, correct them."
+                " * ask relevant questions if the student acts unsure."
+                " * Always be constructive and pedagogically valuable."
+                " * Try to give the student a score at the end (e.g. 7/10)"
+                " and some feedback."
+            )
             # add exercises to db
             session.add(new_exercise)
             session.commit()
@@ -348,7 +358,7 @@ def add_exercise_button() -> rx.Component:
                     padding_bottom="1em",
                     on_drop=ExerciseState.extract_lesson_material(
                         rx.upload_files(upload_id="upload1")
-                    ),
+                    ),  # type: ignore
                 ),
                 # show file icon with file name
                 rx.cond(
@@ -359,7 +369,7 @@ def add_exercise_button() -> rx.Component:
                             rx.text(ExerciseState.lesson_file_name, color="green"),
                             rx.icon_button(
                                 rx.icon("circle-x"),
-                                on_click=ExerciseState.unstage_lesson_file(),
+                                on_click=ExerciseState.unstage_lesson_file(),  # type: ignore
                                 size="2",
                                 variant="ghost",
                                 color_scheme="red",
