@@ -64,6 +64,11 @@ class ExerciseState(rx.State):
             # check if title is empty
             if not form_data["title"]:
                 return rx.window_alert("Please enter a title for the exercise.")
+
+            # check if PDF has been selected
+            if self.lesson_file == "":
+                return rx.window_alert("No lesson file was selected. Please upload lesson file.")
+
             # create instance and fill its fields
             new_exercise = Exercise()
             new_exercise.title = form_data["title"]
@@ -167,6 +172,12 @@ class ExerciseState(rx.State):
             position="bottom-center",
             invert=True,
         )
+
+    def unstage_lesson_file(self):
+        """Unstage the lesson file."""
+        # reset lesson variables
+        self.lesson_file = ""
+        self.lesson_file_name = ""
 
     def delete_tag(self):
         """Delete a tag from the db."""
@@ -334,6 +345,15 @@ def add_exercise_button() -> rx.Component:
                         rx.hstack(
                             rx.icon("file-text", size=25),
                             rx.text(ExerciseState.lesson_file_name, color="green"),
+                            rx.icon_button(
+                                rx.icon("circle-x"),
+                                on_click=ExerciseState.unstage_lesson_file(),
+                                size="2",
+                                variant="ghost",
+                                color_scheme="red",
+                                spacing="3",
+                                type="button",
+                            ),
                         ),
                         padding_top="1.5em",
                     ),
