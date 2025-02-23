@@ -1,9 +1,7 @@
 """Login page, authentication logic,
 assign roles when logging in and protected pages."""
-from typing import Callable
 
 import reflex as rx
-from reflex import Component
 
 from aitandem.components.user_roles import get_user_role
 from aitandem.components.error_box import error_popup
@@ -80,6 +78,9 @@ class LoginState(State):
 
         elif page == LOGIN_ROUTE:
             return rx.redirect("/", replace=True)
+
+        else:
+            return None
 
 
 def handle_student_login(session_id: str) -> rx.Component:
@@ -194,7 +195,7 @@ def login_default() -> rx.Component:
     )
 
 
-def require_login(role: str = None) -> Callable[[Callable[[], Component]], Callable[[], Component]]:
+def require_login(role: str = None):  # type: ignore
     """Decorator to require authentication and optionally a specific role.
 
     Args:
@@ -211,15 +212,18 @@ def require_login(role: str = None) -> Callable[[Callable[[], Component]], Calla
             page (rx.app.ComponentCallable): The page component to be protected.
 
         Returns:
-            rx.app.ComponentCallable: A wrapped version of the page component that enforces
+            rx.app.ComponentCallable: A wrapped version of
+             the page component that enforces
             authentication and role-based access control.
         """
 
         def protected_page():
-            """Renders the protected page or access denied message based on authentication and role.
+            """Renders the protected page or access denied message based
+             on authentication and role.
 
             Returns:
-                rx.Component: The protected page if the user is authenticated and has the required role,
+                rx.Component: The protected page if the user is authenticated
+                and has the required role,
                 otherwise access denied message or a redirect to the login page.
             """
             return rx.fragment(

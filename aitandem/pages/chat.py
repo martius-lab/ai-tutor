@@ -107,6 +107,7 @@ def chat_form() -> rx.Component:
         reset_on_submit=True,
     )
 
+
 @require_login()
 def chat_default() -> rx.Component:
     """Renders the web page."""
