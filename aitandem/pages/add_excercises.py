@@ -327,6 +327,17 @@ def add_exercise_button() -> rx.Component:
                         rx.upload_files(upload_id="upload1")
                     ),
                 ),
+                # show file icon with file name
+                rx.cond(
+                    ExerciseState.lesson_file_name,
+                    rx.box(
+                        rx.hstack(
+                            rx.icon("file-text", size=25),
+                            rx.text(ExerciseState.lesson_file_name, color="green"),
+                        ),
+                        padding_top="1.5em",
+                    ),
+                ),
                 rx.text(
                     "Tags: ",
                     size="3",
