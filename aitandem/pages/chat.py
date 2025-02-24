@@ -14,7 +14,7 @@ async def get_response(conversation):
     conversation: Expects list of dictionaries of the previous messages between ChatGPT
     and the user.
     """
-    # I use python decouple to retrive the API Key, can also use os.
+    # I use python decouple to retrieve the API Key, can also use os.
     API_KEY = config("OPENAI_API_KEY", cast=str, default=None)
     if not API_KEY:
         raise ValueError("API key not found.")
@@ -85,7 +85,7 @@ class ChatState(rx.State):
     def get_messages_dict_gpt(self):
         """
         This functions iterates over all previous chat messages and reformats them as a
-        list of dicitonaries, so they can be handed to the OpenAI-API.
+        list of dictionaries, so they can be handed to the OpenAI-API.
         """
         # Initialize GPT with the desired role, for now GPT acts as a generic tutor.
         # TODO Initialization should change depending on the exercises.
@@ -153,8 +153,8 @@ def chat_form() -> rx.Component:
             ),
             rx.hstack(
                 rx.button("Submit", type="submit"),
-                rx.cond(ChatState.did_submit, rx.text("Reply sent!"), rx.fragment()),
                 # rx.fragment() is placeholder for now
+                rx.cond(ChatState.did_submit, rx.text("Reply sent!"), rx.fragment()),
                 rx.button("Check Answer", type="submit"),
             ),
         ),
