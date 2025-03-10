@@ -1,1 +1,7 @@
+bcrypt
+dotenv
+openai
+passlib
+pdfplumber
+python-decouple
 reflex==0.6.4
