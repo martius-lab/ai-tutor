@@ -3,7 +3,7 @@ to view and add new exercises."""
 
 import reflex as rx
 from sqlmodel import select
-from aitandem.models import Exercise
+from aitutor.models import Exercise
 from typing import List
 
 

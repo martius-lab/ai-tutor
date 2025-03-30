@@ -1,9 +1,9 @@
 """retrieve the users role"""
 
-from aitandem.auth_session import AuthSession
+from aitutor.auth_session import AuthSession
 from sqlmodel import select
-from aitandem.components.error_box import error_popup
-from aitandem.models import User
+from aitutor.components.error_box import error_popup
+from aitutor.models import User
 import reflex as rx
 
 
