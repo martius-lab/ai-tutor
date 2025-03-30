@@ -2,7 +2,7 @@
 
 import reflex as rx
 
-from aitandem.pages.login import require_login
+from aitutor.pages.login import require_login
 
 
 @require_login()

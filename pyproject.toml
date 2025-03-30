@@ -4,15 +4,24 @@ build-backend = "setuptools.build_meta"
 
 
 [project]
-name = "aitandem"
+name = "aitutor"
 version = "0.1.0"
-description = "AI tandem partner for learning languages -- Teamprojekt WS 24/25"
+description = "AI tutoring tool for interactive learning"
 authors = [
-    {name = "Author Name", email = "optional@example.com"},
+    {name = "AL Group", email = "georg.martius@uni-tuebingen.de"},
 ]
 
 requires-python = ">=3.9"
 dependencies = [
+    "reflex~=0.7",
+    "pytest",
+    "passlib",
+    "alembic",
+    "python-decouple",
+    "openai",
+    "pdfplumber",
+    "dotenv",
+    "bcrypt"
 ]
 
 [project.optional-dependencies]
@@ -40,7 +49,7 @@ exclude = ["build", "alembic"]
 ignore_missing_imports = true #Temporary fix so mypy checks pass, might consider adding py.typed marker or stub files in the future.
 
 [tool.setuptools.packages.find]
-include = ["aitandem*"]
+include = ["aitutor*"]
 exclude = ["assets"]
 
 [tool.black]

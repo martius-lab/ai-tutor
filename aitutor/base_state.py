@@ -2,6 +2,8 @@
 
 import datetime
 
+from sqlalchemy.exc import OperationalError
+
 from .auth_session import AuthSession
 from .models import User
 
@@ -28,18 +30,21 @@ class State(rx.State):
             A User instance with id=-1 if not authenticated, or the User instance
             corresponding to the currently authenticated user.
         """
-        with rx.session() as session:
-            result = session.exec(
-                select(User, AuthSession).where(
-                    AuthSession.session_id == self.auth_token,
-                    AuthSession.expiration
-                    >= datetime.datetime.now(datetime.timezone.utc),
-                    User.id == AuthSession.user_id,
-                ),
-            ).first()
-            if result:
-                user, session = result
-                return user
+        try:
+            with rx.session() as session:
+                result = session.exec(
+                    select(User, AuthSession).where(
+                        AuthSession.session_id == self.auth_token,
+                        AuthSession.expiration
+                        >= datetime.datetime.now(datetime.timezone.utc),
+                        User.id == AuthSession.user_id,
+                    ),
+                ).first()
+                if result:
+                    user, session = result
+                    return user
+        except OperationalError:
+            return User(id=-1)
         return User(id=-1)  # type: ignore
 
     @rx.var
