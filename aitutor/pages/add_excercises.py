@@ -152,7 +152,7 @@ class ExerciseState(rx.State):
                 return rx.window_alert("Please enter a tag name.")
 
             # check if tag exists
-            existing_tag : Tag = session.exec(
+            existing_tag: Tag = session.exec(
                 select(Tag).where(Tag.name == form_data["tag"])
             ).one_or_none()
             if existing_tag is not None:

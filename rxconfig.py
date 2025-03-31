@@ -13,5 +13,5 @@ config = rx.Config(
         "dist/*",
         "*.pyc",
         "__pycache__/*",
-    ]
+    ],
 )
