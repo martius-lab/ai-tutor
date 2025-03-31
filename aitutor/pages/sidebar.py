@@ -38,9 +38,7 @@ def sidebar_default() -> rx.Component:
                 create_link("Home", "/"),
                 create_link("Login", "/login"),
                 create_link("Registration", "/register"),
-                create_link("Profile", "/profile"),
                 create_link("Chat", "/chat"),
-                create_link("Settings", "/settings"),
                 create_link("Add Exercises", "/add-exercises"),
                 create_link("Exercises", "/exercises"),
                 direction="column",  # Links vertikal
