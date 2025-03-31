@@ -15,7 +15,6 @@ anyio==4.9.0
     #   httpx
     #   openai
     #   starlette
-    #   watchfiles
 bcrypt==4.3.0
     # via aitutor (pyproject.toml)
 bidict==0.23.1
@@ -37,7 +36,6 @@ charset-normalizer==3.4.1
     #   requests
 click==8.1.8
     # via
-    #   granian
     #   typer
     #   uvicorn
 cryptography==44.0.2
@@ -53,8 +51,6 @@ docutils==0.21.2
 dotenv==0.9.9
     # via aitutor (pyproject.toml)
 fastapi==0.115.12
-    # via reflex
-granian[reload]==2.2.0
     # via reflex
 greenlet==3.1.1
     # via sqlalchemy
@@ -72,13 +68,13 @@ httpx==0.28.1
     #   openai
     #   reflex
     #   reflex-hosting-cli
-id==1.5.0
-    # via twine
 idna==3.10
     # via
     #   anyio
     #   httpx
     #   requests
+importlib-metadata==8.6.1
+    # via twine
 iniconfig==2.1.0
     # via pytest
 jaraco-classes==3.4.0
@@ -126,7 +122,6 @@ packaging==24.2
     #   lazy-loader
     #   pytest
     #   reflex
-    #   twine
 passlib==1.7.4
     # via aitutor (pyproject.toml)
 pdfminer-six==20250327
@@ -135,13 +130,15 @@ pdfplumber==0.11.6
     # via aitutor (pyproject.toml)
 pillow==11.1.0
     # via pdfplumber
+pkginfo==1.10.0
+    # via twine
 platformdirs==4.3.7
     # via
     #   reflex
     #   reflex-hosting-cli
 pluggy==1.5.0
     # via pytest
-psutil==7.0.0
+psutil==6.1.1
     # via reflex
 pycparser==2.22
     # via cffi
@@ -184,13 +181,16 @@ readme-renderer==44.0
     # via twine
 redis==5.2.1
     # via reflex
-reflex==0.7.4
-    # via aitutor (pyproject.toml)
+reflex==0.6.4
+    # via
+    #   aitutor (pyproject.toml)
+    #   reflex-chakra
+reflex-chakra==0.7.0
+    # via reflex
 reflex-hosting-cli==0.1.36
     # via reflex
 requests==2.32.3
     # via
-    #   id
     #   requests-toolbelt
     #   twine
 requests-toolbelt==1.0.0
@@ -231,7 +231,7 @@ tomlkit==0.13.2
     # via reflex
 tqdm==4.67.1
     # via openai
-twine==6.1.0
+twine==5.1.1
     # via reflex
 typer==0.15.2
     # via
@@ -244,7 +244,6 @@ typing-extensions==4.13.0
     #   openai
     #   pydantic
     #   pydantic-core
-    #   reflex
     #   sqlalchemy
     #   typer
     #   typing-inspection
@@ -256,14 +255,14 @@ urllib3==2.3.0
     #   twine
 uvicorn==0.34.0
     # via reflex
-watchfiles==1.0.4
-    # via granian
 wheel==0.45.1
     # via reflex
 wrapt==1.17.2
     # via reflex
 wsproto==1.2.0
     # via simple-websocket
+zipp==3.21.0
+    # via importlib-metadata
 
 # The following packages are considered to be unsafe in a requirements file:
 # setuptools
