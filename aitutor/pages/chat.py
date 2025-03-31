@@ -1,11 +1,14 @@
 """This module contains the chat component."""
 
+from typing import List, Optional
+
 import reflex as rx
 from decouple import config
 from openai import AsyncOpenAI
+
 from aitutor.pages.login import require_login
+from aitutor.pages.sidebar import with_sidebar
 from aitutor.models import Exercise
-from typing import List, Optional
 
 DEFAULT_MODEL = "gpt-4o-mini"
 
@@ -250,39 +253,6 @@ def chat_form() -> rx.Component:
     )
 
 
-@require_login()
-def chat_default() -> rx.Component:
-    """Renders the web page."""
-    return rx.container(
-        rx.box(
-            rx.vstack(
-                rx.heading(
-                    rx.cond(
-                        ChatState.exercise_selected,
-                        "Exercise: " + ChatState.exercise_title,
-                        "Please select an exercise:",
-                    ),
-                    size="5",
-                ),
-                rx.box(
-                    rx.foreach(ChatState.messages, message_box),
-                    width="100%",
-                    overflow="auto",  # Chat history becomes scrollable
-                    max_height="60vh",
-                    padding_right="8px",
-                ),
-                chat_form(),
-                spacing="5",
-                justify="center",
-                min_height="15vh",
-            ),
-            width="100%",
-        ),
-        width="100%",
-        on_mount=ChatState.init_chat,
-    )
-
-
 def exercise_dropdown():
     """
     Dropdown menu to select exercise.
@@ -314,4 +284,38 @@ def exercise_dropdown():
             ),
         ),
         on_mount=ChatState.load_exercises_from_db,
+    )
+
+
+@with_sidebar
+@require_login()
+def chat_default() -> rx.Component:
+    """Renders the web page."""
+    return rx.container(
+        rx.box(
+            rx.vstack(
+                rx.heading(
+                    rx.cond(
+                        ChatState.exercise_selected,
+                        "Exercise: " + ChatState.exercise_title,
+                        "Please select an exercise:",
+                    ),
+                    size="5",
+                ),
+                rx.box(
+                    rx.foreach(ChatState.messages, message_box),
+                    width="100%",
+                    overflow="auto",  # Chat history becomes scrollable
+                    max_height="60vh",
+                    padding_right="8px",
+                ),
+                chat_form(),
+                spacing="5",
+                justify="center",
+                min_height="15vh",
+            ),
+            width="100%",
+        ),
+        width="100%",
+        on_mount=ChatState.init_chat,
     )
