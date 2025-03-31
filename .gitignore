@@ -91,6 +91,7 @@
 .scrapy
 .spyderproject
 .spyproject
+.states
 .tox/
 .venv
 .web

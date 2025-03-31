@@ -1,4 +1,7 @@
-"""Welcome to Reflex! This file outlines the steps to create a basic app."""
+"""AI-Tutor Reflex app.
+
+This module contains the main app definition for Reflex.
+"""
 
 import reflex as rx
 from . import (

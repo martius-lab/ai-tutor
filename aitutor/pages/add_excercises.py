@@ -134,14 +134,14 @@ class ExerciseState(rx.State):
                         ],
                     )
                 )
-            self.exercises = session.exec(query_exercises).all()
+            self.exercises = list(session.exec(query_exercises).all())
 
     def load_tags(self):
         """Get tags from db."""
         with rx.session() as session:
             # load tags
             query_tags = select(Tag)
-            self.tag_list = session.exec(query_tags).all()
+            self.tag_list = list(session.exec(query_tags).all())
             self.tag_names = [tag.name for tag in self.tag_list]
 
     def submit_tag(self, form_data: dict):
@@ -152,7 +152,7 @@ class ExerciseState(rx.State):
                 return rx.window_alert("Please enter a tag name.")
 
             # check if tag exists
-            existing_tag = session.exec(
+            existing_tag: Tag = session.exec(
                 select(Tag).where(Tag.name == form_data["tag"])
             ).one_or_none()
             if existing_tag is not None:

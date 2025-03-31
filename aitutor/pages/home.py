@@ -1,7 +1,7 @@
 """This module contains the home page and related components."""
 
 import reflex as rx
-from aitandem.pages.sidebar import sidebar_default
+from aitutor.pages.sidebar import sidebar_default
 
 
 @rx.page(route="/")
