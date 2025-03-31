@@ -10,8 +10,10 @@ import asyncio
 from dotenv import load_dotenv
 from collections.abc import AsyncGenerator
 from sqlalchemy import select
+
 from ..base_state import State
 from ..models import User
+from .sidebar import with_sidebar
 
 
 class RegistrationState(State):
@@ -178,6 +180,7 @@ async def create_admin_user():
 
 
 @rx.page(route="/register")
+@with_sidebar
 def registration_default() -> rx.Component:
     """Render the registration page.
 
