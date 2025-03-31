@@ -38,7 +38,7 @@ lint.select = [
     "B",  # bugbear
     "D100", "D101", "D102", "D103",  # Complain about missing docstrings
 ]
-exclude = ["alembic"]
+extend-exclude = ["alembic"]
 
 [tool.ruff.lint.per-file-ignores]
 "tests/*" = ["D"]  # don't enforce docstrings in test files
