@@ -53,4 +53,4 @@ include = ["aitutor*"]
 exclude = ["assets"]
 
 [tool.black]
-exclude = "alembic"
+extend-exclude = "alembic"
