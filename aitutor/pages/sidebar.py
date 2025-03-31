@@ -1,5 +1,7 @@
 """This module contains the sidebar component and its links."""
 
+from collections.abc import Callable
+
 import reflex as rx
 
 # Gemeinsame Style-Definition für die Links
@@ -36,9 +38,9 @@ def sidebar_default() -> rx.Component:
                 create_link("Home", "/"),
                 create_link("Login", "/login"),
                 create_link("Registration", "/register"),
-                create_link("Profile", "/profile"),
                 create_link("Chat", "/chat"),
-                create_link("Settings", "/settings"),
+                create_link("Add Exercises", "/add-exercises"),
+                create_link("Exercises", "/exercises"),
                 direction="column",  # Links vertikal
                 align_items="flex-start",  # Links linksbündig
                 width="100%",
@@ -52,4 +54,13 @@ def sidebar_default() -> rx.Component:
         padding="1rem",  # Padding für die Sidebar
         background_color="#f8f9fa",  # Heller Hintergrund
         height="100vh",  # Sidebar soll ganze Höhe einnehmen
+    )
+
+
+def with_sidebar(component_factory: Callable[[], rx.Component]) -> rx.Component:
+    """Decorator to add navigation sidebar to a component."""
+    return rx.hstack(
+        sidebar_default(),
+        component_factory(),
+        spacing="4",
     )

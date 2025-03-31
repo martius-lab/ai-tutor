@@ -3,9 +3,11 @@
 import reflex as rx
 import pdfplumber
 import io
+from sqlmodel import select, or_
+
 from .login import require_login
 from ..models import Exercise, Tag
-from sqlmodel import select, or_
+from .sidebar import with_sidebar
 
 
 class ExerciseState(rx.State):
@@ -794,6 +796,7 @@ def exercise_table():
     )
 
 
+@with_sidebar
 @require_login(role="teacher")
 def add_exercises_default() -> rx.Component:
     """Add exercises page."""

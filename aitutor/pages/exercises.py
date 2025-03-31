@@ -3,8 +3,10 @@ to view and add new exercises."""
 
 import reflex as rx
 from sqlmodel import select
-from aitutor.models import Exercise
 from typing import List
+
+from aitutor.models import Exercise
+from aitutor.pages.sidebar import with_sidebar
 
 
 class ExercisesState(rx.State):
@@ -114,6 +116,7 @@ def exercises() -> rx.Component:
     )
 
 
+@with_sidebar
 def exercises_default() -> rx.Component:
     """Default wrapper for exercises page"""
     return exercises()
