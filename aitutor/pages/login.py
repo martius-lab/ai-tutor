@@ -3,8 +3,8 @@ assign roles when logging in and protected pages."""
 
 import reflex as rx
 
-from aitandem.components.user_roles import get_user_role
-from aitandem.components.error_box import error_popup
+from aitutor.components.user_roles import get_user_role
+from aitutor.components.error_box import error_popup
 from ..base_state import State
 from ..models import User
 from sqlalchemy import select

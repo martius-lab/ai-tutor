@@ -3,8 +3,8 @@
 import reflex as rx
 from decouple import config
 from openai import AsyncOpenAI
-from aitandem.pages.login import require_login
-from aitandem.models import Exercise
+from aitutor.pages.login import require_login
+from aitutor.models import Exercise
 from typing import List, Optional
 
 DEFAULT_MODEL = "gpt-4o-mini"

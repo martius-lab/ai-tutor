@@ -1,11 +1,11 @@
 """
-Database testing using pytest. To run test type 'pytest aitandem/tests/test_models.py'
+Database testing using pytest. To run test type 'pytest aitutor/tests/test_models.py'
 in CLI.
 """
 
 import reflex as rx
 import pytest
-from aitandem.models import User, Exercise, ExerciseResult
+from aitutor.models import User, Exercise, ExerciseResult
 
 
 @pytest.fixture
@@ -24,13 +24,13 @@ def test_user(test_db):
     """
     with rx.session() as session:
         test_user_a = User(
-            email="jane.doe@aitandem.com",
+            email="jane.doe@aitutor.com",
             password_hash="secure_password",
             enabled=True,
             role="student",
         )
         test_user_b = User(
-            email="john.doe@aitandem.com",
+            email="john.doe@aitutor.com",
             password_hash="secure_password",
             enabled=True,
             role="student",
@@ -70,13 +70,13 @@ def test_exerciseResult_relationships(test_db):
     """
     with rx.session() as session:
         test_user_a = User(
-            email="jane.doe@aitandem.com",
+            email="jane.doe@aitutor.com",
             password_hash="secure_password",
             enabled=True,
             role="student",
         )
         test_user_b = User(
-            email="john.doe@aitandem.com",
+            email="john.doe@aitutor.com",
             password_hash="secure_password",
             enabled=True,
             role="student",
