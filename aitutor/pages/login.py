@@ -5,6 +5,7 @@ import reflex as rx
 
 from aitutor.components.user_roles import get_user_role
 from aitutor.components.error_box import error_popup
+from aitutor.pages.sidebar import with_sidebar
 from ..base_state import State
 from ..models import User
 from sqlalchemy import select
@@ -94,6 +95,7 @@ def handle_teacher_login(session_id: str) -> rx.Component:
 
 
 @rx.page(route=LOGIN_ROUTE)
+@with_sidebar
 def login_default() -> rx.Component:
     """Render the login page.
 
