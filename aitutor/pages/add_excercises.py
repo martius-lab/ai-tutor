@@ -39,7 +39,7 @@ class ExerciseState(rx.State):
             # save PDF text in lesson_file
             self.lesson_file = text
             # save PDF name
-            self.lesson_file_name = file.filename
+            self.lesson_file_name = file.name or "<unnamed file>"
 
     def set_current_tag(self, tag: str):
         """Set the current tag."""
@@ -154,7 +154,7 @@ class ExerciseState(rx.State):
                 return rx.window_alert("Please enter a tag name.")
 
             # check if tag exists
-            existing_tag: Tag = session.exec(
+            existing_tag = session.exec(
                 select(Tag).where(Tag.name == form_data["tag"])
             ).one_or_none()
             if existing_tag is not None:
@@ -178,7 +178,7 @@ class ExerciseState(rx.State):
         with rx.session() as session:
             updated_exercise = session.exec(
                 select(Exercise).where(Exercise.id == self.current_exercise.id)
-            ).first()
+            ).one()
             # update fields
             updated_exercise.title = form_data["title"]
             updated_exercise.description = form_data["description"]
@@ -256,11 +256,11 @@ class ExerciseState(rx.State):
         self.current_exercise = exercise
         with rx.session() as session:
             # load exercise object from db
-            exercise = session.exec(
+            _exercise = session.exec(
                 select(Exercise).where(Exercise.id == self.current_exercise.id)
-            ).first()
+            ).one()
         # save Tags in selected_tags
-        self.selected_tags = exercise.tags.copy() if exercise.tags else []
+        self.selected_tags = _exercise.tags.copy() if _exercise.tags else []
 
 
 def add_exercise_button() -> rx.Component:
@@ -361,7 +361,7 @@ def add_exercise_button() -> rx.Component:
                     padding_bottom="1em",
                     on_drop=ExerciseState.extract_lesson_material(
                         rx.upload_files(upload_id="upload1")
-                    ),  # type: ignore
+                    ),
                 ),
                 # show file icon with file name
                 rx.cond(
