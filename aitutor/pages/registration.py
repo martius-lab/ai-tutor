@@ -3,13 +3,12 @@
 from __future__ import annotations
 
 import os
-import reflex as rx
 import re
 import asyncio
 
+import reflex as rx
 from dotenv import load_dotenv
 from collections.abc import AsyncGenerator
-from sqlalchemy import select
 
 from ..base_state import State
 from ..models import User
@@ -58,7 +57,7 @@ class RegistrationState(State):
                 return
 
             existing_user = session.exec(
-                select(User).where(User.email == email)
+                User.select().where(User.email == email)
             ).one_or_none()
 
             if existing_user is not None:
@@ -161,7 +160,7 @@ async def create_admin_user():
     with rx.session() as session:
         # check if admin already exists
         existing_admin = session.exec(
-            select(User).where(User.email == admin_email)  # type:ignore
+            User.select().where(User.email == admin_email)
         ).one_or_none()
 
         # if admin does not exist

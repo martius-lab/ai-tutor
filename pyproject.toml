@@ -46,7 +46,13 @@ extend-exclude = ["alembic"]
 
 [tool.mypy]
 exclude = ["build", "alembic"]
-ignore_missing_imports = true #Temporary fix so mypy checks pass, might consider adding py.typed marker or stub files in the future.
+
+[[tool.mypy.overrides]]
+# list all modules for which no type hints are available
+module = [
+    "decouple",
+]
+ignore_missing_imports = true
 
 [tool.setuptools.packages.find]
 include = ["aitutor*"]

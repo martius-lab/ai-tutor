@@ -184,19 +184,10 @@ class ChatState(rx.State):
         return messages_gpt
 
 
-# Message_style template for Markdown from Reflex
-message_style = dict(
-    display="inline-block",
-    padding="1em",
-    border_radius="8px",
-    max_width=["30em", "30em", "50em", "50em", "50em", "50em"],
-)
-
-
 def message_box(chat_message: ChatMessage) -> rx.Component:
     """Each message from the chat history gets its bounding box. Depending on the sender
-    the message is aligned to the left for the LLM and aligned to the right for the user
-    .
+    the message is aligned to the left for the LLM and aligned to the right for the
+    user.
     """
     return rx.box(
         rx.box(
@@ -208,7 +199,10 @@ def message_box(chat_message: ChatMessage) -> rx.Component:
                 color=rx.cond(
                     chat_message.is_llm, rx.color("mauve", 12), rx.color("iris", 12)
                 ),
-                **message_style,
+                display="inline-block",
+                padding="1em",
+                border_radius="8px",
+                max_width=["30em", "30em", "50em", "50em", "50em", "50em"],
             ),
             text_align=rx.cond(chat_message.is_llm, "left", "right"),
             margin_top="1em",

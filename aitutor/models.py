@@ -10,9 +10,9 @@ from sqlalchemy.sql import func
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
-class User(
+class User(  # type: ignore
     rx.Model,
-    table=True,  # type: ignore
+    table=True,
 ):
     """
     User model with bcrypt password hashing.
