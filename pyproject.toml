@@ -11,7 +11,7 @@ authors = [
     {name = "AL Group", email = "georg.martius@uni-tuebingen.de"},
 ]
 
-requires-python = ">=3.9"
+requires-python = ">=3.13"
 dependencies = [
     "reflex==0.6.4",
     "pytest",
@@ -24,12 +24,13 @@ dependencies = [
     "bcrypt"
 ]
 
-[project.optional-dependencies]
-# Here you can specify optional dependencies (e.g. for tools that are only needed during
-# development).  To install them use `pip install ".[dev]"` (the quotes are needed!).
+[dependency-groups]
+dev = [
+    "mypy>=1.15.0",
+    "pytest>=8.3.5",
+    "ruff>=0.11.4",
+]
 
-test = ["pytest"]
-mypy = ["mypy"]  # here you can also list `types-*` stub packages for third-party packages
 
 [tool.ruff]
 lint.select = [
@@ -54,3 +55,5 @@ exclude = ["assets"]
 
 [tool.black]
 extend-exclude = "alembic"
+
+
