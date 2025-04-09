@@ -16,58 +16,60 @@ Database: SQLite (standard), can be replaced by PostgreSQL or MySQL
 
 AI modules: OpenAI API enables interaction with ChatGPT, but other AIs would also be possible
 
+
 ## 3. Installation
 
-### 3.1 Prerequisites
+### Prerequisites
 
-Python ≥ 3.9
+This project is managed with `uv`.  See [installation
+instructions](https://docs.astral.sh/uv/getting-started/installation/).
 
-Virtual environment (recommended)
+When run for the first time, uv will automatically create a virtual environment in
+`.venv` at the package root.
+You can activate this venv normally but for the uv commands, that's actually not needed
+as long as uv is called from the projects root directory.
 
-Reflex Framework
-
-Alembic for database migrations 
-
-### 3.2 Setup
+### Setup
 
 Clone the repository:
-git clone <URL-of-repository>
-cd aitandem
 
-### reate & activate virtual environment:
-python -m venv venv
-source venv/bin/activate # Linux/Mac
-venv\Scripts\activate # Windows
+    git clone <URL-of-repository>
+    cd aitandem
 
-### Install dependencies:
+Initialize database:
 
-pip install -r requirements.txt
+    uv run reflex db init
 
-### Initialize database:
+Create local environment file `.env`:
 
-reflex db init
-reflex db makemigrations
-reflex db migrate 
-
-## Create environment file
-need .env file with variables:
-```bash 
-OPENAI_API_KEY
-ADMIN_EMAIL
-ADMIN_PW
+```bash
+OPENAI_API_KEY=<your key>
+ADMIN_EMAIL=admin@mail.de
+ADMIN_PW=very-strong-password
 ```
+The admin email and password are used to auto-create an admin account for easy testing
+during development.
+
 
 ### Start the application:
 
-```bash 
-reflex run
-```
+    uv run reflex run
 
-## Maintainance: update requirements from pyproject.toml
-require pip-tools to be installed
-```bash
-pip-compile --output-file=requirements.txt pyproject.toml
-```
+## Maintainance
+
+### Add dependencies:
+
+    uv add <package-name>
+
+This will add the dependency to `pyproject.toml`, update the `uv.lock` file and install
+the package to the project's virtual environment.
+
+
+### Migrate database after modifications:
+
+    uv run reflex db makemigrations
+    uv run reflex db migrate
+
 
 ## 4. Configuration
 
