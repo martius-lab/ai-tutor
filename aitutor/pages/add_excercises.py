@@ -23,6 +23,7 @@ class ExerciseState(rx.State):
     lesson_file: str = ""  # the lesson file as a string
     lesson_file_name: str = ""  # name of the PDF
 
+    @rx.event
     async def extract_lesson_material(self, files: list[rx.UploadFile]):
         """Extract the lesson material as text."""
         for file in files:
