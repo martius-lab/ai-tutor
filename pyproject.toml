@@ -31,6 +31,12 @@ dependencies = [
 test = ["pytest"]
 mypy = ["mypy"]  # here you can also list `types-*` stub packages for third-party packages
 
+[dependency-groups]
+lint = [
+    "black>=25.1.0",
+    "ruff>=0.11.4",
+]
+
 [tool.ruff]
 lint.select = [
     "E",
@@ -54,3 +60,5 @@ exclude = ["assets"]
 
 [tool.black]
 extend-exclude = "alembic"
+
+
