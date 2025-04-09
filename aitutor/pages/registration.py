@@ -33,7 +33,6 @@ class RegistrationState(State):
             form_data: A dict of form fields and values.
         """
         with rx.session() as session:
-
             email = form_data["email"]
             special_char_pattern = r"[!@#$%^&*(),.?\":{}|<> \s]"
             valid_email_pattern = r"^.+@.+\..+$"
