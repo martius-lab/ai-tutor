@@ -18,17 +18,11 @@ dependencies = [
     { name = "reflex" },
 ]
 
-[package.optional-dependencies]
-mypy = [
-    { name = "mypy" },
-]
-test = [
-    { name = "pytest" },
-]
-
 [package.dev-dependencies]
-lint = [
+dev = [
     { name = "black" },
+    { name = "mypy" },
+    { name = "pytest" },
     { name = "ruff" },
 ]
 
@@ -37,20 +31,19 @@ requires-dist = [
     { name = "alembic" },
     { name = "bcrypt" },
     { name = "dotenv" },
-    { name = "mypy", marker = "extra == 'mypy'" },
     { name = "openai" },
     { name = "passlib" },
     { name = "pdfplumber" },
     { name = "pytest" },
-    { name = "pytest", marker = "extra == 'test'" },
     { name = "python-decouple" },
     { name = "reflex", specifier = "==0.6.4" },
 ]
-provides-extras = ["test", "mypy"]
 
 [package.metadata.requires-dev]
-lint = [
+dev = [
     { name = "black", specifier = ">=25.1.0" },
+    { name = "mypy", specifier = ">=1.15.0" },
+    { name = "pytest", specifier = ">=8.3.5" },
     { name = "ruff", specifier = ">=0.11.4" },
 ]
 

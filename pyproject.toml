@@ -24,18 +24,14 @@ dependencies = [
     "bcrypt"
 ]
 
-[project.optional-dependencies]
-# Here you can specify optional dependencies (e.g. for tools that are only needed during
-# development).  To install them use `pip install ".[dev]"` (the quotes are needed!).
-
-test = ["pytest"]
-mypy = ["mypy"]  # here you can also list `types-*` stub packages for third-party packages
-
 [dependency-groups]
-lint = [
+dev = [
     "black>=25.1.0",
+    "mypy>=1.15.0",
+    "pytest>=8.3.5",
     "ruff>=0.11.4",
 ]
+
 
 [tool.ruff]
 lint.select = [
