@@ -128,10 +128,16 @@ class ExerciseResult(rx.Model, table=True):  # type: ignore
     user: Optional["User"] = Relationship(back_populates="user_exercise_results")
 
     def __repr__(self):
-        return f"""
-        <ExerciseResult(
-        ExerciseName='{self.exercise.title}', 
-        UserEmail='{self.user.email}', 
-        LastUpdate='{self.time_stamp}'
-        )>
+        if self.exercise is None or self.user is None:
+            # TODO: Do exercise and user need to be Optional?
+            return (
+                "<ExerciseResult(ExerciseName=None, UserEmail=None, LastUpdate=None)>"
+            )
+        else:
+            return f"""
+            <ExerciseResult(
+            ExerciseName='{self.exercise.title}', 
+            UserEmail='{self.user.email}', 
+            LastUpdate='{self.time_stamp}'
+            )>
         """
