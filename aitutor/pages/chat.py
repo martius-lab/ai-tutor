@@ -1,6 +1,6 @@
 """This module contains the chat component."""
 
-from typing import List, Optional
+from typing import List, Optional, cast
 
 import reflex as rx
 from decouple import config
@@ -21,9 +21,11 @@ async def get_response(conversation):
     and the user.
     """
     # I use python decouple to retrieve the API Key, can also use os.
-    API_KEY = config("OPENAI_API_KEY", cast=str, default=None)
+    # TODO: Do we really need decouple here? What's the advantage?
+    API_KEY = cast(str, config("OPENAI_API_KEY", cast=str, default=None))
     if not API_KEY:
         raise ValueError("API key not found.")
+
     # Creates GPT instance
     client = AsyncOpenAI(api_key=API_KEY)
     # Wait till Chat Completion Request is fulfilled.
@@ -59,6 +61,7 @@ class ChatState(rx.State):
     exercise_title: str = "Select an exercise:"
     system_message_gpt: str
 
+    @rx.event
     def init_chat(self):
         """
         Initializes chat. Per default the first exercise is loaded if an exercise
@@ -67,6 +70,8 @@ class ChatState(rx.State):
         self.load_exercises_from_db()
         if self.exercises:
             self.select_exercise(str(self.exercises[0].id))
+
+            assert self.current_exercise is not None
             self.exercise_title = self.current_exercise.title
             self.system_message_gpt = self.current_exercise.prompt
             self.reset_messages()
@@ -97,6 +102,7 @@ class ChatState(rx.State):
         """Resets chat messages in memory."""
         self.messages = []
 
+    @rx.event
     def reset_conversation(self):
         """Resets conversation for current exercise."""
         # Only reset the conversation if there are messages beyond the initial message
@@ -106,15 +112,17 @@ class ChatState(rx.State):
             self.reset_messages()
             # Reloads exercise to get initial message.
             if self.exercises:
+                assert self.current_exercise is not None
                 self.select_exercise(self.current_exercise.id)
             else:
                 self.no_exercise_available()
 
+    @rx.event
     def load_exercises_from_db(self):
         """Loads exercises from database."""
         with rx.session() as session:
             exercises = session.exec(Exercise.select()).all()
-            self.exercises = exercises
+            self.exercises = list(exercises)
 
     @rx.event
     def select_exercise(self, exercise_id):
@@ -143,6 +151,7 @@ class ChatState(rx.State):
         """
         self.messages.append(ChatMessage(message=message, is_llm=is_llm))
 
+    @rx.event
     async def handle_chat_submit(self, form_data: dict):
         """
         New messages get appended to list of ChatMessages.
@@ -184,19 +193,10 @@ class ChatState(rx.State):
         return messages_gpt
 
 
-# Message_style template for Markdown from Reflex
-message_style = dict(
-    display="inline-block",
-    padding="1em",
-    border_radius="8px",
-    max_width=["30em", "30em", "50em", "50em", "50em", "50em"],
-)
-
-
 def message_box(chat_message: ChatMessage) -> rx.Component:
     """Each message from the chat history gets its bounding box. Depending on the sender
-    the message is aligned to the left for the LLM and aligned to the right for the user
-    .
+    the message is aligned to the left for the LLM and aligned to the right for the
+    user.
     """
     return rx.box(
         rx.box(
@@ -208,7 +208,10 @@ def message_box(chat_message: ChatMessage) -> rx.Component:
                 color=rx.cond(
                     chat_message.is_llm, rx.color("mauve", 12), rx.color("iris", 12)
                 ),
-                **message_style,
+                display="inline-block",
+                padding="1em",
+                border_radius="8px",
+                max_width=["30em", "30em", "50em", "50em", "50em", "50em"],
             ),
             text_align=rx.cond(chat_message.is_llm, "left", "right"),
             margin_top="1em",

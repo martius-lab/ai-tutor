@@ -2,13 +2,11 @@
 assign roles when logging in and protected pages."""
 
 import reflex as rx
+from reflex.event import EventSpec
 
-from aitutor.components.user_roles import get_user_role
-from aitutor.components.error_box import error_popup
 from aitutor.pages.sidebar import with_sidebar
 from ..base_state import State
 from ..models import User
-from sqlalchemy import select
 
 LOGIN_ROUTE = "/login"
 REGISTER_ROUTE = "/register"
@@ -19,7 +17,8 @@ class LoginState(State):
 
     redirect_to: str = ""
 
-    def on_submit(self, form_data) -> rx.event.EventSpec:
+    @rx.event
+    def on_submit(self, form_data) -> EventSpec:
         """Handle login form on_submit.
 
         Args:
@@ -30,11 +29,7 @@ class LoginState(State):
 
         # fetch user
         with rx.session() as session:
-            user = (
-                session.exec(select(User).where(User.email == email))
-                .scalars()
-                .one_or_none()
-            )
+            user = session.exec(User.select().where(User.email == email)).one_or_none()
 
         # error message for users with enabled != 1
         if user is not None and not user.enabled:
@@ -65,7 +60,8 @@ class LoginState(State):
             self._login(user.id)
         return LoginState.redir()  # type: ignore
 
-    def redir(self) -> rx.event.EventSpec | None:
+    @rx.event
+    def redir(self) -> EventSpec | None:
         """Redirect to home if logged in, or to the login page if not."""
         if not self.is_hydrated:
             # wait until after hydration to ensure auth_token is known
@@ -84,16 +80,6 @@ class LoginState(State):
             return None
 
 
-def handle_student_login(session_id: str) -> rx.Component:
-    """students dashboard"""
-    return rx.redirect("/student_dashboard")
-
-
-def handle_teacher_login(session_id: str) -> rx.Component:
-    """teachers dashboard"""
-    return rx.redirect("/teacher_dashboard")
-
-
 @rx.page(route=LOGIN_ROUTE)
 @with_sidebar
 def login_default() -> rx.Component:
@@ -102,16 +88,6 @@ def login_default() -> rx.Component:
     Returns:
         A reflex component.
     """
-
-    def handle_login(session_id: str) -> rx.Component:
-        user_role = get_user_role(session_id)
-        if user_role == "student":
-            return handle_student_login(session_id)
-        elif user_role == "teacher":
-            return handle_teacher_login(session_id)
-        else:
-            error_popup("Unknown role!")
-
     login_form = rx.form(
         rx.center(
             rx.color_mode.button(position="top-right", type="button"),

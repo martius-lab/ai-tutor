@@ -1,7 +1,5 @@
 """This module contains the sidebar component and its links."""
 
-from collections.abc import Callable
-
 import reflex as rx
 
 # Gemeinsame Style-Definition für die Links
@@ -57,9 +55,11 @@ def sidebar_default() -> rx.Component:
     )
 
 
-def with_sidebar(component_factory: Callable[[], rx.Component]) -> rx.Component:
+def with_sidebar(
+    component_factory: rx.app.ComponentCallable,
+) -> rx.app.ComponentCallable:
     """Decorator to add navigation sidebar to a component."""
-    return rx.hstack(
+    return lambda: rx.hstack(
         sidebar_default(),
         component_factory(),
         spacing="4",
