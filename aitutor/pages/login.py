@@ -2,6 +2,7 @@
 assign roles when logging in and protected pages."""
 
 import reflex as rx
+from reflex.event import EventSpec
 
 from aitutor.pages.sidebar import with_sidebar
 from ..base_state import State
@@ -16,7 +17,8 @@ class LoginState(State):
 
     redirect_to: str = ""
 
-    def on_submit(self, form_data) -> rx.event.EventSpec:
+    @rx.event
+    def on_submit(self, form_data) -> EventSpec:
         """Handle login form on_submit.
 
         Args:
@@ -58,7 +60,8 @@ class LoginState(State):
             self._login(user.id)
         return LoginState.redir()  # type: ignore
 
-    def redir(self) -> rx.event.EventSpec | None:
+    @rx.event
+    def redir(self) -> EventSpec | None:
         """Redirect to home if logged in, or to the login page if not."""
         if not self.is_hydrated:
             # wait until after hydration to ensure auth_token is known

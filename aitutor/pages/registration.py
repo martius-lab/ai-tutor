@@ -7,6 +7,7 @@ import re
 import asyncio
 
 import reflex as rx
+from reflex.event import EventSpec
 from dotenv import load_dotenv
 from collections.abc import AsyncGenerator
 
@@ -21,9 +22,10 @@ class RegistrationState(State):
 
     success: bool = False  # Boolean to check if registration was a success
 
+    @rx.event
     async def handle_registration(
         self, form_data
-    ) -> AsyncGenerator[rx.event.EventSpec | list[rx.event.EventSpec] | None, None]:
+    ) -> AsyncGenerator[EventSpec | list[EventSpec] | None, None]:
         """Handle registration form on_submit.
 
         Set error_message appropriately based on validation results.
@@ -140,7 +142,10 @@ class RegistrationState(State):
         self.success = True
         yield rx.set_value("email", "")
         await asyncio.sleep(2)
-        yield [rx.redirect("/login"), RegistrationState.set_success(False)]
+        yield [
+            rx.redirect("/login"),
+            RegistrationState.set_success(False),  # type: ignore
+        ]
 
 
 async def create_admin_user():

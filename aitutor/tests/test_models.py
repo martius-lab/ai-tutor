@@ -92,7 +92,7 @@ def test_exerciseResult_relationships(test_db):
             tags=["Gradient", "Derivative", "Algorithm"],
         )
         user_a_submission_exercise_gradient = ExerciseResult(
-            conversation_text=[
+            conversation_text=[  # type: ignore
                 {
                     "role": "developer",
                     "content": "Please explain what a gradient is!",
@@ -106,7 +106,7 @@ def test_exerciseResult_relationships(test_db):
             user=test_user_a,
         )
         user_b_submission_exercise_gradient = ExerciseResult(
-            conversation_text=[
+            conversation_text=[  # type: ignore
                 {
                     "role": "developer",
                     "content": "Please explain what a gradient is!",
@@ -120,7 +120,7 @@ def test_exerciseResult_relationships(test_db):
             user=test_user_b,
         )
         user_a_submission_exercise_gradientDescent = ExerciseResult(
-            conversation_text=[
+            conversation_text=[  # type: ignore
                 {
                     "role": "developer",
                     "content": "Please explain how gradient descent works!",
@@ -134,7 +134,7 @@ def test_exerciseResult_relationships(test_db):
             user=test_user_a,
         )
         user_b_submission_exercise_gradientDescent = ExerciseResult(
-            conversation_text=[
+            conversation_text=[  # type: ignore
                 {
                     "role": "developer",
                     "content": "Please explain how gradient descent works!",
