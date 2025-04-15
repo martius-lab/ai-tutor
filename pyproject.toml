@@ -25,17 +25,20 @@ dependencies = [
 
 [dependency-groups]
 dev = [
-    "mypy>=1.15.0",
+    "pyright>=1.1.399",
     "pytest>=8.3.5",
     "ruff>=0.11.4",
     "types-passlib>=1.7.7.20250408",
 ]
 lsp = [
-    "pylsp-mypy>=0.7.0",
     "pylsp-rope>=0.1.17",
     "python-lsp-ruff>=2.2.2",
     "python-lsp-server>=1.12.2",
 ]
+
+[tool.setuptools.packages.find]
+include = ["aitutor*"]
+exclude = ["assets"]
 
 
 [tool.ruff]
@@ -51,21 +54,7 @@ extend-exclude = ["alembic"]
 "tests/*" = ["D"]  # don't enforce docstrings in test files
 
 
-[tool.mypy]
-exclude = ["build", "alembic"]
-
-[[tool.mypy.overrides]]
-# list all modules for which no type hints are available
-module = [
-    "decouple",
-]
-ignore_missing_imports = true
-
-[tool.setuptools.packages.find]
-include = ["aitutor*"]
-exclude = ["assets"]
-
-[tool.black]
-extend-exclude = "alembic"
-
-
+[tool.pyright]
+# first three entries are the default excludes that get overwritten when using that
+# setting.
+exclude = ["**/node_modules", "**/__pycache__", "**/.*", "build", "alembic"]
