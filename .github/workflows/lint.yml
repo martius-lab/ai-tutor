@@ -8,7 +8,7 @@ on:
   pull_request:
 
 jobs:
-  mypy:
+  pyright:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -19,12 +19,8 @@ jobs:
       - name: Install the project
         run: uv sync
 
-      - name: Add matcher
-        run: |
-          echo "::add-matcher::.github/workflows/mypy-problem-matcher.json"
-
       - name: Run tests
-        run: uv run mypy .
+        run: uv run pyright .
 
   ruff-check:
     runs-on: ubuntu-latest
