@@ -16,6 +16,7 @@ class ExercisesState(rx.State):
     has_exercises: bool = False
     has_tags: bool = False
 
+    @rx.event
     def fetch_exercises(self):
         """
         Fetch exercises from database
@@ -24,7 +25,7 @@ class ExercisesState(rx.State):
             exercises = session.exec(
                 select(Exercise)
             ).all()  # select all exercises from database
-            self.exercises = exercises
+            self.exercises = list(exercises)
             self.has_exercises = len(exercises) > 0  # check if exercises exist
             self.has_tags = any(
                 len(exercise.tags) > 0 for exercise in exercises

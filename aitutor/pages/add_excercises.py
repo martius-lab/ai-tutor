@@ -23,6 +23,7 @@ class ExerciseState(rx.State):
     lesson_file: str = ""  # the lesson file as a string
     lesson_file_name: str = ""  # name of the PDF
 
+    @rx.event
     async def extract_lesson_material(self, files: list[rx.UploadFile]):
         """Extract the lesson material as text."""
         for file in files:
@@ -39,12 +40,14 @@ class ExerciseState(rx.State):
             # save PDF text in lesson_file
             self.lesson_file = text
             # save PDF name
-            self.lesson_file_name = file.filename
+            self.lesson_file_name = file.name or "<unnamed file>"
 
+    @rx.event
     def set_current_tag(self, tag: str):
         """Set the current tag."""
         self.current_tag = tag
 
+    @rx.event
     def add_selected_tag(self):
         """Add the currently selected tag to the list of selected tags."""
         if not self.current_tag:
@@ -54,11 +57,13 @@ class ExerciseState(rx.State):
             # reset current tag after adding
             self.current_tag = ""
 
+    @rx.event
     def remove_selected_tag(self, tag: str):
         """Remove a tag from the list of selected tags."""
         if tag in self.selected_tags:
             self.selected_tags.remove(tag)
 
+    @rx.event
     def submit_exercise(self, form_data: dict):
         """Add exercises to db."""
         with rx.session() as session:
@@ -115,11 +120,13 @@ class ExerciseState(rx.State):
             invert=True,
         )
 
+    @rx.event
     def search_exercises(self, search_value):
         """Search for a specific exercise."""
         self.search_value = search_value
         self.load_exercises()
 
+    @rx.event
     def load_exercises(self):
         """Get exercises from db."""
         with rx.session() as session:
@@ -138,6 +145,7 @@ class ExerciseState(rx.State):
                 )
             self.exercises = list(session.exec(query_exercises).all())
 
+    @rx.event
     def load_tags(self):
         """Get tags from db."""
         with rx.session() as session:
@@ -146,6 +154,7 @@ class ExerciseState(rx.State):
             self.tag_list = list(session.exec(query_tags).all())
             self.tag_names = [tag.name for tag in self.tag_list]
 
+    @rx.event
     def submit_tag(self, form_data: dict):
         """Add tags to db."""
         with rx.session() as session:
@@ -154,7 +163,7 @@ class ExerciseState(rx.State):
                 return rx.window_alert("Please enter a tag name.")
 
             # check if tag exists
-            existing_tag: Tag = session.exec(
+            existing_tag = session.exec(
                 select(Tag).where(Tag.name == form_data["tag"])
             ).one_or_none()
             if existing_tag is not None:
@@ -173,12 +182,13 @@ class ExerciseState(rx.State):
                 invert=True,
             )
 
+    @rx.event
     def update_exercise(self, form_data: dict):
         """Update exercises in db."""
         with rx.session() as session:
             updated_exercise = session.exec(
                 select(Exercise).where(Exercise.id == self.current_exercise.id)
-            ).first()
+            ).one()
             # update fields
             updated_exercise.title = form_data["title"]
             updated_exercise.description = form_data["description"]
@@ -198,12 +208,14 @@ class ExerciseState(rx.State):
             invert=True,
         )
 
+    @rx.event
     def unstage_lesson_file(self):
         """Unstage the lesson file."""
         # reset lesson variables
         self.lesson_file = ""
         self.lesson_file_name = ""
 
+    @rx.event
     def delete_tag(self):
         """Delete a tag from the db."""
         with rx.session() as session:
@@ -256,11 +268,11 @@ class ExerciseState(rx.State):
         self.current_exercise = exercise
         with rx.session() as session:
             # load exercise object from db
-            exercise = session.exec(
+            _exercise = session.exec(
                 select(Exercise).where(Exercise.id == self.current_exercise.id)
-            ).first()
+            ).one()
         # save Tags in selected_tags
-        self.selected_tags = exercise.tags.copy() if exercise.tags else []
+        self.selected_tags = _exercise.tags.copy() if _exercise.tags else []
 
 
 def add_exercise_button() -> rx.Component:
@@ -360,8 +372,8 @@ def add_exercise_button() -> rx.Component:
                     padding_top="1em",
                     padding_bottom="1em",
                     on_drop=ExerciseState.extract_lesson_material(
-                        rx.upload_files(upload_id="upload1")
-                    ),  # type: ignore
+                        rx.upload_files(upload_id="upload1")  # type: ignore
+                    ),
                 ),
                 # show file icon with file name
                 rx.cond(
@@ -372,7 +384,7 @@ def add_exercise_button() -> rx.Component:
                             rx.text(ExerciseState.lesson_file_name, color="green"),
                             rx.icon_button(
                                 rx.icon("circle-x"),
-                                on_click=ExerciseState.unstage_lesson_file(),  # type: ignore
+                                on_click=ExerciseState.unstage_lesson_file,
                                 size="2",
                                 variant="ghost",
                                 color_scheme="red",

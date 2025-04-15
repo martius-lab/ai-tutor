@@ -3,13 +3,13 @@
 from __future__ import annotations
 
 import os
-import reflex as rx
 import re
 import asyncio
 
+import reflex as rx
+from reflex.event import EventSpec
 from dotenv import load_dotenv
 from collections.abc import AsyncGenerator
-from sqlalchemy import select
 
 from ..base_state import State
 from ..models import User
@@ -22,9 +22,10 @@ class RegistrationState(State):
 
     success: bool = False  # Boolean to check if registration was a success
 
+    @rx.event
     async def handle_registration(
         self, form_data
-    ) -> AsyncGenerator[rx.event.EventSpec | list[rx.event.EventSpec] | None, None]:
+    ) -> AsyncGenerator[EventSpec | list[EventSpec] | None, None]:
         """Handle registration form on_submit.
 
         Set error_message appropriately based on validation results.
@@ -58,7 +59,7 @@ class RegistrationState(State):
                 return
 
             existing_user = session.exec(
-                select(User).where(User.email == email)
+                User.select().where(User.email == email)
             ).one_or_none()
 
             if existing_user is not None:
@@ -141,7 +142,10 @@ class RegistrationState(State):
         self.success = True
         yield rx.set_value("email", "")
         await asyncio.sleep(2)
-        yield [rx.redirect("/login"), RegistrationState.set_success(False)]
+        yield [
+            rx.redirect("/login"),
+            RegistrationState.set_success(False),  # type: ignore
+        ]
 
 
 async def create_admin_user():
@@ -154,14 +158,14 @@ async def create_admin_user():
         )
         return
 
-    # set hardcoded admin credentials
-    admin_email = os.getenv("ADMIN_EMAIL")
-    admin_pw = os.getenv("ADMIN_PW")
+    # set hard-coded admin credentials
+    admin_email = os.getenv("ADMIN_EMAIL", "admin")
+    admin_pw = os.getenv("ADMIN_PW", "admin")
 
     with rx.session() as session:
         # check if admin already exists
         existing_admin = session.exec(
-            select(User).where(User.email == admin_email)  # type:ignore
+            User.select().where(User.email == admin_email)
         ).one_or_none()
 
         # if admin does not exist

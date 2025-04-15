@@ -41,7 +41,7 @@ class State(rx.State):
                     ),
                 ).first()
                 if result:
-                    user, session = result
+                    user, _ = result
                     return user
         except OperationalError:
             return User(id=-1)
@@ -50,6 +50,7 @@ class State(rx.State):
     @rx.var
     def is_authenticated(self) -> bool:
         """Check if current user is authenticated."""
+        assert self.authenticated_user.id is not None
         return self.authenticated_user.id >= 0
 
     def do_logout(self) -> None:

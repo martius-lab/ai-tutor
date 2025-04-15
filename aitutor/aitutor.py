@@ -13,6 +13,7 @@ from .pages.registration import create_admin_user
 class State(rx.State):
     """The app state."""
 
+    @rx.event
     async def mount(self):
         """Mount admin user method"""
         async for result in create_admin_user():
