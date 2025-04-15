@@ -153,9 +153,9 @@ async def create_admin_user():
         )
         return
 
-    # set hardcoded admin credentials
-    admin_email = os.getenv("ADMIN_EMAIL")
-    admin_pw = os.getenv("ADMIN_PW")
+    # set hard-coded admin credentials
+    admin_email = os.getenv("ADMIN_EMAIL", "admin")
+    admin_pw = os.getenv("ADMIN_PW", "admin")
 
     with rx.session() as session:
         # check if admin already exists
