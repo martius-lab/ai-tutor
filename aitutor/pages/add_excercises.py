@@ -13,6 +13,12 @@ from .sidebar import with_sidebar
 class ExerciseState(rx.State):
     """State for the exercises page."""
 
+    # Flags to control if dialogs are open.  They are needed as a workaround due to a
+    # bug with Reflex dialogs, see
+    # https://github.com/reflex-dev/reflex/issues/4221#issuecomment-2430197475
+    add_exercise_dialog_is_open: bool = False
+    add_tag_dialog_is_open: bool = False
+
     exercises: list[Exercise] = []
     tag_list: list[Tag] = []
     tag_names: list[str] = []  # the tag.names as a str
@@ -113,6 +119,8 @@ class ExerciseState(rx.State):
             self.lesson_file = ""
             self.lesson_file_name = ""
 
+            self.add_exercise_dialog_is_open = False
+
         return rx.toast.success(
             "Exercise has been added.",
             duration=2500,
@@ -174,6 +182,8 @@ class ExerciseState(rx.State):
             session.add(new_tag)
             session.commit()
             self.load_tags()
+
+            self.add_tag_dialog_is_open = False
 
             return rx.toast.success(
                 "Tag has been added and can now be selected.",
@@ -434,13 +444,10 @@ def add_exercise_button() -> rx.Component:
                         ),
                     ),
                     rx.form.submit(
-                        rx.dialog.close(
-                            rx.button(
-                                "Add Task",
-                                color_scheme="grass",
-                                type="submit",
-                            ),
-                            as_child=True,
+                        rx.button(
+                            "Add Task",
+                            color_scheme="grass",
+                            type="submit",
                         ),
                         padding_bottom="0.5em",
                     ),
@@ -494,6 +501,8 @@ def add_exercise_button() -> rx.Component:
             # add new tags
             tag_dialog(),
         ),
+        open=ExerciseState.add_exercise_dialog_is_open,
+        on_open_change=ExerciseState.set_add_exercise_dialog_is_open,  # type: ignore
     )
 
 
@@ -526,12 +535,10 @@ def tag_dialog():
                             ),
                         ),
                         rx.form.submit(
-                            rx.dialog.close(
-                                rx.button(
-                                    "Add Tag",
-                                    color_scheme="grass",
-                                    type="submit",
-                                ),
+                            rx.button(
+                                "Add Tag",
+                                color_scheme="grass",
+                                type="submit",
                             ),
                         ),
                         padding_top="1em",
@@ -541,6 +548,8 @@ def tag_dialog():
                     on_submit=ExerciseState.submit_tag,
                 ),
             ),
+            open=ExerciseState.add_tag_dialog_is_open,
+            on_open_change=ExerciseState.set_add_tag_dialog_is_open,  # type: ignore
         ),
     )
 
