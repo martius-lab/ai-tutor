@@ -13,7 +13,7 @@ from collections.abc import AsyncGenerator
 
 from ..base_state import State
 from ..models import User
-from .sidebar import with_sidebar
+from .navbar import with_navbar
 
 
 class RegistrationState(State):
@@ -183,7 +183,7 @@ async def create_admin_user():
 
 
 @rx.page(route="/register")
-@with_sidebar
+@with_navbar
 def registration_default() -> rx.Component:
     """Render the registration page.
 
@@ -192,7 +192,7 @@ def registration_default() -> rx.Component:
     """
     register_form = rx.form(
         rx.center(
-            rx.color_mode.button(position="top-right", type="button"),
+            rx.color_mode.button(position="bottom-left", type="button"),
             rx.card(
                 rx.vstack(
                     rx.center(

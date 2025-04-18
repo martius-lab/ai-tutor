@@ -4,7 +4,7 @@ assign roles when logging in and protected pages."""
 import reflex as rx
 from reflex.event import EventSpec
 
-from aitutor.pages.sidebar import with_sidebar
+from aitutor.pages.navbar import with_navbar
 from ..base_state import State
 from ..models import User
 
@@ -81,7 +81,7 @@ class LoginState(State):
 
 
 @rx.page(route=LOGIN_ROUTE)
-@with_sidebar
+@with_navbar
 def login_default() -> rx.Component:
     """Render the login page.
 
@@ -90,7 +90,7 @@ def login_default() -> rx.Component:
     """
     login_form = rx.form(
         rx.center(
-            rx.color_mode.button(position="top-right", type="button"),
+            rx.color_mode.button(position="bottom-left", type="button"),
             rx.card(
                 rx.vstack(
                     rx.center(
