@@ -5,8 +5,8 @@ import pdfplumber
 import io
 from sqlmodel import select, or_
 
-from ..models import Exercise, Tag
-from .navbar import with_navbar
+from ..models import Exercise, Tag  # type: ignore
+from .navbar import with_navbar  # type: ignore
 
 
 class ExerciseState(rx.State):
@@ -820,7 +820,6 @@ def exercise_table():
 def add_exercises_default() -> rx.Component:
     """Add exercises page."""
     return rx.center(
-        rx.color_mode.button(position="bottom-left", type="button"),
         rx.vstack(
             rx.center(
                 rx.heading("Exercises", size="8", padding_top="2em"),

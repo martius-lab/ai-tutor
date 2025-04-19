@@ -293,7 +293,6 @@ def exercise_dropdown():
 def chat_default() -> rx.Component:
     """Renders the web page."""
     return rx.container(
-        rx.color_mode.button(position="bottom-left", type="button"),
         rx.box(
             rx.vstack(
                 rx.heading(

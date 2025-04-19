@@ -10,7 +10,6 @@ from sqlalchemy.sql import func
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
-
 class Tag(rx.Model, table=True):  # type: ignore
     """Tag model for storing allowed tags."""
 
@@ -90,5 +89,3 @@ class ExerciseResult(rx.Model, table=True):  # type: ignore
             LastUpdate='{self.time_stamp}'
             )>
         """
-
-    

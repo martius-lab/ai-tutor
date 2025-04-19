@@ -93,7 +93,6 @@ def render_exercises() -> rx.Component:
 def exercises() -> rx.Component:
     """Exercises page for teachers"""
     return rx.container(
-        rx.color_mode.button(position="bottom-left", type="button"),
         rx.vstack(
             rx.heading("Your Exercises:", size="9"),  # page title
             rx.text(
