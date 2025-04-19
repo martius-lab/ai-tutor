@@ -7,7 +7,7 @@ from aitutor.pages.navbar import with_navbar
 @rx.page(route="/")
 @with_navbar
 def home_default() -> rx.Component:
-    """Render the homepage with sidebar."""
+    """Render the homepage with navbar."""
     return rx.container(
         rx.color_mode.button(position="bottom-left", type="button"),
         rx.heading("Welcome to AI-Tandempartner", size="3"),
