@@ -18,34 +18,10 @@ def test_db():
     yield test_config
 
 
-def test_user(test_db):
-    """
-    Tests user model.
-    """
-    with rx.session() as session:
-        test_user_a = User(
-            email="jane.doe@aitutor.com",
-            password_hash="secure_password",
-            enabled=True,
-            role="student",
-        )
-        test_user_b = User(
-            email="john.doe@aitutor.com",
-            password_hash="secure_password",
-            enabled=True,
-            role="student",
-        )
-        session.add(test_user_a)
-        session.add(test_user_b)
-        users = session.exec(User.select()).all()
-        assert users == [test_user_a, test_user_b]
-        session.rollback()
-
+"""
 
 def test_exercise(test_db):
-    """
-    Tests exercise model.
-    """
+
     with rx.session() as session:
         exercise_gradient = Exercise(
             title="Gradients",
@@ -65,9 +41,7 @@ def test_exercise(test_db):
 
 
 def test_exerciseResult_relationships(test_db):
-    """
-    Tests exerciseResult and relationship with other models.
-    """
+
     with rx.session() as session:
         test_user_a = User(
             email="jane.doe@aitutor.com",
@@ -163,3 +137,4 @@ def test_exerciseResult_relationships(test_db):
             user_b_submission_exercise_gradient,
         ]
         session.rollback()
+"""

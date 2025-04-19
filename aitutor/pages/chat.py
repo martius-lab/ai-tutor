@@ -6,7 +6,6 @@ import reflex as rx
 from decouple import config
 from openai import AsyncOpenAI
 
-from aitutor.pages.login import require_login
 from aitutor.pages.navbar import with_navbar
 from aitutor.models import Exercise
 
@@ -291,7 +290,6 @@ def exercise_dropdown():
 
 
 @with_navbar
-@require_login()
 def chat_default() -> rx.Component:
     """Renders the web page."""
     return rx.container(

@@ -5,7 +5,6 @@ import pdfplumber
 import io
 from sqlmodel import select, or_
 
-from .login import require_login
 from ..models import Exercise, Tag
 from .navbar import with_navbar
 
@@ -818,7 +817,6 @@ def exercise_table():
 
 
 @with_navbar
-@require_login(role="teacher")
 def add_exercises_default() -> rx.Component:
     """Add exercises page."""
     return rx.center(

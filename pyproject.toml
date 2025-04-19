@@ -20,7 +20,8 @@ dependencies = [
     "openai",
     "pdfplumber",
     "dotenv",
-    "bcrypt"
+    "bcrypt",
+    "reflex-local-auth>=0.3.0",
 ]
 
 [dependency-groups]
