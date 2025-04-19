@@ -8,6 +8,7 @@ from openai import AsyncOpenAI
 
 from aitutor.pages.navbar import with_navbar
 from aitutor.models import Exercise
+import reflex_local_auth
 
 DEFAULT_MODEL = "gpt-4o-mini"
 
@@ -290,6 +291,7 @@ def exercise_dropdown():
 
 
 @with_navbar
+@reflex_local_auth.require_login
 def chat_default() -> rx.Component:
     """Renders the web page."""
     return rx.container(

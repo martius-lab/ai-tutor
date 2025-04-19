@@ -4,6 +4,7 @@ import reflex as rx
 import pdfplumber
 import io
 from sqlmodel import select, or_
+import reflex_local_auth
 
 from ..models import Exercise, Tag  # type: ignore
 from .navbar import with_navbar  # type: ignore
@@ -817,6 +818,7 @@ def exercise_table():
 
 
 @with_navbar
+@reflex_local_auth.require_login
 def add_exercises_default() -> rx.Component:
     """Add exercises page."""
     return rx.center(
