@@ -3,11 +3,12 @@ This module defines the navbar components for the Reflex application.
 """
 
 import reflex as rx
+import reflex_local_auth
+from ..auth.state import SessionState  # type: ignore
+from ..auth.models import UserRole  # type: ignore
 
 links = [
     ("Home", "/"),
-    ("Login", "/login"),
-    ("Registration", "/register"),
     ("Chat", "/chat"),
     ("Add Exercises", "/add-exercises"),
     ("Exercises", "/exercises"),
@@ -26,6 +27,69 @@ def navbar_link(text: str, url: str) -> rx.Component:
         rx.Component: A Reflex link component.
     """
     return rx.link(rx.text(text, size="4", weight="medium"), href=url)
+
+
+def profile_menu() -> rx.Component:
+    """
+    Creates a profile menu component for the navigation bar.
+
+    Returns:
+        rx.Component: A Reflex menu component with login/registration/logout options.
+    """
+    return rx.menu.root(
+        rx.cond(
+            SessionState.authenticated_user_info.role == UserRole.STUDENT,
+            rx.menu.trigger(
+                rx.icon_button(
+                    rx.icon("user-check"),
+                    size="2",
+                    radius="full",
+                    _hover={"cursor": "pointer"},
+                ),
+            ),
+            rx.menu.trigger(
+                rx.icon_button(
+                    rx.icon("user"),
+                    size="2",
+                    radius="full",
+                    _hover={"cursor": "pointer"},
+                ),
+            ),
+        ),
+        rx.cond(
+            SessionState.is_authenticated,
+            rx.menu.content(
+                rx.text(
+                    {SessionState.authenticated_user.username},
+                    size="2",
+                    text_align="center",
+                    margin_bottom="6px",
+                    margin_top="6px",
+                ),
+                rx.separator(),
+                rx.menu.item(
+                    "Log out",
+                    on_click=lambda: SessionState.perform_logout(),
+                    _hover={"cursor": "pointer"},
+                ),
+            ),
+            rx.menu.content(
+                rx.menu.item(
+                    "Log in",
+                    on_click=lambda: rx.redirect(reflex_local_auth.routes.LOGIN_ROUTE),
+                    _hover={"cursor": "pointer"},
+                ),
+                rx.menu.item(
+                    "Register",
+                    on_click=lambda: rx.redirect(
+                        reflex_local_auth.routes.REGISTER_ROUTE
+                    ),
+                    _hover={"cursor": "pointer"},
+                ),
+            ),
+        ),
+        justify="end",
+    )
 
 
 def navbar_default() -> rx.Component:
@@ -55,19 +119,7 @@ def navbar_default() -> rx.Component:
                     *[navbar_link(text, url) for text, url in links],
                     spacing="5",
                 ),
-                rx.menu.root(
-                    rx.menu.trigger(
-                        rx.icon_button(
-                            rx.icon("user"),
-                            size="2",
-                            radius="full",
-                        )
-                    ),
-                    rx.menu.content(
-                        rx.menu.item("Log out"),  # TODO: Add log out functionality
-                    ),
-                    justify="end",
-                ),
+                profile_menu(),
                 justify="between",
                 align_items="center",
             ),
@@ -87,10 +139,17 @@ def navbar_default() -> rx.Component:
                 ),
                 rx.hstack(
                     rx.menu.root(
-                        rx.menu.trigger(rx.icon("menu", size=30)),
+                        rx.menu.trigger(
+                            rx.icon("menu", size=30),
+                            _hover={"cursor": "pointer"},
+                        ),
                         rx.menu.content(
                             *[
-                                rx.menu.item(rx.link(text, href=url))
+                                rx.menu.item(
+                                    text,
+                                    on_click=lambda url=url: rx.redirect(url),
+                                    _hover={"cursor": "pointer"},
+                                )
                                 for text, url in links
                             ]
                         ),
@@ -103,10 +162,8 @@ def navbar_default() -> rx.Component:
                                 radius="full",
                             )
                         ),
-                        rx.menu.content(
-                            rx.menu.item("Log out"),
-                        ),
                     ),
+                    profile_menu(),
                 ),
                 justify="between",
                 align_items="center",

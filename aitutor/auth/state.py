@@ -48,6 +48,13 @@ class SessionState(reflex_local_auth.LocalAuthState):
         if not self.is_authenticated:
             return reflex_local_auth.LoginState.redir()
 
+    def perform_logout(self):
+        """
+        Handles the logout process for the authenticated user.
+        """
+        self.do_logout()
+        return rx.redirect("/")
+
 
 class MyRegisterState(reflex_local_auth.RegistrationState):
     """
