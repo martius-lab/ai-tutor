@@ -35,6 +35,8 @@ def navbar_default() -> rx.Component:
                         width="2.25em",
                         height="auto",
                         border_radius="25%",
+                        on_click=rx.redirect("/"),
+                        cursor="pointer",
                     ),
                     rx.heading("AI Tutor", size="7", weight="bold"),
                     align_items="center",
