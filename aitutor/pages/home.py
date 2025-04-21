@@ -2,7 +2,7 @@
 
 import reflex as rx
 from aitutor.pages.navbar import with_navbar
-from ..auth.state import SessionState  # type: ignore
+from ..auth.state import SessionState
 
 
 @rx.page(route="/")

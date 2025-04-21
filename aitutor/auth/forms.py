@@ -7,7 +7,7 @@ import reflex as rx
 import reflex_local_auth
 from reflex_local_auth.pages.components import input_100w, MIN_WIDTH
 
-from .state import MyRegisterState  # type: ignore
+from .state import MyRegisterState
 
 
 def register_error() -> rx.Component:
@@ -48,5 +48,8 @@ def my_register_form() -> rx.Component:
             ),
             min_width=MIN_WIDTH,
         ),
-        on_submit=MyRegisterState.handle_registration_email,
+        # type ignore because the function expects form_data.
+        # rx.form gives the function this form_data, so everything works.
+        # But the linter thinks the function gets no args
+        on_submit=MyRegisterState.handle_registration_email,  # type: ignore[call-arg] # noqa: F821
     )

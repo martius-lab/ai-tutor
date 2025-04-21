@@ -6,8 +6,8 @@ This module contains the main app definition for Reflex.
 import reflex as rx
 import reflex_local_auth
 from . import (
-    pages,  # type: ignore
-    auth,  # type: ignore
+    pages,
+    auth,
 )  # ,components: Uncommented so ruff check is passed. Uncomment when using components.
 
 
