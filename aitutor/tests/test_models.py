@@ -5,7 +5,6 @@ in CLI.
 
 import reflex as rx
 import pytest
-from aitutor.models import User, Exercise, ExerciseResult
 
 
 @pytest.fixture
