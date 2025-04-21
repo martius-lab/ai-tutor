@@ -59,16 +59,38 @@ def profile_menu() -> rx.Component:
         rx.cond(
             SessionState.is_authenticated,
             rx.menu.content(
-                rx.text(
-                    {SessionState.authenticated_user.username},
-                    size="2",
-                    text_align="center",
-                    margin_bottom="6px",
-                    margin_top="6px",
+                rx.hstack(
+                    rx.icon(
+                        "circle-user-round",
+                        size=15,
+                    ),
+                    rx.text(
+                        {SessionState.authenticated_user.username},
+                        size="2",
+                        margin_bottom="6px",
+                        margin_top="6px",
+                    ),
+                    align="center",
+                    justify="center",
+                    spacing="1",
                 ),
                 rx.separator(),
                 rx.menu.item(
-                    "Log out",
+                    rx.hstack(
+                        rx.icon(
+                            "log-out",
+                            size=15,
+                        ),
+                        rx.text(
+                            "Log out",
+                            size="2",
+                            margin_bottom="6px",
+                            margin_top="6px",
+                        ),
+                        align="center",
+                        justify="center",
+                        spacing="1",
+                    ),
                     on_click=lambda: SessionState.perform_logout(),
                     _hover={"cursor": "pointer"},
                 ),
