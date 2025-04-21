@@ -48,5 +48,5 @@ def my_register_form() -> rx.Component:
             ),
             min_width=MIN_WIDTH,
         ),
-        on_submit=MyRegisterState.handle_registration_email, # type: ignore
+        on_submit=MyRegisterState.handle_registration_email,  # type: ignore
     )
