@@ -91,7 +91,7 @@ def profile_menu() -> rx.Component:
                         justify="center",
                         spacing="1",
                     ),
-                    on_click=lambda: SessionState.perform_logout(),
+                    on_click=lambda: SessionState.perform_logout(), # type: ignore
                     _hover={"cursor": "pointer"},
                 ),
             ),
