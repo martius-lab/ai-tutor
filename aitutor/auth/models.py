@@ -24,4 +24,4 @@ class UserInfo(rx.Model, table=True):
 
     email: str
     role: UserRole
-    user_id: int = Field(foreign_key="localuser.id")
+    user_id: int = Field(foreign_key="localuser.id", ondelete="CASCADE")
