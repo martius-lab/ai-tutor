@@ -6,8 +6,8 @@ import io
 from sqlmodel import select, or_
 import reflex_local_auth
 
-from ..models import Exercise, Tag
-from .navbar import with_navbar
+from aitutor.models import Exercise, Tag
+from aitutor.pages.navbar import with_navbar
 
 
 class ExerciseState(rx.State):

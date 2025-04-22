@@ -8,7 +8,7 @@ from aitutor.pages.navbar import with_navbar
 
 from reflex_local_auth.pages.login import LoginState, login_form
 from reflex_local_auth.pages.registration import RegistrationState
-from .forms import my_register_form
+from aitutor.auth.forms import my_register_form
 
 
 @with_navbar
