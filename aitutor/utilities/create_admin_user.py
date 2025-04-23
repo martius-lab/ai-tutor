@@ -12,6 +12,13 @@ from sqlmodel import select
 from reflex_local_auth.user import LocalUser
 
 
+# account information
+userrole: UserRole = UserRole.ADMIN
+username = "admin"
+password = "sehrgeheim"
+email = "admin@mail.de"
+
+
 def create_admin_if_not_exists():
     """
     Create an admin user if one does not already exist in the database.
@@ -21,14 +28,14 @@ def create_admin_if_not_exists():
     """
     with rx.session() as session:
         existing_admin = session.exec(
-            select(UserInfo).where(UserInfo.role == UserRole.ADMIN)
+            select(UserInfo).where(UserInfo.role == userrole)
         ).first()
         if existing_admin:
             return
 
         new_user = LocalUser()
-        new_user.username = "admin"
-        new_user.password_hash = LocalUser.hash_password("sehrgeheim")
+        new_user.username = username
+        new_user.password_hash = LocalUser.hash_password(password)
         new_user.enabled = True
         session.add(new_user)
         session.commit()
@@ -39,8 +46,8 @@ def create_admin_if_not_exists():
 
         session.add(
             UserInfo(
-                email="admin@mail.de",
-                role=UserRole.ADMIN,
+                email=email,
+                role=userrole,
                 user_id=new_user.id,
             )
         )

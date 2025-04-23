@@ -29,6 +29,32 @@ def navbar_link(text: str, url: str) -> rx.Component:
     return rx.link(rx.text(text, size="4", weight="medium"), href=url)
 
 
+def get_user_icon():
+    """
+    Determines the appropriate user icon based on the user's authentication and role.
+
+    Returns:
+        rx.Component: A Reflex conditional component representing the user icon.
+    """
+    return rx.cond(
+        ~SessionState.is_authenticated,
+        "user-round",
+        rx.cond(
+            SessionState.authenticated_user_info.role == UserRole.STUDENT,
+            "user-round-check",
+            rx.cond(
+                SessionState.authenticated_user_info.role == UserRole.ADMIN,
+                "user-round-cog",
+                rx.cond(
+                    SessionState.authenticated_user_info.role == UserRole.TEACHER,
+                    "user-round-search",
+                    "user-round",
+                ),
+            ),
+        ),
+    )
+
+
 def profile_menu() -> rx.Component:
     """
     Creates a profile menu component for the navigation bar.
@@ -37,23 +63,12 @@ def profile_menu() -> rx.Component:
         rx.Component: A Reflex menu component with login/registration/logout options.
     """
     return rx.menu.root(
-        rx.cond(
-            SessionState.authenticated_user_info.role == UserRole.STUDENT,
-            rx.menu.trigger(
-                rx.icon_button(
-                    rx.icon("user-check"),
-                    size="2",
-                    radius="full",
-                    _hover={"cursor": "pointer"},
-                ),
-            ),
-            rx.menu.trigger(
-                rx.icon_button(
-                    rx.icon("user"),
-                    size="2",
-                    radius="full",
-                    _hover={"cursor": "pointer"},
-                ),
+        rx.menu.trigger(
+            rx.icon_button(
+                rx.icon(get_user_icon()),
+                size="2",
+                radius="full",
+                _hover={"cursor": "pointer"},
             ),
         ),
         rx.cond(
@@ -97,12 +112,40 @@ def profile_menu() -> rx.Component:
             ),
             rx.menu.content(
                 rx.menu.item(
-                    "Log in",
+                    rx.hstack(
+                        rx.icon(
+                            "log-in",
+                            size=15,
+                        ),
+                        rx.text(
+                            "Log in",
+                            size="2",
+                            margin_bottom="6px",
+                            margin_top="6px",
+                        ),
+                        align="center",
+                        justify="center",
+                        spacing="1",
+                    ),
                     on_click=lambda: rx.redirect(reflex_local_auth.routes.LOGIN_ROUTE),
                     _hover={"cursor": "pointer"},
                 ),
                 rx.menu.item(
-                    "Register",
+                    rx.hstack(
+                        rx.icon(
+                            "notepad-text",
+                            size=15,
+                        ),
+                        rx.text(
+                            "Register",
+                            size="2",
+                            margin_bottom="6px",
+                            margin_top="6px",
+                        ),
+                        align="center",
+                        justify="center",
+                        spacing="1",
+                    ),
                     on_click=lambda: rx.redirect(
                         reflex_local_auth.routes.REGISTER_ROUTE
                     ),
