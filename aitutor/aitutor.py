@@ -8,6 +8,7 @@ import reflex_local_auth
 from aitutor import pages
 from aitutor.auth.pages import custom_login_page, custom_register_page
 from aitutor.pages.exercises import ExercisesState
+from aitutor.utilities.create_admin_user import create_admin_if_not_exists
 
 app = rx.App()
 app.add_page(pages.home_default, route="/")
@@ -29,3 +30,5 @@ app.add_page(
     route=reflex_local_auth.routes.REGISTER_ROUTE,
     title="Register",
 )
+
+create_admin_if_not_exists()
