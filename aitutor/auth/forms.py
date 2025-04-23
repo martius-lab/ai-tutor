@@ -33,7 +33,7 @@ def my_register_form() -> rx.Component:
             rx.text("Username"),
             input_100w("username"),
             rx.text("Email"),
-            input_100w("email", type="email"),
+            input_100w("email", type="email", required=True),
             rx.text("Password"),
             input_100w("password", type="password"),
             rx.text("Confirm Password"),
