@@ -31,4 +31,9 @@ app.add_page(
     title="Register",
 )
 
-create_admin_if_not_exists()
+# catch error if db is not created yet
+try:
+    create_admin_if_not_exists()
+except Exception as e:
+    print(f"Admin could not be created: {e}")
+

@@ -15,6 +15,8 @@ links = [
 ]
 
 
+userrole = SessionState.authenticated_user_info.role
+
 def navbar_link(text: str, url: str) -> rx.Component:
     """
     Creates a navigation link component.
@@ -40,13 +42,13 @@ def get_user_icon():
         ~SessionState.is_authenticated,
         "user-round",
         rx.cond(
-            SessionState.authenticated_user_info.role == UserRole.STUDENT,
+            userrole == UserRole.STUDENT,
             "user-round-check",
             rx.cond(
-                SessionState.authenticated_user_info.role == UserRole.ADMIN,
+                userrole == UserRole.ADMIN,
                 "user-round-cog",
                 rx.cond(
-                    SessionState.authenticated_user_info.role == UserRole.TEACHER,
+                    userrole == UserRole.TEACHER,
                     "user-round-search",
                     "user-round",
                 ),
