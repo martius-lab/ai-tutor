@@ -4,6 +4,15 @@ This module defines the navbar components for the Reflex application.
 
 import reflex as rx
 
+links = [
+    ("Home", "/"),
+    ("Login", "/login"),
+    ("Registration", "/register"),
+    ("Chat", "/chat"),
+    ("Add Exercises", "/add-exercises"),
+    ("Exercises", "/exercises"),
+]
+
 
 def navbar_link(text: str, url: str) -> rx.Component:
     """
@@ -42,12 +51,10 @@ def navbar_default() -> rx.Component:
                     align_items="center",
                 ),
                 rx.hstack(
-                    navbar_link("Home", "/"),
-                    navbar_link("Login", "/login"),
-                    navbar_link("Registration", "/register"),
-                    navbar_link("Chat", "/chat"),
-                    navbar_link("Add Exercises", "/add-exercises"),
-                    navbar_link("Exercises", "/exercises"),
+                    *[
+                        navbar_link(text, url)
+                        for text, url in links
+                    ],
                     spacing="5",
                 ),
                 rx.menu.root(
@@ -83,14 +90,12 @@ def navbar_default() -> rx.Component:
                     rx.menu.root(
                         rx.menu.trigger(rx.icon("menu", size=30)),
                         rx.menu.content(
-                            rx.menu.item(rx.link("Home", href="/")),
-                            rx.menu.item(rx.link("Login", href="/login")),
-                            rx.menu.item(rx.link("Registration", href="/register")),
-                            rx.menu.item(rx.link("Chat", href="/chat")),
-                            rx.menu.item(
-                                rx.link("Add Exercises", href="/add-exercises")
-                            ),
-                            rx.menu.item(rx.link("Exercises", href="/exercises")),
+                            *[
+                                rx.menu.item(
+                                    rx.link(text, href=url)
+                                )
+                                for text, url in links
+                            ]
                         ),
                     ),
                     rx.menu.root(
