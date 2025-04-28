@@ -7,7 +7,7 @@ from decouple import config
 from openai import AsyncOpenAI
 
 from aitutor.pages.login import require_login
-from aitutor.pages.sidebar import with_sidebar
+from aitutor.pages.navbar import with_navbar
 from aitutor.models import Exercise
 
 DEFAULT_MODEL = "gpt-4o-mini"
@@ -290,11 +290,12 @@ def exercise_dropdown():
     )
 
 
-@with_sidebar
+@with_navbar
 @require_login()
 def chat_default() -> rx.Component:
     """Renders the web page."""
     return rx.container(
+        rx.color_mode.button(position="bottom-left", type="button"),
         rx.box(
             rx.vstack(
                 rx.heading(
@@ -319,6 +320,7 @@ def chat_default() -> rx.Component:
             ),
             width="100%",
         ),
+        align_items="center",
         width="100%",
         on_mount=ChatState.init_chat,
     )
