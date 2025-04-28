@@ -48,8 +48,5 @@ def my_register_form() -> rx.Component:
             ),
             min_width=MIN_WIDTH,
         ),
-        # type ignore because the function expects form_data.
-        # rx.form gives the function this form_data, so everything works.
-        # But the linter thinks the function gets no args
-        on_submit=MyRegisterState.handle_registration_email,  # type: ignore[call-arg] # noqa: F821
+        on_submit=MyRegisterState.handle_registration_email,  # type: ignore
     )
