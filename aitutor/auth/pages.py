@@ -1,5 +1,5 @@
 """
-This module defines custom pages for authentication, including login and register pages.
+Custom pages for authentication, including login and register pages.
 """
 
 import reflex as rx

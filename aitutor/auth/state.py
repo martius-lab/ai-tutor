@@ -1,5 +1,5 @@
 """
-This module defines the state and event handlers for user registration,
+The state and event handlers for user registration,
 including integration with local authentication and user role management.
 """
 
@@ -33,7 +33,7 @@ class SessionState(reflex_local_auth.LocalAuthState):
             or self.authenticated_user.id is None
             or self.authenticated_user.id < 0
         ):
-            return
+            return None
         with rx.session() as session:
             return session.exec(
                 sqlmodel.select(UserInfo).where(

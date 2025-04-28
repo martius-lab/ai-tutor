@@ -1,5 +1,5 @@
 """
-This module defines the forms and components for user authentication,
+The forms and components for user authentication,
 including registration and error handling.
 """
 

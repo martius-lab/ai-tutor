@@ -1,5 +1,5 @@
 """
-This module defines the models used in the authentication system.
+The models used in the authentication system.
 """
 
 import reflex as rx

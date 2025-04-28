@@ -3,7 +3,6 @@ This module defines the navbar components for the Reflex application.
 """
 
 import reflex as rx
-import reflex_local_auth
 
 links = [
     ("Home", "/"),
