@@ -51,10 +51,7 @@ def navbar_default() -> rx.Component:
                     align_items="center",
                 ),
                 rx.hstack(
-                    *[
-                        navbar_link(text, url)
-                        for text, url in links
-                    ],
+                    *[navbar_link(text, url) for text, url in links],
                     spacing="5",
                 ),
                 rx.menu.root(
@@ -91,9 +88,7 @@ def navbar_default() -> rx.Component:
                         rx.menu.trigger(rx.icon("menu", size=30)),
                         rx.menu.content(
                             *[
-                                rx.menu.item(
-                                    rx.link(text, href=url)
-                                )
+                                rx.menu.item(rx.link(text, href=url))
                                 for text, url in links
                             ]
                         ),
