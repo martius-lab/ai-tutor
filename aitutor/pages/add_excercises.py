@@ -4,8 +4,8 @@ import reflex as rx
 import pdfplumber
 import io
 from sqlmodel import select, or_
+import reflex_local_auth
 
-from .login import require_login
 from ..models import Exercise, Tag
 from .navbar import with_navbar
 
@@ -818,11 +818,10 @@ def exercise_table():
 
 
 @with_navbar
-@require_login(role="teacher")
+@reflex_local_auth.require_login
 def add_exercises_default() -> rx.Component:
     """Add exercises page."""
     return rx.center(
-        rx.color_mode.button(position="bottom-left", type="button"),
         rx.vstack(
             rx.center(
                 rx.heading("Exercises", size="8", padding_top="2em"),

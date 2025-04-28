@@ -15,6 +15,7 @@ dependencies = [
     { name = "pytest" },
     { name = "python-decouple" },
     { name = "reflex" },
+    { name = "reflex-local-auth" },
 ]
 
 [package.dev-dependencies]
@@ -40,6 +41,7 @@ requires-dist = [
     { name = "pytest" },
     { name = "python-decouple" },
     { name = "reflex", specifier = "==0.7.5" },
+    { name = "reflex-local-auth", specifier = ">=0.3.0" },
 ]
 
 [package.metadata.requires-dev]
@@ -1216,6 +1218,19 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/e1/68/eed8c5e447a0e17ea321d33a0b702d45df7c18c58908281c8f9073b6bf91/reflex_hosting_cli-0.1.36.tar.gz", hash = "sha256:69d2efe5ff629234d6bf20b55067e0a1c6d2045861a937a8e092fcb4b3b58f2c", size = 30670 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/2c/23/d56353f5b5072c74dbb8889c0d5d77d46f6f8633a3860952f81d983b1339/reflex_hosting_cli-0.1.36-py3-none-any.whl", hash = "sha256:187b494f5cf028cd1ec7c243f474d36c71a3f70ead932e2d049c0fd4657a41e0", size = 38448 },
+]
+
+[[package]]
+name = "reflex-local-auth"
+version = "0.3.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "bcrypt" },
+    { name = "reflex" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/7e/78/8ef7227a6d7df3e9b80ed1e84c8b682a2b5627575417e77ab939e220b8d7/reflex_local_auth-0.3.0.tar.gz", hash = "sha256:2e630d8f32c5b2c15ecbb8e3519cdde920d79c720dbe843110437b3a718f8ec0", size = 19739 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/d1/4a/77f50b8610059f31365d25a5f8d3fe7500ea1b35792d935fb01f8bfde585/reflex_local_auth-0.3.0-py3-none-any.whl", hash = "sha256:708083afde008d265677c601986f0301af91c399ff41d14a199e050cb3e5939d", size = 12054 },
 ]
 
 [[package]]

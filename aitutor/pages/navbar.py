@@ -37,6 +37,7 @@ def navbar_default() -> rx.Component:
     """
     return rx.box(
         rx.desktop_only(
+            rx.color_mode.button(position="bottom-left", type="button"),
             rx.hstack(
                 rx.hstack(
                     rx.image(
@@ -72,6 +73,7 @@ def navbar_default() -> rx.Component:
             ),
         ),
         rx.mobile_and_tablet(
+            rx.color_mode.button(position="bottom-left", type="button"),
             rx.hstack(
                 rx.hstack(
                     rx.image(
@@ -134,8 +136,5 @@ def with_navbar(
         A callable that returns a Reflex component with the navigation bar.
     """
     return lambda: rx.vstack(
-        navbar_default(),
-        component_factory(),
-        spacing="0",
-        padding="0",
+        navbar_default(), component_factory(), spacing="0", padding="0", align="center"
     )
