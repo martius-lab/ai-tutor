@@ -155,6 +155,8 @@ def navbar_default() -> rx.Component:
                         width="2em",
                         height="auto",
                         border_radius="25%",
+                        on_click=rx.redirect("/"),
+                        cursor="pointer",
                     ),
                     rx.heading("AI Tutor", size="6", weight="bold"),
                     align_items="center",
@@ -174,15 +176,6 @@ def navbar_default() -> rx.Component:
                                 )
                                 for text, url in links
                             ]
-                        ),
-                    ),
-                    rx.menu.root(
-                        rx.menu.trigger(
-                            rx.icon_button(
-                                rx.icon("user"),
-                                size="2",
-                                radius="full",
-                            )
                         ),
                     ),
                     profile_menu(),
