@@ -8,6 +8,8 @@ from typing import List
 from aitutor.models import Exercise
 from aitutor.pages.navbar import with_navbar
 
+import reflex_local_auth
+
 
 class ExercisesState(rx.State):
     """State for managing exercises."""
@@ -93,7 +95,6 @@ def render_exercises() -> rx.Component:
 def exercises() -> rx.Component:
     """Exercises page for teachers"""
     return rx.container(
-        rx.color_mode.button(position="bottom-left", type="button"),
         rx.vstack(
             rx.heading("Your Exercises:", size="9"),  # page title
             rx.text(
@@ -119,6 +120,7 @@ def exercises() -> rx.Component:
 
 
 @with_navbar
+@reflex_local_auth.require_login
 def exercises_default() -> rx.Component:
     """Default wrapper for exercises page"""
     return exercises()
