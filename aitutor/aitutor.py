@@ -7,9 +7,8 @@ import reflex as rx
 import reflex_local_auth
 from . import (
     pages,
-    auth,
 )  # ,components: Uncommented so ruff check is passed. Uncomment when using components.
-
+from .auth.pages import custom_login_page, custom_register_page  # type: ignore
 
 app = rx.App()
 app.add_page(pages.home_default, route="/")
@@ -22,12 +21,12 @@ app.add_page(
 )
 # reflex_local_auth pages
 app.add_page(
-    auth.pages.custom_login_page,
+    custom_login_page,
     route=reflex_local_auth.routes.LOGIN_ROUTE,
     title="Login",
 )
 app.add_page(
-    auth.pages.custom_register_page,
+    custom_register_page,
     route=reflex_local_auth.routes.REGISTER_ROUTE,
     title="Register",
 )
