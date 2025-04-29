@@ -10,12 +10,13 @@ from aitutor.auth.models import UserRole
 links = [
     ("Home", "/"),
     ("Chat", "/chat"),
-    ("Add Exercises", "/add-exercises"),
     ("Exercises", "/exercises"),
+    ("Add Exercises", "/add-exercises"),
 ]
 
 
 userrole = SessionState.authenticated_user_info.role
+
 
 def navbar_link(text: str, url: str) -> rx.Component:
     """

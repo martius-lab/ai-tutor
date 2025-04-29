@@ -8,7 +8,7 @@ import reflex_local_auth
 from aitutor import pages
 from aitutor.auth.pages import custom_login_page, custom_register_page
 from aitutor.pages.exercises import ExercisesState
-from aitutor.utilities.create_admin_user import create_admin_if_not_exists
+from aitutor.utilities.create_default_users import create_default_users
 
 app = rx.App()
 app.add_page(pages.home_default, route="/")
@@ -33,7 +33,6 @@ app.add_page(
 
 # catch error if db is not created yet
 try:
-    create_admin_if_not_exists()
+    create_default_users()
 except Exception as e:
     print(f"Admin could not be created: {e}")
-
