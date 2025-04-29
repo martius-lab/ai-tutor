@@ -35,4 +35,4 @@ app.add_page(
 try:
     create_default_users()
 except Exception as e:
-    print(f"Admin could not be created: {e}")
+    print(f"Default users could not be created: {e}")
