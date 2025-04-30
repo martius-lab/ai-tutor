@@ -5,10 +5,10 @@ This module contains the main app definition for Reflex.
 
 import reflex as rx
 import reflex_local_auth
-from . import (
-    pages,
-)  # ,components: Uncommented so ruff check is passed. Uncomment when using components.
-from .auth.pages import custom_login_page, custom_register_page  # type: ignore
+from aitutor import pages
+from aitutor.auth.pages import custom_login_page, custom_register_page
+from aitutor.pages.exercises import ExercisesState
+from aitutor.utilities.create_default_users import create_default_users
 
 app = rx.App()
 app.add_page(pages.home_default, route="/")
@@ -17,7 +17,7 @@ app.add_page(pages.add_exercises_default, route="/add-exercises")
 app.add_page(
     pages.exercises_default,
     route="/exercises",
-    on_load=pages.exercises.ExercisesState.fetch_exercises,
+    on_load=ExercisesState.fetch_exercises,
 )
 # reflex_local_auth pages
 app.add_page(
@@ -30,3 +30,9 @@ app.add_page(
     route=reflex_local_auth.routes.REGISTER_ROUTE,
     title="Register",
 )
+
+# catch error if db is not created yet
+try:
+    create_default_users()
+except Exception as e:
+    print(f"Default users could not be created: {e}")

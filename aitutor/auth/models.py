@@ -4,17 +4,17 @@ The models used in the authentication system.
 
 import reflex as rx
 from sqlmodel import Field
-from enum import Enum
+from enum import IntEnum
 
 
-class UserRole(str, Enum):
+class UserRole(IntEnum):
     """
     Enum for user roles.
     """
 
-    STUDENT = "student"
-    TEACHER = "teacher"
-    ADMIN = "admin"
+    STUDENT = 1
+    TEACHER = 2
+    ADMIN = 3
 
 
 class UserInfo(rx.Model, table=True):
