@@ -7,8 +7,8 @@ from typing import List
 
 from aitutor.models import Exercise
 from aitutor.pages.navbar import with_navbar
-
-import reflex_local_auth
+from aitutor.auth.protection import require_role_at_least
+from aitutor.auth.models import UserRole
 
 
 class ExercisesState(rx.State):
@@ -120,7 +120,7 @@ def exercises() -> rx.Component:
 
 
 @with_navbar
-@reflex_local_auth.require_login
+@require_role_at_least(UserRole.TEACHER)
 def exercises_default() -> rx.Component:
     """Default wrapper for exercises page"""
     return exercises()

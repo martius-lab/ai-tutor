@@ -6,7 +6,7 @@ including integration with local authentication and user role management.
 import reflex as rx
 import reflex_local_auth
 
-from .models import UserInfo, UserRole
+from aitutor.auth.models import UserInfo, UserRole
 
 from typing import Optional
 
@@ -54,6 +54,18 @@ class SessionState(reflex_local_auth.LocalAuthState):
         """
         self.do_logout()
         return rx.redirect("/")
+
+    @rx.var()
+    def user_role(self) -> UserRole | None:
+        """
+        Retrieves the role of the authenticated user.
+
+        Returns:
+            UserRole: The role of the authenticated user.
+        """
+        if self.authenticated_user_info is None:
+            return None
+        return self.authenticated_user_info.role
 
 
 class MyRegisterState(reflex_local_auth.RegistrationState):

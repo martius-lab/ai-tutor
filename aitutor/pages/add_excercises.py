@@ -4,10 +4,11 @@ import reflex as rx
 import pdfplumber
 import io
 from sqlmodel import select, or_
-import reflex_local_auth
 
-from ..models import Exercise, Tag
-from .navbar import with_navbar
+from aitutor.models import Exercise, Tag
+from aitutor.pages.navbar import with_navbar
+from aitutor.auth.protection import require_role_at_least
+from aitutor.auth.models import UserRole
 
 
 class ExerciseState(rx.State):
@@ -818,7 +819,7 @@ def exercise_table():
 
 
 @with_navbar
-@reflex_local_auth.require_login
+@require_role_at_least(UserRole.ADMIN)
 def add_exercises_default() -> rx.Component:
     """Add exercises page."""
     return rx.center(
