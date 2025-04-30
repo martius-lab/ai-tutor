@@ -14,19 +14,19 @@ from reflex_local_auth.user import LocalUser
 # admin information
 admin_role: UserRole = UserRole.ADMIN
 admin_name = "admin"
-admin_password = "sehrgeheim"
+admin_password = "1234"
 admin_email = "admin@mail.de"
 
 # teacher information
 teacher_role: UserRole = UserRole.TEACHER
 teacher_name = "teacher"
-teacher_password = "geheim"
+teacher_password = "1234"
 teacher_email = "teacher@mail.de"
 
 # student information
 student_role: UserRole = UserRole.STUDENT
 student_name = "student"
-student_password = "lol"
+student_password = "1234"
 student_email = "student@mail.de"
 
 

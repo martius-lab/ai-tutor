@@ -15,9 +15,6 @@ links = [
 ]
 
 
-userrole = SessionState.authenticated_user_info.role
-
-
 def navbar_link(text: str, url: str) -> rx.Component:
     """
     Creates a navigation link component.
@@ -39,6 +36,7 @@ def get_user_icon():
     Returns:
         rx.Component: A Reflex conditional component representing the user icon.
     """
+    userrole = SessionState.user_role
     return rx.cond(
         ~SessionState.is_authenticated,
         "user-round",
@@ -58,6 +56,20 @@ def get_user_icon():
     )
 
 
+def get_user_icon_color():
+    """
+    Determines the appropriate color for the user icon based on the user's authentication and role.
+
+    Returns:
+        str: The color for the user icon.
+    """
+    return rx.cond(
+        SessionState.is_authenticated,
+        "accent",
+        "gray",
+    )
+
+
 def profile_menu() -> rx.Component:
     """
     Creates a profile menu component for the navigation bar.
@@ -72,6 +84,7 @@ def profile_menu() -> rx.Component:
                 size="2",
                 radius="full",
                 _hover={"cursor": "pointer"},
+                background_color=get_user_icon_color(),
             ),
         ),
         rx.cond(
