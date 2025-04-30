@@ -56,7 +56,7 @@ class SessionState(reflex_local_auth.LocalAuthState):
         return rx.redirect("/")
 
     @rx.var()
-    def get_user_role(self) -> UserRole | None:
+    def user_role(self) -> UserRole | None:
         """
         Retrieves the role of the authenticated user.
 
@@ -64,7 +64,7 @@ class SessionState(reflex_local_auth.LocalAuthState):
             UserRole: The role of the authenticated user.
         """
         if self.authenticated_user_info is None:
-            return UserRole.STUDENT
+            return None
         return self.authenticated_user_info.role
 
 
