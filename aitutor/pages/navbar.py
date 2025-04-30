@@ -58,7 +58,8 @@ def get_user_icon():
 
 def get_user_icon_color():
     """
-    Determines the appropriate color for the user icon based on the user's authentication and role.
+    Determines the appropriate color for the user icon based on
+    the user's authentication and role.
 
     Returns:
         str: The color for the user icon.
