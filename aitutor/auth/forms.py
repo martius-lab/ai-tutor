@@ -6,6 +6,7 @@ including registration and error handling.
 import reflex as rx
 import reflex_local_auth
 from reflex_local_auth.pages.components import input_100w, MIN_WIDTH
+import aitutor.routes as routes
 
 from aitutor.auth.state import MyRegisterState
 
@@ -42,7 +43,7 @@ def my_register_form() -> rx.Component:
             rx.center(
                 rx.link(
                     "Login",
-                    on_click=lambda: rx.redirect(reflex_local_auth.routes.LOGIN_ROUTE),
+                    on_click=lambda: rx.redirect(routes.LOGIN_ROUTE),
                 ),
                 width="100%",
             ),

@@ -12,6 +12,8 @@ from typing import Optional
 
 import sqlmodel
 
+import aitutor.routes as routes
+
 
 class SessionState(reflex_local_auth.LocalAuthState):
     """
@@ -46,14 +48,14 @@ class SessionState(reflex_local_auth.LocalAuthState):
         Handles the loading of the session state.
         """
         if not self.is_authenticated:
-            return reflex_local_auth.LoginState.redir()
+            return rx.redirect(routes.LOGIN_ROUTE, replace=True)
 
     def perform_logout(self):
         """
         Handles the logout process for the authenticated user.
         """
         self.do_logout()
-        return rx.redirect("/")
+        return rx.redirect(routes.HOME_ROUTE, replace=True)
 
     @rx.var()
     def user_role(self) -> UserRole | None:
