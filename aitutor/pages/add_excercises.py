@@ -294,6 +294,7 @@ def add_exercise_button() -> rx.Component:
                 rx.icon("file-plus", size=26),
                 rx.text("Add Exercise", size="4"),
                 size="3",
+                _hover={"cursor": "pointer"},
             ),
         ),
         rx.dialog.content(
@@ -371,6 +372,7 @@ def add_exercise_button() -> rx.Component:
                         rx.button(
                             "Select File",
                             type="button",
+                            _hover={"cursor": "pointer"},
                         ),
                         rx.text(
                             "Drag and drop or click the button to select",
@@ -401,6 +403,7 @@ def add_exercise_button() -> rx.Component:
                                 color_scheme="red",
                                 spacing="3",
                                 type="button",
+                                _hover={"cursor": "pointer"},
                             ),
                         ),
                         padding_top="1.5em",
@@ -433,6 +436,7 @@ def add_exercise_button() -> rx.Component:
                                 color_scheme="red",
                                 spacing="3",
                                 type="button",
+                                _hover={"cursor": "pointer"},
                             ),
                             spacing="3",
                         ),
@@ -442,6 +446,7 @@ def add_exercise_button() -> rx.Component:
                         rx.button(
                             "Cancel",
                             color_scheme="red",
+                            _hover={"cursor": "pointer"},
                         ),
                     ),
                     rx.form.submit(
@@ -449,6 +454,7 @@ def add_exercise_button() -> rx.Component:
                             "Add Task",
                             color_scheme="grass",
                             type="submit",
+                            _hover={"cursor": "pointer"},
                         ),
                         padding_bottom="0.5em",
                     ),
@@ -461,6 +467,7 @@ def add_exercise_button() -> rx.Component:
                         type="button",
                         on_click=ExerciseState.add_selected_tag,
                         margin_top="0.5em",
+                        _hover={"cursor": "pointer"},
                     ),
                     # show the linked tags visually
                     rx.hstack(
@@ -517,6 +524,7 @@ def tag_dialog():
                     margin_top="0.5em",
                     color_scheme="orange",
                     shade="7",
+                    _hover={"cursor": "pointer"},
                 ),
             ),
             rx.dialog.content(
@@ -533,6 +541,7 @@ def tag_dialog():
                                 "Cancel",
                                 color_scheme="red",
                                 type="button",
+                                _hover={"cursor": "pointer"},
                             ),
                         ),
                         rx.form.submit(
@@ -540,6 +549,7 @@ def tag_dialog():
                                 "Add Tag",
                                 color_scheme="grass",
                                 type="submit",
+                                _hover={"cursor": "pointer"},
                             ),
                         ),
                         padding_top="1em",
@@ -583,6 +593,7 @@ def show_exercise(exercise: Exercise):
                         size="2",
                         variant="ghost",
                         color_scheme="red",
+                        _hover={"cursor": "pointer"},
                     ),
                     edit_exercise(exercise),
                 ),
@@ -604,6 +615,7 @@ def edit_exercise(exercise: Exercise):
                 size="2",
                 variant="ghost",
                 on_click=lambda: ExerciseState.get_exercise(exercise),  # type: ignore
+                _hover={"cursor": "pointer"},
             ),
             padding_left="1em",
         ),
@@ -695,6 +707,7 @@ def edit_exercise(exercise: Exercise):
                         rx.button(
                             "Cancel",
                             color_scheme="red",
+                            _hover={"cursor": "pointer"},
                         ),
                     ),
                     rx.form.submit(
@@ -703,6 +716,7 @@ def edit_exercise(exercise: Exercise):
                                 "Update Task",
                                 color_scheme="yellow",
                                 type="submit",
+                                _hover={"cursor": "pointer"},
                             ),
                             as_child=True,
                         ),
@@ -717,6 +731,7 @@ def edit_exercise(exercise: Exercise):
                         type="button",
                         on_click=ExerciseState.add_selected_tag,
                         margin_top="0.5em",
+                        _hover={"cursor": "pointer"},
                     ),
                     # show the linked tags visually
                     rx.hstack(
