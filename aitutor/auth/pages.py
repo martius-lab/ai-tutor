@@ -6,9 +6,9 @@ import reflex as rx
 
 from aitutor.pages.navbar import with_navbar
 
-from reflex_local_auth.pages.login import LoginState, login_form
+from reflex_local_auth.pages.login import LoginState
 from reflex_local_auth.pages.registration import RegistrationState
-from aitutor.auth.forms import my_register_form
+from aitutor.auth.forms import my_login_form, my_register_form
 
 
 @with_navbar
@@ -17,7 +17,7 @@ def custom_login_page() -> rx.Component:
     return rx.center(
         rx.cond(
             LoginState.is_hydrated,
-            rx.card(login_form()),
+            rx.card(my_login_form()),
         ),
         min_height="85vh",
     )

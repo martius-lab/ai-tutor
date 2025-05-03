@@ -11,6 +11,41 @@ import aitutor.routes as routes
 from aitutor.auth.state import MyRegisterState
 
 
+def login_error() -> rx.Component:
+    """Render the login error message."""
+    return rx.cond(
+        reflex_local_auth.LoginState.error_message != "",
+        rx.callout(
+            reflex_local_auth.LoginState.error_message,
+            icon="triangle_alert",
+            color_scheme="red",
+            role="alert",
+            width="100%",
+        ),
+    )
+
+
+def my_login_form() -> rx.Component:
+    """Render the login form."""
+    return rx.form(
+        rx.vstack(
+            rx.heading("Login into your Account", size="7"),
+            login_error(),
+            rx.text("Username"),
+            input_100w("username"),
+            rx.text("Password"),
+            input_100w("password", type="password"),
+            rx.button("Sign in", width="100%", _hover={"cursor": "pointer"}),
+            rx.center(
+                rx.link("Register", on_click=rx.redirect(routes.REGISTER_ROUTE)),
+                width="100%",
+            ),
+            min_width=MIN_WIDTH,
+        ),
+        on_submit=reflex_local_auth.LoginState.on_submit,
+    )
+
+
 def register_error() -> rx.Component:
     """Render the registration error message."""
     return rx.cond(
@@ -39,7 +74,7 @@ def my_register_form() -> rx.Component:
             input_100w("password", type="password"),
             rx.text("Confirm Password"),
             input_100w("confirm_password", type="password"),
-            rx.button("Sign up", width="100%"),
+            rx.button("Sign up", width="100%", _hover={"cursor": "pointer"}),
             rx.center(
                 rx.link(
                     "Login",
