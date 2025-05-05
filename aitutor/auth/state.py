@@ -57,7 +57,7 @@ class SessionState(reflex_local_auth.LocalAuthState):
         self.do_logout()
         return rx.redirect(routes.HOME, replace=True)
 
-    @rx.var()
+    @rx.var(cache=True)
     def user_role(self) -> UserRole | None:
         """
         Retrieves the role of the authenticated user.
@@ -68,6 +68,18 @@ class SessionState(reflex_local_auth.LocalAuthState):
         if self.authenticated_user_info is None:
             return None
         return self.authenticated_user_info.role
+
+    @rx.var(cache=True)
+    def user_id(self) -> int | None:
+        """
+        Retrieves the ID of the authenticated user.
+
+        Returns:
+            int: The ID of the authenticated user.
+        """
+        if self.authenticated_user_info is None:
+            return None
+        return self.authenticated_user_info.user_id
 
 
 class MyRegisterState(reflex_local_auth.RegistrationState):
