@@ -1,5 +1,6 @@
 """Module defining database models."""
 
+from enum import IntEnum
 import reflex as rx
 from passlib.context import CryptContext
 from sqlmodel import Field, Column, JSON, Relationship, DateTime
@@ -89,3 +90,23 @@ class ExerciseResult(rx.Model, table=True):  # type: ignore
             LastUpdate='{self.time_stamp}'
             )>
         """
+
+
+class UserRole(IntEnum):
+    """
+    Enum for user roles.
+    """
+
+    STUDENT = 1
+    TEACHER = 2
+    ADMIN = 3
+
+
+class UserInfo(rx.Model, table=True):
+    """
+    Adds more attributes to a user than just name and password.
+    """
+
+    email: str
+    role: UserRole
+    user_id: int = Field(foreign_key="localuser.id", ondelete="CASCADE")

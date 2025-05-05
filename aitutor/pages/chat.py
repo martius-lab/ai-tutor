@@ -9,7 +9,7 @@ from openai import AsyncOpenAI
 from aitutor.pages.navbar import with_navbar
 from aitutor.models import Exercise
 from aitutor.auth.protection import require_role_at_least
-from aitutor.auth.models import UserRole
+from aitutor.models import UserRole
 
 DEFAULT_MODEL = "gpt-4o-mini"
 

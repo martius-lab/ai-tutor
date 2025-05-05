@@ -4,7 +4,7 @@ This module defines the navbar components for the Reflex application.
 
 import reflex as rx
 from aitutor.auth.state import SessionState
-from aitutor.auth.models import UserRole
+from aitutor.models import UserRole
 import aitutor.routes as routes
 
 links = [

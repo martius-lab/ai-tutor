@@ -8,7 +8,7 @@ from sqlmodel import select, or_
 from aitutor.models import Exercise, Tag
 from aitutor.pages.navbar import with_navbar
 from aitutor.auth.protection import require_role_at_least
-from aitutor.auth.models import UserRole
+from aitutor.models import UserRole
 
 
 class ExerciseState(rx.State):
