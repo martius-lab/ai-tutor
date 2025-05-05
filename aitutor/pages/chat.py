@@ -67,7 +67,8 @@ class ChatState(SessionState):
     def init_chat(self):
         """
         Initializes chat. Per default the first exercise is loaded if an exercise
-        is available.
+        is available. Additionally, it loads the existing conversation for the
+        current user and exercise.
         """
         self.load_exercises_from_db()
         if self.exercises:
@@ -76,10 +77,30 @@ class ChatState(SessionState):
             assert self.current_exercise is not None
             self.exercise_title = self.current_exercise.title
             self.system_message_gpt = self.current_exercise.prompt
-            self.reset_messages()
-            self.append_chat_message(self.current_exercise.description, is_llm=True)
         else:
             self.no_exercise_available()
+
+    @rx.event
+    def load_existing_conversation(self):
+        """
+        Loads existing conversation from database.
+        """
+        userinfo_id: Optional[int] = self.user_id
+        if self.current_exercise and userinfo_id:
+            with rx.session() as session:
+                exercise_result = session.exec(
+                    ExerciseResult.select().where(
+                        ExerciseResult.exercise_id == self.current_exercise.id,
+                        ExerciseResult.userinfo_id == userinfo_id,
+                    )
+                ).first()
+
+                if exercise_result:
+                    for msg in exercise_result.conversation_text:
+                        if msg["role"] in ["user", "assistant"]:
+                            self.append_chat_message(
+                                msg["content"], is_llm=(msg["role"] == "assistant")
+                            )
 
     def no_exercise_available(self):
         """Sends chat message to user if no exercises are available."""
@@ -137,9 +158,11 @@ class ChatState(SessionState):
                     self.exercise_title = self.current_exercise.title
                     self.system_message_gpt = self.current_exercise.prompt
                     self.reset_messages()
-                    self.append_chat_message(
-                        self.current_exercise.description, is_llm=True
-                    )
+                    self.load_existing_conversation()
+                    if not self.messages:
+                        self.append_chat_message(
+                            self.current_exercise.description, is_llm=True
+                        )
 
     @rx.var
     def user_did_submit(self) -> bool:
