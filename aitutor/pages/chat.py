@@ -128,6 +128,20 @@ class ChatState(SessionState):
     @rx.event
     def reset_conversation(self):
         """Resets conversation for current exercise."""
+        # delete conversation from database
+        userinfo_id: Optional[int] = self.user_id
+        if self.current_exercise and userinfo_id:
+            with rx.session() as session:
+                exercise_result = session.exec(
+                    ExerciseResult.select().where(
+                        ExerciseResult.exercise_id == self.current_exercise.id,
+                        ExerciseResult.userinfo_id == userinfo_id,
+                    )
+                ).first()
+
+                if exercise_result:
+                    session.delete(exercise_result)
+                    session.commit()
         # Only reset the conversation if there are messages beyond the initial message
         # by ChatGPT.
         if len(self.messages) > 1:
