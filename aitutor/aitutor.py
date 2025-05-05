@@ -4,30 +4,30 @@ This module contains the main app definition for Reflex.
 """
 
 import reflex as rx
-import reflex_local_auth
 from aitutor import pages
 from aitutor.auth.pages import custom_login_page, custom_register_page
 from aitutor.pages.exercises import ExercisesState
 from aitutor.utilities.create_default_users import create_default_users
+import aitutor.routes as routes
 
 app = rx.App()
-app.add_page(pages.home_default, route="/")
-app.add_page(pages.chat_default, route="/chat")
-app.add_page(pages.add_exercises_default, route="/add-exercises")
+app.add_page(pages.home_default, route=routes.HOME)
+app.add_page(pages.chat_default, route=routes.CHAT)
+app.add_page(pages.add_exercises_default, route=routes.ADD_EXERCISE)
 app.add_page(
     pages.exercises_default,
-    route="/exercises",
+    route=routes.EXERCISES,
     on_load=ExercisesState.fetch_exercises,
 )
 # reflex_local_auth pages
 app.add_page(
     custom_login_page,
-    route=reflex_local_auth.routes.LOGIN_ROUTE,
+    route=routes.LOGIN,
     title="Login",
 )
 app.add_page(
     custom_register_page,
-    route=reflex_local_auth.routes.REGISTER_ROUTE,
+    route=routes.REGISTER,
     title="Register",
 )
 
