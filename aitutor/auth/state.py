@@ -6,7 +6,7 @@ including integration with local authentication and user role management.
 import reflex as rx
 import reflex_local_auth
 
-from aitutor.auth.models import UserInfo, UserRole
+from aitutor.models import UserInfo, UserRole
 
 from typing import Optional
 
