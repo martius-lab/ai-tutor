@@ -77,6 +77,9 @@ class ExerciseResult(rx.Model, table=True):  # type: ignore
     # Connects to Exercise.submissions
     exercise: Optional["Exercise"] = Relationship(back_populates="submissions")
 
+    userinfo_id: int = Field(foreign_key="userinfo.id", ondelete="CASCADE")
+    user: Optional["UserInfo"] = Relationship(back_populates="exercise_results")
+
     def __repr__(self):
         if self.exercise is None:
             # TODO: Do exercise and user need to be Optional?
@@ -110,3 +113,4 @@ class UserInfo(rx.Model, table=True):
     email: str
     role: UserRole
     user_id: int = Field(foreign_key="localuser.id", ondelete="CASCADE")
+    exercise_results: List["ExerciseResult"] = Relationship(back_populates="user")
