@@ -8,10 +8,10 @@ from aitutor.auth.models import UserRole
 import aitutor.routes as routes
 
 links = [
-    ("Home", routes.HOME_ROUTE),
-    ("Chat", routes.CHAT_ROUTE),
-    ("Exercises", routes.EXERCISES_ROUTE),
-    ("Add Exercises", routes.ADD_EXERCISE_ROUTE),
+    ("Home", routes.HOME),
+    ("Chat", routes.CHAT),
+    ("Exercises", routes.EXERCISES),
+    ("Add Exercises", routes.ADD_EXERCISE),
 ]
 
 
@@ -144,7 +144,7 @@ def profile_menu() -> rx.Component:
                         justify="center",
                         spacing="1",
                     ),
-                    on_click=lambda: rx.redirect(routes.LOGIN_ROUTE),
+                    on_click=lambda: rx.redirect(routes.LOGIN),
                     _hover={"cursor": "pointer"},
                 ),
                 rx.menu.item(
@@ -163,7 +163,7 @@ def profile_menu() -> rx.Component:
                         justify="center",
                         spacing="1",
                     ),
-                    on_click=lambda: rx.redirect(routes.REGISTER_ROUTE),
+                    on_click=lambda: rx.redirect(routes.REGISTER),
                     _hover={"cursor": "pointer"},
                 ),
             ),
@@ -189,7 +189,7 @@ def navbar_default() -> rx.Component:
                         width="2.25em",
                         height="auto",
                         border_radius="25%",
-                        on_click=rx.redirect(routes.HOME_ROUTE),
+                        on_click=rx.redirect(routes.HOME),
                         cursor="pointer",
                     ),
                     rx.heading("AI Tutor", size="7", weight="bold"),
@@ -213,7 +213,7 @@ def navbar_default() -> rx.Component:
                         width="2em",
                         height="auto",
                         border_radius="25%",
-                        on_click=rx.redirect(routes.HOME_ROUTE),
+                        on_click=rx.redirect(routes.HOME),
                         cursor="pointer",
                     ),
                     rx.heading("AI Tutor", size="6", weight="bold"),

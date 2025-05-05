@@ -37,7 +37,7 @@ def my_login_form() -> rx.Component:
             input_100w("password", type="password"),
             rx.button("Sign in", width="100%", _hover={"cursor": "pointer"}),
             rx.center(
-                rx.link("Register", on_click=rx.redirect(routes.REGISTER_ROUTE)),
+                rx.link("Register", on_click=rx.redirect(routes.REGISTER)),
                 width="100%",
             ),
             min_width=MIN_WIDTH,
@@ -78,7 +78,7 @@ def my_register_form() -> rx.Component:
             rx.center(
                 rx.link(
                     "Login",
-                    on_click=lambda: rx.redirect(routes.LOGIN_ROUTE),
+                    on_click=lambda: rx.redirect(routes.LOGIN),
                 ),
                 width="100%",
             ),
