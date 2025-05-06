@@ -5,7 +5,7 @@ It interacts with the database to check for an existing user with that role
 and creates one with default credentials if necessary.
 """
 
-from aitutor.auth.models import UserInfo, UserRole
+from aitutor.models import UserInfo, UserRole
 import reflex as rx
 from sqlmodel import select
 from reflex_local_auth.user import LocalUser
