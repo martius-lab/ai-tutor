@@ -90,9 +90,11 @@ def render_exercises() -> rx.Component:
             width="100%",
         ),
         rx.text(  # if no exercises exist
-            "No exercises found. Click 'Add' to create your first exercise!",
+            "There exist no exercises yet.",
             color="gray",
             size="4",
+            text_align="center",
+            width="100%",
         ),
     )
 

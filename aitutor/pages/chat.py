@@ -93,7 +93,7 @@ class ChatState(SessionState):
                         ExerciseResult.exercise_id == self.current_exercise.id,
                         ExerciseResult.userinfo_id == userinfo_id,
                     )
-                ).first()
+                ).one_or_none()
 
                 if exercise_result:
                     for msg in exercise_result.conversation_text:
@@ -137,7 +137,7 @@ class ChatState(SessionState):
                         ExerciseResult.exercise_id == self.current_exercise.id,
                         ExerciseResult.userinfo_id == userinfo_id,
                     )
-                ).first()
+                ).all()
 
                 if exercise_result:
                     session.delete(exercise_result)
