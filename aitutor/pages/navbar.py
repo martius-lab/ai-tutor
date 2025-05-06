@@ -181,7 +181,6 @@ def navbar_default() -> rx.Component:
     """
     return rx.box(
         rx.desktop_only(
-            rx.color_mode.button(position="bottom-left", type="button"),
             rx.hstack(
                 rx.hstack(
                     rx.image(
@@ -199,13 +198,15 @@ def navbar_default() -> rx.Component:
                     *[navbar_link(text, url) for text, url in links],
                     spacing="5",
                 ),
-                profile_menu(),
+                rx.hstack(
+                    rx.color_mode.button(),
+                    profile_menu(),
+                ),
                 justify="between",
                 align_items="center",
             ),
         ),
         rx.mobile_and_tablet(
-            rx.color_mode.button(position="bottom-left", type="button"),
             rx.hstack(
                 rx.hstack(
                     rx.image(
@@ -220,6 +221,7 @@ def navbar_default() -> rx.Component:
                     align_items="center",
                 ),
                 rx.hstack(
+                    rx.color_mode.button(),
                     rx.menu.root(
                         rx.menu.trigger(
                             rx.icon("menu", size=30),
