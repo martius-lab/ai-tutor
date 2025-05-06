@@ -8,7 +8,7 @@ from typing import List
 from aitutor.models import Exercise
 from aitutor.pages.navbar import with_navbar
 from aitutor.auth.protection import require_role_at_least
-from aitutor.auth.models import UserRole
+from aitutor.models import UserRole
 
 
 class ExercisesState(rx.State):
@@ -38,15 +38,20 @@ def render_exercise_card(exercise: Exercise) -> rx.Component:
     """Render exercises as cards"""
     return rx.card(  # create a card for each exercise
         rx.vstack(
-            rx.heading(exercise.title, size="4"),  # display title
+            rx.heading(exercise.title, size="6"),  # display title
             rx.cond(  # display description if it exists
                 exercise.description is not None,
-                rx.text(f"Description: {exercise.description}", size="2"),
+                rx.hstack(
+                    rx.text("Description:", weight="bold", size="2"),
+                    rx.text(exercise.description, color="gray", size="2"),
+                    align_items="center",
+                    align="center",
+                ),
             ),
             rx.cond(  # display tags if they exist
                 ExercisesState.has_tags,
                 rx.hstack(
-                    rx.text("Tags:", weight="bold"),
+                    rx.text("Tags:", weight="bold", size="2"),
                     rx.hstack(
                         rx.foreach(
                             exercise.tags,
@@ -85,9 +90,11 @@ def render_exercises() -> rx.Component:
             width="100%",
         ),
         rx.text(  # if no exercises exist
-            "No exercises found. Click 'Add' to create your first exercise!",
+            "There exist no exercises yet.",
             color="gray",
             size="4",
+            text_align="center",
+            width="100%",
         ),
     )
 
@@ -97,21 +104,7 @@ def exercises() -> rx.Component:
     return rx.container(
         rx.vstack(
             rx.heading("Your Exercises:", size="9"),  # page title
-            rx.text(
-                "Add new exercises by clicking 'Add'! ",
-                size="5",
-            ),
             render_exercises(),
-            rx.center(
-                rx.button(  # add button
-                    "Add",
-                    color_scheme="green",
-                    # redirect to add-exercise page when available
-                    # on_click=lambda: rx.redirect("/add-exercise", replace=True),
-                    width="full",
-                ),
-                width="100%",
-            ),
             spacing="5",
             justify="center",
             min_height="85vh",

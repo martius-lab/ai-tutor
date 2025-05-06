@@ -5,7 +5,7 @@ Utilities for access control and role-based protection.
 import reflex as rx
 from reflex_local_auth.login import LoginState
 from aitutor.auth.state import SessionState
-from aitutor.auth.models import UserRole
+from aitutor.models import UserRole
 
 
 def require_role_at_least(role: UserRole):
