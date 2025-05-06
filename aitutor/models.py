@@ -78,8 +78,8 @@ class ExerciseResult(rx.Model, table=True):  # type: ignore
     )
 
     # Connects to Exercise.submissions
-    exercise_id: Optional[int] = Field(foreign_key="exercise.id", ondelete="CASCADE")
-    exercise: Optional["Exercise"] = Relationship(back_populates="submissions")
+    exercise_id: int = Field(foreign_key="exercise.id", ondelete="CASCADE")
+    exercise: "Exercise" = Relationship(back_populates="submissions")
 
     userinfo_id: int = Field(foreign_key="userinfo.id", ondelete="CASCADE")
     user: "UserInfo" = Relationship(back_populates="exercise_results")

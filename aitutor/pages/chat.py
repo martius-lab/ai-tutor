@@ -235,6 +235,10 @@ class ChatState(SessionState):
 
                 if exercise_result is None:
                     # create new ExerciseResult if none exists
+                    if self.current_exercise.id is None:
+                        raise ValueError(
+                            "Failed to save conversation because exercise_id is None."
+                        )
                     exercise_result = ExerciseResult(
                         exercise_id=self.current_exercise.id,
                         userinfo_id=userinfo_id,
