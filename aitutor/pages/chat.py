@@ -140,7 +140,8 @@ class ChatState(SessionState):
                 ).all()
 
                 if exercise_result:
-                    session.delete(exercise_result)
+                    for result in exercise_result:
+                        session.delete(result)
                     session.commit()
         # Only reset the conversation if there are messages beyond the initial message
         # by ChatGPT.
