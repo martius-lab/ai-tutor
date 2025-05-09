@@ -30,6 +30,23 @@ class ExerciseState(rx.State):
     selected_tags: list[str] = []  # List to store selected tags temporarily
     lesson_file: str = ""  # the lesson file as a string
     lesson_file_name: str = ""  # name of the PDF
+    current_prompt_name: str = ""  # the current prompt name
+    current_prompt: str = ""  # the current prompt
+    prompts: dict[str, str] = {}  # the prompt templates as a dict
+    prompt_names: list[str] = []  # the prompt names as a list
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        with open("config.toml", "rb") as f:
+            config = tomli.load(f)
+        self.prompts = config["prompts"]
+        self.prompt_names = list(self.prompts.keys())
+
+    @rx.event
+    def set_current_prompt(self, prompt: str):
+        """Set the current prompt."""
+        self.current_prompt_name = prompt
+        self.current_prompt = self.prompts[prompt]
 
     @rx.event
     async def extract_lesson_material(self, files: list[rx.UploadFile]):
@@ -92,10 +109,7 @@ class ExerciseState(rx.State):
             # use the selected tags
             new_exercise.tags = list(self.selected_tags)
             # add prompt element
-            with open("config.toml", "rb") as f:
-                config = tomli.load(f)
-            prompt_template = config["prompts"]["prompt"]
-            new_exercise.prompt = prompt_template.format(
+            new_exercise.prompt = self.current_prompt.format(
                 title=form_data["title"],
                 description=form_data["description"],
                 lesson_file=self.lesson_file,
@@ -400,6 +414,22 @@ def add_exercise_button() -> rx.Component:
                     ),
                 ),
                 rx.text(
+                    "Prompt: ",
+                    size="3",
+                    weight="medium",
+                    text_align="left",
+                    width="100%",
+                    padding_top="1.5em",
+                    padding_bottom="0.5em",
+                ),
+                rx.select(
+                    items=ExerciseState.prompt_names,
+                    placeholder="Select a Prompt here",
+                    value=ExerciseState.current_prompt_name,
+                    on_change=ExerciseState.set_current_prompt,
+                    multiple=True,
+                ),
+                rx.text(
                     "Tags: ",
                     size="3",
                     weight="medium",
@@ -431,22 +461,6 @@ def add_exercise_button() -> rx.Component:
                             spacing="3",
                         ),
                         flex="1",
-                    ),
-                    rx.dialog.close(
-                        rx.button(
-                            "Cancel",
-                            color_scheme="red",
-                            _hover={"cursor": "pointer"},
-                        ),
-                    ),
-                    rx.form.submit(
-                        rx.button(
-                            "Add Task",
-                            color_scheme="grass",
-                            type="submit",
-                            _hover={"cursor": "pointer"},
-                        ),
-                        padding_bottom="0.5em",
                     ),
                     spacing="2",
                 ),
@@ -489,6 +503,26 @@ def add_exercise_button() -> rx.Component:
                         margin_bottom="0.5em",
                     ),
                 ),
+                rx.hstack(
+                    rx.dialog.close(
+                        rx.button(
+                            "Cancel",
+                            color_scheme="red",
+                            _hover={"cursor": "pointer"},
+                        ),
+                    ),
+                    rx.form.submit(
+                        rx.button(
+                            "Add Task",
+                            color_scheme="grass",
+                            type="submit",
+                            _hover={"cursor": "pointer"},
+                        ),
+                        padding_bottom="0.5em",
+                    ),
+                    spacing="2",
+                    justify="end",
+                ),
                 # load new tags
                 on_mount=ExerciseState.load_tags,
                 # submit new exercises
@@ -496,7 +530,7 @@ def add_exercise_button() -> rx.Component:
                 reset_on_submit=False,
                 enter_key_submit=True,
             ),
-            # add new tags
+            # add new tag
             tag_dialog(),
         ),
         open=ExerciseState.add_exercise_dialog_is_open,
@@ -510,7 +544,7 @@ def tag_dialog():
         rx.dialog.root(
             rx.dialog.trigger(
                 rx.button(
-                    "New Selectable Tags",
+                    "Create New Tag",
                     margin_top="0.5em",
                     color_scheme="orange",
                     shade="7",
@@ -690,27 +724,19 @@ def edit_exercise(exercise: Exercise):
                                 on_change=ExerciseState.set_current_tag,
                                 multiple=True,
                             ),
-                        ),
-                        flex="1",
-                    ),
-                    rx.dialog.close(
-                        rx.button(
-                            "Cancel",
-                            color_scheme="red",
-                            _hover={"cursor": "pointer"},
-                        ),
-                    ),
-                    rx.form.submit(
-                        rx.dialog.close(
-                            rx.button(
-                                "Update Task",
-                                color_scheme="yellow",
-                                type="submit",
+                            rx.icon_button(
+                                rx.icon("circle-x"),
+                                on_click=ExerciseState.delete_tag,
+                                size="2",
+                                variant="ghost",
+                                color_scheme="red",
+                                spacing="3",
+                                type="button",
                                 _hover={"cursor": "pointer"},
                             ),
-                            as_child=True,
+                            spacing="3",
                         ),
-                        padding_bottom="0.5em",
+                        flex="1",
                     ),
                     spacing="2",
                 ),
@@ -753,6 +779,29 @@ def edit_exercise(exercise: Exercise):
                         margin_bottom="0.5em",
                     ),
                 ),
+                rx.hstack(
+                    rx.dialog.close(
+                        rx.button(
+                            "Cancel",
+                            color_scheme="red",
+                            _hover={"cursor": "pointer"},
+                        ),
+                    ),
+                    rx.form.submit(
+                        rx.dialog.close(
+                            rx.button(
+                                "Update Task",
+                                color_scheme="yellow",
+                                type="submit",
+                                _hover={"cursor": "pointer"},
+                            ),
+                            as_child=True,
+                        ),
+                        padding_bottom="0.5em",
+                    ),
+                    spacing="2",
+                    justify="end",
+                ),
                 # load tags
                 on_mount=ExerciseState.load_tags,
                 # update exercise
@@ -760,6 +809,8 @@ def edit_exercise(exercise: Exercise):
                 reset_on_submit=False,
                 enter_key_submit=True,
             ),
+            # add new tag
+            tag_dialog(),
         ),
     )
 
