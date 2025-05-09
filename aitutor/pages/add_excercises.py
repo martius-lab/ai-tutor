@@ -49,6 +49,11 @@ class ExerciseState(rx.State):
         self.current_prompt = self.prompts[prompt]
 
     @rx.event
+    def set_current_prompt_name(self, prompt_name: str):
+        """Set the current prompt name."""
+        self.current_prompt_name = prompt_name
+
+    @rx.event
     async def extract_lesson_material(self, files: list[rx.UploadFile]):
         """Extract the lesson material as text."""
         for file in files:
@@ -208,6 +213,12 @@ class ExerciseState(rx.State):
             updated_exercise.title = form_data["title"]
             updated_exercise.description = form_data["description"]
             updated_exercise.tags = self.selected_tags
+            updated_exercise.prompt = self.current_prompt.format(
+                title=form_data["title"],
+                description=form_data["description"],
+                lesson_file=self.lesson_file,
+            )
+            updated_exercise.prompt_name = self.current_prompt_name
 
             session.add(updated_exercise)
             session.commit()
@@ -638,7 +649,10 @@ def edit_exercise(exercise: Exercise):
                 color_scheme="orange",
                 size="2",
                 variant="ghost",
-                on_click=lambda: ExerciseState.get_exercise(exercise),  # type: ignore
+                on_click=lambda: [
+                    ExerciseState.get_exercise(exercise),  # type: ignore
+                    ExerciseState.set_current_prompt_name(exercise.prompt_name),
+                ],
                 _hover={"cursor": "pointer"},
             ),
             padding_left="1em",
@@ -704,6 +718,22 @@ def edit_exercise(exercise: Exercise):
                     height="150px",
                     type="text",
                     name="description",
+                ),
+                rx.text(
+                    "Prompt: ",
+                    size="3",
+                    weight="medium",
+                    text_align="left",
+                    width="100%",
+                    padding_top="1.5em",
+                    padding_bottom="0.5em",
+                ),
+                rx.select(
+                    items=ExerciseState.prompt_names,
+                    placeholder=ExerciseState.current_prompt_name,
+                    value=ExerciseState.current_prompt_name,
+                    on_change=ExerciseState.set_current_prompt,
+                    multiple=True,
                 ),
                 rx.text(
                     "Tags: ",
