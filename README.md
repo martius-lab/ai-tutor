@@ -85,6 +85,11 @@ App name: “AITutor”
 
 The AI components for grading exercises can be added or changed in separate modules.
 
+### 4.3 further configurations
+You need to add a "config.toml" file to the root directory of the project. 
+This file should contain information about defaultusers and prompts.
+For more information about the config file, please refer to the [documentation](docs/configfile.md).
+
 ## 5 Database management
 
 The system uses Alembic to manage schema changes.
