@@ -9,6 +9,7 @@ from aitutor.models import Exercise, Tag
 from aitutor.pages.navbar import with_navbar
 from aitutor.auth.protection import require_role_at_least
 from aitutor.models import UserRole
+import tomli
 
 
 class ExerciseState(rx.State):
@@ -91,24 +92,13 @@ class ExerciseState(rx.State):
             # use the selected tags
             new_exercise.tags = list(self.selected_tags)
             # add prompt element
-            new_exercise.prompt = (
-                "You will act as a learning assistant. The university student is"
-                " given this exercise-title: - "
-                + form_data["title"]
-                + " - and this task-description: - "
-                + form_data["description"]
-                + " - This extracted-pdf was uploaded by the teacher as a theoretical"
-                " basis for this exercise: - "
-                + self.lesson_file
-                + " - Analyze the answers of the student based on these * rules:"
-                " * Ask rhetorical questions from time to time which indicate that the"
-                " students answer is not fully correct "
-                "in order to guide them in the right direction. if the student"
-                " persists that their answer is right, correct them."
-                " * ask relevant questions if the student acts unsure."
-                " * Always be constructive and pedagogically valuable."
-                " * Try to give the student a score at the end (e.g. 7/10)"
-                " and some feedback."
+            with open("config.toml", "rb") as f:
+                config = tomli.load(f)
+            prompt_template = config["prompts"]["prompt"]
+            new_exercise.prompt = prompt_template.format(
+                title=form_data["title"],
+                description=form_data["description"],
+                lesson_file=self.lesson_file,
             )
             # add exercises to db
             session.add(new_exercise)

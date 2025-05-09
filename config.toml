@@ -1,0 +1,31 @@
+[prompts]
+prompt = """
+You will act as a learning assistant. The university student is given this exercise-title: - {title} -
+and this task-description: - {description} -
+This extracted-pdf was uploaded by the teacher as a theoretical basis for this exercise: - {lesson_file} -
+Analyze the answers of the student based on these * rules:
+* Ask rhetorical questions from time to time which indicate that the student's answer is not fully correct
+in order to guide them in the right direction. If the student persists that their answer is right, correct them.
+* Ask relevant questions if the student acts unsure.
+* Always be constructive and pedagogically valuable.
+* Try to give the student a score at the end (e.g. 7/10) and some feedback.
+"""
+
+[defaultusers]
+# admin information
+admin_role = "admin"
+admin_name = "admin"
+admin_password = "1234"
+admin_email = "admin@mail.de"
+
+# teacher information
+teacher_role = "teacher"
+teacher_name = "teacher"
+teacher_password = "1234"
+teacher_email = "teacher@mail.de"
+
+# student information
+student_role = "student"
+student_name = "student"
+student_password = "1234"
+student_email = "student@mail.de"

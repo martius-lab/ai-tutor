@@ -22,6 +22,7 @@ dependencies = [
     "dotenv",
     "bcrypt",
     "reflex-local-auth>=0.3.0",
+    "tomli>=2.2.1",
 ]
 
 [dependency-groups]
