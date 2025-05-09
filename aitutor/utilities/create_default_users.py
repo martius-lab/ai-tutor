@@ -9,25 +9,29 @@ from aitutor.models import UserInfo, UserRole
 import reflex as rx
 from sqlmodel import select
 from reflex_local_auth.user import LocalUser
+import tomli
 
+with open("config.toml", "rb") as f:
+    config = tomli.load(f)
+config = config["defaultusers"]
 
 # admin information
-admin_role: UserRole = UserRole.ADMIN
-admin_name = "admin"
-admin_password = "1234"
-admin_email = "admin@mail.de"
+admin_role: UserRole = UserRole[config["admin_role"].upper()]
+admin_name = config["admin_name"]
+admin_password = config["admin_password"]
+admin_email = config["admin_email"]
 
 # teacher information
-teacher_role: UserRole = UserRole.TEACHER
-teacher_name = "teacher"
-teacher_password = "1234"
-teacher_email = "teacher@mail.de"
+teacher_role: UserRole = UserRole[config["teacher_role"].upper()]
+teacher_name = config["teacher_name"]
+teacher_password = config["teacher_password"]
+teacher_email = config["teacher_email"]
 
 # student information
-student_role: UserRole = UserRole.STUDENT
-student_name = "student"
-student_password = "1234"
-student_email = "student@mail.de"
+student_role: UserRole = UserRole[config["student_role"].upper()]
+student_name = config["student_name"]
+student_password = config["student_password"]
+student_email = config["student_email"]
 
 
 def create_user_if_not_exists(role: UserRole, name: str, password: str, email: str):
