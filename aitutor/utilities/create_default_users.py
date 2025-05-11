@@ -16,19 +16,19 @@ with open("config.toml", "rb") as f:
 config = config["defaultusers"]
 
 # admin information
-admin_role: UserRole = UserRole[config["admin_role"].upper()]
+admin_role: UserRole = UserRole.ADMIN
 admin_name = config["admin_name"]
 admin_password = config["admin_password"]
 admin_email = config["admin_email"]
 
 # teacher information
-teacher_role: UserRole = UserRole[config["teacher_role"].upper()]
+teacher_role: UserRole = UserRole.TEACHER
 teacher_name = config["teacher_name"]
 teacher_password = config["teacher_password"]
 teacher_email = config["teacher_email"]
 
 # student information
-student_role: UserRole = UserRole[config["student_role"].upper()]
+student_role: UserRole = UserRole.STUDENT
 student_name = config["student_name"]
 student_password = config["student_password"]
 student_email = config["student_email"]
