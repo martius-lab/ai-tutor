@@ -136,3 +136,4 @@ var/
 venv.bak/
 venv/
 wheels/
+config.toml
