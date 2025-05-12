@@ -4,6 +4,7 @@ import reflex as rx
 import pdfplumber
 import io
 from sqlmodel import select, or_
+import tomllib
 
 from aitutor.models import Exercise, Tag
 from aitutor.pages.navbar import with_navbar
@@ -29,6 +30,28 @@ class ExerciseState(rx.State):
     selected_tags: list[str] = []  # List to store selected tags temporarily
     lesson_file: str = ""  # the lesson file as a string
     lesson_file_name: str = ""  # name of the PDF
+    current_prompt_name: str = ""  # the current prompt name
+    current_prompt: str = ""  # the current prompt
+    prompts: dict[str, str] = {}  # the prompt templates as a dict
+    prompt_names: list[str] = []  # the prompt names as a list
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        with open("config.toml", "rb") as f:
+            config = tomllib.load(f)
+        self.prompts = config["prompts"]
+        self.prompt_names = list(self.prompts.keys())
+
+    @rx.event
+    def set_current_prompt(self, prompt: str):
+        """Set the current prompt."""
+        self.current_prompt_name = prompt
+        self.current_prompt = self.prompts[prompt]
+
+    @rx.event
+    def set_current_prompt_name(self, prompt_name: str):
+        """Set the current prompt name."""
+        self.current_prompt_name = prompt_name
 
     @rx.event
     async def extract_lesson_material(self, files: list[rx.UploadFile]):
@@ -85,31 +108,20 @@ class ExerciseState(rx.State):
                 )
 
             # create instance and fill its fields
-            new_exercise = Exercise()
+            new_exercise = Exercise(
+                lesson_file=self.lesson_file,
+            )
             new_exercise.title = form_data["title"]
             new_exercise.description = form_data["description"]
             # use the selected tags
             new_exercise.tags = list(self.selected_tags)
             # add prompt element
-            new_exercise.prompt = (
-                "You will act as a learning assistant. The university student is"
-                " given this exercise-title: - "
-                + form_data["title"]
-                + " - and this task-description: - "
-                + form_data["description"]
-                + " - This extracted-pdf was uploaded by the teacher as a theoretical"
-                " basis for this exercise: - "
-                + self.lesson_file
-                + " - Analyze the answers of the student based on these * rules:"
-                " * Ask rhetorical questions from time to time which indicate that the"
-                " students answer is not fully correct "
-                "in order to guide them in the right direction. if the student"
-                " persists that their answer is right, correct them."
-                " * ask relevant questions if the student acts unsure."
-                " * Always be constructive and pedagogically valuable."
-                " * Try to give the student a score at the end (e.g. 7/10)"
-                " and some feedback."
+            new_exercise.prompt = self.current_prompt.format(
+                title=form_data["title"],
+                description=form_data["description"],
+                lesson_file=self.lesson_file,
             )
+            new_exercise.prompt_name = self.current_prompt_name
             # add exercises to db
             session.add(new_exercise)
             session.commit()
@@ -204,6 +216,12 @@ class ExerciseState(rx.State):
             updated_exercise.title = form_data["title"]
             updated_exercise.description = form_data["description"]
             updated_exercise.tags = self.selected_tags
+            updated_exercise.prompt = self.current_prompt.format(
+                title=form_data["title"],
+                description=form_data["description"],
+                lesson_file=self.lesson_file,
+            )
+            updated_exercise.prompt_name = self.current_prompt_name
 
             session.add(updated_exercise)
             session.commit()
@@ -274,7 +292,7 @@ class ExerciseState(rx.State):
             invert=True,
         )
 
-    def get_exercise(self, exercise: Exercise):
+    def load_exercise(self, exercise: Exercise):
         """Get an exercise from the db."""
         self.current_exercise = exercise
         with rx.session() as session:
@@ -282,6 +300,9 @@ class ExerciseState(rx.State):
             _exercise = session.exec(
                 select(Exercise).where(Exercise.id == self.current_exercise.id)
             ).one()
+        self.current_prompt_name = _exercise.prompt_name
+        self.current_prompt = _exercise.prompt
+        self.lesson_file = _exercise.lesson_file
         # save Tags in selected_tags
         self.selected_tags = _exercise.tags.copy() if _exercise.tags else []
 
@@ -410,6 +431,49 @@ def add_exercise_button() -> rx.Component:
                     ),
                 ),
                 rx.text(
+                    "Prompt: ",
+                    size="3",
+                    weight="medium",
+                    text_align="left",
+                    width="100%",
+                    padding_top="1.5em",
+                    padding_bottom="0.5em",
+                ),
+                rx.hstack(
+                    rx.select(
+                        items=ExerciseState.prompt_names,
+                        placeholder="Select a Prompt here",
+                        value=ExerciseState.current_prompt_name,
+                        on_change=ExerciseState.set_current_prompt,
+                        multiple=True,
+                    ),
+                    # hover to show the promot
+                    rx.popover.root(
+                        rx.popover.trigger(
+                            rx.icon("info", size=20),
+                            _hover={"cursor": "pointer"},
+                        ),
+                        rx.popover.content(
+                            rx.flex(
+                                rx.text(
+                                    ExerciseState.prompts[
+                                        ExerciseState.current_prompt_name
+                                    ],
+                                    padding="1em",
+                                ),
+                                style={
+                                    "white-space": "pre-wrap",
+                                    "word-break": "break-word",
+                                    "overflow_y": "auto",
+                                    "max_height": "40vh",
+                                },
+                            )
+                        ),
+                    ),
+                    # center horizontally
+                    align_items="center",
+                ),
+                rx.text(
                     "Tags: ",
                     size="3",
                     weight="medium",
@@ -441,22 +505,6 @@ def add_exercise_button() -> rx.Component:
                             spacing="3",
                         ),
                         flex="1",
-                    ),
-                    rx.dialog.close(
-                        rx.button(
-                            "Cancel",
-                            color_scheme="red",
-                            _hover={"cursor": "pointer"},
-                        ),
-                    ),
-                    rx.form.submit(
-                        rx.button(
-                            "Add Task",
-                            color_scheme="grass",
-                            type="submit",
-                            _hover={"cursor": "pointer"},
-                        ),
-                        padding_bottom="0.5em",
                     ),
                     spacing="2",
                 ),
@@ -499,6 +547,26 @@ def add_exercise_button() -> rx.Component:
                         margin_bottom="0.5em",
                     ),
                 ),
+                rx.hstack(
+                    rx.dialog.close(
+                        rx.button(
+                            "Cancel",
+                            color_scheme="red",
+                            _hover={"cursor": "pointer"},
+                        ),
+                    ),
+                    rx.form.submit(
+                        rx.button(
+                            "Add Task",
+                            color_scheme="grass",
+                            type="submit",
+                            _hover={"cursor": "pointer"},
+                        ),
+                        padding_bottom="0.5em",
+                    ),
+                    spacing="2",
+                    justify="end",
+                ),
                 # load new tags
                 on_mount=ExerciseState.load_tags,
                 # submit new exercises
@@ -506,7 +574,7 @@ def add_exercise_button() -> rx.Component:
                 reset_on_submit=False,
                 enter_key_submit=True,
             ),
-            # add new tags
+            # add new tag
             tag_dialog(),
         ),
         open=ExerciseState.add_exercise_dialog_is_open,
@@ -520,7 +588,7 @@ def tag_dialog():
         rx.dialog.root(
             rx.dialog.trigger(
                 rx.button(
-                    "New Selectable Tags",
+                    "Create New Tag",
                     margin_top="0.5em",
                     color_scheme="orange",
                     shade="7",
@@ -614,7 +682,7 @@ def edit_exercise(exercise: Exercise):
                 color_scheme="orange",
                 size="2",
                 variant="ghost",
-                on_click=lambda: ExerciseState.get_exercise(exercise),  # type: ignore
+                on_click=ExerciseState.load_exercise(exercise),  # type: ignore
                 _hover={"cursor": "pointer"},
             ),
             padding_left="1em",
@@ -682,6 +750,47 @@ def edit_exercise(exercise: Exercise):
                     name="description",
                 ),
                 rx.text(
+                    "Prompt: ",
+                    size="3",
+                    weight="medium",
+                    text_align="left",
+                    width="100%",
+                    padding_top="1.5em",
+                    padding_bottom="0.5em",
+                ),
+                rx.hstack(
+                    rx.select(
+                        items=ExerciseState.prompt_names,
+                        placeholder=ExerciseState.current_prompt_name,
+                        value=ExerciseState.current_prompt_name,
+                        on_change=ExerciseState.set_current_prompt,
+                        multiple=True,
+                    ),
+                    # hover to show the promot
+                    rx.popover.root(
+                        rx.popover.trigger(
+                            rx.icon("info", size=20),
+                            _hover={"cursor": "pointer"},
+                        ),
+                        rx.popover.content(
+                            rx.flex(
+                                rx.text(
+                                    ExerciseState.current_prompt,
+                                    padding="1em",
+                                ),
+                                style={
+                                    "white-space": "pre-wrap",
+                                    "word-break": "break-word",
+                                    "overflow_y": "auto",
+                                    "max_height": "40vh",
+                                },
+                            )
+                        ),
+                    ),
+                    # center horizontally
+                    align_items="center",
+                ),
+                rx.text(
                     "Tags: ",
                     size="3",
                     weight="medium",
@@ -700,27 +809,19 @@ def edit_exercise(exercise: Exercise):
                                 on_change=ExerciseState.set_current_tag,
                                 multiple=True,
                             ),
-                        ),
-                        flex="1",
-                    ),
-                    rx.dialog.close(
-                        rx.button(
-                            "Cancel",
-                            color_scheme="red",
-                            _hover={"cursor": "pointer"},
-                        ),
-                    ),
-                    rx.form.submit(
-                        rx.dialog.close(
-                            rx.button(
-                                "Update Task",
-                                color_scheme="yellow",
-                                type="submit",
+                            rx.icon_button(
+                                rx.icon("circle-x"),
+                                on_click=ExerciseState.delete_tag,
+                                size="2",
+                                variant="ghost",
+                                color_scheme="red",
+                                spacing="3",
+                                type="button",
                                 _hover={"cursor": "pointer"},
                             ),
-                            as_child=True,
+                            spacing="3",
                         ),
-                        padding_bottom="0.5em",
+                        flex="1",
                     ),
                     spacing="2",
                 ),
@@ -763,6 +864,29 @@ def edit_exercise(exercise: Exercise):
                         margin_bottom="0.5em",
                     ),
                 ),
+                rx.hstack(
+                    rx.dialog.close(
+                        rx.button(
+                            "Cancel",
+                            color_scheme="red",
+                            _hover={"cursor": "pointer"},
+                        ),
+                    ),
+                    rx.form.submit(
+                        rx.dialog.close(
+                            rx.button(
+                                "Update Task",
+                                color_scheme="yellow",
+                                type="submit",
+                                _hover={"cursor": "pointer"},
+                            ),
+                            as_child=True,
+                        ),
+                        padding_bottom="0.5em",
+                    ),
+                    spacing="2",
+                    justify="end",
+                ),
                 # load tags
                 on_mount=ExerciseState.load_tags,
                 # update exercise
@@ -770,6 +894,8 @@ def edit_exercise(exercise: Exercise):
                 reset_on_submit=False,
                 enter_key_submit=True,
             ),
+            # add new tag
+            tag_dialog(),
         ),
     )
 
