@@ -24,15 +24,16 @@ class Tag(rx.Model, table=True):  # type: ignore
 class Exercise(rx.Model, table=True):  # type: ignore
     """Exercise model for storing exercises."""
 
-    id: Optional[int] = Field(default=None, primary_key=True)  # Automatische ID
-    title: str = Field(nullable=False)  # Titel der Übung
-    prompt_name: str = Field(nullable=False, default="")  # Name des Prompts
-    prompt: str = Field(nullable=False, default="")  # Prompt für das LLM
-    description: Optional[str] = Field(default=None)  # Beschreibung der Übung
+    id: Optional[int] = Field(default=None, primary_key=True)
+    title: str = Field(nullable=False)
+    prompt_name: str = Field(nullable=False, default="")
+    prompt: str = Field(nullable=False, default="")
+    description: Optional[str] = Field(default=None)
+    lesson_file: str = Field(default=None)
     tags: List[str] = Field(
         sa_column=Column(JSON), default=[]
     )  # Liste der Tags als JSON
-    image: Optional[str] = Field(default=None)  # Pfad oder URL zum Bild
+    image: Optional[str] = Field(default=None)
 
     # Connects to ExerciseResult.exercise
     submissions: List["ExerciseResult"] = Relationship(
