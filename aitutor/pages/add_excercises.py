@@ -4,12 +4,12 @@ import reflex as rx
 import pdfplumber
 import io
 from sqlmodel import select, or_
+import tomllib
 
 from aitutor.models import Exercise, Tag
 from aitutor.pages.navbar import with_navbar
 from aitutor.auth.protection import require_role_at_least
 from aitutor.models import UserRole
-import tomli
 
 
 class ExerciseState(rx.State):
@@ -38,7 +38,7 @@ class ExerciseState(rx.State):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         with open("config.toml", "rb") as f:
-            config = tomli.load(f)
+            config = tomllib.load(f)
         self.prompts = config["prompts"]
         self.prompt_names = list(self.prompts.keys())
 
@@ -108,7 +108,9 @@ class ExerciseState(rx.State):
                 )
 
             # create instance and fill its fields
-            new_exercise = Exercise()
+            new_exercise = Exercise(
+                lesson_file=self.lesson_file,
+            )
             new_exercise.title = form_data["title"]
             new_exercise.description = form_data["description"]
             # use the selected tags
@@ -119,6 +121,7 @@ class ExerciseState(rx.State):
                 description=form_data["description"],
                 lesson_file=self.lesson_file,
             )
+            new_exercise.prompt_name = self.current_prompt_name
             # add exercises to db
             session.add(new_exercise)
             session.commit()
@@ -289,7 +292,7 @@ class ExerciseState(rx.State):
             invert=True,
         )
 
-    def get_exercise(self, exercise: Exercise):
+    def load_exercise(self, exercise: Exercise):
         """Get an exercise from the db."""
         self.current_exercise = exercise
         with rx.session() as session:
@@ -297,6 +300,9 @@ class ExerciseState(rx.State):
             _exercise = session.exec(
                 select(Exercise).where(Exercise.id == self.current_exercise.id)
             ).one()
+        self.current_prompt_name = _exercise.prompt_name
+        self.current_prompt = _exercise.prompt
+        self.lesson_file = _exercise.lesson_file
         # save Tags in selected_tags
         self.selected_tags = _exercise.tags.copy() if _exercise.tags else []
 
@@ -433,12 +439,39 @@ def add_exercise_button() -> rx.Component:
                     padding_top="1.5em",
                     padding_bottom="0.5em",
                 ),
-                rx.select(
-                    items=ExerciseState.prompt_names,
-                    placeholder="Select a Prompt here",
-                    value=ExerciseState.current_prompt_name,
-                    on_change=ExerciseState.set_current_prompt,
-                    multiple=True,
+                rx.hstack(
+                    rx.select(
+                        items=ExerciseState.prompt_names,
+                        placeholder="Select a Prompt here",
+                        value=ExerciseState.current_prompt_name,
+                        on_change=ExerciseState.set_current_prompt,
+                        multiple=True,
+                    ),
+                    # hover to show the promot
+                    rx.popover.root(
+                        rx.popover.trigger(
+                            rx.icon("info", size=20),
+                            _hover={"cursor": "pointer"},
+                        ),
+                        rx.popover.content(
+                            rx.flex(
+                                rx.text(
+                                    ExerciseState.prompts[
+                                        ExerciseState.current_prompt_name
+                                    ],
+                                    padding="1em",
+                                ),
+                                style={
+                                    "white-space": "pre-wrap",
+                                    "word-break": "break-word",
+                                    "overflow_y": "auto",
+                                    "max_height": "40vh",
+                                },
+                            )
+                        ),
+                    ),
+                    # center horizontally
+                    align_items="center",
                 ),
                 rx.text(
                     "Tags: ",
@@ -649,10 +682,7 @@ def edit_exercise(exercise: Exercise):
                 color_scheme="orange",
                 size="2",
                 variant="ghost",
-                on_click=lambda: [
-                    ExerciseState.get_exercise(exercise),  # type: ignore
-                    ExerciseState.set_current_prompt_name(exercise.prompt_name),
-                ],
+                on_click=ExerciseState.load_exercise(exercise),  # type: ignore
                 _hover={"cursor": "pointer"},
             ),
             padding_left="1em",
@@ -728,12 +758,37 @@ def edit_exercise(exercise: Exercise):
                     padding_top="1.5em",
                     padding_bottom="0.5em",
                 ),
-                rx.select(
-                    items=ExerciseState.prompt_names,
-                    placeholder=ExerciseState.current_prompt_name,
-                    value=ExerciseState.current_prompt_name,
-                    on_change=ExerciseState.set_current_prompt,
-                    multiple=True,
+                rx.hstack(
+                    rx.select(
+                        items=ExerciseState.prompt_names,
+                        placeholder=ExerciseState.current_prompt_name,
+                        value=ExerciseState.current_prompt_name,
+                        on_change=ExerciseState.set_current_prompt,
+                        multiple=True,
+                    ),
+                    # hover to show the promot
+                    rx.popover.root(
+                        rx.popover.trigger(
+                            rx.icon("info", size=20),
+                            _hover={"cursor": "pointer"},
+                        ),
+                        rx.popover.content(
+                            rx.flex(
+                                rx.text(
+                                    ExerciseState.current_prompt,
+                                    padding="1em",
+                                ),
+                                style={
+                                    "white-space": "pre-wrap",
+                                    "word-break": "break-word",
+                                    "overflow_y": "auto",
+                                    "max_height": "40vh",
+                                },
+                            )
+                        ),
+                    ),
+                    # center horizontally
+                    align_items="center",
                 ),
                 rx.text(
                     "Tags: ",

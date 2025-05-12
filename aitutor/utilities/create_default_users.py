@@ -9,10 +9,10 @@ from aitutor.models import UserInfo, UserRole
 import reflex as rx
 from sqlmodel import select
 from reflex_local_auth.user import LocalUser
-import tomli
+import tomllib
 
 with open("config.toml", "rb") as f:
-    config = tomli.load(f)
+    config = tomllib.load(f)
 config = config["defaultusers"]
 
 # admin information
