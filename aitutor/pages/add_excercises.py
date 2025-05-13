@@ -767,9 +767,16 @@ def edit_exercise(exercise: Exercise):
                         rx.popover.content(
                             rx.flex(
                                 rx.text(
-                                    ExerciseState.prompts[
-                                        ExerciseState.current_prompt_name
-                                    ],
+                                    # show the prompt from the db or
+                                    # the selected prompt template
+                                    rx.cond(
+                                        ExerciseState.current_exercise.prompt_name
+                                        == ExerciseState.current_prompt_name,
+                                        ExerciseState.current_exercise.prompt,
+                                        ExerciseState.prompts[
+                                            ExerciseState.current_prompt_name
+                                        ],
+                                    ),
                                     padding="1em",
                                 ),
                                 style={
