@@ -31,7 +31,6 @@ class ExerciseState(rx.State):
     lesson_file: str = ""  # the lesson file as a string
     lesson_file_name: str = ""  # name of the PDF
     current_prompt_name: str = ""  # the current prompt name
-    current_prompt: str = ""  # the current prompt
     prompts: dict[str, str] = {}  # the prompt templates as a dict
     prompt_names: list[str] = []  # the prompt names as a list
 
@@ -41,12 +40,6 @@ class ExerciseState(rx.State):
             config = tomllib.load(f)
         self.prompts = config["prompts"]
         self.prompt_names = list(self.prompts.keys())
-
-    @rx.event
-    def set_current_prompt(self, prompt: str):
-        """Set the current prompt."""
-        self.current_prompt_name = prompt
-        self.current_prompt = self.prompts[prompt]
 
     @rx.event
     def set_current_prompt_name(self, prompt_name: str):
@@ -116,7 +109,7 @@ class ExerciseState(rx.State):
             # use the selected tags
             new_exercise.tags = list(self.selected_tags)
             # add prompt element
-            new_exercise.prompt = self.current_prompt.format(
+            new_exercise.prompt = self.prompts[self.current_prompt_name].format(
                 title=form_data["title"],
                 description=form_data["description"],
                 lesson_file=self.lesson_file,
@@ -216,7 +209,7 @@ class ExerciseState(rx.State):
             updated_exercise.title = form_data["title"]
             updated_exercise.description = form_data["description"]
             updated_exercise.tags = self.selected_tags
-            updated_exercise.prompt = self.current_prompt.format(
+            updated_exercise.prompt = self.prompts[self.current_prompt_name].format(
                 title=form_data["title"],
                 description=form_data["description"],
                 lesson_file=self.lesson_file,
@@ -301,7 +294,6 @@ class ExerciseState(rx.State):
                 select(Exercise).where(Exercise.id == self.current_exercise.id)
             ).one()
         self.current_prompt_name = _exercise.prompt_name
-        self.current_prompt = _exercise.prompt
         self.lesson_file = _exercise.lesson_file
         # save Tags in selected_tags
         self.selected_tags = _exercise.tags.copy() if _exercise.tags else []
@@ -444,7 +436,7 @@ def add_exercise_button() -> rx.Component:
                         items=ExerciseState.prompt_names,
                         placeholder="Select a Prompt here",
                         value=ExerciseState.current_prompt_name,
-                        on_change=ExerciseState.set_current_prompt,
+                        on_change=ExerciseState.set_current_prompt_name,
                         multiple=True,
                     ),
                     # hover to show the promot
@@ -763,7 +755,7 @@ def edit_exercise(exercise: Exercise):
                         items=ExerciseState.prompt_names,
                         placeholder=ExerciseState.current_prompt_name,
                         value=ExerciseState.current_prompt_name,
-                        on_change=ExerciseState.set_current_prompt,
+                        on_change=ExerciseState.set_current_prompt_name,
                         multiple=True,
                     ),
                     # hover to show the promot
@@ -775,7 +767,9 @@ def edit_exercise(exercise: Exercise):
                         rx.popover.content(
                             rx.flex(
                                 rx.text(
-                                    ExerciseState.current_prompt,
+                                    ExerciseState.prompts[
+                                        ExerciseState.current_prompt_name
+                                    ],
                                     padding="1em",
                                 ),
                                 style={
