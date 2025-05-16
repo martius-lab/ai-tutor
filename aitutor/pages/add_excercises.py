@@ -647,15 +647,8 @@ def show_exercise(exercise: Exercise):
         rx.table.cell(
             rx.center(
                 rx.hstack(
-                    rx.icon_button(
-                        rx.icon("circle-x"),
-                        on_click=lambda: ExerciseState.delete_exercise(exercise.id),  # type: ignore
-                        size="2",
-                        variant="ghost",
-                        color_scheme="red",
-                        _hover={"cursor": "pointer"},
-                    ),
-                    edit_exercise(exercise),
+                    delete_exercise_button(exercise),
+                    edit_exercise_button(exercise),
                 ),
                 padding_left="1em",
             ),
@@ -665,7 +658,48 @@ def show_exercise(exercise: Exercise):
     )
 
 
-def edit_exercise(exercise: Exercise):
+def delete_exercise_button(exercise: Exercise):
+    """Delete exercise"""
+    return (
+        rx.alert_dialog.root(
+            rx.alert_dialog.trigger(
+                rx.icon_button(
+                    rx.icon("circle-x"),
+                    size="2",
+                    variant="ghost",
+                    color_scheme="red",
+                    _hover={"cursor": "pointer"},
+                ),
+            ),
+            rx.alert_dialog.content(
+                rx.alert_dialog.title("Delete Exercise"),
+                rx.alert_dialog.description(
+                    "Are you sure you want to delete this exercise?"
+                ),
+                rx.hstack(
+                    rx.alert_dialog.cancel(
+                        rx.button(
+                            "Cancel",
+                            color_scheme="red",
+                            _hover={"cursor": "pointer"},
+                        ),
+                    ),
+                    rx.alert_dialog.action(
+                        rx.button(
+                            "Confirm",
+                            color_scheme="iris",
+                            on_click=lambda: ExerciseState.delete_exercise(exercise.id),  # type: ignore
+                            _hover={"cursor": "pointer"},
+                        ),
+                    ),
+                    margin_top="1em",
+                ),
+            ),
+        ),
+    )
+
+
+def edit_exercise_button(exercise: Exercise):
     """Edit exercises on page."""
     return rx.dialog.root(
         rx.dialog.trigger(
