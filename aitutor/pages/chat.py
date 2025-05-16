@@ -271,48 +271,7 @@ def chat_form() -> rx.Component:
                 enter_key_submit=True,
             ),
             rx.hstack(
-                rx.alert_dialog.root(
-                    rx.alert_dialog.trigger(
-                        rx.button(
-                            "Reset Conversation",
-                            color_scheme="red",
-                            _hover=rx.cond(
-                                ChatState.messages.length() < 2,  # type: ignore
-                                {"cursor": "not-allowed"},
-                                {"cursor": "pointer"},
-                            ),
-                            disabled=rx.cond(
-                                ChatState.messages.length() < 2,  # type: ignore
-                                True,
-                                False,
-                            ),
-                        )
-                    ),
-                    rx.alert_dialog.content(
-                        rx.alert_dialog.title("Reset Conversation"),
-                        rx.alert_dialog.description(
-                            "Are you sure you want to reset the conversation?"
-                        ),
-                        rx.hstack(
-                            rx.alert_dialog.cancel(
-                                rx.button(
-                                    "Cancel",
-                                    color_scheme="red",
-                                    _hover={"cursor": "pointer"},
-                                ),
-                            ),
-                            rx.alert_dialog.action(
-                                rx.button(
-                                    "Confirm",
-                                    color_scheme="iris",
-                                    on_click=ChatState.reset_conversation,
-                                    _hover={"cursor": "pointer"},
-                                ),
-                            ),
-                            margin_top="1em",
-                        ),
-                    ),
-                ),
+                reset_conversation_button(),
                 rx.button(
                     "Send",
                     type="submit",
@@ -325,6 +284,56 @@ def chat_form() -> rx.Component:
         ),
         on_submit=ChatState.send_message,
         reset_on_submit=True,
+    )
+
+
+def reset_conversation_button() -> rx.Component:
+    """
+    Render the button to reset the conversation.
+    """
+    return (
+        rx.alert_dialog.root(
+            rx.alert_dialog.trigger(
+                rx.button(
+                    "Reset Conversation",
+                    color_scheme="red",
+                    _hover=rx.cond(
+                        ChatState.messages.length() < 2,  # type: ignore
+                        {"cursor": "not-allowed"},
+                        {"cursor": "pointer"},
+                    ),
+                    disabled=rx.cond(
+                        ChatState.messages.length() < 2,  # type: ignore
+                        True,
+                        False,
+                    ),
+                )
+            ),
+            rx.alert_dialog.content(
+                rx.alert_dialog.title("Reset Conversation"),
+                rx.alert_dialog.description(
+                    "Are you sure you want to reset the conversation?"
+                ),
+                rx.hstack(
+                    rx.alert_dialog.cancel(
+                        rx.button(
+                            "Cancel",
+                            color_scheme="red",
+                            _hover={"cursor": "pointer"},
+                        ),
+                    ),
+                    rx.alert_dialog.action(
+                        rx.button(
+                            "Confirm",
+                            color_scheme="iris",
+                            on_click=ChatState.reset_conversation,
+                            _hover={"cursor": "pointer"},
+                        ),
+                    ),
+                    margin_top="1em",
+                ),
+            ),
+        ),
     )
 
 
