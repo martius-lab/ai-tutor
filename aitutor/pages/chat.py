@@ -1,6 +1,6 @@
 """This module contains the chat component."""
 
-from typing import List, Optional, cast
+from typing import Optional, cast
 
 import reflex as rx
 from decouple import config
@@ -55,12 +55,9 @@ class ChatMessage(rx.Base):
 class ChatState(SessionState):
     """Handles the ChatState."""
 
-    messages: list[ChatMessage] = []  # Used to display the conversation so far.
-    did_submit: bool = False
-    exercises: List[Exercise] = []
+    messages: list[ChatMessage] = []
     current_exercise: Optional[Exercise] = None
-    exercise_selected: bool = False
-    exercise_title: str = "Select an exercise:"
+    exercise_title: str = "No Exercise Selected"
     system_message_gpt: str
 
     @rx.event
@@ -76,28 +73,16 @@ class ChatState(SessionState):
                 self.current_exercise = exercise
                 self.exercise_title = self.current_exercise.title
                 self.system_message_gpt = self.current_exercise.prompt
+                self.messages = []
+                self.load_existing_conversation()
+                if not self.messages:
+                    self.append_chat_message(
+                        self.current_exercise.description, is_llm=True
+                    )
             else:
                 raise ValueError("Exercise not found in database.")
         yield
 
-    @rx.event
-    def init_chat(self):
-        """
-        Initializes chat. Per default the first exercise is loaded if an exercise
-        is available. Additionally, it loads the existing conversation for the
-        current user and exercise.
-        """
-        self.load_exercises_from_db()
-        if self.exercises:
-            self.select_exercise(str(self.exercises[0].id))
-
-            assert self.current_exercise is not None
-            self.exercise_title = self.current_exercise.title
-            self.system_message_gpt = self.current_exercise.prompt
-        else:
-            self.no_exercise_available()
-
-    @rx.event
     def load_existing_conversation(self):
         """
         Loads existing conversation from database.
@@ -121,7 +106,7 @@ class ChatState(SessionState):
 
     def no_exercise_available(self):
         """Sends chat message to user if no exercises are available."""
-        self.reset_messages()
+        self.messages = []
         self.append_chat_message(
             "There are no exercises yet. Please wait till exercises are added.",
             is_llm=True,
@@ -137,10 +122,6 @@ class ChatState(SessionState):
             + "or no exercise is selected.",
             is_llm=True,
         )
-
-    def reset_messages(self):
-        """Resets chat messages in memory."""
-        self.messages = []
 
     @rx.event
     def reset_conversation(self):
@@ -163,43 +144,9 @@ class ChatState(SessionState):
         # Only reset the conversation if there are messages beyond the initial message
         # by ChatGPT.
         if len(self.messages) > 1:
-            # Clears all messages
-            self.reset_messages()
-            # Reloads exercise to get initial message.
-            if self.exercises:
-                assert self.current_exercise is not None
-                self.select_exercise(self.current_exercise.id)
-            else:
-                self.no_exercise_available()
-
-    @rx.event
-    def load_exercises_from_db(self):
-        """Loads exercises from database."""
-        with rx.session() as session:
-            exercises = session.exec(Exercise.select()).all()
-            self.exercises = list(exercises)
-
-    @rx.event
-    def select_exercise(self, exercise_id):
-        """Selects an exercise by id."""
-        if self.exercises:
-            for exercise in self.exercises:
-                if str(exercise.id) == str(exercise_id):
-                    self.current_exercise = exercise
-                    self.exercise_selected = True
-                    self.exercise_title = self.current_exercise.title
-                    self.system_message_gpt = self.current_exercise.prompt
-                    self.reset_messages()
-                    self.load_existing_conversation()
-                    if not self.messages:
-                        self.append_chat_message(
-                            self.current_exercise.description, is_llm=True
-                        )
-
-    @rx.var
-    def user_did_submit(self) -> bool:
-        """ """
-        return self.did_submit
+            self.messages = []
+            if not self.messages and self.current_exercise:
+                self.append_chat_message(self.current_exercise.description, is_llm=True)
 
     def append_chat_message(self, message, is_llm: bool = False):
         """
@@ -209,32 +156,27 @@ class ChatState(SessionState):
         self.messages.append(ChatMessage(message=message, is_llm=is_llm))
 
     @rx.event
-    async def handle_chat_submit(self, form_data: dict):
+    async def send_message(self, form_data: dict):
         """
         New messages get appended to list of ChatMessages.
         """
         user_message = form_data.get("user_response")
         if user_message:
-            self.did_submit = True
             self.append_chat_message(message=user_message, is_llm=False)
             yield
-            if self.exercise_selected:
-                self.did_submit = False
-                # Takes list of ChatMessage and turns into a list of dictionaries, so
-                # the OpenAI API can handle the messages.
-                messages = self.get_messages_dict_gpt()
-                # Wait while OpenAI Response is generated.
-                llm_response = await get_response(conversation=messages)
-                # Append response generated by LLM to list of messages, set is_llm to
-                # True to indicate that it is generated by the user.
-                self.append_chat_message(message=llm_response, is_llm=True)
-                messages = self.get_messages_dict_gpt()
-                yield
+            # Takes list of ChatMessage and turns into a list of dictionaries, so
+            # the OpenAI API can handle the messages.
+            messages = self.get_messages_dict_gpt()
+            # Wait while OpenAI Response is generated.
+            llm_response = await get_response(conversation=messages)
+            # Append response generated by LLM to list of messages, set is_llm to
+            # True to indicate that it is generated by the user.
+            self.append_chat_message(message=llm_response, is_llm=True)
+            messages = self.get_messages_dict_gpt()
+            yield
 
-                # Save conversation to database.
-                self.save_conversation_to_db(conversation=messages)
-            else:
-                self.chat_not_available()
+            # Save conversation to database.
+            self.save_conversation_to_db(conversation=messages)
 
     def save_conversation_to_db(self, conversation: list[dict]):
         """
@@ -329,16 +271,6 @@ def chat_form() -> rx.Component:
                 enter_key_submit=True,
             ),
             rx.hstack(
-                rx.hstack(
-                    rx.button(
-                        "Submit",
-                        type="submit",
-                        color_scheme="iris",
-                        _hover={"cursor": "pointer"},
-                    ),
-                    exercise_dropdown(),
-                    width="100%",
-                ),
                 rx.button(
                     "Reset Conversation",
                     type="submit",
@@ -346,48 +278,18 @@ def chat_form() -> rx.Component:
                     on_click=ChatState.reset_conversation,
                     _hover={"cursor": "pointer"},
                 ),
+                rx.button(
+                    "Send",
+                    type="submit",
+                    color_scheme="iris",
+                    _hover={"cursor": "pointer"},
+                ),
                 width="100%",
                 justify="between",
             ),
         ),
-        on_submit=ChatState.handle_chat_submit,
+        on_submit=ChatState.send_message,
         reset_on_submit=True,
-    )
-
-
-def exercise_dropdown():
-    """
-    Dropdown menu to select exercise.
-    """
-    return rx.vstack(
-        rx.menu.root(
-            rx.menu.trigger(
-                rx.button(
-                    rx.cond(
-                        ChatState.exercise_selected,
-                        "Selected Exercise: " + ChatState.exercise_title,
-                        "Select Exercise:",
-                    ),
-                    variant="solid",
-                    width="100%",
-                    color_scheme="iris",
-                    _hover={"cursor": "pointer"},
-                ),
-            ),
-            rx.menu.content(
-                rx.foreach(
-                    ChatState.exercises,
-                    lambda ex: rx.menu.item(
-                        ex.title,
-                        on_click=lambda: ChatState.select_exercise(ex.id),
-                        color_scheme="iris",
-                        variant="solid",
-                        _hover={"cursor": "pointer"},
-                    ),
-                ),
-            ),
-        ),
-        on_mount=ChatState.load_exercises_from_db,
     )
 
 
@@ -399,11 +301,7 @@ def chat_default() -> rx.Component:
         rx.box(
             rx.vstack(
                 rx.heading(
-                    rx.cond(
-                        ChatState.exercise_selected,
-                        "Exercise: " + ChatState.exercise_title,
-                        "Please select an exercise:",
-                    ),
+                    "Exercise: " + ChatState.exercise_title,
                     size="5",
                 ),
                 rx.auto_scroll(
@@ -427,5 +325,4 @@ def chat_default() -> rx.Component:
         ),
         align_items="center",
         width="100%",
-        on_mount=ChatState.init_chat,
     )
