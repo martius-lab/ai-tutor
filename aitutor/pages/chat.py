@@ -401,6 +401,7 @@ def chat_default() -> rx.Component:
                 spacing="5",
                 justify="start",
                 min_height="85vh",
+                max_height="85vh",
                 height="100%",
             ),
             width="100%",
