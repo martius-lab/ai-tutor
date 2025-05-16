@@ -389,13 +389,15 @@ def chat_default() -> rx.Component:
                     ),
                     size="5",
                 ),
-                rx.box(
-                    rx.foreach(ChatState.messages, message_box),
+                rx.auto_scroll(
+                    rx.foreach(
+                        ChatState.messages,
+                        message_box,
+                    ),
+                    scroll_to_bottom_on_update=True,
                     width="100%",
-                    overflow="auto",
-                    max_height="70vh",
-                    padding_right="8px",
                     flex="1",
+                    padding_right="8px",
                 ),
                 chat_form(),
                 spacing="5",
