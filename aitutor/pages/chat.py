@@ -272,11 +272,14 @@ def chat_form() -> rx.Component:
             ),
             rx.hstack(
                 reset_conversation_button(),
-                rx.button(
-                    "Send",
-                    type="submit",
-                    color_scheme="iris",
-                    _hover={"cursor": "pointer"},
+                rx.hstack(
+                    check_answer_button(),
+                    rx.button(
+                        "Send",
+                        type="submit",
+                        color_scheme="iris",
+                        _hover={"cursor": "pointer"},
+                    ),
                 ),
                 width="100%",
                 justify="between",
@@ -334,6 +337,18 @@ def reset_conversation_button() -> rx.Component:
                 ),
             ),
         ),
+    )
+
+
+def check_answer_button() -> rx.Component:
+    """
+    Render the button to check the answer.
+    """
+    return rx.button(
+        "Check Answer",
+        color_scheme="yellow",
+        type="button",
+        _hover={"cursor": "pointer"},
     )
 
 
