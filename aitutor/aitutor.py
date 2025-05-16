@@ -7,12 +7,17 @@ import reflex as rx
 from aitutor import pages
 from aitutor.auth.pages import custom_login_page, custom_register_page
 from aitutor.pages.exercises import ExercisesState
+from aitutor.pages.chat import ChatState
 from aitutor.utilities.create_default_users import create_default_users
 import aitutor.routes as routes
 
 app = rx.App()
 app.add_page(pages.home_default, route=routes.HOME)
-app.add_page(pages.chat_default, route=routes.CHAT)
+app.add_page(
+    pages.chat_default,
+    route=routes.CHAT + "/[exercise_id]",
+    on_load=ChatState.load_exercise,
+)
 app.add_page(pages.add_exercises_default, route=routes.ADD_EXERCISE)
 app.add_page(
     pages.exercises_default,

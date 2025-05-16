@@ -64,6 +64,23 @@ class ChatState(SessionState):
     system_message_gpt: str
 
     @rx.event
+    def load_exercise(self):
+        """
+        Loads the exercise with exercise_id from the database.
+        """
+        with rx.session() as session:
+            exercise = session.exec(
+                Exercise.select().where(Exercise.id == self.exercise_id)
+            ).one_or_none()
+            if exercise:
+                self.current_exercise = exercise
+                self.exercise_title = self.current_exercise.title
+                self.system_message_gpt = self.current_exercise.prompt
+            else:
+                raise ValueError("Exercise not found in database.")
+        yield
+
+    @rx.event
     def init_chat(self):
         """
         Initializes chat. Per default the first exercise is loaded if an exercise

@@ -74,6 +74,10 @@ def render_exercise_card(exercise: Exercise) -> rx.Component:
         ),
         variant="surface",
         width="100%",
+        on_click=rx.redirect(
+            f"/chat/{exercise.id}",
+        ),
+        _hover={"cursor": "pointer"},
     )
 
 
@@ -103,7 +107,7 @@ def exercises() -> rx.Component:
     """Exercises page for teachers"""
     return rx.container(
         rx.vstack(
-            rx.heading("Your Exercises:", size="9"),  # page title
+            rx.heading("Exercises:", size="9"),  # page title
             render_exercises(),
             spacing="5",
             justify="center",
