@@ -75,8 +75,9 @@ class ExerciseResult(rx.Model, table=True):  # type: ignore
     # passed as a list of dictionaries. Each individual message is represented as a
     # dictionary. Dictionaries must be converted to JSON before being stored in the DB.
     # FIXME Consider chaning default value. Depends on further implementation.
-    conversation_text: List[Dict[str, Any]] = Field(
-        sa_column=Column(JSON), default=lambda: []
+    conversation_text: List[Dict[str, Any]] = Field(sa_column=Column(JSON), default=[])
+    finished_conversation: List[Dict[str, Any]] = Field(
+        sa_column=Column(JSON), default=[]
     )
 
     # Connects to Exercise.submissions

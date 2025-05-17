@@ -247,6 +247,18 @@ class ChatState(SessionState):
             invert=True,
         )
 
+    def successfull_submit_message(self):
+        """
+        show success message if check is passed.
+        """
+        return rx.toast.success(
+            title="Submit",
+            description="Your answer was submitted successfully.",
+            duration=2500,
+            position="bottom-center",
+            invert=True,
+        )
+
     @rx.event
     async def check_answer(self):
         """
@@ -285,7 +297,7 @@ class ChatState(SessionState):
                         ExerciseResult.exercise_id == self.current_exercise.id,
                         ExerciseResult.userinfo_id == userinfo_id,
                     )
-                ).first()
+                ).one_or_none()
 
                 if exercise_result is None:
                     # create new ExerciseResult if none exists
@@ -306,6 +318,33 @@ class ChatState(SessionState):
                     exercise_result.conversation_text = conversation
                     exercise_result.check_passed = self.check_passed
                     session.commit()
+
+    @rx.event
+    def save_finished_conversation_to_db(self):
+        """
+        Saves the finished conversation to the database.
+        """
+        conversation = self.get_messages_dict_gpt()
+        userinfo_id: Optional[int] = self.user_id
+        if self.current_exercise and userinfo_id:
+            with rx.session() as session:
+                exercise_result = session.exec(
+                    ExerciseResult.select().where(
+                        ExerciseResult.exercise_id == self.current_exercise.id,
+                        ExerciseResult.userinfo_id == userinfo_id,
+                    )
+                ).one_or_none()
+
+                if exercise_result is not None:
+                    # update existing ExerciseResult
+                    exercise_result.finished_conversation = conversation
+                    session.commit()
+                    yield self.successfull_submit_message()
+                else:
+                    raise ValueError(
+                        "There is no ExerciseResult to save the "
+                        "finished conversation to."
+                    )
 
     def get_messages_dict_gpt(self):
         """
@@ -453,6 +492,7 @@ def check_answer_button() -> rx.Component:
             color_scheme="green",
             type="button",
             _hover={"cursor": "pointer"},
+            on_click=ChatState.save_finished_conversation_to_db,
         ),
         rx.button(
             "Check Answer",
