@@ -133,6 +133,8 @@ class ChatState(SessionState):
                 raise ValueError("Exercise not found in database.")
             if exercise_result:
                 self.check_passed = exercise_result.check_passed
+            else:
+                self.check_passed = False
         yield
 
     def load_existing_conversation(self):
