@@ -85,6 +85,7 @@ class ExerciseResult(rx.Model, table=True):  # type: ignore
 
     userinfo_id: int = Field(foreign_key="userinfo.id", ondelete="CASCADE")
     user: "UserInfo" = Relationship(back_populates="exercise_results")
+    check_passed: bool = Field(default=False)
 
     def __repr__(self):
         if self.exercise is None:
