@@ -35,3 +35,12 @@ prompt2 = """
 useless prompt
 """
 ```
+
+# check-answer-prompts
+Here you define the prompt that should be given to the AI when the check answer button is pressed.
+```toml
+[check-answer-prompt]
+prompt = """
+"Please check if the answer is correct and provide an explanation."
+"""
+```

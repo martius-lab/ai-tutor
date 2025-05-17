@@ -6,12 +6,12 @@ import reflex as rx
 from decouple import config
 from openai import AsyncOpenAI, OpenAI
 from pydantic import BaseModel
-
 from aitutor.pages.navbar import with_navbar
 from aitutor.models import Exercise, ExerciseResult
 from aitutor.auth.protection import require_role_at_least
 from aitutor.models import UserRole
 from aitutor.auth.state import SessionState
+import tomllib
 
 DEFAULT_MODEL = "gpt-4o-mini"
 
@@ -60,10 +60,15 @@ async def get_check_answer_response(conversation) -> CheckAnswerResponse | None:
     conversation: Expects list of dictionaries of the previous messages between ChatGPT
     and the user.
     """
+    with open("config.toml", "rb") as f:
+        tomlfile = tomllib.load(f)
+    check_answer_prompt = tomlfile["check-answer-prompt"]["prompt"]
+    if not check_answer_prompt:
+        raise ValueError("Check answer prompt not found in config.toml")
     conversation.append(
         {
             "role": "system",
-            "content": "Please check if the answer is correct and provide an explanation.",
+            "content": check_answer_prompt,
         }
     )
     API_KEY = cast(str, config("OPENAI_API_KEY", cast=str, default=None))
