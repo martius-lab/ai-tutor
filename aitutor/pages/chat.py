@@ -197,6 +197,7 @@ class ChatState(SessionState):
                     session.commit()
         # Only reset the conversation if there are messages beyond the initial message
         # by ChatGPT.
+        self.check_passed = False
         if len(self.messages) > 1:
             self.messages = []
             if not self.messages and self.current_exercise:
@@ -259,7 +260,6 @@ class ChatState(SessionState):
         self.check_passed = (
             check_answer_response.check_passed if check_answer_response else False
         )
-        print(self.check_passed)
         if not self.check_passed:
             yield self.check_not_passed_error()
 
@@ -270,6 +270,7 @@ class ChatState(SessionState):
                 + check_answer_response.explanation,
                 is_llm=True,
             )
+        conversation = self.get_messages_dict_gpt()
         self.save_conversation_to_db(conversation=conversation)
 
     def save_conversation_to_db(self, conversation: list[dict]):
