@@ -4,7 +4,8 @@ from typing import Optional, cast
 
 import reflex as rx
 from decouple import config
-from openai import AsyncOpenAI
+from openai import AsyncOpenAI, OpenAI
+from pydantic import BaseModel
 
 from aitutor.pages.navbar import with_navbar
 from aitutor.models import Exercise, ExerciseResult
@@ -40,6 +41,41 @@ async def get_response(conversation):
     if not isinstance(response, str):
         raise TypeError(f"Expected string but got {type(response)}: {response}")
     return response
+
+
+class CheckAnswerResponse(BaseModel):
+    """
+    Represents the response structure for checking an answer,
+    including an explanation and pass status.
+    """
+
+    explanation: str
+    check_passed: bool
+
+
+async def get_check_answer_response(conversation) -> CheckAnswerResponse | None:
+    """
+    Sends request to OpenAI.
+
+    conversation: Expects list of dictionaries of the previous messages between ChatGPT
+    and the user.
+    """
+    conversation.append(
+        {
+            "role": "system",
+            "content": "Please check if the answer is correct and provide an explanation.",
+        }
+    )
+    API_KEY = cast(str, config("OPENAI_API_KEY", cast=str, default=None))
+    if not API_KEY:
+        raise ValueError("API key not found.")
+    client = OpenAI(api_key=API_KEY)
+    response = client.responses.parse(
+        model=DEFAULT_MODEL,
+        input=conversation,
+        text_format=CheckAnswerResponse,
+    )
+    return response.output_parsed
 
 
 class ChatMessage(rx.Base):
@@ -177,6 +213,15 @@ class ChatState(SessionState):
 
             # Save conversation to database.
             self.save_conversation_to_db(conversation=messages)
+
+    @rx.event
+    async def check_answer(self):
+        """
+        Check the answer of the user.
+        """
+        conversation = self.get_messages_dict_gpt()
+        check_answer_response = await get_check_answer_response(conversation)
+        print(check_answer_response)
 
     def save_conversation_to_db(self, conversation: list[dict]):
         """
@@ -349,6 +394,7 @@ def check_answer_button() -> rx.Component:
         color_scheme="yellow",
         type="button",
         _hover={"cursor": "pointer"},
+        on_click=ChatState.check_answer,
     )
 
 
