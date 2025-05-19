@@ -196,12 +196,20 @@ class ChatState(SessionState):
                         ExerciseResult.exercise_id == self.current_exercise.id,
                         ExerciseResult.userinfo_id == userinfo_id,
                     )
-                ).all()
+                ).one_or_none()
 
                 if exercise_result:
-                    for result in exercise_result:
-                        session.delete(result)
-                    session.commit()
+                    if exercise_result.finished_conversation == []:
+                        # delete conversation from db if there is nothing submitted yet
+                        session.delete(exercise_result)
+                        session.commit()
+                    else:
+                        # only reset conversation_text and check_passed if there
+                        # is already a finished conversation
+                        exercise_result.conversation_text = []
+                        exercise_result.check_passed = False
+                        session.commit()
+
         # Only reset the conversation if there are messages beyond the initial message
         # by ChatGPT.
         self.check_passed = False
