@@ -178,6 +178,12 @@ class ChatState(SessionState):
             is_llm=True,
         )
 
+    def do_nothing(self):
+        """
+        Placeholder function to do nothing.
+        """
+        pass
+
     @rx.event
     def reset_conversation(self):
         """Resets conversation for current exercise."""
@@ -408,27 +414,34 @@ def chat_form() -> rx.Component:
                 enter_key_submit=True,
             ),
             rx.hstack(
-                reset_conversation_button(),
                 rx.hstack(
+                    reset_conversation_button(),
                     check_answer_button(),
-                    rx.button(
-                        "Send",
-                        type="submit",
-                        color_scheme="iris",
-                        _hover=rx.cond(
-                            ChatState.waiting_for_response,
-                            {"cursor": "not-allowed"},
-                            {"cursor": "pointer"},
-                        ),
-                        loading=ChatState.waiting_for_response,
-                    ),
                 ),
+                send_message_button(),
                 width="100%",
                 justify="between",
             ),
         ),
         on_submit=ChatState.send_message,
         reset_on_submit=True,
+    )
+
+
+def send_message_button() -> rx.Component:
+    """
+    Render the button to send a message.
+    """
+    return rx.button(
+        "Send",
+        type="submit",
+        color_scheme="iris",
+        _hover=rx.cond(
+            ChatState.waiting_for_response,
+            {"cursor": "not-allowed"},
+            {"cursor": "pointer"},
+        ),
+        loading=ChatState.waiting_for_response,
     )
 
 
@@ -495,18 +508,84 @@ def check_answer_button() -> rx.Component:
             _hover={"cursor": "pointer"},
             on_click=ChatState.save_finished_conversation_to_db,
         ),
-        rx.button(
-            "Check Answer",
-            color_scheme="yellow",
-            type="button",
-            _hover=rx.cond(
-                ChatState.check_is_loading,
-                {"cursor": "not-allowed"},
-                {"cursor": "pointer"},
+        rx.cond(
+            ChatState.check_is_loading,
+            rx.button(
+                "Check Answer",
+                color_scheme="yellow",
+                type="button",
+                _hover={"cursor": "not-allowed"},
+                loading=True,
             ),
-            on_click=ChatState.check_answer,
-            loading=ChatState.check_is_loading,
+            rx.alert_dialog.root(
+                rx.alert_dialog.trigger(
+                    rx.button(
+                        "Check Answer",
+                        color_scheme="yellow",
+                        type="button",
+                        _hover=rx.cond(
+                            ChatState.messages.length() < 2,  # type: ignore
+                            {"cursor": "not-allowed"},
+                            {"cursor": "pointer"},
+                        ),
+                        disabled=rx.cond(
+                            ChatState.messages.length() < 2,  # type: ignore
+                            True,
+                            False,
+                        ),
+                    ),
+                ),
+                rx.alert_dialog.content(
+                    rx.alert_dialog.title("Check Answer"),
+                    rx.alert_dialog.description(
+                        "Are you done with the exercise and want to check your answer?"
+                    ),
+                    rx.hstack(
+                        rx.alert_dialog.cancel(
+                            rx.button(
+                                "No",
+                                color_scheme="red",
+                                _hover={"cursor": "pointer"},
+                            ),
+                        ),
+                        rx.alert_dialog.action(
+                            rx.button(
+                                "Yes",
+                                color_scheme="iris",
+                                on_click=ChatState.check_answer,
+                                _hover={"cursor": "pointer"},
+                            ),
+                        ),
+                        margin_top="1em",
+                    ),
+                ),
+            ),
         ),
+        # rx.button(
+        #     "Check Answer",
+        #     color_scheme="yellow",
+        #     type="button",
+        #     _hover=rx.cond(
+        #         ChatState.check_is_loading,  # type: ignore
+        #         {"cursor": "not-allowed"},
+        #         rx.cond(
+        #             ChatState.messages.length() < 2,  # type: ignore
+        #             {"cursor": "not-allowed"},
+        #             {"cursor": "pointer"},
+        #         ),
+        #     ),
+        #     disabled=rx.cond(
+        #         ChatState.messages.length() < 2,  # type: ignore
+        #         True,
+        #         False,
+        #     ),
+        #     on_click=rx.cond(
+        #         ChatState.check_is_loading,
+        #         ChatState.do_nothing,
+        #         ChatState.check_answer,
+        #     ),
+        #     loading=ChatState.check_is_loading,
+        # ),
     )
 
 
