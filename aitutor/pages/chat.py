@@ -12,6 +12,7 @@ from aitutor.auth.protection import require_role_at_least
 from aitutor.models import UserRole
 from aitutor.auth.state import SessionState
 import tomllib
+import aitutor.routes as routes
 
 DEFAULT_MODEL = "gpt-4o-mini"
 
@@ -130,7 +131,7 @@ class ChatState(SessionState):
                         self.current_exercise.description, is_llm=True
                     )
             else:
-                raise ValueError("Exercise not found in database.")
+                yield rx.redirect(routes.NOT_FOUND)
             if exercise_result:
                 self.check_passed = exercise_result.check_passed
             else:
@@ -200,7 +201,7 @@ class ChatState(SessionState):
         self.check_passed = False
         if len(self.messages) > 1:
             self.messages = []
-            if not self.messages and self.current_exercise:
+            if self.current_exercise:
                 self.append_chat_message(self.current_exercise.description, is_llm=True)
 
     def append_chat_message(self, message, is_llm: bool = False):
