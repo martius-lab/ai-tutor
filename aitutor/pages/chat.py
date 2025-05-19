@@ -569,31 +569,6 @@ def check_answer_button() -> rx.Component:
                 ),
             ),
         ),
-        # rx.button(
-        #     "Check Answer",
-        #     color_scheme="yellow",
-        #     type="button",
-        #     _hover=rx.cond(
-        #         ChatState.check_is_loading,  # type: ignore
-        #         {"cursor": "not-allowed"},
-        #         rx.cond(
-        #             ChatState.messages.length() < 2,  # type: ignore
-        #             {"cursor": "not-allowed"},
-        #             {"cursor": "pointer"},
-        #         ),
-        #     ),
-        #     disabled=rx.cond(
-        #         ChatState.messages.length() < 2,  # type: ignore
-        #         True,
-        #         False,
-        #     ),
-        #     on_click=rx.cond(
-        #         ChatState.check_is_loading,
-        #         ChatState.do_nothing,
-        #         ChatState.check_answer,
-        #     ),
-        #     loading=ChatState.check_is_loading,
-        # ),
     )
 
 
