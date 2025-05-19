@@ -8,6 +8,7 @@ HOME = "/"
 CHAT = "/chat"  # needs to be /chat/[exercise_id] to work
 EXERCISES = "/exercises"
 ADD_EXERCISE = "/add_exercise"
+NOT_FOUND = "/404"
 
 # we use the routes from reflex_local_auth to be
 # able to use functions like Loginstate.redir
