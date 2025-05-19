@@ -26,9 +26,14 @@ Here is an example of how to define the prompts:
 ```toml
 [prompts]
 prompt1 = """
-You will act as a learning assistant. The university student is given this exercise-title: - {title} -
-and this task-description: - {description} -
-This extracted-pdf was uploaded by the teacher as a theoretical basis for this exercise: - {lesson_file} -
+You will act as a learning assistant. The university student is given this exercise-title: "{title}"
+and this task-description: "{description}"
+This extracted-pdf was uploaded by the teacher as a theoretical basis for this exercise: 
+
+--------------------------
+{lesson_file}
+--------------------------
+
 Analyze the answers of the student and give feedback.
 """
 prompt2 = """
@@ -41,6 +46,9 @@ Here you define the prompt that should be given to the AI when the check answer 
 ```toml
 [check-answer-prompt]
 prompt = """
-"Please check if the answer is correct and provide an explanation."
+"Please check if the answers of the user are serious and if the user answered the original question correctly.
+If the user answered the question too short and with too little detail, please ask him to elaborate.
+Respond with an explaination of your reasoning. Your response is being sent to the user and his teacher as feedback.
+If the user did not answer at all, please say that he did not answer.
 """
 ```
