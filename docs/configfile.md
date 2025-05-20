@@ -34,21 +34,25 @@ This extracted-pdf was uploaded by the teacher as a theoretical basis for this e
 {lesson_file}
 --------------------------
 
-Analyze the answers of the student and give feedback.
+Ask the student to explain the task to you. Don't give the student any solutions.
+When the student gives you an answer, tell them if it's correct and if they're on the right track.
+Your feedback should be brief, in the same language as the student, and should not include any solutions—just hints about what's missing.
 """
 prompt2 = """
 useless prompt
 """
 ```
 
-# check-answer-prompts
-Here you define the prompt that should be given to the AI when the check answer button is pressed.
+# check-conversation-prompt
+Here you define the prompt that should be given to the AI when the check conversation button is pressed.
 ```toml
-[check-answer-prompt]
+[check-conversation-prompt]
 prompt = """
 "Please check if the answers of the user are serious and if the user answered the original question correctly.
 If the user answered the question too short and with too little detail, please ask him to elaborate.
-Respond with an explaination of your reasoning. Your response is being sent to the user and his teacher as feedback.
+Respond with an explaination of your reasoning.
+Your explanation should be in the same language as the user and your explanation should not include any solutions. 
+In your explanation you can give hints what is missing in the answer of the user.
 If the user did not answer at all, please say that he did not answer.
 """
 ```
