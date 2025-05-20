@@ -4,13 +4,14 @@ from typing import Optional, cast
 
 import reflex as rx
 from decouple import config
-from openai import AsyncOpenAI
-
+from openai import AsyncOpenAI, OpenAI
+from pydantic import BaseModel
 from aitutor.pages.navbar import with_navbar
 from aitutor.models import Exercise, ExerciseResult
 from aitutor.auth.protection import require_role_at_least
 from aitutor.models import UserRole
 from aitutor.auth.state import SessionState
+import tomllib
 import aitutor.routes as routes
 
 DEFAULT_MODEL = "gpt-4o-mini"
@@ -43,6 +44,48 @@ async def get_response(conversation):
     return response
 
 
+class CheckConversationResponse(BaseModel):
+    """
+    Represents the response structure for checking a conversation.,
+    including an explanation and pass status.
+    """
+
+    explanation: str
+    check_passed: bool
+
+
+async def get_check_conversation_response(
+    conversation,
+) -> CheckConversationResponse | None:
+    """
+    Sends request to OpenAI.
+
+    conversation: Expects list of dictionaries of the previous messages between ChatGPT
+    and the user.
+    """
+    with open("config.toml", "rb") as f:
+        tomlfile = tomllib.load(f)
+    check_conversation_prompt = tomlfile["check-conversation-prompt"]["prompt"]
+    if not check_conversation_prompt:
+        raise ValueError("Check Conversation prompt not found in config.toml")
+    conversation.append(
+        {
+            "role": "system",
+            "content": check_conversation_prompt,
+        }
+    )
+    API_KEY = cast(str, config("OPENAI_API_KEY", cast=str, default=None))
+    if not API_KEY:
+        raise ValueError("API key not found.")
+    client = OpenAI(api_key=API_KEY)
+    response = client.responses.parse(
+        model=DEFAULT_MODEL,
+        input=conversation,
+        text_format=CheckConversationResponse,
+    )
+    return response.output_parsed
+
+
 class ChatMessage(rx.Base):
     """
     Class to make handling ChatMessages easier and help differentiate between authors of
@@ -60,6 +103,9 @@ class ChatState(SessionState):
     current_exercise: Optional[Exercise] = None
     exercise_title: str = "No Exercise Selected"
     system_message_gpt: str
+    check_is_loading: bool = False
+    waiting_for_response: bool = False
+    check_passed: bool = False
 
     @rx.event
     def load_exercise(self):
@@ -69,6 +115,12 @@ class ChatState(SessionState):
         with rx.session() as session:
             exercise = session.exec(
                 Exercise.select().where(Exercise.id == self.exercise_id)
+            ).one_or_none()
+            exercise_result = session.exec(
+                ExerciseResult.select().where(
+                    ExerciseResult.exercise_id == self.exercise_id,
+                    ExerciseResult.userinfo_id == self.user_id,
+                )
             ).one_or_none()
             if exercise:
                 self.current_exercise = exercise
@@ -82,6 +134,10 @@ class ChatState(SessionState):
                     )
             else:
                 yield rx.redirect(routes.NOT_FOUND)
+            if exercise_result:
+                self.check_passed = exercise_result.check_passed
+            else:
+                self.check_passed = False
         yield
 
     def load_existing_conversation(self):
@@ -124,6 +180,12 @@ class ChatState(SessionState):
             is_llm=True,
         )
 
+    def do_nothing(self):
+        """
+        Placeholder function to do nothing.
+        """
+        pass
+
     @rx.event
     def reset_conversation(self):
         """Resets conversation for current exercise."""
@@ -136,14 +198,23 @@ class ChatState(SessionState):
                         ExerciseResult.exercise_id == self.current_exercise.id,
                         ExerciseResult.userinfo_id == userinfo_id,
                     )
-                ).all()
+                ).one_or_none()
 
                 if exercise_result:
-                    for result in exercise_result:
-                        session.delete(result)
-                    session.commit()
+                    if exercise_result.finished_conversation == []:
+                        # delete conversation from db if there is nothing submitted yet
+                        session.delete(exercise_result)
+                        session.commit()
+                    else:
+                        # only reset conversation_text and check_passed if there
+                        # is already a finished conversation
+                        exercise_result.conversation_text = []
+                        exercise_result.check_passed = False
+                        session.commit()
+
         # Only reset the conversation if there are messages beyond the initial message
         # by ChatGPT.
+        self.check_passed = False
         if len(self.messages) > 1:
             self.messages = []
             if self.current_exercise:
@@ -164,6 +235,7 @@ class ChatState(SessionState):
         user_message = form_data.get("user_response")
         if user_message:
             self.append_chat_message(message=user_message, is_llm=False)
+            self.waiting_for_response = True
             yield
             # Takes list of ChatMessage and turns into a list of dictionaries, so
             # the OpenAI API can handle the messages.
@@ -174,10 +246,65 @@ class ChatState(SessionState):
             # True to indicate that it is generated by the user.
             self.append_chat_message(message=llm_response, is_llm=True)
             messages = self.get_messages_dict_gpt()
+            self.waiting_for_response = False
             yield
 
             # Save conversation to database.
             self.save_conversation_to_db(conversation=messages)
+
+    def check_not_passed_error(self):
+        """
+        show error if check is not passed.
+        """
+        return rx.toast.error(
+            title="Check Conversation",
+            description="The AI tutor thinks the exercise is not solved yet.",
+            duration=2500,
+            position="bottom-center",
+            invert=True,
+        )
+
+    def successfull_submit_message(self):
+        """
+        show success message if check is passed.
+        """
+        return rx.toast.success(
+            title="Submit",
+            description="Your conversation was submitted successfully.",
+            duration=2500,
+            position="bottom-center",
+            invert=True,
+        )
+
+    @rx.event
+    async def check_conversation(self):
+        """
+        Check the conversation of the user.
+        """
+        conversation = self.get_messages_dict_gpt()
+        self.check_is_loading = True
+        yield
+        check_conversation_response = await get_check_conversation_response(
+            conversation
+        )
+        self.check_is_loading = False
+        self.check_passed = (
+            check_conversation_response.check_passed
+            if check_conversation_response
+            else False
+        )
+        if not self.check_passed:
+            yield self.check_not_passed_error()
+
+        # show explanation of the check in the chat
+        if check_conversation_response is not None:
+            self.append_chat_message(
+                message="# Result of Check Conversation: \n"
+                + check_conversation_response.explanation,
+                is_llm=True,
+            )
+        conversation = self.get_messages_dict_gpt()
+        self.save_conversation_to_db(conversation=conversation)
 
     def save_conversation_to_db(self, conversation: list[dict]):
         """
@@ -191,7 +318,7 @@ class ChatState(SessionState):
                         ExerciseResult.exercise_id == self.current_exercise.id,
                         ExerciseResult.userinfo_id == userinfo_id,
                     )
-                ).first()
+                ).one_or_none()
 
                 if exercise_result is None:
                     # create new ExerciseResult if none exists
@@ -203,13 +330,43 @@ class ChatState(SessionState):
                         exercise_id=self.current_exercise.id,
                         userinfo_id=userinfo_id,
                         conversation_text=conversation,
+                        check_passed=self.check_passed,
                     )
                     session.add(exercise_result)
                     session.commit()
                 else:
                     # update existing ExerciseResult
                     exercise_result.conversation_text = conversation
+                    exercise_result.check_passed = self.check_passed
                     session.commit()
+
+    @rx.event
+    def save_finished_conversation_to_db(self):
+        """
+        Saves the finished conversation to the database.
+        """
+        if self.check_passed:
+            conversation = self.get_messages_dict_gpt()
+            userinfo_id: Optional[int] = self.user_id
+            if self.current_exercise and userinfo_id:
+                with rx.session() as session:
+                    exercise_result = session.exec(
+                        ExerciseResult.select().where(
+                            ExerciseResult.exercise_id == self.current_exercise.id,
+                            ExerciseResult.userinfo_id == userinfo_id,
+                        )
+                    ).one_or_none()
+
+                    if exercise_result is not None:
+                        # update existing ExerciseResult
+                        exercise_result.finished_conversation = conversation
+                        session.commit()
+                        yield self.successfull_submit_message()
+                    else:
+                        raise ValueError(
+                            "There is no ExerciseResult to save the "
+                            "finished conversation to."
+                        )
 
     def get_messages_dict_gpt(self):
         """
@@ -259,7 +416,7 @@ def message_box(chat_message: ChatMessage) -> rx.Component:
 def chat_form() -> rx.Component:
     """
     Render the chat form for user input. Includes button to send Reply and button to
-    check the answer.
+    check the conversation.
     """
     return rx.form(
         rx.vstack(
@@ -272,22 +429,34 @@ def chat_form() -> rx.Component:
                 enter_key_submit=True,
             ),
             rx.hstack(
-                reset_conversation_button(),
                 rx.hstack(
-                    check_answer_button(),
-                    rx.button(
-                        "Send",
-                        type="submit",
-                        color_scheme="iris",
-                        _hover={"cursor": "pointer"},
-                    ),
+                    reset_conversation_button(),
+                    check_conversation_button(),
                 ),
+                send_message_button(),
                 width="100%",
                 justify="between",
             ),
         ),
         on_submit=ChatState.send_message,
         reset_on_submit=True,
+    )
+
+
+def send_message_button() -> rx.Component:
+    """
+    Render the button to send a message.
+    """
+    return rx.button(
+        "Send",
+        type="submit",
+        color_scheme="iris",
+        _hover=rx.cond(
+            ChatState.waiting_for_response,
+            {"cursor": "not-allowed"},
+            {"cursor": "pointer"},
+        ),
+        loading=ChatState.waiting_for_response,
     )
 
 
@@ -341,15 +510,73 @@ def reset_conversation_button() -> rx.Component:
     )
 
 
-def check_answer_button() -> rx.Component:
+def check_conversation_button() -> rx.Component:
     """
-    Render the button to check the answer.
+    Render the button to check the conversation.
     """
-    return rx.button(
-        "Check Answer",
-        color_scheme="yellow",
-        type="button",
-        _hover={"cursor": "pointer"},
+    return rx.cond(
+        ChatState.check_passed,
+        rx.button(
+            "Submit",
+            color_scheme="green",
+            type="button",
+            _hover={"cursor": "pointer"},
+            on_click=ChatState.save_finished_conversation_to_db,
+        ),
+        rx.cond(
+            ChatState.check_is_loading,
+            rx.button(
+                "Check Conversation",
+                color_scheme="yellow",
+                type="button",
+                _hover={"cursor": "not-allowed"},
+                loading=True,
+            ),
+            rx.alert_dialog.root(
+                rx.alert_dialog.trigger(
+                    rx.button(
+                        "Check Conversation",
+                        color_scheme="yellow",
+                        type="button",
+                        _hover=rx.cond(
+                            ChatState.messages.length() < 2,  # type: ignore
+                            {"cursor": "not-allowed"},
+                            {"cursor": "pointer"},
+                        ),
+                        disabled=rx.cond(
+                            ChatState.messages.length() < 2,  # type: ignore
+                            True,
+                            False,
+                        ),
+                    ),
+                ),
+                rx.alert_dialog.content(
+                    rx.alert_dialog.title("Check Conversation"),
+                    rx.alert_dialog.description(
+                        "Are you done with the exercise and want "
+                        + "to check your conversation?"
+                    ),
+                    rx.hstack(
+                        rx.alert_dialog.cancel(
+                            rx.button(
+                                "No",
+                                color_scheme="red",
+                                _hover={"cursor": "pointer"},
+                            ),
+                        ),
+                        rx.alert_dialog.action(
+                            rx.button(
+                                "Yes",
+                                color_scheme="iris",
+                                on_click=ChatState.check_conversation,
+                                _hover={"cursor": "pointer"},
+                            ),
+                        ),
+                        margin_top="1em",
+                    ),
+                ),
+            ),
+        ),
     )
 
 
