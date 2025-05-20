@@ -44,9 +44,9 @@ async def get_response(conversation):
     return response
 
 
-class CheckAnswerResponse(BaseModel):
+class CheckConversationResponse(BaseModel):
     """
-    Represents the response structure for checking an answer,
+    Represents the response structure for checking a conversation.,
     including an explanation and pass status.
     """
 
@@ -54,7 +54,9 @@ class CheckAnswerResponse(BaseModel):
     check_passed: bool
 
 
-async def get_check_answer_response(conversation) -> CheckAnswerResponse | None:
+async def get_check_conversation_response(
+    conversation,
+) -> CheckConversationResponse | None:
     """
     Sends request to OpenAI.
 
@@ -63,13 +65,13 @@ async def get_check_answer_response(conversation) -> CheckAnswerResponse | None:
     """
     with open("config.toml", "rb") as f:
         tomlfile = tomllib.load(f)
-    check_answer_prompt = tomlfile["check-answer-prompt"]["prompt"]
-    if not check_answer_prompt:
-        raise ValueError("Check answer prompt not found in config.toml")
+    check_conversation_prompt = tomlfile["check-conversation-prompt"]["prompt"]
+    if not check_conversation_prompt:
+        raise ValueError("Check Conversation prompt not found in config.toml")
     conversation.append(
         {
             "role": "system",
-            "content": check_answer_prompt,
+            "content": check_conversation_prompt,
         }
     )
     API_KEY = cast(str, config("OPENAI_API_KEY", cast=str, default=None))
@@ -79,7 +81,7 @@ async def get_check_answer_response(conversation) -> CheckAnswerResponse | None:
     response = client.responses.parse(
         model=DEFAULT_MODEL,
         input=conversation,
-        text_format=CheckAnswerResponse,
+        text_format=CheckConversationResponse,
     )
     return response.output_parsed
 
@@ -255,8 +257,8 @@ class ChatState(SessionState):
         show error if check is not passed.
         """
         return rx.toast.error(
-            title="Check Answer",
-            description="Your answer is not good enough to submit yet.",
+            title="Check Conversation",
+            description="The AI tutor thinks the exercise is not solved yet.",
             duration=2500,
             position="bottom-center",
             invert=True,
@@ -268,33 +270,37 @@ class ChatState(SessionState):
         """
         return rx.toast.success(
             title="Submit",
-            description="Your answer was submitted successfully.",
+            description="Your conversation was submitted successfully.",
             duration=2500,
             position="bottom-center",
             invert=True,
         )
 
     @rx.event
-    async def check_answer(self):
+    async def check_conversation(self):
         """
-        Check the answer of the user.
+        Check the conversation of the user.
         """
         conversation = self.get_messages_dict_gpt()
         self.check_is_loading = True
         yield
-        check_answer_response = await get_check_answer_response(conversation)
+        check_conversation_response = await get_check_conversation_response(
+            conversation
+        )
         self.check_is_loading = False
         self.check_passed = (
-            check_answer_response.check_passed if check_answer_response else False
+            check_conversation_response.check_passed
+            if check_conversation_response
+            else False
         )
         if not self.check_passed:
             yield self.check_not_passed_error()
 
         # show explanation of the check in the chat
-        if check_answer_response is not None:
+        if check_conversation_response is not None:
             self.append_chat_message(
-                message="# Result of Check Answer: \n"
-                + check_answer_response.explanation,
+                message="# Result of Check Conversation: \n"
+                + check_conversation_response.explanation,
                 is_llm=True,
             )
         conversation = self.get_messages_dict_gpt()
@@ -339,27 +345,28 @@ class ChatState(SessionState):
         """
         Saves the finished conversation to the database.
         """
-        conversation = self.get_messages_dict_gpt()
-        userinfo_id: Optional[int] = self.user_id
-        if self.current_exercise and userinfo_id:
-            with rx.session() as session:
-                exercise_result = session.exec(
-                    ExerciseResult.select().where(
-                        ExerciseResult.exercise_id == self.current_exercise.id,
-                        ExerciseResult.userinfo_id == userinfo_id,
-                    )
-                ).one_or_none()
+        if self.check_passed:
+            conversation = self.get_messages_dict_gpt()
+            userinfo_id: Optional[int] = self.user_id
+            if self.current_exercise and userinfo_id:
+                with rx.session() as session:
+                    exercise_result = session.exec(
+                        ExerciseResult.select().where(
+                            ExerciseResult.exercise_id == self.current_exercise.id,
+                            ExerciseResult.userinfo_id == userinfo_id,
+                        )
+                    ).one_or_none()
 
-                if exercise_result is not None:
-                    # update existing ExerciseResult
-                    exercise_result.finished_conversation = conversation
-                    session.commit()
-                    yield self.successfull_submit_message()
-                else:
-                    raise ValueError(
-                        "There is no ExerciseResult to save the "
-                        "finished conversation to."
-                    )
+                    if exercise_result is not None:
+                        # update existing ExerciseResult
+                        exercise_result.finished_conversation = conversation
+                        session.commit()
+                        yield self.successfull_submit_message()
+                    else:
+                        raise ValueError(
+                            "There is no ExerciseResult to save the "
+                            "finished conversation to."
+                        )
 
     def get_messages_dict_gpt(self):
         """
@@ -409,7 +416,7 @@ def message_box(chat_message: ChatMessage) -> rx.Component:
 def chat_form() -> rx.Component:
     """
     Render the chat form for user input. Includes button to send Reply and button to
-    check the answer.
+    check the conversation.
     """
     return rx.form(
         rx.vstack(
@@ -424,7 +431,7 @@ def chat_form() -> rx.Component:
             rx.hstack(
                 rx.hstack(
                     reset_conversation_button(),
-                    check_answer_button(),
+                    check_conversation_button(),
                 ),
                 send_message_button(),
                 width="100%",
@@ -503,9 +510,9 @@ def reset_conversation_button() -> rx.Component:
     )
 
 
-def check_answer_button() -> rx.Component:
+def check_conversation_button() -> rx.Component:
     """
-    Render the button to check the answer.
+    Render the button to check the conversation.
     """
     return rx.cond(
         ChatState.check_passed,
@@ -519,7 +526,7 @@ def check_answer_button() -> rx.Component:
         rx.cond(
             ChatState.check_is_loading,
             rx.button(
-                "Check Answer",
+                "Check Conversation",
                 color_scheme="yellow",
                 type="button",
                 _hover={"cursor": "not-allowed"},
@@ -528,7 +535,7 @@ def check_answer_button() -> rx.Component:
             rx.alert_dialog.root(
                 rx.alert_dialog.trigger(
                     rx.button(
-                        "Check Answer",
+                        "Check Conversation",
                         color_scheme="yellow",
                         type="button",
                         _hover=rx.cond(
@@ -544,9 +551,10 @@ def check_answer_button() -> rx.Component:
                     ),
                 ),
                 rx.alert_dialog.content(
-                    rx.alert_dialog.title("Check Answer"),
+                    rx.alert_dialog.title("Check Conversation"),
                     rx.alert_dialog.description(
-                        "Are you done with the exercise and want to check your answer?"
+                        "Are you done with the exercise and want "
+                        + "to check your conversation?"
                     ),
                     rx.hstack(
                         rx.alert_dialog.cancel(
@@ -560,7 +568,7 @@ def check_answer_button() -> rx.Component:
                             rx.button(
                                 "Yes",
                                 color_scheme="iris",
-                                on_click=ChatState.check_answer,
+                                on_click=ChatState.check_conversation,
                                 _hover={"cursor": "pointer"},
                             ),
                         ),
