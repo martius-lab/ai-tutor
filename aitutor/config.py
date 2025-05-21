@@ -5,6 +5,7 @@ from dataclasses import dataclass
 import variconf
 
 
+DEFAULT_CONFIG_FILE_PATH = "./default_config.toml"
 CONFIG_FILE_PATH = "./config.toml"
 
 
@@ -49,7 +50,14 @@ def load_config():
     """Load configuration from file."""
     global _config
     wconf = variconf.WConf(AiTutorConfig)
-    wconf.load_file(CONFIG_FILE_PATH)
+    try:
+        wconf.load_file(CONFIG_FILE_PATH)
+    except FileNotFoundError:
+        print(
+            f"Config file {CONFIG_FILE_PATH} not found. Loading default config instead."
+        )
+        wconf.load_file(DEFAULT_CONFIG_FILE_PATH)
+
     _config = wconf.get()
 
 
