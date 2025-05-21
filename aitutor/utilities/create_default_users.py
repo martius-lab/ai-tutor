@@ -5,33 +5,12 @@ It interacts with the database to check for an existing user with that role
 and creates one with default credentials if necessary.
 """
 
-from aitutor.models import UserInfo, UserRole
 import reflex as rx
 from sqlmodel import select
 from reflex_local_auth.user import LocalUser
-import tomllib
 
-with open("config.toml", "rb") as f:
-    config = tomllib.load(f)
-config = config["defaultusers"]
-
-# admin information
-admin_role: UserRole = UserRole.ADMIN
-admin_name = config["admin_name"]
-admin_password = config["admin_password"]
-admin_email = config["admin_email"]
-
-# teacher information
-teacher_role: UserRole = UserRole.TEACHER
-teacher_name = config["teacher_name"]
-teacher_password = config["teacher_password"]
-teacher_email = config["teacher_email"]
-
-# student information
-student_role: UserRole = UserRole.STUDENT
-student_name = config["student_name"]
-student_password = config["student_password"]
-student_email = config["student_email"]
+from aitutor.models import UserInfo, UserRole
+from aitutor.config import get_config
 
 
 def create_user_if_not_exists(role: UserRole, name: str, password: str, email: str):
@@ -69,25 +48,11 @@ def create_user_if_not_exists(role: UserRole, name: str, password: str, email: s
 
 
 def create_default_users():
-    """
-    Create default users (admin, teacher and student) if a user with that role
-    does not already exist.
-    """
-    create_user_if_not_exists(
-        role=admin_role,
-        name=admin_name,
-        password=admin_password,
-        email=admin_email,
-    )
-    create_user_if_not_exists(
-        role=teacher_role,
-        name=teacher_name,
-        password=teacher_password,
-        email=teacher_email,
-    )
-    create_user_if_not_exists(
-        role=student_role,
-        name=student_name,
-        password=student_password,
-        email=student_email,
-    )
+    """Create default users, if a user with that role does not already exist."""
+    for user in get_config().default_users:
+        create_user_if_not_exists(
+            role=UserRole[user.role.upper()],
+            name=user.name,
+            password=user.password,
+            email=user.email,
+        )
