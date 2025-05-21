@@ -6,6 +6,7 @@ This module contains the main app definition for Reflex.
 import reflex as rx
 from aitutor import pages
 from aitutor.auth.pages import custom_login_page, custom_register_page
+from aitutor.config import load_config
 from aitutor.pages.exercises import ExercisesState
 from aitutor.pages.chat import ChatState
 from aitutor.utilities.create_default_users import create_default_users
@@ -38,6 +39,9 @@ app.add_page(
 )
 app.add_page(pages.not_found, route=routes.NOT_FOUND)
 
+
+# load config here, so we fail immediately if there is any issue with it
+load_config()
 
 # catch error if db is not created yet
 try:

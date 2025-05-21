@@ -3,16 +3,17 @@
 from typing import Optional, cast
 
 import reflex as rx
-from decouple import config
+import decouple
 from openai import AsyncOpenAI, OpenAI
 from pydantic import BaseModel
+
+import aitutor.routes as routes
+from aitutor.config import get_config
 from aitutor.pages.navbar import with_navbar
 from aitutor.models import Exercise, ExerciseResult
 from aitutor.auth.protection import require_role_at_least
 from aitutor.models import UserRole
 from aitutor.auth.state import SessionState
-import tomllib
-import aitutor.routes as routes
 
 DEFAULT_MODEL = "gpt-4o-mini"
 
@@ -26,7 +27,7 @@ async def get_response(conversation):
     """
     # I use python decouple to retrieve the API Key, can also use os.
     # TODO: Do we really need decouple here? What's the advantage?
-    API_KEY = cast(str, config("OPENAI_API_KEY", cast=str, default=None))
+    API_KEY = cast(str, decouple.config("OPENAI_API_KEY", cast=str, default=None))
     if not API_KEY:
         raise ValueError("API key not found.")
 
@@ -63,18 +64,18 @@ async def get_check_conversation_response(
     conversation: Expects list of dictionaries of the previous messages between ChatGPT
     and the user.
     """
-    with open("config.toml", "rb") as f:
-        tomlfile = tomllib.load(f)
-    check_conversation_prompt = tomlfile["check-conversation-prompt"]["prompt"]
+    config = get_config()
+    check_conversation_prompt = config.check_conversation_prompt.prompt
     if not check_conversation_prompt:
-        raise ValueError("Check Conversation prompt not found in config.toml")
+        raise ValueError("Check Conversation prompt not set in config.")
+
     conversation.append(
         {
             "role": "system",
             "content": check_conversation_prompt,
         }
     )
-    API_KEY = cast(str, config("OPENAI_API_KEY", cast=str, default=None))
+    API_KEY = cast(str, decouple.config("OPENAI_API_KEY", cast=str, default=None))
     if not API_KEY:
         raise ValueError("API key not found.")
     client = OpenAI(api_key=API_KEY)

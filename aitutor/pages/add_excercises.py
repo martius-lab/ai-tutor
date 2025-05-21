@@ -6,6 +6,7 @@ import io
 from sqlmodel import select, or_
 import tomllib
 
+from aitutor.config import get_config
 from aitutor.models import Exercise, Tag
 from aitutor.pages.navbar import with_navbar
 from aitutor.auth.protection import require_role_at_least
@@ -36,9 +37,8 @@ class ExerciseState(rx.State):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        with open("config.toml", "rb") as f:
-            config = tomllib.load(f)
-        self.prompts = config["prompts"]
+        config = get_config()
+        self.prompts = {p["name"]: p["prompt"] for p in config.exercise_prompts}
         self.prompt_names = list(self.prompts.keys())
 
     @rx.event
