@@ -14,4 +14,5 @@ config = rx.Config(
         "*.pyc",
         "__pycache__/*",
     ],
+    telemetry_enabled=False,
 )
