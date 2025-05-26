@@ -40,11 +40,16 @@ app.add_page(
 app.add_page(pages.not_found, route=routes.NOT_FOUND)
 
 
-# load config here, so we fail immediately if there is any issue with it
-load_config()
+async def initialize():
+    """Initialization steps that are run once when the app starts."""
+    # Note that this function is run as an asynchronous lifespan task, so the
+    # application doesn't actually wait for it to be finished before starting to serve
+    # requests.  So we should be careful if we ever add any longer-running steps here.
 
-# catch error if db is not created yet
-try:
+    # load config here, so we fail immediately if there is any issue with it
+    load_config()
+
     create_default_users()
-except Exception as e:
-    print(f"Default users could not be created: {e}")
+
+
+app.register_lifespan_task(initialize)
