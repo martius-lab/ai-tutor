@@ -4,7 +4,6 @@ import reflex as rx
 import pdfplumber
 import io
 from sqlmodel import select, or_
-import tomllib
 
 from aitutor.config import get_config
 from aitutor.models import Exercise, Tag
