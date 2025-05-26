@@ -34,8 +34,9 @@ class AddExerciseState(rx.State):
     prompts: dict[str, str] = {}  # the prompt templates as a dict
     prompt_names: list[str] = []  # the prompt names as a list
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+    @rx.event
+    def initialize(self):
+        """Initialize the state (call this in the on_load event)."""
         config = get_config()
         self.prompts = {p.name: p.prompt for p in config.exercise_prompts}
         self.prompt_names = list(self.prompts.keys())
