@@ -28,7 +28,7 @@ class ExerciseState(rx.State):
     current_tag: str = ""  # the currently selected tag from the select window
     current_exercise: Exercise = Exercise()
     selected_tags: list[str] = []  # List to store selected tags temporarily
-    lesson_file: str = ""  # the lesson file as a string
+    lesson_context: str = ""  # the lesson context as a string
     lesson_file_name: str = ""  # name of the PDF
     current_prompt_name: str = ""  # the current prompt name
     prompts: dict[str, str] = {}  # the prompt templates as a dict
@@ -59,8 +59,8 @@ class ExerciseState(rx.State):
             # remove line breaks and double spaces
             text = " ".join(text.replace("\n", " ").split())
 
-            # save PDF text in lesson_file
-            self.lesson_file = text
+            # save PDF text in lesson_context
+            self.lesson_context = text
             # save PDF name
             self.lesson_file_name = file.name or "<unnamed file>"
 
@@ -94,14 +94,14 @@ class ExerciseState(rx.State):
                 return rx.window_alert("Please enter a title for the exercise.")
 
             # check if PDF has been selected
-            if self.lesson_file == "":
+            if self.lesson_context == "":
                 return rx.window_alert(
                     "No lesson file was selected. Please upload lesson file."
                 )
 
             # create instance and fill its fields
             new_exercise = Exercise(
-                lesson_file=self.lesson_file,
+                lesson_context=self.lesson_context,
             )
             new_exercise.title = form_data["title"]
             new_exercise.description = form_data["description"]
@@ -111,7 +111,7 @@ class ExerciseState(rx.State):
             new_exercise.prompt = self.prompts[self.current_prompt_name].format(
                 title=form_data["title"],
                 description=form_data["description"],
-                lesson_file=self.lesson_file,
+                lesson_context=self.lesson_context,
             )
             new_exercise.prompt_name = self.current_prompt_name
             # add exercises to db
@@ -121,7 +121,7 @@ class ExerciseState(rx.State):
             self.load_exercises()
             # clear fields after submission
             self.selected_tags = []
-            self.lesson_file = ""
+            self.lesson_context = ""
             self.lesson_file_name = ""
 
             self.add_exercise_dialog_is_open = False
@@ -211,7 +211,7 @@ class ExerciseState(rx.State):
             updated_exercise.prompt = self.prompts[self.current_prompt_name].format(
                 title=form_data["title"],
                 description=form_data["description"],
-                lesson_file=self.lesson_file,
+                lesson_context=self.lesson_context,
             )
             updated_exercise.prompt_name = self.current_prompt_name
 
@@ -233,7 +233,7 @@ class ExerciseState(rx.State):
     def unstage_lesson_file(self):
         """Unstage the lesson file."""
         # reset lesson variables
-        self.lesson_file = ""
+        self.lesson_context = ""
         self.lesson_file_name = ""
 
     @rx.event
@@ -293,7 +293,7 @@ class ExerciseState(rx.State):
                 select(Exercise).where(Exercise.id == self.current_exercise.id)
             ).one()
         self.current_prompt_name = _exercise.prompt_name
-        self.lesson_file = _exercise.lesson_file
+        self.lesson_context = _exercise.lesson_context
         # save Tags in selected_tags
         self.selected_tags = _exercise.tags.copy() if _exercise.tags else []
 
