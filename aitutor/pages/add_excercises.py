@@ -37,7 +37,7 @@ class ExerciseState(rx.State):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         config = get_config()
-        self.prompts = {p["name"]: p["prompt"] for p in config.exercise_prompts}
+        self.prompts = {p.name: p.prompt for p in config.exercise_prompts}
         self.prompt_names = list(self.prompts.keys())
 
     @rx.event
