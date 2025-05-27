@@ -3,6 +3,8 @@
 This module contains the main app definition for Reflex.
 """
 
+import sys
+
 import reflex as rx
 from aitutor import pages
 from aitutor.auth.pages import custom_login_page, custom_register_page
@@ -52,7 +54,11 @@ async def initialize():
     # requests.  So we should be careful if we ever add any longer-running steps here.
 
     # load config here, so we fail immediately if there is any issue with it
-    load_config()
+    try:
+        load_config()
+    except Exception as e:
+        print(f"Error loading config: {e}")
+        sys.exit(1)
 
     create_default_users()
 
