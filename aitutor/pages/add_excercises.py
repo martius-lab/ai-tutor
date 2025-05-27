@@ -224,6 +224,7 @@ class ExerciseState(rx.State):
                 lesson_context=self.lesson_context,
             )
             updated_exercise.prompt_name = self.current_prompt_name
+            updated_exercise.lesson_context = self.lesson_context
 
             session.add(updated_exercise)
             session.commit()
@@ -299,6 +300,17 @@ class ExerciseState(rx.State):
         self.lesson_context = _exercise.lesson_context
         # save Tags in selected_tags
         self.selected_tags = _exercise.tags.copy() if _exercise.tags else []
+        # reset lesson_file_name
+        self.lesson_file_name = ""
+
+    @rx.event
+    def reset_exercise_form(self):
+        """Reset the exercise form."""
+        self.lesson_context = ""
+        self.lesson_file_name = ""
+        self.selected_tags = []
+        self.current_prompt_name = ""
+        self.current_tag = ""
 
 
 def add_exercise_button() -> rx.Component:
@@ -310,6 +322,7 @@ def add_exercise_button() -> rx.Component:
                 rx.text("Add Exercise", size="4"),
                 size="3",
                 _hover={"cursor": "pointer"},
+                on_click=ExerciseState.reset_exercise_form,
             ),
         ),
         rx.dialog.content(
@@ -340,6 +353,7 @@ def add_exercise_button() -> rx.Component:
                 width="100%",
             ),
             rx.form(
+                # title
                 rx.text(
                     "Title: ",
                     size="3",
@@ -355,6 +369,7 @@ def add_exercise_button() -> rx.Component:
                     type="text",
                     name="title",
                 ),
+                # description
                 rx.text(
                     "Description: ",
                     size="3",
@@ -372,6 +387,7 @@ def add_exercise_button() -> rx.Component:
                     type="text",
                     name="description",
                 ),
+                # lesson context
                 rx.text(
                     "Lesson Context: ",
                     size="3",
@@ -447,6 +463,7 @@ def add_exercise_button() -> rx.Component:
                         ),
                     ),
                 ),
+                # prompt
                 rx.text(
                     "Prompt: ",
                     size="3",
@@ -766,6 +783,7 @@ def edit_exercise_button(exercise: Exercise):
                 width="100%",
             ),
             rx.form(
+                # title
                 rx.text(
                     "Title: ",
                     size="3",
@@ -782,6 +800,7 @@ def edit_exercise_button(exercise: Exercise):
                     type="text",
                     name="title",
                 ),
+                # description
                 rx.text(
                     "Description: ",
                     size="3",
@@ -800,6 +819,83 @@ def edit_exercise_button(exercise: Exercise):
                     type="text",
                     name="description",
                 ),
+                # lesson context
+                rx.text(
+                    "Lesson Context: ",
+                    size="3",
+                    weight="medium",
+                    text_align="left",
+                    width="100%",
+                    padding_top="1.5em",
+                    padding_bottom="0.5em",
+                ),
+                rx.text_area(
+                    placeholder="Add lesson context here",
+                    value=ExerciseState.lesson_context,
+                    on_change=ExerciseState.set_lesson_context,  # type: ignore
+                    size="3",
+                    width="100%",
+                    height="200px",
+                    type="text",
+                    name="lesson_context",
+                ),
+                # lesson file upload area
+                rx.text(
+                    "Add lesson material (PDF): ",
+                    size="3",
+                    weight="medium",
+                    text_align="left",
+                    width="100%",
+                    padding_top="1.5em",
+                    padding_bottom="0.5em",
+                ),
+                rx.upload(
+                    rx.vstack(
+                        rx.button(
+                            "Select File",
+                            type="button",
+                            _hover=rx.cond(
+                                ExerciseState.extracting_lesson_material,
+                                {"cursor": "not-allowed"},
+                                {"cursor": "pointer"},
+                            ),
+                            loading=ExerciseState.extracting_lesson_material,
+                            disabled=ExerciseState.extracting_lesson_material,
+                        ),
+                        rx.text(
+                            "Drag and drop or click the button to select",
+                        ),
+                        rx.text(rx.selected_files("upload1"), color="yellow", size="3"),
+                        align="center",
+                    ),
+                    id="upload1",
+                    padding="5em",
+                    padding_top="1em",
+                    padding_bottom="1em",
+                    on_drop=ExerciseState.extract_lesson_material(
+                        rx.upload_files(upload_id="upload1")  # type: ignore
+                    ),
+                ),
+                rx.text(
+                    "Last uploaded file: ",
+                    size="3",
+                    weight="medium",
+                    text_align="left",
+                    width="100%",
+                    padding_top="1.5em",
+                    padding_bottom="0.5em",
+                ),
+                # show file icon with file name
+                rx.cond(
+                    ExerciseState.lesson_file_name,
+                    rx.box(
+                        rx.hstack(
+                            rx.icon("file-text", size=25),
+                            rx.text(ExerciseState.lesson_file_name, color="green"),
+                        ),
+                    ),
+                ),
+                # prompt
                 rx.text(
                     "Prompt: ",
                     size="3",
