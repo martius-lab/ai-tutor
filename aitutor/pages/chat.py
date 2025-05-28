@@ -16,6 +16,7 @@ from aitutor.models import UserRole
 from aitutor.auth.state import SessionState
 
 DEFAULT_MODEL = "gpt-4o-mini"
+CHECK_RESULT_ROLE: str = "check_result"
 
 
 async def get_chat_response(conversation):
@@ -34,7 +35,7 @@ async def get_chat_response(conversation):
     # Creates GPT instance
     client = AsyncOpenAI(api_key=API_KEY)
     # filter out messages with role 'check_result' from the conversation
-    conversation = [msg for msg in conversation if msg["role"] != "check_result"]
+    conversation = [msg for msg in conversation if msg["role"] != CHECK_RESULT_ROLE]
     # remove msg["check_passed"] from conversation
     for msg in conversation:
         if "check_passed" in msg:
@@ -76,7 +77,7 @@ async def get_check_conversation_response(
         raise ValueError("Check Conversation prompt not set in config.")
 
     # filter out messages with role 'check_result' from the conversation
-    conversation = [msg for msg in conversation if msg["role"] != "check_result"]
+    conversation = [msg for msg in conversation if msg["role"] != CHECK_RESULT_ROLE]
     # remove msg["check_passed"] from conversation
     for msg in conversation:
         if "check_passed" in msg:
@@ -172,14 +173,12 @@ class ChatState(SessionState):
 
                 if exercise_result:
                     for msg in exercise_result.conversation_text:
-                        if msg["role"] in ["user", "assistant", "check_result"]:
+                        if msg["role"] in ["user", "assistant", CHECK_RESULT_ROLE]:
                             self.append_chat_message(
                                 msg["content"],
                                 is_llm=(msg["role"] == "assistant"),
-                                is_check_result=(msg["role"] == "check_result"),
-                                check_passed=msg["check_passed"]
-                                if "check_passed" in msg
-                                else False,
+                                is_check_result=(msg["role"] == CHECK_RESULT_ROLE),
+                                check_passed=msg.get("check_passed", False),
                             )
 
     def no_exercise_available(self):
@@ -426,7 +425,7 @@ class ChatState(SessionState):
             if chat_message.is_llm:
                 role = "assistant"
             if chat_message.is_check_result:
-                role = "check_result"
+                role = CHECK_RESULT_ROLE
             messages_gpt.append(
                 {
                     "role": role,
