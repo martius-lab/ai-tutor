@@ -285,18 +285,6 @@ class ChatState(SessionState):
             # Save conversation to database.
             self.save_conversation_to_db(conversation=messages)
 
-    def check_not_passed_error(self):
-        """
-        show error if check is not passed.
-        """
-        return rx.toast.error(
-            title="Check Conversation",
-            description="The AI tutor thinks the exercise is not solved yet.",
-            duration=2500,
-            position="bottom-center",
-            invert=True,
-        )
-
     def successfull_submit_message(self):
         """
         show success message if check is passed.
@@ -326,13 +314,16 @@ class ChatState(SessionState):
             if check_conversation_response
             else False
         )
-        if not self.check_passed:
-            yield self.check_not_passed_error()
 
         # show explanation of the check in the chat
+        check_status: str = (
+            "✅ Check Passed" if self.check_passed else "❌ Check Failed"
+        )
         if check_conversation_response is not None:
             self.append_chat_message(
-                message="# Result of Check Conversation: \n"
+                message="# Result of Check Conversation: "
+                + check_status
+                + "\n"
                 + "🛈 _this result is not part of the conversation_ \n\n\n"
                 + check_conversation_response.explanation,
                 is_llm=True,
@@ -444,7 +435,7 @@ def message_box(chat_message: ChatMessage) -> rx.Component:
     check_result_color = rx.cond(
         chat_message.check_passed,
         "green",
-        "red",
+        "yellow",
     )
     return rx.box(
         rx.box(
