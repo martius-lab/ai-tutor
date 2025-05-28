@@ -12,7 +12,7 @@ from aitutor.auth.protection import require_role_at_least
 from aitutor.models import UserRole
 
 
-class ExerciseState(rx.State):
+class AddExerciseState(rx.State):
     """State for the exercises page."""
 
     # Flags to control if dialogs are open.  They are needed as a workaround due to a
@@ -37,8 +37,9 @@ class ExerciseState(rx.State):
         False  # Flag to control if lesson material is being extracted
     )
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+    @rx.event
+    def initialize(self):
+        """Initialize the state (call this in the on_load event)."""
         config = get_config()
         self.prompts = {p.name: p.prompt for p in config.exercise_prompts}
         self.prompt_names = list(self.prompts.keys())
@@ -322,7 +323,7 @@ def add_exercise_button() -> rx.Component:
                 rx.text("Add Exercise", size="4"),
                 size="3",
                 _hover={"cursor": "pointer"},
-                on_click=ExerciseState.reset_exercise_form,
+                on_click=AddExerciseState.reset_exercise_form,
             ),
         ),
         rx.dialog.content(
@@ -399,8 +400,8 @@ def add_exercise_button() -> rx.Component:
                 ),
                 rx.text_area(
                     placeholder="Add lesson context here",
-                    value=ExerciseState.lesson_context,
-                    on_change=ExerciseState.set_lesson_context,  # type: ignore
+                    value=AddExerciseState.lesson_context,
+                    on_change=AddExerciseState.set_lesson_context,  # type: ignore
                     size="3",
                     width="100%",
                     height="200px",
@@ -423,12 +424,12 @@ def add_exercise_button() -> rx.Component:
                             "Select File",
                             type="button",
                             _hover=rx.cond(
-                                ExerciseState.extracting_lesson_material,
+                                AddExerciseState.extracting_lesson_material,
                                 {"cursor": "not-allowed"},
                                 {"cursor": "pointer"},
                             ),
-                            loading=ExerciseState.extracting_lesson_material,
-                            disabled=ExerciseState.extracting_lesson_material,
+                            loading=AddExerciseState.extracting_lesson_material,
+                            disabled=AddExerciseState.extracting_lesson_material,
                         ),
                         rx.text(
                             "Drag and drop or click the button to select",
@@ -440,7 +441,7 @@ def add_exercise_button() -> rx.Component:
                     padding="5em",
                     padding_top="1em",
                     padding_bottom="1em",
-                    on_drop=ExerciseState.extract_lesson_material(
+                    on_drop=AddExerciseState.extract_lesson_material(
                         rx.upload_files(upload_id="upload1")  # type: ignore
                     ),
                 ),
@@ -455,11 +456,11 @@ def add_exercise_button() -> rx.Component:
                 ),
                 # show file icon with file name
                 rx.cond(
-                    ExerciseState.lesson_file_name,
+                    AddExerciseState.lesson_file_name,
                     rx.box(
                         rx.hstack(
                             rx.icon("file-text", size=25),
-                            rx.text(ExerciseState.lesson_file_name, color="green"),
+                            rx.text(AddExerciseState.lesson_file_name, color="green"),
                         ),
                     ),
                 ),
@@ -475,10 +476,10 @@ def add_exercise_button() -> rx.Component:
                 ),
                 rx.hstack(
                     rx.select(
-                        items=ExerciseState.prompt_names,
+                        items=AddExerciseState.prompt_names,
                         placeholder="Select a Prompt here",
-                        value=ExerciseState.current_prompt_name,
-                        on_change=ExerciseState.set_current_prompt_name,
+                        value=AddExerciseState.current_prompt_name,
+                        on_change=AddExerciseState.set_current_prompt_name,
                         multiple=True,
                     ),
                     # hover to show the promot
@@ -490,8 +491,8 @@ def add_exercise_button() -> rx.Component:
                         rx.popover.content(
                             rx.flex(
                                 rx.text(
-                                    ExerciseState.prompts[
-                                        ExerciseState.current_prompt_name
+                                    AddExerciseState.prompts[
+                                        AddExerciseState.current_prompt_name
                                     ],
                                     padding="1em",
                                 ),
@@ -520,15 +521,15 @@ def add_exercise_button() -> rx.Component:
                     rx.hstack(
                         rx.center(
                             rx.select(
-                                items=ExerciseState.tag_names,
+                                items=AddExerciseState.tag_names,
                                 placeholder="Select a tag here",
-                                value=ExerciseState.current_tag,
-                                on_change=ExerciseState.set_current_tag,
+                                value=AddExerciseState.current_tag,
+                                on_change=AddExerciseState.set_current_tag,
                                 multiple=True,
                             ),
                             rx.icon_button(
                                 rx.icon("circle-x"),
-                                on_click=ExerciseState.delete_tag,
+                                on_click=AddExerciseState.delete_tag,
                                 size="2",
                                 variant="ghost",
                                 color_scheme="red",
@@ -547,14 +548,14 @@ def add_exercise_button() -> rx.Component:
                     rx.button(
                         "Link Tag To Exercise",
                         type="button",
-                        on_click=ExerciseState.add_selected_tag,
+                        on_click=AddExerciseState.add_selected_tag,
                         margin_top="0.5em",
                         _hover={"cursor": "pointer"},
                     ),
                     # show the linked tags visually
                     rx.hstack(
                         rx.foreach(
-                            ExerciseState.selected_tags,
+                            AddExerciseState.selected_tags,
                             lambda tag: rx.badge(
                                 rx.hstack(
                                     rx.text(tag),
@@ -565,7 +566,9 @@ def add_exercise_button() -> rx.Component:
                                     spacing="1",
                                     align_items="center",
                                 ),
-                                on_click=lambda: ExerciseState.remove_selected_tag(tag),  # type: ignore
+                                on_click=lambda: AddExerciseState.remove_selected_tag(
+                                    tag
+                                ),  # type: ignore
                                 color_scheme="grass",
                                 cursor="pointer",
                                 size="3",
@@ -602,17 +605,17 @@ def add_exercise_button() -> rx.Component:
                     justify="end",
                 ),
                 # load new tags
-                on_mount=ExerciseState.load_tags,
+                on_mount=AddExerciseState.load_tags,
                 # submit new exercises
-                on_submit=ExerciseState.submit_exercise,
+                on_submit=AddExerciseState.submit_exercise,
                 reset_on_submit=False,
                 enter_key_submit=True,
             ),
             # add new tag
             tag_dialog(),
         ),
-        open=ExerciseState.add_exercise_dialog_is_open,
-        on_open_change=ExerciseState.set_add_exercise_dialog_is_open,  # type: ignore
+        open=AddExerciseState.add_exercise_dialog_is_open,
+        on_open_change=AddExerciseState.set_add_exercise_dialog_is_open,  # type: ignore
     )
 
 
@@ -658,11 +661,11 @@ def tag_dialog():
                         spacing="2",
                     ),
                     # submit new tags
-                    on_submit=ExerciseState.submit_tag,
+                    on_submit=AddExerciseState.submit_tag,
                 ),
             ),
-            open=ExerciseState.add_tag_dialog_is_open,
-            on_open_change=ExerciseState.set_add_tag_dialog_is_open,  # type: ignore
+            open=AddExerciseState.add_tag_dialog_is_open,
+            on_open_change=AddExerciseState.set_add_tag_dialog_is_open,  # type: ignore
         ),
     )
 
@@ -730,7 +733,9 @@ def delete_exercise_button(exercise: Exercise):
                         rx.button(
                             "Confirm",
                             color_scheme="iris",
-                            on_click=lambda: ExerciseState.delete_exercise(exercise.id),  # type: ignore
+                            on_click=lambda: AddExerciseState.delete_exercise(
+                                exercise.id
+                            ),  # type: ignore
                             _hover={"cursor": "pointer"},
                         ),
                     ),
@@ -750,7 +755,7 @@ def edit_exercise_button(exercise: Exercise):
                 color_scheme="orange",
                 size="2",
                 variant="ghost",
-                on_click=ExerciseState.load_exercise(exercise),  # type: ignore
+                on_click=AddExerciseState.load_exercise(exercise),  # type: ignore
                 _hover={"cursor": "pointer"},
             ),
             padding_left="1em",
@@ -831,8 +836,8 @@ def edit_exercise_button(exercise: Exercise):
                 ),
                 rx.text_area(
                     placeholder="Add lesson context here",
-                    value=ExerciseState.lesson_context,
-                    on_change=ExerciseState.set_lesson_context,  # type: ignore
+                    value=AddExerciseState.lesson_context,
+                    on_change=AddExerciseState.set_lesson_context,  # type: ignore
                     size="3",
                     width="100%",
                     height="200px",
@@ -855,12 +860,12 @@ def edit_exercise_button(exercise: Exercise):
                             "Select File",
                             type="button",
                             _hover=rx.cond(
-                                ExerciseState.extracting_lesson_material,
+                                AddExerciseState.extracting_lesson_material,
                                 {"cursor": "not-allowed"},
                                 {"cursor": "pointer"},
                             ),
-                            loading=ExerciseState.extracting_lesson_material,
-                            disabled=ExerciseState.extracting_lesson_material,
+                            loading=AddExerciseState.extracting_lesson_material,
+                            disabled=AddExerciseState.extracting_lesson_material,
                         ),
                         rx.text(
                             "Drag and drop or click the button to select",
@@ -872,7 +877,7 @@ def edit_exercise_button(exercise: Exercise):
                     padding="5em",
                     padding_top="1em",
                     padding_bottom="1em",
-                    on_drop=ExerciseState.extract_lesson_material(
+                    on_drop=AddExerciseState.extract_lesson_material(
                         rx.upload_files(upload_id="upload1")  # type: ignore
                     ),
                 ),
@@ -887,11 +892,11 @@ def edit_exercise_button(exercise: Exercise):
                 ),
                 # show file icon with file name
                 rx.cond(
-                    ExerciseState.lesson_file_name,
+                    AddExerciseState.lesson_file_name,
                     rx.box(
                         rx.hstack(
                             rx.icon("file-text", size=25),
-                            rx.text(ExerciseState.lesson_file_name, color="green"),
+                            rx.text(AddExerciseState.lesson_file_name, color="green"),
                         ),
                     ),
                 ),
@@ -907,10 +912,10 @@ def edit_exercise_button(exercise: Exercise):
                 ),
                 rx.hstack(
                     rx.select(
-                        items=ExerciseState.prompt_names,
-                        placeholder=ExerciseState.current_prompt_name,
-                        value=ExerciseState.current_prompt_name,
-                        on_change=ExerciseState.set_current_prompt_name,
+                        items=AddExerciseState.prompt_names,
+                        placeholder=AddExerciseState.current_prompt_name,
+                        value=AddExerciseState.current_prompt_name,
+                        on_change=AddExerciseState.set_current_prompt_name,
                         multiple=True,
                     ),
                     # hover to show the promot
@@ -925,11 +930,11 @@ def edit_exercise_button(exercise: Exercise):
                                     # show the prompt from the db or
                                     # the selected prompt template
                                     rx.cond(
-                                        ExerciseState.current_exercise.prompt_name
-                                        == ExerciseState.current_prompt_name,
-                                        ExerciseState.current_exercise.prompt,
-                                        ExerciseState.prompts[
-                                            ExerciseState.current_prompt_name
+                                        AddExerciseState.current_exercise.prompt_name
+                                        == AddExerciseState.current_prompt_name,
+                                        AddExerciseState.current_exercise.prompt,
+                                        AddExerciseState.prompts[
+                                            AddExerciseState.current_prompt_name
                                         ],
                                     ),
                                     padding="1em",
@@ -959,15 +964,15 @@ def edit_exercise_button(exercise: Exercise):
                     rx.hstack(
                         rx.center(
                             rx.select(
-                                items=ExerciseState.tag_names,
+                                items=AddExerciseState.tag_names,
                                 placeholder="Select a tag here",
-                                value=ExerciseState.current_tag,
-                                on_change=ExerciseState.set_current_tag,
+                                value=AddExerciseState.current_tag,
+                                on_change=AddExerciseState.set_current_tag,
                                 multiple=True,
                             ),
                             rx.icon_button(
                                 rx.icon("circle-x"),
-                                on_click=ExerciseState.delete_tag,
+                                on_click=AddExerciseState.delete_tag,
                                 size="2",
                                 variant="ghost",
                                 color_scheme="red",
@@ -986,14 +991,14 @@ def edit_exercise_button(exercise: Exercise):
                     rx.button(
                         "Link Tag To Exercise",
                         type="button",
-                        on_click=ExerciseState.add_selected_tag,
+                        on_click=AddExerciseState.add_selected_tag,
                         margin_top="0.5em",
                         _hover={"cursor": "pointer"},
                     ),
                     # show the linked tags visually
                     rx.hstack(
                         rx.foreach(
-                            ExerciseState.selected_tags,
+                            AddExerciseState.selected_tags,
                             lambda tag: rx.badge(
                                 rx.hstack(
                                     rx.text(tag),
@@ -1004,7 +1009,9 @@ def edit_exercise_button(exercise: Exercise):
                                     spacing="1",
                                     align_items="center",
                                 ),
-                                on_click=lambda: ExerciseState.remove_selected_tag(tag),  # type: ignore
+                                on_click=lambda: AddExerciseState.remove_selected_tag(
+                                    tag
+                                ),  # type: ignore
                                 color_scheme="grass",
                                 cursor="pointer",
                                 size="3",
@@ -1044,9 +1051,9 @@ def edit_exercise_button(exercise: Exercise):
                     justify="end",
                 ),
                 # load tags
-                on_mount=ExerciseState.load_tags,
+                on_mount=AddExerciseState.load_tags,
                 # update exercise
-                on_submit=ExerciseState.update_exercise,
+                on_submit=AddExerciseState.update_exercise,
                 reset_on_submit=False,
                 enter_key_submit=True,
             ),
@@ -1081,7 +1088,9 @@ def exercise_table():
                         size="3",
                         max_width="250px",
                         style={"_hover": {"bg": rx.color("gray", 2)}},
-                        on_change=lambda value: ExerciseState.search_exercises(value),
+                        on_change=lambda value: AddExerciseState.search_exercises(
+                            value
+                        ),
                     ),
                     flex="1",
                 ),
@@ -1103,8 +1112,8 @@ def exercise_table():
                     ),
                 ),
                 # dynamically render each new entry
-                rx.table.body(rx.foreach(ExerciseState.exercises, show_exercise)),
-                on_mount=ExerciseState.load_exercises,
+                rx.table.body(rx.foreach(AddExerciseState.exercises, show_exercise)),
+                on_mount=AddExerciseState.load_exercises,
                 variant="surface",
                 size="3",
                 width="85vw",
