@@ -334,6 +334,7 @@ class ChatState(SessionState):
         if check_conversation_response is not None:
             self.append_chat_message(
                 message="# Result of Check Conversation: \n"
+                + "🛈 _this result is not part of the conversation_ \n\n\n"
                 + check_conversation_response.explanation,
                 is_llm=True,
                 is_check_result=True,
