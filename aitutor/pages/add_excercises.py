@@ -23,19 +23,26 @@ class AddExerciseState(rx.State):
 
     exercises: list[Exercise] = []
     tag_list: list[Tag] = []
-    tag_names: list[str] = []  # the tag.names as a str
+    tag_names: list[str] = []
     search_value: str = ""
-    current_tag: str = ""  # the currently selected tag from the select window
+    #: the currently selected tag from the select window
+    current_tag: str = ""
+    #: the current exercise to be edited
     current_exercise: Exercise = Exercise()
-    selected_tags: list[str] = []  # List to store selected tags temporarily
-    lesson_context: str = ""  # the lesson context as a string
-    lesson_file_name: str = ""  # name of the PDF
-    current_prompt_name: str = ""  # the current prompt name
-    prompts: dict[str, str] = {}  # the prompt templates as a dict
-    prompt_names: list[str] = []  # the prompt names as a list
-    extracting_lesson_material: bool = (
-        False  # Flag to control if lesson material is being extracted
-    )
+    #: List to store selected tags temporarily
+    selected_tags: list[str] = []
+    #: the lesson context from the form
+    lesson_context: str = ""
+    #: name of the extracted PDF
+    lesson_file_name: str = ""
+    #: the currently selected prompt name
+    current_prompt_name: str = ""
+    #: the prompt templates
+    prompts: dict[str, str] = {}
+    #: the prompt names that can be selected
+    prompt_names: list[str] = []
+    #: Flag to control if lesson material is being extracted
+    extracting_lesson_material: bool = False
 
     @rx.event
     def initialize(self):
@@ -105,7 +112,12 @@ class AddExerciseState(rx.State):
             # check if title is empty
             if not form_data["title"]:
                 return rx.window_alert("Please enter a title for the exercise.")
-
+            if not form_data["description"]:
+                return rx.window_alert("Please enter a description for the exercise.")
+            if self.lesson_context == "":
+                return rx.window_alert(
+                    "Please add some lesson context to the exercise."
+                )
             # create instance and fill its fields
             new_exercise = Exercise(
                 lesson_context=self.lesson_context,
