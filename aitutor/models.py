@@ -29,7 +29,7 @@ class Exercise(rx.Model, table=True):  # type: ignore
     prompt_name: str = Field(nullable=False, default="")
     prompt: str = Field(nullable=False, default="")
     description: Optional[str] = Field(default=None)
-    lesson_file: str = Field(default=None)
+    lesson_context: str = Field(default=None)
     tags: List[str] = Field(
         sa_column=Column(JSON), default=[]
     )  # Liste der Tags als JSON

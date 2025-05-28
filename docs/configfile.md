@@ -29,7 +29,7 @@ email = "student@mail.de"
 # exercise_prompts
 
 Here you can define the prompts that the admin can choose from when creating a new
-exercise. you have access to the {title}, {description} and {lesson_file} variables to
+exercise. you have access to the {title}, {description} and {lesson_context} variables to
 use in your prompts.
 
 Here is an example of how to define the prompts:
@@ -42,7 +42,7 @@ and this task-description: "{description}"
 This extracted-pdf was uploaded by the teacher as a theoretical basis for this exercise: 
 
 --------------------------
-{lesson_file}
+{lesson_context}
 --------------------------
 
 Ask the student to explain the task to you. Don't give the student any solutions.

@@ -21,7 +21,7 @@ name = "prompt 1"
 prompt = """
 You will act as a learning assistant. The university student is given this exercise-title: - {title} -
 and this task-description: - {description} -
-This extracted-pdf was uploaded by the teacher as a theoretical basis for this exercise: - {lesson_file} -
+This extracted-pdf was uploaded by the teacher as a theoretical basis for this exercise: - {lesson_context} -
 Analyze the answers of the student and give feedback.
 """
 

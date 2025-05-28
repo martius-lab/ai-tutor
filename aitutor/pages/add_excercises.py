@@ -23,16 +23,26 @@ class AddExerciseState(rx.State):
 
     exercises: list[Exercise] = []
     tag_list: list[Tag] = []
-    tag_names: list[str] = []  # the tag.names as a str
+    tag_names: list[str] = []
     search_value: str = ""
-    current_tag: str = ""  # the currently selected tag from the select window
+    #: the currently selected tag from the select window
+    current_tag: str = ""
+    #: the current exercise to be edited
     current_exercise: Exercise = Exercise()
-    selected_tags: list[str] = []  # List to store selected tags temporarily
-    lesson_file: str = ""  # the lesson file as a string
-    lesson_file_name: str = ""  # name of the PDF
-    current_prompt_name: str = ""  # the current prompt name
-    prompts: dict[str, str] = {}  # the prompt templates as a dict
-    prompt_names: list[str] = []  # the prompt names as a list
+    #: List to store selected tags temporarily
+    selected_tags: list[str] = []
+    #: the lesson context from the form
+    lesson_context: str = ""
+    #: name of the extracted PDF
+    lesson_file_name: str = ""
+    #: the currently selected prompt name
+    current_prompt_name: str = ""
+    #: the prompt templates
+    prompts: dict[str, str] = {}
+    #: the prompt names that can be selected
+    prompt_names: list[str] = []
+    #: Flag to control if lesson material is being extracted
+    extracting_lesson_material: bool = False
 
     @rx.event
     def initialize(self):
@@ -49,6 +59,8 @@ class AddExerciseState(rx.State):
     @rx.event
     async def extract_lesson_material(self, files: list[rx.UploadFile]):
         """Extract the lesson material as text."""
+        self.extracting_lesson_material = True
+        yield
         for file in files:
             upload_data = await file.read()
             # extract text from PDF
@@ -60,10 +72,17 @@ class AddExerciseState(rx.State):
             # remove line breaks and double spaces
             text = " ".join(text.replace("\n", " ").split())
 
-            # save PDF text in lesson_file
-            self.lesson_file = text
+            # save PDF text in lesson_context
+            self.lesson_context = (
+                self.lesson_context
+                + "\n\n―――――――――――――――――――――――――――――――――\n"
+                + text
+                + "\n―――――――――――――――――――――――――――――――――\n\n"
+            )
             # save PDF name
             self.lesson_file_name = file.name or "<unnamed file>"
+        self.extracting_lesson_material = False
+        yield
 
     @rx.event
     def set_current_tag(self, tag: str):
@@ -93,26 +112,29 @@ class AddExerciseState(rx.State):
             # check if title is empty
             if not form_data["title"]:
                 return rx.window_alert("Please enter a title for the exercise.")
-
-            # check if PDF has been selected
-            if self.lesson_file == "":
+            if not form_data["description"]:
+                return rx.window_alert("Please enter a description for the exercise.")
+            if self.lesson_context == "":
                 return rx.window_alert(
-                    "No lesson file was selected. Please upload lesson file."
+                    "Please add some lesson context to the exercise."
                 )
-
             # create instance and fill its fields
             new_exercise = Exercise(
-                lesson_file=self.lesson_file,
+                lesson_context=self.lesson_context,
             )
             new_exercise.title = form_data["title"]
             new_exercise.description = form_data["description"]
             # use the selected tags
             new_exercise.tags = list(self.selected_tags)
             # add prompt element
+            if self.current_prompt_name == "":
+                return rx.window_alert(
+                    "Please select a prompt template for the exercise."
+                )
             new_exercise.prompt = self.prompts[self.current_prompt_name].format(
                 title=form_data["title"],
                 description=form_data["description"],
-                lesson_file=self.lesson_file,
+                lesson_context=self.lesson_context,
             )
             new_exercise.prompt_name = self.current_prompt_name
             # add exercises to db
@@ -122,7 +144,7 @@ class AddExerciseState(rx.State):
             self.load_exercises()
             # clear fields after submission
             self.selected_tags = []
-            self.lesson_file = ""
+            self.lesson_context = ""
             self.lesson_file_name = ""
 
             self.add_exercise_dialog_is_open = False
@@ -212,9 +234,10 @@ class AddExerciseState(rx.State):
             updated_exercise.prompt = self.prompts[self.current_prompt_name].format(
                 title=form_data["title"],
                 description=form_data["description"],
-                lesson_file=self.lesson_file,
+                lesson_context=self.lesson_context,
             )
             updated_exercise.prompt_name = self.current_prompt_name
+            updated_exercise.lesson_context = self.lesson_context
 
             session.add(updated_exercise)
             session.commit()
@@ -229,13 +252,6 @@ class AddExerciseState(rx.State):
             position="bottom-center",
             invert=True,
         )
-
-    @rx.event
-    def unstage_lesson_file(self):
-        """Unstage the lesson file."""
-        # reset lesson variables
-        self.lesson_file = ""
-        self.lesson_file_name = ""
 
     @rx.event
     def delete_tag(self):
@@ -294,9 +310,20 @@ class AddExerciseState(rx.State):
                 select(Exercise).where(Exercise.id == self.current_exercise.id)
             ).one()
         self.current_prompt_name = _exercise.prompt_name
-        self.lesson_file = _exercise.lesson_file
+        self.lesson_context = _exercise.lesson_context
         # save Tags in selected_tags
         self.selected_tags = _exercise.tags.copy() if _exercise.tags else []
+        # reset lesson_file_name
+        self.lesson_file_name = ""
+
+    @rx.event
+    def reset_exercise_form(self):
+        """Reset the exercise form."""
+        self.lesson_context = ""
+        self.lesson_file_name = ""
+        self.selected_tags = []
+        self.current_prompt_name = ""
+        self.current_tag = ""
 
 
 def add_exercise_button() -> rx.Component:
@@ -308,6 +335,7 @@ def add_exercise_button() -> rx.Component:
                 rx.text("Add Exercise", size="4"),
                 size="3",
                 _hover={"cursor": "pointer"},
+                on_click=AddExerciseState.reset_exercise_form,
             ),
         ),
         rx.dialog.content(
@@ -338,6 +366,7 @@ def add_exercise_button() -> rx.Component:
                 width="100%",
             ),
             rx.form(
+                # title
                 rx.text(
                     "Title: ",
                     size="3",
@@ -353,6 +382,7 @@ def add_exercise_button() -> rx.Component:
                     type="text",
                     name="title",
                 ),
+                # description
                 rx.text(
                     "Description: ",
                     size="3",
@@ -370,9 +400,29 @@ def add_exercise_button() -> rx.Component:
                     type="text",
                     name="description",
                 ),
+                # lesson context
+                rx.text(
+                    "Lesson Context: ",
+                    size="3",
+                    weight="medium",
+                    text_align="left",
+                    width="100%",
+                    padding_top="1.5em",
+                    padding_bottom="0.5em",
+                ),
+                rx.text_area(
+                    placeholder="Add lesson context here",
+                    value=AddExerciseState.lesson_context,
+                    on_change=AddExerciseState.set_lesson_context,  # type: ignore
+                    size="3",
+                    width="100%",
+                    height="200px",
+                    type="text",
+                    name="lesson_context",
+                ),
                 # lesson file upload area
                 rx.text(
-                    "Upload lesson material (PDF): ",
+                    "Add lesson material (PDF): ",
                     size="3",
                     weight="medium",
                     text_align="left",
@@ -385,7 +435,13 @@ def add_exercise_button() -> rx.Component:
                         rx.button(
                             "Select File",
                             type="button",
-                            _hover={"cursor": "pointer"},
+                            _hover=rx.cond(
+                                AddExerciseState.extracting_lesson_material,
+                                {"cursor": "not-allowed"},
+                                {"cursor": "pointer"},
+                            ),
+                            loading=AddExerciseState.extracting_lesson_material,
+                            disabled=AddExerciseState.extracting_lesson_material,
                         ),
                         rx.text(
                             "Drag and drop or click the button to select",
@@ -401,6 +457,15 @@ def add_exercise_button() -> rx.Component:
                         rx.upload_files(upload_id="upload1")  # type: ignore
                     ),
                 ),
+                rx.text(
+                    "Last uploaded file: ",
+                    size="3",
+                    weight="medium",
+                    text_align="left",
+                    width="100%",
+                    padding_top="1.5em",
+                    padding_bottom="0.5em",
+                ),
                 # show file icon with file name
                 rx.cond(
                     AddExerciseState.lesson_file_name,
@@ -408,20 +473,10 @@ def add_exercise_button() -> rx.Component:
                         rx.hstack(
                             rx.icon("file-text", size=25),
                             rx.text(AddExerciseState.lesson_file_name, color="green"),
-                            rx.icon_button(
-                                rx.icon("circle-x"),
-                                on_click=AddExerciseState.unstage_lesson_file,
-                                size="2",
-                                variant="ghost",
-                                color_scheme="red",
-                                spacing="3",
-                                type="button",
-                                _hover={"cursor": "pointer"},
-                            ),
                         ),
-                        padding_top="1.5em",
                     ),
                 ),
+                # prompt
                 rx.text(
                     "Prompt: ",
                     size="3",
@@ -745,6 +800,7 @@ def edit_exercise_button(exercise: Exercise):
                 width="100%",
             ),
             rx.form(
+                # title
                 rx.text(
                     "Title: ",
                     size="3",
@@ -761,6 +817,7 @@ def edit_exercise_button(exercise: Exercise):
                     type="text",
                     name="title",
                 ),
+                # description
                 rx.text(
                     "Description: ",
                     size="3",
@@ -779,6 +836,83 @@ def edit_exercise_button(exercise: Exercise):
                     type="text",
                     name="description",
                 ),
+                # lesson context
+                rx.text(
+                    "Lesson Context: ",
+                    size="3",
+                    weight="medium",
+                    text_align="left",
+                    width="100%",
+                    padding_top="1.5em",
+                    padding_bottom="0.5em",
+                ),
+                rx.text_area(
+                    placeholder="Add lesson context here",
+                    value=AddExerciseState.lesson_context,
+                    on_change=AddExerciseState.set_lesson_context,  # type: ignore
+                    size="3",
+                    width="100%",
+                    height="200px",
+                    type="text",
+                    name="lesson_context",
+                ),
+                # lesson file upload area
+                rx.text(
+                    "Add lesson material (PDF): ",
+                    size="3",
+                    weight="medium",
+                    text_align="left",
+                    width="100%",
+                    padding_top="1.5em",
+                    padding_bottom="0.5em",
+                ),
+                rx.upload(
+                    rx.vstack(
+                        rx.button(
+                            "Select File",
+                            type="button",
+                            _hover=rx.cond(
+                                AddExerciseState.extracting_lesson_material,
+                                {"cursor": "not-allowed"},
+                                {"cursor": "pointer"},
+                            ),
+                            loading=AddExerciseState.extracting_lesson_material,
+                            disabled=AddExerciseState.extracting_lesson_material,
+                        ),
+                        rx.text(
+                            "Drag and drop or click the button to select",
+                        ),
+                        rx.text(rx.selected_files("upload1"), color="yellow", size="3"),
+                        align="center",
+                    ),
+                    id="upload1",
+                    padding="5em",
+                    padding_top="1em",
+                    padding_bottom="1em",
+                    on_drop=AddExerciseState.extract_lesson_material(
+                        rx.upload_files(upload_id="upload1")  # type: ignore
+                    ),
+                ),
+                rx.text(
+                    "Last uploaded file: ",
+                    size="3",
+                    weight="medium",
+                    text_align="left",
+                    width="100%",
+                    padding_top="1.5em",
+                    padding_bottom="0.5em",
+                ),
+                # show file icon with file name
+                rx.cond(
+                    AddExerciseState.lesson_file_name,
+                    rx.box(
+                        rx.hstack(
+                            rx.icon("file-text", size=25),
+                            rx.text(AddExerciseState.lesson_file_name, color="green"),
+                        ),
+                    ),
+                ),
+                # prompt
                 rx.text(
                     "Prompt: ",
                     size="3",
