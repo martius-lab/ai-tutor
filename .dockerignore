@@ -1,7 +1,13 @@
-.web
-.git
+*~
 .venv
+.*cache
+.web
+#*.db
+
+.git
+.jj
 __pycache__/*
+
 Dockerfile
 Caddy.Dockerfile
 compose.yaml
