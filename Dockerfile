@@ -2,13 +2,7 @@
 # instance of a Reflex app.
 
 # Stage 1: init
-FROM python:3.13 as init
-
-ARG uv=/root/.local/bin/uv
-
-# Install `uv` for faster package bootstrapping
-ADD --chmod=755 https://astral.sh/uv/install.sh /install.sh
-RUN /install.sh && rm /install.sh
+FROM ghcr.io/astral-sh/uv:python3.13-bookworm as init
 
 # Copy local context to `/app` inside container (see .dockerignore)
 WORKDIR /app
@@ -18,11 +12,10 @@ RUN mkdir -p /app/data /app/uploaded_files
 # Create virtualenv which will be copied into final container
 ENV VIRTUAL_ENV=/app/.venv
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
-RUN $uv venv
+RUN uv venv
 
 # Install app requirements and reflex inside virtualenv
-RUN $uv pip install .  # todo uv sync?
-#RUN $uv sync --no-dev
+RUN uv sync --no-dev --locked
 
 # Deploy templates and prepare app
 RUN reflex init
