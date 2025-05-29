@@ -1,5 +1,6 @@
 .web
 .git
+.venv
 __pycache__/*
 Dockerfile
 Caddy.Dockerfile
