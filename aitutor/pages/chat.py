@@ -14,6 +14,8 @@ from aitutor.models import Exercise, ExerciseResult
 from aitutor.auth.protection import require_role_at_least
 from aitutor.models import UserRole
 from aitutor.auth.state import SessionState
+from datetime import datetime
+from zoneinfo import ZoneInfo
 
 DEFAULT_MODEL = "gpt-4o-mini"
 CHECK_RESULT_ROLE: str = "check_result"
@@ -124,6 +126,7 @@ class ChatState(SessionState):
     waiting_for_response: bool = False
     check_passed: bool = False
     conversation_is_submitted: bool = False
+    submit_time_stamp: str = ""
 
     @rx.event
     def load_exercise(self):
@@ -156,6 +159,11 @@ class ChatState(SessionState):
                 self.check_passed = exercise_result.check_passed
                 self.conversation_is_submitted = (
                     exercise_result.finished_conversation != []
+                )
+                self.submit_time_stamp = (
+                    exercise_result.submit_time_stamp.strftime("%d.%m.%Y %H:%M:%S")
+                    if exercise_result.submit_time_stamp
+                    else ""
                 )
             else:
                 self.check_passed = False
@@ -392,6 +400,9 @@ class ChatState(SessionState):
                     if exercise_result is not None:
                         # update existing ExerciseResult
                         exercise_result.finished_conversation = conversation
+                        exercise_result.submit_time_stamp = datetime.now(
+                            ZoneInfo("Europe/Berlin")
+                        )
                         session.commit()
                         yield self.successfull_submit_message()
                     else:
@@ -400,6 +411,9 @@ class ChatState(SessionState):
                             "finished conversation to."
                         )
             self.conversation_is_submitted = True
+            self.submit_time_stamp = datetime.now(ZoneInfo("Europe/Berlin")).strftime(
+                "%d.%m.%Y %H:%M:%S"
+            )
 
     def get_messages_dict_gpt(self):
         """
@@ -644,24 +658,38 @@ def check_conversation_button() -> rx.Component:
     )
 
 
-def finished_conversation_button() -> rx.Component:
+def show_exercise_status() -> rx.Component:
     """
     Render the button to show the finished conversation.
     """
-    return rx.icon(
+    return rx.hstack(
         rx.cond(
             ChatState.conversation_is_submitted,
-            "circle-check",
-            "circle",
+            rx.text(
+                "Last submit: " + ChatState.submit_time_stamp,
+                color_scheme="green",
+            ),
+            rx.text(
+                "Not submitted yet",
+                color_scheme="yellow",
+            ),
         ),
-        color=rx.cond(
-            ChatState.conversation_is_submitted,
-            "green",
-            "yellow",
+        rx.icon(
+            rx.cond(
+                ChatState.conversation_is_submitted,
+                "circle-check",
+                "circle",
+            ),
+            color=rx.cond(
+                ChatState.conversation_is_submitted,
+                "green",
+                "yellow",
+            ),
+            size=30,
+            margin_left="1em",
+            id="icon_check",
         ),
-        size=30,
-        margin_left="1em",
-        id="icon_check",
+        spacing="0",
     )
 
 
@@ -677,7 +705,7 @@ def chat_default() -> rx.Component:
                         "Exercise: " + ChatState.exercise_title,
                         size="5",
                     ),
-                    finished_conversation_button(),
+                    show_exercise_status(),
                     align="center",
                     justify="between",
                     width="100%",
