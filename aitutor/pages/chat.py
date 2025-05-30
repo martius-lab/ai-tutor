@@ -123,6 +123,7 @@ class ChatState(SessionState):
     check_is_loading: bool = False
     waiting_for_response: bool = False
     check_passed: bool = False
+    conversation_is_submitted: bool = False
 
     @rx.event
     def load_exercise(self):
@@ -153,8 +154,12 @@ class ChatState(SessionState):
                 yield rx.redirect(routes.NOT_FOUND)
             if exercise_result:
                 self.check_passed = exercise_result.check_passed
+                self.conversation_is_submitted = (
+                    exercise_result.finished_conversation != []
+                )
             else:
                 self.check_passed = False
+                self.conversation_is_submitted = False
         yield
 
     def load_existing_conversation(self):
@@ -368,7 +373,7 @@ class ChatState(SessionState):
                     session.commit()
 
     @rx.event
-    def save_finished_conversation_to_db(self):
+    def submit_conversation(self):
         """
         Saves the finished conversation to the database.
         """
@@ -394,6 +399,7 @@ class ChatState(SessionState):
                             "There is no ExerciseResult to save the "
                             "finished conversation to."
                         )
+            self.conversation_is_submitted = True
 
     def get_messages_dict_gpt(self):
         """
@@ -579,7 +585,7 @@ def check_conversation_button() -> rx.Component:
             color_scheme="green",
             type="button",
             _hover={"cursor": "pointer"},
-            on_click=ChatState.save_finished_conversation_to_db,
+            on_click=ChatState.submit_conversation,
         ),
         rx.cond(
             ChatState.check_is_loading,
@@ -638,6 +644,27 @@ def check_conversation_button() -> rx.Component:
     )
 
 
+def finished_conversation_button() -> rx.Component:
+    """
+    Render the button to show the finished conversation.
+    """
+    return rx.icon(
+        rx.cond(
+            ChatState.conversation_is_submitted,
+            "circle-check",
+            "circle",
+        ),
+        color=rx.cond(
+            ChatState.conversation_is_submitted,
+            "green",
+            "yellow",
+        ),
+        size=30,
+        margin_left="1em",
+        id="icon_check",
+    )
+
+
 @with_navbar
 @require_role_at_least(UserRole.STUDENT)
 def chat_default() -> rx.Component:
@@ -645,9 +672,15 @@ def chat_default() -> rx.Component:
     return rx.container(
         rx.box(
             rx.vstack(
-                rx.heading(
-                    "Exercise: " + ChatState.exercise_title,
-                    size="5",
+                rx.hstack(
+                    rx.heading(
+                        "Exercise: " + ChatState.exercise_title,
+                        size="5",
+                    ),
+                    finished_conversation_button(),
+                    align="center",
+                    justify="between",
+                    width="100%",
                 ),
                 rx.auto_scroll(
                     rx.foreach(
