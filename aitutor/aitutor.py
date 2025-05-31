@@ -22,6 +22,11 @@ app.add_page(
     route=routes.CHAT + "/[exercise_id]",
     on_load=ChatState.load_exercise,
 )
+app.add_page(
+    pages.finished_view_default,
+    route=routes.FINISHED_VIEW + "/[exercise_id]",
+    on_load=ChatState.load_exercise,
+)
 app.add_page(pages.home_default, route=routes.HOME)
 app.add_page(
     pages.add_exercises_default,

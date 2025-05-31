@@ -128,6 +128,18 @@ class ChatState(SessionState):
     conversation_is_submitted: bool = False
     submit_time_stamp: str = ""
 
+    @rx.var
+    def finished_view_url(self) -> str:
+        """
+        The exercise_id is used to identify the current exercise.
+        It is set by the route parameter in the URL.
+        """
+        return (
+            routes.FINISHED_VIEW
+            + "/"
+            + str(self.router.page.params.get("exercise_id", 0))
+        )
+
     @rx.event
     def load_exercise(self):
         """
@@ -665,9 +677,10 @@ def show_exercise_status() -> rx.Component:
     return rx.hstack(
         rx.cond(
             ChatState.conversation_is_submitted,
-            rx.text(
+            rx.link(
                 "Last submit: " + ChatState.submit_time_stamp,
                 color_scheme="green",
+                href=ChatState.finished_view_url,
             ),
             rx.text(
                 "Not submitted yet",

@@ -9,6 +9,7 @@ CHAT = "/chat"  # needs to be /chat/[exercise_id] to work
 EXERCISES = "/exercises"
 ADD_EXERCISE = "/add_exercise"
 NOT_FOUND = "/404"
+FINISHED_VIEW = "/finished_view"  # needs to be /finished_view/[exercise_id] to work
 
 # we use the routes from reflex_local_auth to be
 # able to use functions like Loginstate.redir
