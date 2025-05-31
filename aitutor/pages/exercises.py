@@ -19,10 +19,8 @@ ExerciseWithResult = Tuple[Exercise, Optional[ExerciseResult]]
 class ExercisesState(SessionState):
     """State for managing exercises."""
 
-    exercises: List[Exercise] = []
     has_exercises: bool = False
     has_tags: bool = False
-    exercise_results: List[ExerciseResult] = []
     exercises_with_result: List[ExerciseWithResult] = []
 
     @rx.event
@@ -31,63 +29,54 @@ class ExercisesState(SessionState):
         Fetch exercises from database
         """
         with rx.session() as session:
-            exercises = session.exec(
-                select(Exercise)
-            ).all()  # select all exercises from database
+            exercises = session.exec(select(Exercise)).all()
             exercise_results = session.exec(
                 ExerciseResult.select().where(
                     ExerciseResult.userinfo_id == self.user_id,
                 )
             ).all()
-            self.exercise_results = list(exercise_results)
-            self.exercises = list(exercises)
-            self.has_exercises = len(exercises) > 0  # check if exercises exist
-            self.has_tags = any(
-                len(exercise.tags) > 0 for exercise in exercises
-            )  # check if tags exist
+            self.has_exercises = len(exercises) > 0
+            self.has_tags = any(len(exercise.tags) > 0 for exercise in exercises)
             self.exercises_with_result = [
                 (
                     exercise,
                     next(
                         (
                             res
-                            for res in self.exercise_results
+                            for res in exercise_results
                             if res.exercise_id == exercise.id
                         ),
                         None,
                     ),
                 )
-                for exercise in self.exercises
+                for exercise in exercises
             ]
 
 
-def show_exercise_status(exercise_id: int | None, submitted: bool) -> rx.Component:
+def show_exercise_status(submitted: bool) -> rx.Component:
     """Display the submission status of an exercise."""
-    return rx.cond(
-        submitted,  # if the exercise has been submitted
-        rx.text(
-            "Submitted",
-            color="green",
+    return rx.icon(
+        rx.cond(
+            submitted,
+            "circle-check",
+            "circle",
         ),
-        rx.text(
-            "Not submitted",
-            color="red",
+        color=rx.cond(
+            submitted,
+            "green",
+            rx.color_mode_cond(light="black", dark="white"),
         ),
+        size=30,
     )
 
 
-def render_exercise_card(exercises_with_res: ExerciseWithResult) -> rx.Component:
+def render_exercise_card(exercise_with_res: ExerciseWithResult) -> rx.Component:
     """Render exercises as cards"""
-    exercise: Exercise = exercises_with_res[0]
-    result: ExerciseResult | None = exercises_with_res[1]
+    exercise: Exercise = exercise_with_res[0]
+    result: ExerciseResult | None = exercise_with_res[1]
     is_submitted = (
-        False
-        if result is None
-        else (
-            result.finished_conversation is not None
-            and result.finished_conversation.length() > 0  # type: ignore
-        )
-    )  # type: ignore
+        False if result is None else result.finished_conversation.length() > 0  # type: ignore
+    )
     return rx.card(  # create a card for each exercise
         rx.hstack(
             rx.vstack(
@@ -128,7 +117,9 @@ def render_exercise_card(exercises_with_res: ExerciseWithResult) -> rx.Component
                 spacing="2",
                 align="start",
             ),
-            show_exercise_status(exercise.id, is_submitted),
+            show_exercise_status(is_submitted),
+            align="center",
+            justify="between",
         ),
         variant="surface",
         width="100%",
@@ -170,6 +161,7 @@ def exercises() -> rx.Component:
             spacing="5",
             justify="center",
             min_height="85vh",
+            align="center",
         ),
     )
 

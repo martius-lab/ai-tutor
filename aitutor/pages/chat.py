@@ -671,7 +671,6 @@ def show_exercise_status() -> rx.Component:
             ),
             rx.text(
                 "Not submitted yet",
-                color_scheme="yellow",
             ),
         ),
         rx.icon(
@@ -683,11 +682,10 @@ def show_exercise_status() -> rx.Component:
             color=rx.cond(
                 ChatState.conversation_is_submitted,
                 "green",
-                "yellow",
+                rx.color_mode_cond(light="black", dark="white"),
             ),
             size=30,
             margin_left="1em",
-            id="icon_check",
         ),
         spacing="0",
     )
