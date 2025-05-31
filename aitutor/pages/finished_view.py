@@ -1,21 +1,15 @@
 """Displays the submitted chat messages"""
 
-from typing import Optional, cast
+from typing import Optional
 
 import reflex as rx
-import decouple
-from openai import AsyncOpenAI, OpenAI
-from pydantic import BaseModel
 
 import aitutor.routes as routes
-from aitutor.config import get_config
 from aitutor.pages.navbar import with_navbar
 from aitutor.models import Exercise, ExerciseResult
 from aitutor.auth.protection import require_role_at_least
 from aitutor.models import UserRole
 from aitutor.auth.state import SessionState
-from datetime import datetime
-from zoneinfo import ZoneInfo
 from aitutor.pages.chat import CHECK_RESULT_ROLE
 from aitutor.pages.chat import message_box
 
