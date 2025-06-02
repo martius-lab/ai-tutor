@@ -6,13 +6,20 @@
 # =======================================
 FROM ghcr.io/astral-sh/uv:0.7.8-python3.13-bookworm as init
 
-# Copy local context to `/app` inside container (see .dockerignore)
 WORKDIR /app
-COPY . .
-RUN mkdir -p /app/data /app/uploaded_files
 
 ENV UV_COMPILE_BYTECODE=1
 ENV UV_NO_CACHE=1
+
+# Install dependencies (do this as a separate layer to improve docker build time during
+# development).
+RUN --mount=type=bind,source=uv.lock,target=uv.lock \
+    --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
+    uv sync --locked --no-dev --no-install-project
+
+# Copy local context to `/app` inside container (see .dockerignore)
+COPY . .
+RUN mkdir -p /app/data /app/uploaded_files
 
 # Install application in venv
 RUN uv sync --no-dev --locked
