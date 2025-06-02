@@ -91,6 +91,11 @@ class FinishedViewState(SessionState):
             )
         )
 
+    @rx.var
+    def chat_url(self) -> str:
+        """Returns the URL for the chat page."""
+        return routes.CHAT + "/" + str(self.router.page.params.get("exercise_id", 0))
+
 
 @with_navbar
 @require_role_at_least(UserRole.STUDENT)
@@ -100,17 +105,20 @@ def finished_view_default() -> rx.Component:
         rx.box(
             rx.vstack(
                 rx.hstack(
+                    rx.button(
+                        rx.icon("message-circle-reply", size=20),
+                        color_scheme="iris",
+                        on_click=rx.redirect(
+                            FinishedViewState.chat_url,
+                        ),
+                        _hover={"cursor": "pointer"},
+                    ),
                     rx.heading(
-                        "Exercise: ",
+                        "Your submission for exercise: "
+                        + FinishedViewState.exercise_title,
                         size="5",
                     ),
-                    rx.icon(
-                        "circle-check",
-                        color="green",
-                    ),
                     align="center",
-                    justify="between",
-                    width="100%",
                 ),
                 rx.auto_scroll(
                     rx.foreach(
