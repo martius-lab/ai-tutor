@@ -2,7 +2,7 @@
 .venv
 .*cache
 .web
-#*.db
+*.db
 
 .git
 .jj
