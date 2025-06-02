@@ -96,6 +96,70 @@ class FinishedViewState(SessionState):
         """Returns the URL for the chat page."""
         return routes.CHAT + "/" + str(self.router.page.params.get("exercise_id", 0))
 
+    @rx.event
+    def delete_submisssion(self):
+        """Deletes the submission for the current exercise."""
+        userinfo_id: Optional[int] = self.user_id
+        if self.current_exercise and userinfo_id:
+            with rx.session() as session:
+                exercise_result = session.exec(
+                    ExerciseResult.select().where(
+                        ExerciseResult.exercise_id == self.current_exercise.id,
+                        ExerciseResult.userinfo_id == userinfo_id,
+                    )
+                ).one_or_none()
+
+                if exercise_result:
+                    exercise_result.finished_conversation = []
+                    session.commit()
+                yield rx.toast.success(
+                    title="Submission Deleted",
+                    description="Your submission has been deleted successfully.",
+                    duration=2500,
+                    position="bottom-center",
+                    invert=True,
+                )
+        return rx.redirect(self.chat_url)
+
+
+def delete_submission_button() -> rx.Component:
+    """
+    Render the button to reset the conversation.
+    """
+    return rx.alert_dialog.root(
+        rx.alert_dialog.trigger(
+            rx.button(
+                "Delete Submission",
+                color_scheme="red",
+                _hover={"cursor": "pointer"},
+            )
+        ),
+        rx.alert_dialog.content(
+            rx.alert_dialog.title("Delete Submission"),
+            rx.alert_dialog.description(
+                "Are you sure you want to delete your submision?"
+            ),
+            rx.hstack(
+                rx.alert_dialog.cancel(
+                    rx.button(
+                        "Cancel",
+                        color_scheme="red",
+                        _hover={"cursor": "pointer"},
+                    ),
+                ),
+                rx.alert_dialog.action(
+                    rx.button(
+                        "Confirm",
+                        color_scheme="iris",
+                        _hover={"cursor": "pointer"},
+                        on_click=FinishedViewState.delete_submisssion,
+                    ),
+                ),
+                margin_top="1em",
+            ),
+        ),
+    )
+
 
 @with_navbar
 @require_role_at_least(UserRole.STUDENT)
@@ -130,6 +194,7 @@ def finished_view_default() -> rx.Component:
                     flex="1",
                     padding_right="8px",
                 ),
+                delete_submission_button(),
                 spacing="5",
                 justify="start",
                 min_height="85vh",
