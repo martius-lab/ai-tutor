@@ -347,7 +347,8 @@ class ChatState(SessionState):
                 message="# Check Result: "
                 + check_status
                 + "\n"
-                + "🛈 _This result is not part of the conversation._\n\n"
+                + "🛈 _This result is not part of the conversation, "
+                + "meaning the AI cannot see it._\n\n"
                 + check_conversation_response.explanation,
                 is_llm=True,
                 is_check_result=True,
