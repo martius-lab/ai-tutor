@@ -574,7 +574,12 @@ def reset_conversation_button() -> rx.Component:
             rx.alert_dialog.content(
                 rx.alert_dialog.title("Reset Conversation"),
                 rx.alert_dialog.description(
-                    "Are you sure you want to reset the conversation?"
+                    rx.cond(
+                        ChatState.conversation_is_submitted,
+                        "Are you sure you want to reset the conversation? "
+                        + "(This will not delete your submission.)",
+                        "Are you sure you want to reset the conversation? ",
+                    )
                 ),
                 rx.hstack(
                     rx.alert_dialog.cancel(
