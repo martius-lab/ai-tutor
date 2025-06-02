@@ -27,6 +27,9 @@ RUN uv sync --no-dev --locked
 # Deploy templates and prepare app
 RUN uv run reflex init
 
+# Call db migrate to have the database set up.  This is needed for the export step
+# TODO: Is this really needed or are we doing something wrong?
+RUN test -d "alembic" && uv run reflex db migrate
 # Export static copy of frontend to /app/.web/_static
 RUN uv run reflex export --frontend-only --no-zip
 
@@ -51,5 +54,5 @@ ENV PATH="/app/.venv/bin:$PATH" PYTHONUNBUFFERED=1
 STOPSIGNAL SIGKILL
 
 # Always apply migrations before starting the backend.
-CMD [ -d alembic ] && reflex db migrate; \
+CMD test -d alembic && reflex db migrate; \
     exec reflex run --env prod --backend-only
