@@ -341,15 +341,13 @@ class ChatState(SessionState):
         )
 
         # show explanation of the check in the chat
-        check_status: str = (
-            "✅ Check Passed" if self.check_passed else "❌ Check Failed"
-        )
+        check_status: str = "✅ Passed" if self.check_passed else "❌ Failed"
         if check_conversation_response is not None:
             self.append_chat_message(
-                message="# Result of Check Conversation: "
+                message="# Check Result: "
                 + check_status
                 + "\n"
-                + "🛈 _this result is not part of the conversation_ \n\n\n"
+                + "🛈 _This result is not part of the conversation._\n\n"
                 + check_conversation_response.explanation,
                 is_llm=True,
                 is_check_result=True,
@@ -538,7 +536,7 @@ def send_message_button() -> rx.Component:
     Render the button to send a message.
     """
     return rx.button(
-        "Send",
+        rx.icon("send-horizontal", size=20),
         type="submit",
         color_scheme="iris",
         _hover=rx.cond(
@@ -670,37 +668,61 @@ def check_conversation_button() -> rx.Component:
     )
 
 
-def show_exercise_status() -> rx.Component:
+def submitted_status() -> rx.Component:
     """
-    Render the button to show the finished conversation.
+    Render the status when the conversation is submitted.
     """
     return rx.hstack(
-        rx.cond(
-            ChatState.conversation_is_submitted,
-            rx.link(
-                "Last submit: " + ChatState.submit_time_stamp,
-                color_scheme="green",
-                href=ChatState.finished_view_url,
+        rx.hover_card.root(
+            rx.hover_card.trigger(
+                rx.button(
+                    rx.icon("eye", size=20),
+                    color_scheme="iris",
+                    on_click=rx.redirect(ChatState.finished_view_url),
+                    _hover={"cursor": "pointer"},
+                ),
             ),
-            rx.text(
-                "Not submitted yet",
+            rx.hover_card.content(
+                rx.text("View your submitted conversation"),
             ),
         ),
+        rx.text(
+            "Last submit: " + ChatState.submit_time_stamp,
+            color_scheme="green",
+        ),
         rx.icon(
-            rx.cond(
-                ChatState.conversation_is_submitted,
-                "circle-check",
-                "circle",
-            ),
-            color=rx.cond(
-                ChatState.conversation_is_submitted,
-                "green",
-                rx.color_mode_cond(light="black", dark="white"),
-            ),
+            "circle-check",
+            color="green",
+            size=30,
+        ),
+        align="center",
+    )
+
+
+def not_submitted_status() -> rx.Component:
+    """
+    Render the status when the conversation is not submitted yet.
+    """
+    return rx.hstack(
+        rx.text("Not submitted yet"),
+        rx.icon(
+            "circle",
+            color=rx.color_mode_cond(light="black", dark="white"),
             size=30,
             margin_left="1em",
         ),
         spacing="0",
+    )
+
+
+def show_exercise_status() -> rx.Component:
+    """
+    Show the status of the exercise, whether it is submitted or not.
+    """
+    return rx.cond(
+        ChatState.conversation_is_submitted,
+        submitted_status(),
+        not_submitted_status(),
     )
 
 
@@ -712,9 +734,18 @@ def chat_default() -> rx.Component:
         rx.box(
             rx.vstack(
                 rx.hstack(
-                    rx.heading(
-                        "Exercise: " + ChatState.exercise_title,
-                        size="5",
+                    rx.hstack(
+                        rx.button(
+                            rx.icon("arrow-left", size=20),
+                            color_scheme="iris",
+                            on_click=rx.redirect(routes.EXERCISES),
+                            _hover={"cursor": "pointer"},
+                        ),
+                        rx.heading(
+                            "Exercise: " + ChatState.exercise_title,
+                            size="5",
+                        ),
+                        align="center",
                     ),
                     show_exercise_status(),
                     align="center",
