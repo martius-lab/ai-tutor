@@ -3,7 +3,6 @@ to view and add new exercises."""
 
 import reflex as rx
 from sqlmodel import select
-from typing import List, Tuple
 
 from aitutor.models import Exercise
 from aitutor.pages.navbar import with_navbar
@@ -13,7 +12,7 @@ from aitutor.auth.state import SessionState
 
 from typing import Optional
 
-ExerciseWithResult = Tuple[Exercise, Optional[ExerciseResult]]
+ExerciseWithResult = tuple[Exercise, Optional[ExerciseResult]]
 
 
 class ExercisesState(SessionState):
@@ -21,7 +20,7 @@ class ExercisesState(SessionState):
 
     has_exercises: bool = False
     has_tags: bool = False
-    exercises_with_result: List[ExerciseWithResult] = []
+    exercises_with_result: list[ExerciseWithResult] = []
 
     @rx.event
     def fetch_exercises(self):
@@ -74,9 +73,7 @@ def render_exercise_card(exercise_with_res: ExerciseWithResult) -> rx.Component:
     """Render exercises as cards"""
     exercise: Exercise = exercise_with_res[0]
     result: ExerciseResult | None = exercise_with_res[1]
-    is_submitted = (
-        False if result is None else result.finished_conversation.length() > 0  # type: ignore
-    )
+    is_submitted = result is not None and result.finished_conversation.length() > 0  # type: ignore
     return rx.card(  # create a card for each exercise
         rx.hstack(
             rx.vstack(

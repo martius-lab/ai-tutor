@@ -174,7 +174,7 @@ def finished_view_default() -> rx.Component:
             rx.vstack(
                 rx.hstack(
                     rx.button(
-                        rx.icon("message-circle-reply", size=20),
+                        rx.icon("arrow-left", size=20),
                         color_scheme="iris",
                         on_click=rx.redirect(
                             FinishedViewState.chat_url,
