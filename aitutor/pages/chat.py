@@ -134,11 +134,7 @@ class ChatState(SessionState):
         The exercise_id is used to identify the current exercise.
         It is set by the route parameter in the URL.
         """
-        return (
-            routes.FINISHED_VIEW
-            + "/"
-            + str(self.router.page.params.get("exercise_id", 0))
-        )
+        return f"{routes.FINISHED_VIEW}/{self.router.page.params.get('exercise_id', 0)}"
 
     @rx.event
     def load_exercise(self):
