@@ -3,6 +3,8 @@
 .*cache
 .web
 *.db
+.env
+config.toml
 
 .git
 .jj
