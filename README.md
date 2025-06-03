@@ -106,3 +106,27 @@ To ensure that the system works properly, tests are set up with pytest.
 Execute tests:
 
 pytest
+
+
+## Deploy on server
+
+This repository contains a docker compose setup for easy deployment.  This is based on
+one of the [examples in the Reflex
+repo](https://github.com/reflex-dev/reflex/tree/main/docker-example/production-compose).
+
+To test locally, simply run
+```
+docker compose build
+```
+to build containers using the current state of the code and then run with
+```
+docker compose up
+```
+You can then access it locally on `https://localhost`.
+
+To deploy on a server, simply copy the project code to the server and run
+```
+DOMAIN=your-domain.com docker compose build
+DOMAIN=your-domain.com docker compose up
+```
+there.
