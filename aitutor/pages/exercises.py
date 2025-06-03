@@ -51,22 +51,22 @@ class ExercisesState(SessionState):
                 for exercise in exercises
             ]
 
-
-def show_exercise_status(submitted: bool) -> rx.Component:
-    """Display the submission status of an exercise."""
-    return rx.icon(
-        rx.cond(
-            submitted,
-            "circle-check",
-            "circle",
-        ),
-        color=rx.cond(
-            submitted,
-            "green",
-            rx.color_mode_cond(light="black", dark="white"),
-        ),
-        size=30,
-    )
+    @rx.var
+    def submit_time_stamps(self) -> dict[int, str]:
+        """
+        Dictionary to store submit time stamps for exercises.
+        Key: Exercise ID, Value: Submit Time as string.
+        """
+        return {
+            exercise_with_res[0].id: (
+                exercise_with_res[1].submit_time_stamp.strftime("%d.%m.%Y %H:%M:%S MEZ")
+                if exercise_with_res[1] is not None
+                and exercise_with_res[1].submit_time_stamp is not None
+                else ""
+            )
+            for exercise_with_res in self.exercises_with_result
+            if exercise_with_res[0].id is not None
+        }
 
 
 def render_exercise_card(exercise_with_res: ExerciseWithResult) -> rx.Component:
@@ -111,10 +111,26 @@ def render_exercise_card(exercise_with_res: ExerciseWithResult) -> rx.Component:
                         border_radius="md",
                     ),
                 ),
+                rx.cond(
+                    is_submitted,
+                    rx.text(
+                        "Last submit: "
+                        + ExercisesState.submit_time_stamps[exercise.id],
+                        color_scheme="green",
+                        size="2",
+                    ),
+                ),
                 spacing="2",
                 align="start",
             ),
-            show_exercise_status(is_submitted),
+            rx.cond(
+                is_submitted,
+                rx.icon(
+                    "circle-check",
+                    color="green",
+                    size=30,
+                ),
+            ),
             align="center",
             justify="between",
         ),

@@ -706,14 +706,14 @@ def not_submitted_status() -> rx.Component:
     Render the status when the conversation is not submitted yet.
     """
     return rx.hstack(
-        rx.text("Not submitted yet"),
         rx.icon(
-            "circle",
+            "info",
             color=rx.color_mode_cond(light="black", dark="white"),
-            size=30,
-            margin_left="1em",
+            size=20,
         ),
-        spacing="0",
+        rx.text("Not submitted yet"),
+        spacing="1",
+        align="center",
     )
 
 
