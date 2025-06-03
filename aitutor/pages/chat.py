@@ -169,7 +169,9 @@ class ChatState(SessionState):
                     exercise_result.finished_conversation != []
                 )
                 self.submit_time_stamp = (
-                    exercise_result.submit_time_stamp.strftime("%d.%m.%Y %H:%M:%S")
+                    f"{
+                        exercise_result.submit_time_stamp.strftime('%d.%m.%Y %H:%M:%S')
+                    } MEZ"
                     if exercise_result.submit_time_stamp
                     else ""
                 )
