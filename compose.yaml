@@ -7,7 +7,7 @@
 # to publicly accessible domain where app will be hosted
 services:
   app:
-    image: local/reflex-app
+    image: local/ai-tutor-app
     environment:
       DB_URL: sqlite:///data/reflex.db
     build:
