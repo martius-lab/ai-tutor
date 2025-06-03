@@ -15,6 +15,9 @@ services:
     volumes:
       - db-data:/app/data
       - upload-data:/app/uploaded_files
+      # mount config files, so we can change config without rebuilding the container
+      - ./config.toml:/app/config.toml
+      - ./.env:/app/.env
     restart: always
 
   webserver:
