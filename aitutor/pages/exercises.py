@@ -9,6 +9,7 @@ from aitutor.pages.navbar import with_navbar
 from aitutor.auth.protection import require_role_at_least
 from aitutor.models import UserRole, ExerciseResult
 from aitutor.auth.state import SessionState
+from aitutor.pages.chat import TIME_FORMAT
 
 from typing import Optional
 
@@ -59,7 +60,7 @@ class ExercisesState(SessionState):
         """
         return {
             exercise_with_res[0].id: (
-                exercise_with_res[1].submit_time_stamp.strftime("%d.%m.%Y %H:%M:%S MEZ")
+                exercise_with_res[1].submit_time_stamp.strftime(TIME_FORMAT)
                 if exercise_with_res[1] is not None
                 and exercise_with_res[1].submit_time_stamp is not None
                 else ""

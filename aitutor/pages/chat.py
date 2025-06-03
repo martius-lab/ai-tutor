@@ -19,6 +19,8 @@ from zoneinfo import ZoneInfo
 
 DEFAULT_MODEL = "gpt-4o-mini"
 CHECK_RESULT_ROLE: str = "check_result"
+TIME_FORMAT = "%d.%m.%Y %H:%M:%S MEZ"
+TIME_ZONE = "Europe/Berlin"
 
 
 async def get_chat_response(conversation):
@@ -169,7 +171,7 @@ class ChatState(SessionState):
                     exercise_result.finished_conversation != []
                 )
                 self.submit_time_stamp = (
-                    exercise_result.submit_time_stamp.strftime("%d.%m.%Y %H:%M:%S MEZ")
+                    exercise_result.submit_time_stamp.strftime(TIME_FORMAT)
                     if exercise_result.submit_time_stamp
                     else ""
                 )
@@ -408,7 +410,7 @@ class ChatState(SessionState):
                         # update existing ExerciseResult
                         exercise_result.finished_conversation = conversation
                         exercise_result.submit_time_stamp = datetime.now(
-                            ZoneInfo("Europe/Berlin")
+                            ZoneInfo(TIME_ZONE)
                         )
                         session.commit()
                         yield self.successfull_submit_message()
@@ -418,8 +420,8 @@ class ChatState(SessionState):
                             "finished conversation to."
                         )
             self.conversation_is_submitted = True
-            self.submit_time_stamp = datetime.now(ZoneInfo("Europe/Berlin")).strftime(
-                "%d.%m.%Y %H:%M:%S"
+            self.submit_time_stamp = datetime.now(ZoneInfo(TIME_ZONE)).strftime(
+                TIME_FORMAT
             )
 
     def get_messages_dict_gpt(self):
