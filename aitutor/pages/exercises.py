@@ -29,28 +29,13 @@ class ExercisesState(SessionState):
         Fetch exercises from database
         """
         with rx.session() as session:
-            exercises = session.exec(select(Exercise)).all()
-            exercise_results = session.exec(
-                ExerciseResult.select().where(
-                    ExerciseResult.userinfo_id == self.user_id,
-                )
-            ).all()
-            self.has_exercises = len(exercises) > 0
-            self.has_tags = any(len(exercise.tags) > 0 for exercise in exercises)
-            self.exercises_with_result = [
-                (
-                    exercise,
-                    next(
-                        (
-                            res
-                            for res in exercise_results
-                            if res.exercise_id == exercise.id
-                        ),
-                        None,
-                    ),
-                )
-                for exercise in exercises
-            ]
+            stmt = select(Exercise, ExerciseResult).join(ExerciseResult, isouter=True)
+            exercises_with_result = session.exec(stmt).all()
+            self.has_exercises = len(exercises_with_result) > 0
+            self.has_tags = any(
+                len(exercise.tags) > 0 for exercise, _ in exercises_with_result
+            )
+            self.exercises_with_result = [(x[0], x[1]) for x in exercises_with_result]
 
     @rx.var
     def submit_time_stamps(self) -> dict[int, str]:
