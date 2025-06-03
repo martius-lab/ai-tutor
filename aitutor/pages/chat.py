@@ -14,9 +14,13 @@ from aitutor.models import Exercise, ExerciseResult
 from aitutor.auth.protection import require_role_at_least
 from aitutor.models import UserRole
 from aitutor.auth.state import SessionState
+from datetime import datetime
+from zoneinfo import ZoneInfo
 
 DEFAULT_MODEL = "gpt-4o-mini"
 CHECK_RESULT_ROLE: str = "check_result"
+TIME_FORMAT = "%d.%m.%Y %H:%M:%S MEZ"
+TIME_ZONE = "Europe/Berlin"
 
 
 async def get_chat_response(conversation):
@@ -123,6 +127,16 @@ class ChatState(SessionState):
     check_is_loading: bool = False
     waiting_for_response: bool = False
     check_passed: bool = False
+    conversation_is_submitted: bool = False
+    submit_time_stamp: str = ""
+
+    @rx.var
+    def finished_view_url(self) -> str:
+        """
+        The exercise_id is used to identify the current exercise.
+        It is set by the route parameter in the URL.
+        """
+        return f"{routes.FINISHED_VIEW}/{self.router.page.params.get('exercise_id', 0)}"
 
     @rx.event
     def load_exercise(self):
@@ -153,8 +167,17 @@ class ChatState(SessionState):
                 yield rx.redirect(routes.NOT_FOUND)
             if exercise_result:
                 self.check_passed = exercise_result.check_passed
+                self.conversation_is_submitted = (
+                    exercise_result.finished_conversation != []
+                )
+                self.submit_time_stamp = (
+                    exercise_result.submit_time_stamp.strftime(TIME_FORMAT)
+                    if exercise_result.submit_time_stamp
+                    else ""
+                )
             else:
                 self.check_passed = False
+                self.conversation_is_submitted = False
         yield
 
     def load_existing_conversation(self):
@@ -316,15 +339,14 @@ class ChatState(SessionState):
         )
 
         # show explanation of the check in the chat
-        check_status: str = (
-            "✅ Check Passed" if self.check_passed else "❌ Check Failed"
-        )
+        check_status: str = "✅ Passed" if self.check_passed else "❌ Failed"
         if check_conversation_response is not None:
             self.append_chat_message(
-                message="# Result of Check Conversation: "
+                message="# Check Result: "
                 + check_status
                 + "\n"
-                + "🛈 _this result is not part of the conversation_ \n\n\n"
+                + "🛈 _This result is not part of the conversation, "
+                + "meaning the AI cannot see it._\n\n"
                 + check_conversation_response.explanation,
                 is_llm=True,
                 is_check_result=True,
@@ -368,7 +390,7 @@ class ChatState(SessionState):
                     session.commit()
 
     @rx.event
-    def save_finished_conversation_to_db(self):
+    def submit_conversation(self):
         """
         Saves the finished conversation to the database.
         """
@@ -387,6 +409,9 @@ class ChatState(SessionState):
                     if exercise_result is not None:
                         # update existing ExerciseResult
                         exercise_result.finished_conversation = conversation
+                        exercise_result.submit_time_stamp = datetime.now(
+                            ZoneInfo(TIME_ZONE)
+                        )
                         session.commit()
                         yield self.successfull_submit_message()
                     else:
@@ -394,6 +419,10 @@ class ChatState(SessionState):
                             "There is no ExerciseResult to save the "
                             "finished conversation to."
                         )
+            self.conversation_is_submitted = True
+            self.submit_time_stamp = datetime.now(ZoneInfo(TIME_ZONE)).strftime(
+                TIME_FORMAT
+            )
 
     def get_messages_dict_gpt(self):
         """
@@ -506,7 +535,7 @@ def send_message_button() -> rx.Component:
     Render the button to send a message.
     """
     return rx.button(
-        "Send",
+        rx.icon("send-horizontal", size=20),
         type="submit",
         color_scheme="iris",
         _hover=rx.cond(
@@ -543,7 +572,12 @@ def reset_conversation_button() -> rx.Component:
             rx.alert_dialog.content(
                 rx.alert_dialog.title("Reset Conversation"),
                 rx.alert_dialog.description(
-                    "Are you sure you want to reset the conversation?"
+                    rx.cond(
+                        ChatState.conversation_is_submitted,
+                        "Are you sure you want to reset the conversation? "
+                        + "(This will not delete your submission.)",
+                        "Are you sure you want to reset the conversation? ",
+                    )
                 ),
                 rx.hstack(
                     rx.alert_dialog.cancel(
@@ -579,7 +613,7 @@ def check_conversation_button() -> rx.Component:
             color_scheme="green",
             type="button",
             _hover={"cursor": "pointer"},
-            on_click=ChatState.save_finished_conversation_to_db,
+            on_click=ChatState.submit_conversation,
         ),
         rx.cond(
             ChatState.check_is_loading,
@@ -638,6 +672,64 @@ def check_conversation_button() -> rx.Component:
     )
 
 
+def submitted_status() -> rx.Component:
+    """
+    Render the status when the conversation is submitted.
+    """
+    return rx.hstack(
+        rx.hover_card.root(
+            rx.hover_card.trigger(
+                rx.button(
+                    rx.icon("eye", size=20),
+                    color_scheme="iris",
+                    on_click=rx.redirect(ChatState.finished_view_url),
+                    _hover={"cursor": "pointer"},
+                ),
+            ),
+            rx.hover_card.content(
+                rx.text("View your submitted conversation"),
+            ),
+        ),
+        rx.text(
+            "Last submit: " + ChatState.submit_time_stamp,
+            color_scheme="green",
+        ),
+        rx.icon(
+            "circle-check",
+            color="green",
+            size=30,
+        ),
+        align="center",
+    )
+
+
+def not_submitted_status() -> rx.Component:
+    """
+    Render the status when the conversation is not submitted yet.
+    """
+    return rx.hstack(
+        rx.icon(
+            "info",
+            color=rx.color_mode_cond(light="black", dark="white"),
+            size=20,
+        ),
+        rx.text("Not submitted yet"),
+        spacing="1",
+        align="center",
+    )
+
+
+def show_exercise_status() -> rx.Component:
+    """
+    Show the status of the exercise, whether it is submitted or not.
+    """
+    return rx.cond(
+        ChatState.conversation_is_submitted,
+        submitted_status(),
+        not_submitted_status(),
+    )
+
+
 @with_navbar
 @require_role_at_least(UserRole.STUDENT)
 def chat_default() -> rx.Component:
@@ -645,9 +737,24 @@ def chat_default() -> rx.Component:
     return rx.container(
         rx.box(
             rx.vstack(
-                rx.heading(
-                    "Exercise: " + ChatState.exercise_title,
-                    size="5",
+                rx.hstack(
+                    rx.hstack(
+                        rx.button(
+                            rx.icon("arrow-left", size=20),
+                            color_scheme="iris",
+                            on_click=rx.redirect(routes.EXERCISES),
+                            _hover={"cursor": "pointer"},
+                        ),
+                        rx.heading(
+                            "Exercise: " + ChatState.exercise_title,
+                            size="5",
+                        ),
+                        align="center",
+                    ),
+                    show_exercise_status(),
+                    align="center",
+                    justify="between",
+                    width="100%",
                 ),
                 rx.auto_scroll(
                     rx.foreach(
