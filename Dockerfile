@@ -4,7 +4,7 @@
 # =======================================
 # Stage 1: init
 # =======================================
-FROM ghcr.io/astral-sh/uv:0.7.8-python3.13-bookworm as init
+FROM ghcr.io/astral-sh/uv:0.7.8-python3.13-bookworm AS init
 
 WORKDIR /app
 
@@ -47,7 +47,7 @@ RUN adduser --disabled-password --home /app reflex
 COPY --chown=reflex --from=init /app /app
 
 # Install libpq-dev for psycopg (skip if not using postgres).
-#RUN apt-get update -y && apt-get install -y libpq-dev && rm -rf /var/lib/apt/lists/*
+RUN apt-get update -y && apt-get install -y libpq-dev && rm -rf /var/lib/apt/lists/*
 
 USER reflex
 ENV PATH="/app/.venv/bin:$PATH" PYTHONUNBUFFERED=1
