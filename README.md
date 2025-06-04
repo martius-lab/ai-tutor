@@ -120,7 +120,11 @@ docker compose build
 ```
 to build images using the current state of the code and then run with
 ```
+# with sqlite
 docker compose up
+
+# with production setup, using postgresql
+docker compose -f compose.yaml -f compose.prod.yaml up
 ```
 You can then access it locally on `https://localhost`.
 
@@ -132,6 +136,6 @@ configuration can easily be changed without the need of rebuilding the images.
 To deploy on a server, simply copy the project code and config to the server and run
 ```
 DOMAIN=your-domain.com docker compose build
-DOMAIN=your-domain.com docker compose up
+DOMAIN=your-domain.com docker compose -f compose.yaml -f compose.prod.yaml up -d
 ```
 there.
