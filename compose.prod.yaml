@@ -5,7 +5,7 @@ services:
     image: postgres
     restart: always
     environment:
-      POSTGRES_PASSWORD: secret
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
       - postgres-data:/var/lib/postgresql/data
 
@@ -15,7 +15,7 @@ services:
 
   app:
     environment:
-      DB_URL: postgresql+psycopg://postgres:secret@db/postgres
+      DB_URL: postgresql+psycopg://postgres:${POSTGRES_PASSWORD}@db/postgres
       REDIS_URL: redis://redis:6379
     depends_on:
       - db
