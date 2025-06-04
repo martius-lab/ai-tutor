@@ -23,6 +23,10 @@ services:
   webserver:
     environment:
       DOMAIN: ${DOMAIN:-localhost}
+      # Those data and config folders are already set in the container by default but
+      # better let's be explicit, in case the defaults change.
+      XDG_DATA_HOME: /data
+      XDG_CONFIG_HOME: /config
     ports:
       - 443:443
       - 80:80 # For acme-challenge via HTTP.
@@ -30,7 +34,8 @@ services:
       context: .
       dockerfile: Caddy.Dockerfile
     volumes:
-      - caddy-data:/root/.caddy
+      - caddy-data:/data/caddy
+      - caddy-config:/config/caddy
     restart: always
     depends_on:
       - app
@@ -42,3 +47,4 @@ volumes:
   upload-data:
   # TLS keys and certificates
   caddy-data:
+  caddy-config:
