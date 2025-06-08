@@ -16,6 +16,7 @@ class ManageExercisesState(rx.State):
     # bug with Reflex dialogs, see
     # https://github.com/reflex-dev/reflex/issues/4221#issuecomment-2430197475
     add_exercise_dialog_is_open: bool = False
+    edit_exercise_dialog_is_open: bool = False
     add_tag_dialog_is_open: bool = False
 
     exercises: list[Exercise] = []
@@ -220,6 +221,8 @@ class ManageExercisesState(rx.State):
     @rx.event
     def update_exercise(self, form_data: dict):
         """Update exercises in db."""
+        self.edit_exercise_dialog_is_open = False
+
         with rx.session() as session:
             updated_exercise = session.exec(
                 select(Exercise).where(Exercise.id == self.current_exercise.id)
