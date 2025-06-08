@@ -9,7 +9,7 @@ from aitutor.pages.navbar import with_navbar
 from aitutor.auth.protection import require_role_at_least
 from aitutor.models import UserRole, ExerciseResult
 from aitutor.auth.state import SessionState
-from aitutor.pages.chat import TIME_FORMAT
+from aitutor.global_vars import TIME_FORMAT
 
 from typing import Optional
 

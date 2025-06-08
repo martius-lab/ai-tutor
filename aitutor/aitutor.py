@@ -11,7 +11,7 @@ from aitutor.auth.pages import custom_login_page, custom_register_page
 from aitutor.config import load_config
 from aitutor.pages.manage_excercises import ManageExercisesState
 from aitutor.pages.exercises import ExercisesState
-from aitutor.pages.chat import ChatState
+from aitutor.pages.chat.state import ChatState
 from aitutor.pages.finished_view import FinishedViewState
 from aitutor.utilities.create_default_users import create_default_users
 import aitutor.routes as routes
