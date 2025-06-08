@@ -9,7 +9,7 @@ import reflex as rx
 from aitutor import pages
 from aitutor.auth.pages import custom_login_page, custom_register_page
 from aitutor.config import load_config
-from aitutor.pages.add_excercises import AddExerciseState
+from aitutor.pages.manage_excercises import ManageExercisesState
 from aitutor.pages.exercises import ExercisesState
 from aitutor.pages.chat import ChatState
 from aitutor.pages.finished_view import FinishedViewState
@@ -30,9 +30,9 @@ app.add_page(
 )
 app.add_page(pages.home_default, route=routes.HOME)
 app.add_page(
-    pages.add_exercises_default,
-    route=routes.ADD_EXERCISE,
-    on_load=AddExerciseState.initialize,
+    pages.manage_exercises_default,
+    route=routes.MANAGE_EXERCISES,
+    on_load=ManageExercisesState.initialize,
 )
 app.add_page(
     pages.exercises_default,
