@@ -1,58 +1,10 @@
-"""Display different exercises for teachers
-to view and add new exercises."""
+"""Components for the exercises page."""
 
 import reflex as rx
-from sqlmodel import select
 
 from aitutor.models import Exercise
-from aitutor.pages.navbar import with_navbar
-from aitutor.auth.protection import require_role_at_least
-from aitutor.models import UserRole, ExerciseResult
-from aitutor.auth.state import SessionState
-from aitutor.global_vars import TIME_FORMAT
-
-from typing import Optional
-
-ExerciseWithResult = tuple[Exercise, Optional[ExerciseResult]]
-
-
-class ExercisesState(SessionState):
-    """State for managing exercises."""
-
-    has_exercises: bool = False
-    has_tags: bool = False
-    exercises_with_result: list[ExerciseWithResult] = []
-
-    @rx.event
-    def fetch_exercises(self):
-        """
-        Fetch exercises from database
-        """
-        with rx.session() as session:
-            stmt = select(Exercise, ExerciseResult).join(ExerciseResult, isouter=True)
-            exercises_with_result = session.exec(stmt).all()
-            self.has_exercises = len(exercises_with_result) > 0
-            self.has_tags = any(
-                len(exercise.tags) > 0 for exercise, _ in exercises_with_result
-            )
-            self.exercises_with_result = [(x[0], x[1]) for x in exercises_with_result]
-
-    @rx.var
-    def submit_time_stamps(self) -> dict[int, str]:
-        """
-        Dictionary to store submit time stamps for exercises.
-        Key: Exercise ID, Value: Submit Time as string.
-        """
-        return {
-            exercise_with_res[0].id: (
-                exercise_with_res[1].submit_time_stamp.strftime(TIME_FORMAT)
-                if exercise_with_res[1] is not None
-                and exercise_with_res[1].submit_time_stamp is not None
-                else ""
-            )
-            for exercise_with_res in self.exercises_with_result
-            if exercise_with_res[0].id is not None
-        }
+from aitutor.models import ExerciseResult
+from aitutor.pages.exercises.state import ExercisesState, ExerciseWithResult
 
 
 def render_exercise_card(exercise_with_res: ExerciseWithResult) -> rx.Component:
@@ -149,24 +101,3 @@ def render_exercises() -> rx.Component:
             width="100%",
         ),
     )
-
-
-def exercises() -> rx.Component:
-    """Exercises page for teachers"""
-    return rx.container(
-        rx.vstack(
-            rx.heading("Exercises:", size="9"),  # page title
-            render_exercises(),
-            spacing="5",
-            justify="center",
-            min_height="85vh",
-            align="center",
-        ),
-    )
-
-
-@with_navbar
-@require_role_at_least(UserRole.STUDENT)
-def exercises_page() -> rx.Component:
-    """Default wrapper for exercises page"""
-    return exercises()
