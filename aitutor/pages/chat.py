@@ -145,11 +145,11 @@ class ChatState(SessionState):
         """
         with rx.session() as session:
             exercise = session.exec(
-                Exercise.select().where(Exercise.id == self.exercise_id)
+                Exercise.select().where(Exercise.id == int(self.exercise_id))
             ).one_or_none()
             exercise_result = session.exec(
                 ExerciseResult.select().where(
-                    ExerciseResult.exercise_id == self.exercise_id,
+                    ExerciseResult.exercise_id == int(self.exercise_id),
                     ExerciseResult.userinfo_id == self.user_id,
                 )
             ).one_or_none()
