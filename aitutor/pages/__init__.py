@@ -1,4 +1,4 @@
-from aitutor.pages.chat import chat_page
+from aitutor.pages.chat_old import chat_page
 from aitutor.pages.home import home_page
 from aitutor.pages.manage_excercises import manage_exercises_page
 from aitutor.pages.exercises import exercises_page
