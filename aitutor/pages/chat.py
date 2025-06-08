@@ -732,7 +732,7 @@ def show_exercise_status() -> rx.Component:
 
 @with_navbar
 @require_role_at_least(UserRole.STUDENT)
-def chat_default() -> rx.Component:
+def chat_page() -> rx.Component:
     """Renders the web page."""
     return rx.container(
         rx.box(

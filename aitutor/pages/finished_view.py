@@ -167,7 +167,7 @@ def delete_submission_button() -> rx.Component:
 
 @with_navbar
 @require_role_at_least(UserRole.STUDENT)
-def finished_view_default() -> rx.Component:
+def finished_view_page() -> rx.Component:
     """Renders the web page."""
     return rx.container(
         rx.box(

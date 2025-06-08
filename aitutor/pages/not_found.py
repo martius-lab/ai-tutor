@@ -4,7 +4,7 @@ import reflex as rx
 from aitutor.routes import HOME
 
 
-def not_found():
+def not_found_page():
     """Render the 404 - Page Not Found component."""
     return rx.center(
         rx.vstack(
