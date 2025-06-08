@@ -11,7 +11,7 @@ from aitutor.auth.protection import require_role_at_least
 from aitutor.models import UserRole
 from aitutor.auth.state import SessionState
 from aitutor.global_vars import CHECK_RESULT_ROLE
-from aitutor.pages.chat_old import message_box
+from aitutor.pages.chat.page import message_box
 
 
 class ChatMessage(rx.Base):
