@@ -3,7 +3,7 @@ from aitutor.pages.home.page import home_page
 from aitutor.pages.manage_excercises import manage_exercises_page
 from aitutor.pages.exercises.page import exercises_page
 from aitutor.pages.navbar import navbar
-from aitutor.pages.not_found import not_found_page
+from aitutor.pages.not_found.page import not_found_page
 from aitutor.pages.finished_view import finished_view_page
 
 __all__ = [
