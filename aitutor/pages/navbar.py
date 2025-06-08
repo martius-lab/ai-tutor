@@ -10,7 +10,7 @@ import aitutor.routes as routes
 links = [
     ("Home", routes.HOME),
     ("Exercises", routes.EXERCISES),
-    ("Add Exercises", routes.ADD_EXERCISE),
+    ("Manage Exercises", routes.MANAGE_EXERCISES),
 ]
 
 
