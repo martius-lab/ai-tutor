@@ -9,7 +9,7 @@ import reflex as rx
 from aitutor import pages
 from aitutor.auth.pages import custom_login_page, custom_register_page
 from aitutor.config import load_config
-from aitutor.pages.manage_excercises import ManageExercisesState
+from aitutor.pages.manage_exercises.state import ManageExercisesState
 from aitutor.pages.exercises.state import ExercisesState
 from aitutor.pages.chat.state import ChatState
 from aitutor.pages.finished_view.state import FinishedViewState
