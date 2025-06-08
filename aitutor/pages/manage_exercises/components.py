@@ -14,7 +14,7 @@ class Mode(Enum):
     EDIT = "edit"
 
 
-def tag_dialog():
+def new_tag_dialog():
     """Dialog for adding new tags."""
     return (
         rx.dialog.root(
@@ -251,7 +251,7 @@ def add_exercise_button() -> rx.Component:
                 enter_key_submit=True,
             ),
             # add new tag
-            tag_dialog(),
+            new_tag_dialog(),
         ),
         open=ManageExercisesState.add_exercise_dialog_is_open,
         on_open_change=ManageExercisesState.set_add_exercise_dialog_is_open,  # type: ignore
@@ -307,81 +307,16 @@ def edit_exercise_button(exercise: Exercise):
                 enter_key_submit=True,
             ),
             # add new tag
-            tag_dialog(),
+            new_tag_dialog(),
         ),
         open=ManageExercisesState.edit_exercise_dialog_is_open,
         on_open_change=ManageExercisesState.set_edit_exercise_dialog_is_open,  # type: ignore
     )
 
 
-def add_edit_exercise_form(mode: Mode) -> rx.Component:
-    """Button for adding or editing exercises."""
+def pdf_upload() -> rx.Component:
+    """Upload area for lesson material in PDF format."""
     return (
-        # title
-        rx.text(
-            "Title: ",
-            size="3",
-            weight="medium",
-            text_align="left",
-            width="100%",
-            padding_bottom="0.5em",
-        ),
-        rx.input(
-            default_value=rx.cond(
-                mode == Mode.EDIT,
-                ManageExercisesState.current_exercise.title,
-                "",
-            ),
-            placeholder="Exercise title",
-            size="3",
-            width="100%",
-            type="text",
-            name="title",
-        ),
-        # description
-        rx.text(
-            "Description: ",
-            size="3",
-            weight="medium",
-            text_align="left",
-            width="100%",
-            padding_top="1.5em",
-            padding_bottom="0.5em",
-        ),
-        rx.text_area(
-            rx.cond(
-                mode == Mode.EDIT,
-                ManageExercisesState.current_exercise.description,
-                "",
-            ),
-            placeholder="Describe the task here",
-            size="3",
-            width="100%",
-            height="150px",
-            type="text",
-            name="description",
-        ),
-        # lesson context
-        rx.text(
-            "Lesson Context: ",
-            size="3",
-            weight="medium",
-            text_align="left",
-            width="100%",
-            padding_top="1.5em",
-            padding_bottom="0.5em",
-        ),
-        rx.text_area(
-            placeholder="Add lesson context here",
-            value=ManageExercisesState.lesson_context,
-            on_change=ManageExercisesState.set_lesson_context,  # type: ignore
-            size="3",
-            width="100%",
-            height="200px",
-            type="text",
-            name="lesson_context",
-        ),
-        # lesson file upload area
         rx.text(
             "Add lesson material (PDF): ",
             size="3",
@@ -437,7 +372,12 @@ def add_edit_exercise_form(mode: Mode) -> rx.Component:
                 ),
             ),
         ),
-        # prompt
+    )
+
+
+def select_prompt(mode: Mode) -> rx.Component:
+    """The prompt selection component."""
+    return (
         rx.text(
             "Prompt: ",
             size="3",
@@ -497,6 +437,12 @@ def add_edit_exercise_form(mode: Mode) -> rx.Component:
             # center horizontally
             align_items="center",
         ),
+    )  # type: ignore
+
+
+def tag_management() -> rx.Component:
+    """Tag selection component"""
+    return (
         rx.text(
             "Tags: ",
             size="3",
@@ -573,6 +519,82 @@ def add_edit_exercise_form(mode: Mode) -> rx.Component:
                 margin_bottom="0.5em",
             ),
         ),
+    )
+
+
+def add_edit_exercise_form(mode: Mode) -> rx.Component:
+    """Button for adding or editing exercises."""
+    return (
+        # title
+        rx.text(
+            "Title: ",
+            size="3",
+            weight="medium",
+            text_align="left",
+            width="100%",
+            padding_bottom="0.5em",
+        ),
+        rx.input(
+            default_value=rx.cond(
+                mode == Mode.EDIT,
+                ManageExercisesState.current_exercise.title,
+                "",
+            ),
+            placeholder="Exercise title",
+            size="3",
+            width="100%",
+            type="text",
+            name="title",
+        ),
+        # description
+        rx.text(
+            "Description: ",
+            size="3",
+            weight="medium",
+            text_align="left",
+            width="100%",
+            padding_top="1.5em",
+            padding_bottom="0.5em",
+        ),
+        rx.text_area(
+            rx.cond(
+                mode == Mode.EDIT,
+                ManageExercisesState.current_exercise.description,
+                "",
+            ),
+            placeholder="Describe the task here",
+            size="3",
+            width="100%",
+            height="150px",
+            type="text",
+            name="description",
+        ),
+        # lesson context
+        rx.text(
+            "Lesson Context: ",
+            size="3",
+            weight="medium",
+            text_align="left",
+            width="100%",
+            padding_top="1.5em",
+            padding_bottom="0.5em",
+        ),
+        rx.text_area(
+            placeholder="Add lesson context here",
+            value=ManageExercisesState.lesson_context,
+            on_change=ManageExercisesState.set_lesson_context,  # type: ignore
+            size="3",
+            width="100%",
+            height="200px",
+            type="text",
+            name="lesson_context",
+        ),
+        # lesson file upload area
+        pdf_upload(),
+        # prompt
+        select_prompt(mode),
+        # tags
+        tag_management(),
         rx.hstack(
             rx.dialog.close(
                 rx.button(
