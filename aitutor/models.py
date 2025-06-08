@@ -7,31 +7,28 @@ from typing import Any, Dict, Optional, List
 from datetime import datetime
 
 
-class Tag(rx.Model, table=True):  # type: ignore
+class Tag(rx.Model, table=True):
     """Tag model for storing allowed tags."""
 
-    id: Optional[int] = Field(default=None, primary_key=True)  # Automatische ID
-    name: str = Field(unique=True, nullable=False, index=True)  # Tag-Name, einzigartig
+    id: Optional[int] = Field(default=None, primary_key=True)
+    name: str = Field(unique=True, nullable=False, index=True)
 
     def __repr__(self):
         return f"<Tag(name='{self.name}')>"
 
 
-class Exercise(rx.Model, table=True):  # type: ignore
+class Exercise(rx.Model, table=True):
     """Exercise model for storing exercises."""
 
     id: Optional[int] = Field(default=None, primary_key=True)
-    title: str = Field(nullable=False)
-    description: Optional[str] = Field(default=None)
-    lesson_context: str = Field(default=None)
+    title: str = Field(nullable=False, default="")
+    description: str = Field(nullable=False, default="")
+    lesson_context: str = Field(nullable=False, default="")
     prompt_name: str = Field(nullable=False, default="")
     prompt: str = Field(nullable=False, default="")
-    tags: List[str] = Field(
-        sa_column=Column(JSON), default=[]
-    )  # Liste der Tags als JSON
-    image: Optional[str] = Field(default=None)
+    tags: List[str] = Field(sa_column=Column(JSON), default=[])
 
-    # Connects to ExerciseResult.exercise
+    # ORM relationship
     submissions: List["ExerciseResult"] = Relationship(
         back_populates="exercise", cascade_delete=True
     )
@@ -40,7 +37,7 @@ class Exercise(rx.Model, table=True):  # type: ignore
         return f"<Exercise(id={self.id}, title='{self.title}')>"
 
 
-class ExerciseResult(rx.Model, table=True):  # type: ignore
+class ExerciseResult(rx.Model, table=True):
     """
     ExerciseResult model for storing conversation and result of an exercise and a user.
     """
@@ -57,11 +54,12 @@ class ExerciseResult(rx.Model, table=True):  # type: ignore
         )
     )
 
-    # Connects to Exercise.submissions
+    # database relationships
     exercise_id: int = Field(foreign_key="exercise.id", ondelete="CASCADE")
-    exercise: "Exercise" = Relationship(back_populates="submissions")
-
     userinfo_id: int = Field(foreign_key="userinfo.id", ondelete="CASCADE")
+
+    # ORM relationships
+    exercise: "Exercise" = Relationship(back_populates="submissions")
     user: "UserInfo" = Relationship(back_populates="exercise_results")
 
     def __repr__(self):
@@ -90,6 +88,8 @@ class UserInfo(rx.Model, table=True):
     email: str
     role: UserRole
     user_id: int = Field(foreign_key="localuser.id", ondelete="CASCADE")
+
+    # ORM relationship
     exercise_results: List["ExerciseResult"] = Relationship(
         back_populates="user", cascade_delete=True
     )

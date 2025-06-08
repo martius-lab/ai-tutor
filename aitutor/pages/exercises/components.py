@@ -16,14 +16,11 @@ def render_exercise_card(exercise_with_res: ExerciseWithResult) -> rx.Component:
         rx.hstack(
             rx.vstack(
                 rx.heading(exercise.title, size="6"),  # display title
-                rx.cond(  # display description if it exists
-                    exercise.description is not None,
-                    rx.hstack(
-                        rx.text("Description:", weight="bold", size="2"),
-                        rx.text(exercise.description, color="gray", size="2"),
-                        align_items="center",
-                        align="center",
-                    ),
+                rx.hstack(
+                    rx.text("Description:", weight="bold", size="2"),
+                    rx.text(exercise.description, color="gray", size="2"),
+                    align_items="center",
+                    align="center",
                 ),
                 rx.cond(  # display tags if they exist
                     ExercisesState.has_tags,
@@ -38,15 +35,6 @@ def render_exercise_card(exercise_with_res: ExerciseWithResult) -> rx.Component:
                             ),
                             spacing="2",
                         ),
-                    ),
-                ),
-                rx.cond(  # display image if it exists
-                    exercise.image is not None,
-                    rx.image(
-                        src=exercise.image,
-                        width="200px",
-                        height="auto",
-                        border_radius="md",
                     ),
                 ),
                 rx.cond(
