@@ -17,20 +17,25 @@ password = "1234"
 email = "student@mail.de"
 
 [[exercise_prompts]]
-name = "prompt 1"
+name = "learningAssistantPrompt"
 prompt = """
-You will act as a learning assistant. The university student is given this exercise-title: - {title} -
-and this task-description: - {description} -
-This extracted-pdf was uploaded by the teacher as a theoretical basis for this exercise: - {lesson_context} -
-Analyze the answers of the student and give feedback.
+You will act as a learning assistant. The university student is given this exercise-title: "{title}"
+and this exercise: "{description}"
+This is the lesson context uploaded by the teacher as a theoretical basis for this exercise: 
+
+--------------------------
+{lesson_context}
+--------------------------
+
+The user is a student who has to complete the exercise.
+The student will answer the exercise in a conversation with you.
+If the student answered the task "{description}" incorrectly, you can give him a hint to help him find the solution.
+If the student answered the task "{description}" correctly, you will tell him that he is correct and the task is finished.
 """
 
 [check_conversation_prompt]
 prompt = """
-"Please check if the answers of the user are serious and if the user answered the original question correctly.
-If the user answered the question too short and with too little detail, please ask him to elaborate.
-Respond with an explaination of your reasoning.
-Your explanation should be in the same language as the user and your explanation should not include any solutions. 
-In your explanation you can give hints what is missing in the answer of the user.
-If the user did not answer at all, please say that he did not answer.
+Check if the answers of the student answered the exercise correctly.
+If the student did not answer correctly, respond with what the errors are but do not give the solution.
+If the student answered correctly, you can write on sentence that the student answered correctly and the task is finished.
 """
