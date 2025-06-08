@@ -1,9 +1,10 @@
 """This module contains the home page and related components."""
 
 import reflex as rx
+
+import aitutor.routes as routes
 from aitutor.pages.navbar import with_navbar
 from aitutor.auth.state import SessionState
-import aitutor.routes as routes
 
 
 @rx.page(route=routes.HOME, title="Home")

@@ -1,5 +1,5 @@
 from aitutor.pages.chat.page import chat_page
-from aitutor.pages.home import home_page
+from aitutor.pages.home.page import home_page
 from aitutor.pages.manage_excercises import manage_exercises_page
 from aitutor.pages.exercises.page import exercises_page
 from aitutor.pages.navbar import navbar
