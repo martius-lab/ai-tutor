@@ -8,7 +8,7 @@ import aitutor.routes as routes
 
 @rx.page(route=routes.HOME, title="Home")
 @with_navbar
-def home_default() -> rx.Component:
+def home_page() -> rx.Component:
     """Render the homepage with navbar."""
     username = SessionState.authenticated_user.username
     return rx.container(

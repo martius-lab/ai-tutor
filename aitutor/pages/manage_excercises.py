@@ -1144,7 +1144,7 @@ def exercise_table():
 
 @with_navbar
 @require_role_at_least(UserRole.ADMIN)
-def manage_exercises_default() -> rx.Component:
+def manage_exercises_page() -> rx.Component:
     """Manage exercises page."""
     return rx.center(
         rx.vstack(

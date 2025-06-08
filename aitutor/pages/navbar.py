@@ -171,7 +171,7 @@ def profile_menu() -> rx.Component:
     )
 
 
-def navbar_default() -> rx.Component:
+def navbar() -> rx.Component:
     """
     Creates the default navigation bar component for the application.
 
@@ -267,5 +267,5 @@ def with_navbar(
         A callable that returns a Reflex component with the navigation bar.
     """
     return lambda: rx.vstack(
-        navbar_default(), component_factory(), spacing="0", padding="0", align="center"
+        navbar(), component_factory(), spacing="0", padding="0", align="center"
     )

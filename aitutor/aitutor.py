@@ -19,23 +19,23 @@ import aitutor.routes as routes
 # info: add dynamic routes first
 app = rx.App()
 app.add_page(
-    pages.chat_default,
+    pages.chat_page,
     route=routes.CHAT + "/[exercise_id]",
     on_load=ChatState.load_exercise,
 )
 app.add_page(
-    pages.finished_view_default,
+    pages.finished_view_page,
     route=routes.FINISHED_VIEW + "/[exercise_id]",
     on_load=FinishedViewState.load_finished_exercise,
 )
-app.add_page(pages.home_default, route=routes.HOME)
+app.add_page(pages.home_page, route=routes.HOME)
 app.add_page(
-    pages.manage_exercises_default,
+    pages.manage_exercises_page,
     route=routes.MANAGE_EXERCISES,
     on_load=ManageExercisesState.initialize,
 )
 app.add_page(
-    pages.exercises_default,
+    pages.exercises_page,
     route=routes.EXERCISES,
     on_load=ExercisesState.fetch_exercises,
 )
@@ -50,7 +50,7 @@ app.add_page(
     route=routes.REGISTER,
     title="Register",
 )
-app.add_page(pages.not_found, route=routes.NOT_FOUND)
+app.add_page(pages.not_found_page, route=routes.NOT_FOUND)
 
 
 async def initialize():

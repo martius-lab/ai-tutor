@@ -167,6 +167,6 @@ def exercises() -> rx.Component:
 
 @with_navbar
 @require_role_at_least(UserRole.STUDENT)
-def exercises_default() -> rx.Component:
+def exercises_page() -> rx.Component:
     """Default wrapper for exercises page"""
     return exercises()
