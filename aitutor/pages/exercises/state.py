@@ -20,20 +20,6 @@ class ExercisesState(SessionState):
     has_tags: bool = False
     exercises_with_result: list[ExerciseWithResult] = []
 
-    @rx.event
-    def fetch_exercises(self):
-        """
-        Fetch exercises from database
-        """
-        with rx.session() as session:
-            stmt = select(Exercise, ExerciseResult).join(ExerciseResult, isouter=True)
-            exercises_with_result = session.exec(stmt).all()
-            self.has_exercises = len(exercises_with_result) > 0
-            self.has_tags = any(
-                len(exercise.tags) > 0 for exercise, _ in exercises_with_result
-            )
-            self.exercises_with_result = [(x[0], x[1]) for x in exercises_with_result]
-
     @rx.var
     def submit_time_stamps(self) -> dict[int, str]:
         """
@@ -50,3 +36,17 @@ class ExercisesState(SessionState):
             for exercise_with_res in self.exercises_with_result
             if exercise_with_res[0].id is not None
         }
+
+    @rx.event
+    def fetch_exercises(self):
+        """
+        Fetch exercises from database
+        """
+        with rx.session() as session:
+            stmt = select(Exercise, ExerciseResult).join(ExerciseResult, isouter=True)
+            exercises_with_result = session.exec(stmt).all()
+            self.has_exercises = len(exercises_with_result) > 0
+            self.has_tags = any(
+                len(exercise.tags) > 0 for exercise, _ in exercises_with_result
+            )
+            self.exercises_with_result = [(x[0], x[1]) for x in exercises_with_result]
