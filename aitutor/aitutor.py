@@ -9,33 +9,33 @@ import reflex as rx
 from aitutor import pages
 from aitutor.auth.pages import custom_login_page, custom_register_page
 from aitutor.config import load_config
-from aitutor.pages.add_excercises import AddExerciseState
-from aitutor.pages.exercises import ExercisesState
-from aitutor.pages.chat import ChatState
-from aitutor.pages.finished_view import FinishedViewState
+from aitutor.pages.manage_exercises.state import ManageExercisesState
+from aitutor.pages.exercises.state import ExercisesState
+from aitutor.pages.chat.state import ChatState
+from aitutor.pages.finished_view.state import FinishedViewState
 from aitutor.utilities.create_default_users import create_default_users
 import aitutor.routes as routes
 
 # info: add dynamic routes first
 app = rx.App()
 app.add_page(
-    pages.chat_default,
+    pages.chat_page,
     route=routes.CHAT + "/[exercise_id]",
     on_load=ChatState.load_exercise,
 )
 app.add_page(
-    pages.finished_view_default,
+    pages.finished_view_page,
     route=routes.FINISHED_VIEW + "/[exercise_id]",
     on_load=FinishedViewState.load_finished_exercise,
 )
-app.add_page(pages.home_default, route=routes.HOME)
+app.add_page(pages.home_page, route=routes.HOME)
 app.add_page(
-    pages.add_exercises_default,
-    route=routes.ADD_EXERCISE,
-    on_load=AddExerciseState.initialize,
+    pages.manage_exercises_page,
+    route=routes.MANAGE_EXERCISES,
+    on_load=ManageExercisesState.initialize,
 )
 app.add_page(
-    pages.exercises_default,
+    pages.exercises_page,
     route=routes.EXERCISES,
     on_load=ExercisesState.fetch_exercises,
 )
@@ -50,7 +50,7 @@ app.add_page(
     route=routes.REGISTER,
     title="Register",
 )
-app.add_page(pages.not_found, route=routes.NOT_FOUND)
+app.add_page(pages.not_found_page, route=routes.NOT_FOUND)
 
 
 async def initialize():
