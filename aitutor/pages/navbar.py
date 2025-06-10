@@ -3,29 +3,25 @@ This module defines the navbar components for the Reflex application.
 """
 
 import reflex as rx
+
 from aitutor.auth.state import SessionState
 from aitutor.models import UserRole
 import aitutor.routes as routes
-
-links = [
-    ("Home", routes.HOME),
-    ("Exercises", routes.EXERCISES),
-    ("Manage Exercises", routes.MANAGE_EXERCISES),
-]
+from aitutor.utilities.role_check import has_role_at_least
 
 
 def navbar_link(text: str, url: str) -> rx.Component:
     """
     Creates a navigation link component.
-
-    Args:
-        text (str): The text to display for the link.
-        url (str): The URL the link points to.
-
-    Returns:
-        rx.Component: A Reflex link component.
     """
     return rx.link(rx.text(text, size="4", weight="medium"), href=url)
+
+
+links = [
+    ("Home", routes.HOME),
+    ("Exercises", routes.EXERCISES),
+]
+MANAGE_EXERCISES_LINK = navbar_link("Manage Exercises", routes.MANAGE_EXERCISES)
 
 
 def get_user_icon():
@@ -195,6 +191,10 @@ def navbar() -> rx.Component:
                 ),
                 rx.hstack(
                     *[navbar_link(text, url) for text, url in links],
+                    rx.cond(
+                        has_role_at_least(role=UserRole.ADMIN),
+                        MANAGE_EXERCISES_LINK,
+                    ),
                     spacing="5",
                 ),
                 rx.hstack(
