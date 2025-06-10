@@ -1,17 +1,17 @@
-from aitutor.pages.chat import chat_default
-from aitutor.pages.home import home_default
-from aitutor.pages.add_excercises import add_exercises_default
-from aitutor.pages.exercises import exercises_default
-from aitutor.pages.navbar import navbar_default
-from aitutor.pages.not_found import not_found
-from aitutor.pages.finished_view import finished_view_default
+from aitutor.pages.chat.page import chat_page
+from aitutor.pages.exercises.page import exercises_page
+from aitutor.pages.finished_view.page import finished_view_page
+from aitutor.pages.home.page import home_page
+from aitutor.pages.manage_exercises.page import manage_exercises_page
+from aitutor.pages.not_found.page import not_found_page
+from aitutor.pages.navbar import navbar
 
 __all__ = [
-    "chat_default",
-    "home_default",
-    "add_exercises_default",
-    "exercises_default",
-    "navbar_default",
-    "not_found",
-    "finished_view_default",
+    "chat_page",
+    "home_page",
+    "manage_exercises_page",
+    "exercises_page",
+    "navbar",
+    "not_found_page",
+    "finished_view_page",
 ]
