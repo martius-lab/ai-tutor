@@ -1,0 +1,50 @@
+# Base compose file production deployment of reflex app with Caddy webserver
+# providing TLS termination and reverse proxying.
+#
+# See `compose.prod.yaml` for more robust and performant deployment option.
+#
+# During build and run, set environment DOMAIN pointing
+# to publicly accessible domain where app will be hosted
+services:
+  app:
+    image: local/ai-tutor-app
+    environment:
+      DB_URL: sqlite:///data/reflex.db
+    build:
+      context: .
+    volumes:
+      - db-data:/app/data
+      - upload-data:/app/uploaded_files
+      # mount config files, so we can change config without rebuilding the container
+      - ./config.toml:/app/config.toml
+      - ./.env:/app/.env
+    restart: always
+
+  webserver:
+    environment:
+      DOMAIN: ${DOMAIN:-localhost}
+      # Those data and config folders are already set in the container by default but
+      # better let's be explicit, in case the defaults change.
+      XDG_DATA_HOME: /data
+      XDG_CONFIG_HOME: /config
+    ports:
+      - 443:443
+      - 80:80 # For acme-challenge via HTTP.
+    build:
+      context: .
+      dockerfile: Caddy.Dockerfile
+    volumes:
+      - caddy-data:/data/caddy
+      - caddy-config:/config/caddy
+    restart: always
+    depends_on:
+      - app
+
+volumes:
+  # SQLite data
+  db-data:
+  # Uploaded files
+  upload-data:
+  # TLS keys and certificates
+  caddy-data:
+  caddy-config:
