@@ -1,0 +1,17 @@
+*~
+.venv
+.*cache
+.web
+*.db
+.env
+config.toml
+
+.git
+.jj
+__pycache__/*
+
+Dockerfile
+Caddy.Dockerfile
+compose.yaml
+compose.*.yaml
+uploaded_files
