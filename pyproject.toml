@@ -23,6 +23,7 @@ dependencies = [
     "bcrypt",
     "reflex-local-auth>=0.3.0",
     "variconf[toml]>=1.0.1",
+    "psycopg[binary]>=3.2",
 ]
 
 [dependency-groups]
