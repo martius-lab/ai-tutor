@@ -7,7 +7,7 @@ import reflex as rx
 from aitutor.auth.state import SessionState
 from aitutor.models import UserRole
 import aitutor.routes as routes
-from aitutor.utilities.role_check import has_role_at_least
+from aitutor.auth.protection import has_role_at_least
 
 
 def navbar_link(text: str, url: str) -> rx.Component:
