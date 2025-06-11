@@ -8,6 +8,14 @@ from aitutor.auth.state import SessionState
 from aitutor.models import UserRole
 
 
+def has_role_at_least(role):
+    """
+    Check if the user has the required role to access a specific feature.
+    """
+    user_role = SessionState.user_role
+    return user_role is not None and user_role >= role
+
+
 def require_role_at_least(role: UserRole):
     """
     Decorator to restrict access to a page based on the user's role.
