@@ -27,7 +27,7 @@ class FinishedViewState(SessionState):
         """Loads the finished exercise."""
         with rx.session() as session:
             exercise = session.exec(
-                Exercise.select().where(Exercise.id == self.exercise_id)
+                Exercise.select().where(Exercise.id == int(self.exercise_id))
             ).one_or_none()
             if exercise:
                 self.current_exercise = exercise
