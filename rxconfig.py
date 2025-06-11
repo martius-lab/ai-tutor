@@ -15,4 +15,5 @@ config = rx.Config(
         "__pycache__/*",
     ],
     telemetry_enabled=False,
+    show_built_with_reflex=False,
 )
