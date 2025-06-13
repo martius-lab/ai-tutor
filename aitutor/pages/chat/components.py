@@ -17,35 +17,31 @@ def message_box(chat_message: ChatMessage) -> rx.Component:
         "yellow",
     )
     return rx.box(
-        rx.box(
-            rx.markdown(
-                chat_message.message,
-                background_color=rx.cond(
-                    chat_message.is_check_result,
-                    rx.color(check_result_color, 4),
-                    rx.cond(
-                        chat_message.is_llm, rx.color("mauve", 4), rx.color("iris", 4)
-                    ),
-                ),
-                color=rx.cond(
-                    chat_message.is_check_result,
-                    rx.color(check_result_color, 12),
-                    rx.cond(
-                        chat_message.is_llm, rx.color("mauve", 12), rx.color("iris", 12)
-                    ),
-                ),
-                display="inline-block",
-                padding="1em",
-                border_radius="8px",
-                max_width=["30em", "30em", "50em", "50em", "50em", "50em"],
-            ),
-            text_align=rx.cond(
+        rx.markdown(
+            chat_message.message,
+            background_color=rx.cond(
                 chat_message.is_check_result,
-                "left",
-                rx.cond(chat_message.is_llm, "left", "right"),
+                rx.color(check_result_color, 4),
+                rx.cond(chat_message.is_llm, rx.color("mauve", 4), rx.color("iris", 4)),
             ),
-            margin_top="1em",
+            color=rx.cond(
+                chat_message.is_check_result,
+                rx.color(check_result_color, 12),
+                rx.cond(
+                    chat_message.is_llm, rx.color("mauve", 12), rx.color("iris", 12)
+                ),
+            ),
+            display="inline-block",
+            padding="1em",
+            border_radius="8px",
+            max_width=["30em", "30em", "50em", "50em", "50em", "50em"],
         ),
+        text_align=rx.cond(
+            chat_message.is_check_result,
+            "left",
+            rx.cond(chat_message.is_llm, "left", "right"),
+        ),
+        margin_top="1em",
         width="100%",
     )
 
