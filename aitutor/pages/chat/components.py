@@ -56,15 +56,18 @@ def show_messages() -> rx.Component:
             rx.foreach(
                 ChatState.messages,
                 lambda msg, msg_i: rx.fragment(
-                    message_box(msg),
-                    rx.cond(
-                        msg_i == last_user_msg_i,
-                        rx.box(
-                            edit_last_message_button(),
-                            text_align="right",
-                            width="100%",
-                            margin_top="0.5em",
+                    rx.vstack(
+                        message_box(msg),
+                        rx.cond(
+                            msg_i == last_user_msg_i,
+                            rx.box(
+                                edit_last_message_button(),
+                                text_align="right",
+                                width="100%",
+                                margin_top="0.5em",
+                            ),
                         ),
+                        spacing="0",
                     ),
                 ),
             ),
@@ -112,28 +115,55 @@ def edit_last_message_button() -> rx.Component:
     """
     Render the button to delete the last message.
     """
-    return rx.button(
-        rx.hstack(
-            rx.icon("trash", size=20),
-            rx.text("+", size="4"),
-            rx.icon("pencil", size=20),
-            spacing="1",
-            align="center",
-            justify="center",
+    return rx.alert_dialog.root(
+        rx.alert_dialog.trigger(
+            rx.button(
+                rx.hstack(
+                    rx.icon("trash", size=20),
+                    rx.text("+", size="4"),
+                    rx.icon("pencil", size=20),
+                    spacing="1",
+                    align="center",
+                    justify="center",
+                ),
+                color_scheme="iris",
+                _hover=rx.cond(
+                    ChatState.waiting_for_response,
+                    {"cursor": "not-allowed"},
+                    {"cursor": "pointer"},
+                ),
+                disabled=rx.cond(
+                    ChatState.waiting_for_response,
+                    True,
+                    False,
+                ),
+                type="button",
+            ),
         ),
-        color_scheme="iris",
-        on_click=ChatState.edit_last_message,
-        _hover=rx.cond(
-            ChatState.waiting_for_response,
-            {"cursor": "not-allowed"},
-            {"cursor": "pointer"},
+        rx.alert_dialog.content(
+            rx.alert_dialog.title("Edit Last Message"),
+            rx.alert_dialog.description(
+                "Do you want to delete this message and move it to the input field?"
+            ),
+            rx.hstack(
+                rx.alert_dialog.cancel(
+                    rx.button(
+                        "No",
+                        color_scheme="red",
+                        _hover={"cursor": "pointer"},
+                    ),
+                ),
+                rx.alert_dialog.action(
+                    rx.button(
+                        "Yes",
+                        color_scheme="iris",
+                        on_click=ChatState.edit_last_message,
+                        _hover={"cursor": "pointer"},
+                    ),
+                ),
+                margin_top="1em",
+            ),
         ),
-        disabled=rx.cond(
-            ChatState.waiting_for_response,
-            True,
-            False,
-        ),
-        type="button",
     )
 
 
