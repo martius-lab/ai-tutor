@@ -21,6 +21,7 @@ links = [
     ("Home", routes.HOME),
     ("Exercises", routes.EXERCISES),
 ]
+MANAGE_EXERCISES = ("Manage Exercises", routes.MANAGE_EXERCISES)
 MANAGE_EXERCISES_LINK = navbar_link("Manage Exercises", routes.MANAGE_EXERCISES)
 
 
@@ -234,7 +235,15 @@ def navbar() -> rx.Component:
                                     _hover={"cursor": "pointer"},
                                 )
                                 for text, url in links
-                            ]
+                            ],
+                            rx.cond(
+                                has_role_at_least(role=UserRole.ADMIN),
+                                rx.menu.item(
+                                    MANAGE_EXERCISES[0],
+                                    on_click=lambda: rx.redirect(MANAGE_EXERCISES[1]),
+                                    _hover={"cursor": "pointer"},
+                                ),
+                            ),
                         ),
                     ),
                     profile_menu(),
