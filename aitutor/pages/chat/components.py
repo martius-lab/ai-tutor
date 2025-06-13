@@ -192,7 +192,8 @@ def reset_conversation_button() -> rx.Component:
         rx.alert_dialog.root(
             rx.alert_dialog.trigger(
                 rx.button(
-                    "Reset Conversation",
+                    rx.desktop_only("Reset Conversation"),
+                    rx.mobile_and_tablet("Reset"),
                     color_scheme="red",
                     _hover=rx.cond(
                         ChatState.messages.length() < 2,  # type: ignore
@@ -255,7 +256,8 @@ def check_conversation_button() -> rx.Component:
         rx.cond(
             ChatState.check_is_loading,
             rx.button(
-                "Check Conversation",
+                rx.desktop_only("Check Conversation"),
+                rx.mobile_and_tablet("Check"),
                 color_scheme="yellow",
                 type="button",
                 _hover={"cursor": "not-allowed"},
@@ -264,7 +266,8 @@ def check_conversation_button() -> rx.Component:
             rx.alert_dialog.root(
                 rx.alert_dialog.trigger(
                     rx.button(
-                        "Check Conversation",
+                        rx.desktop_only("Check Conversation"),
+                        rx.mobile_and_tablet("Check"),
                         color_scheme="yellow",
                         type="button",
                         _hover=rx.cond(
