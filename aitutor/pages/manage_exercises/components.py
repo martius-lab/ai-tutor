@@ -210,7 +210,7 @@ def add_exercise_button() -> rx.Component:
         rx.dialog.trigger(
             rx.button(
                 rx.icon("file-plus", size=26),
-                rx.text("Add Exercise", size="4"),
+                rx.tablet_and_desktop(rx.text("Add Exercise", size="4")),
                 size="3",
                 _hover={"cursor": "pointer"},
                 on_click=ManageExercisesState.reset_exercise_form,
