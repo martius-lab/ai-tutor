@@ -50,11 +50,23 @@ def show_messages() -> rx.Component:
     """
     Displays the chat with all the messages
     """
+    last_user_msg_i = ChatState.last_user_message_index
     return (
         rx.auto_scroll(
             rx.foreach(
                 ChatState.messages,
-                message_box,
+                lambda msg, msg_i: rx.fragment(
+                    message_box(msg),
+                    rx.cond(
+                        msg_i == last_user_msg_i,
+                        rx.box(
+                            edit_last_message_button(),
+                            text_align="right",
+                            width="100%",
+                            margin_top="0.5em",
+                        ),
+                    ),
+                ),
             ),
             scroll_to_bottom_on_update=True,
             width="100%",
@@ -85,7 +97,6 @@ def chat_form() -> rx.Component:
                 rx.hstack(
                     reset_conversation_button(),
                     check_conversation_button(),
-                    edit_last_message_button(),
                 ),
                 send_message_button(),
                 width="100%",
@@ -104,20 +115,21 @@ def edit_last_message_button() -> rx.Component:
     return rx.button(
         rx.hstack(
             rx.icon("trash", size=20),
-            rx.text("+", size="5"),
+            rx.text("+", size="4"),
             rx.icon("pencil", size=20),
+            spacing="1",
             align="center",
             justify="center",
         ),
         color_scheme="iris",
         on_click=ChatState.edit_last_message,
         _hover=rx.cond(
-            ChatState.messages.length() < 2,  # type: ignore
+            ChatState.waiting_for_response,
             {"cursor": "not-allowed"},
             {"cursor": "pointer"},
         ),
         disabled=rx.cond(
-            ChatState.messages.length() < 2,  # type: ignore
+            ChatState.waiting_for_response,
             True,
             False,
         ),
