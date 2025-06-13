@@ -6,7 +6,7 @@ from aitutor.models import UserRole
 from aitutor.pages.finished_view.state import FinishedViewState
 from aitutor.pages.navbar import with_navbar
 from aitutor.auth.protection import require_role_at_least
-from aitutor.pages.chat.page import message_box
+from aitutor.pages.chat.components import message_box
 from aitutor.pages.finished_view.components import delete_submission_button
 
 

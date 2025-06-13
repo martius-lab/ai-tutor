@@ -50,6 +50,24 @@ def message_box(chat_message: ChatMessage) -> rx.Component:
     )
 
 
+def show_messages() -> rx.Component:
+    """
+    Displays the chat with all the messages
+    """
+    return (
+        rx.auto_scroll(
+            rx.foreach(
+                ChatState.messages,
+                message_box,
+            ),
+            scroll_to_bottom_on_update=True,
+            width="100%",
+            flex="1",
+            padding_right="8px",
+        ),
+    )  # type: ignore
+
+
 def chat_form() -> rx.Component:
     """
     Render the chat form for user input. Includes button to send Reply and button to
@@ -60,6 +78,8 @@ def chat_form() -> rx.Component:
             rx.text_area(
                 name="user_response",
                 placeholder="Your Answer",
+                value=ChatState.user_input,
+                on_change=ChatState.set_user_input,  # type: ignore (reflex has default setters)
                 required=True,
                 width="100%",
                 color_scheme="iris",
@@ -69,6 +89,7 @@ def chat_form() -> rx.Component:
                 rx.hstack(
                     reset_conversation_button(),
                     check_conversation_button(),
+                    edit_last_message_button(),
                 ),
                 send_message_button(),
                 width="100%",
@@ -77,6 +98,34 @@ def chat_form() -> rx.Component:
         ),
         on_submit=ChatState.send_message,
         reset_on_submit=True,
+    )
+
+
+def edit_last_message_button() -> rx.Component:
+    """
+    Render the button to delete the last message.
+    """
+    return rx.button(
+        rx.hstack(
+            rx.icon("trash", size=20),
+            rx.text("+", size="5"),
+            rx.icon("pencil", size=20),
+            align="center",
+            justify="center",
+        ),
+        color_scheme="iris",
+        on_click=ChatState.edit_last_message,
+        _hover=rx.cond(
+            ChatState.messages.length() < 2,  # type: ignore
+            {"cursor": "not-allowed"},
+            {"cursor": "pointer"},
+        ),
+        disabled=rx.cond(
+            ChatState.messages.length() < 2,  # type: ignore
+            True,
+            False,
+        ),
+        type="button",
     )
 
 

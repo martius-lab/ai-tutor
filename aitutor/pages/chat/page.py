@@ -7,7 +7,7 @@ from aitutor.models import UserRole
 from aitutor.pages.chat.state import ChatState
 from aitutor.pages.navbar import with_navbar
 from aitutor.auth.protection import require_role_at_least
-from aitutor.pages.chat.components import message_box, chat_form, show_exercise_status
+from aitutor.pages.chat.components import show_messages, chat_form, show_exercise_status
 
 
 @with_navbar
@@ -36,16 +36,7 @@ def chat_page() -> rx.Component:
                     justify="between",
                     width="100%",
                 ),
-                rx.auto_scroll(
-                    rx.foreach(
-                        ChatState.messages,
-                        message_box,
-                    ),
-                    scroll_to_bottom_on_update=True,
-                    width="100%",
-                    flex="1",
-                    padding_right="8px",
-                ),
+                show_messages(),
                 chat_form(),
                 spacing="5",
                 justify="start",

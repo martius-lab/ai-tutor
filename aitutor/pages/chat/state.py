@@ -121,6 +121,7 @@ class ChatState(SessionState):
     check_passed: bool = False
     conversation_is_submitted: bool = False
     submit_time_stamp: str = ""
+    user_input: str = ""
 
     @rx.var
     def finished_view_url(self) -> str:
@@ -173,6 +174,24 @@ class ChatState(SessionState):
         yield
 
     @rx.event
+    def edit_last_message(self):
+        """
+        Deletes the last user message in the chat and every message after it.
+        And copys the last user message to the input field.
+        """
+        # state changes
+        for i in reversed(range(len(self.messages))):
+            msg = self.messages[i]
+            if not msg.is_llm and not msg.is_check_result:
+                self.user_input = msg.message
+                del self.messages[i:]
+                break
+        self.check_passed = False
+
+        # update db
+        self.save_conversation_to_db(conversation=self.get_messages_dict_gpt())
+
+    @rx.event
     def reset_conversation(self):
         """Resets conversation for current exercise."""
         # delete conversation from database
@@ -201,6 +220,7 @@ class ChatState(SessionState):
         # Only reset the conversation if there are messages beyond the initial message
         # by ChatGPT.
         self.check_passed = False
+        self.user_input = ""
         if len(self.messages) > 1:
             self.messages = []
             if self.current_exercise:
@@ -215,6 +235,7 @@ class ChatState(SessionState):
         if user_message:
             self.append_chat_message(message=user_message, is_llm=False)
             self.waiting_for_response = True
+            self.user_input = ""
             yield
             # Takes list of ChatMessage and turns into a list of dictionaries, so
             # the OpenAI API can handle the messages.
