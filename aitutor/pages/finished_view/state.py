@@ -23,7 +23,7 @@ class FinishedViewState(SessionState):
         return routes.CHAT + "/" + str(self.router.page.params.get("exercise_id", 0))
 
     @rx.event
-    def load_finished_exercise(self):
+    def on_load(self):
         """Loads the finished exercise."""
         with rx.session() as session:
             exercise = session.exec(

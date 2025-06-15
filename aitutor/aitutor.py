@@ -21,23 +21,23 @@ app = rx.App()
 app.add_page(
     pages.chat_page,
     route=routes.CHAT + "/[exercise_id]",
-    on_load=ChatState.load_exercise,
+    on_load=ChatState.on_load,
 )
 app.add_page(
     pages.finished_view_page,
     route=routes.FINISHED_VIEW + "/[exercise_id]",
-    on_load=FinishedViewState.load_finished_exercise,
+    on_load=FinishedViewState.on_load,
 )
 app.add_page(pages.home_page, route=routes.HOME)
 app.add_page(
     pages.manage_exercises_page,
     route=routes.MANAGE_EXERCISES,
-    on_load=ManageExercisesState.initialize,
+    on_load=ManageExercisesState.on_load,
 )
 app.add_page(
     pages.exercises_page,
     route=routes.EXERCISES,
-    on_load=ExercisesState.fetch_exercises,
+    on_load=ExercisesState.on_load,
 )
 # reflex_local_auth pages
 app.add_page(
