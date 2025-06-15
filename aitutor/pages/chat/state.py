@@ -133,9 +133,10 @@ class ChatState(SessionState):
         return f"{routes.FINISHED_VIEW}/{self.router.page.params.get('exercise_id', 0)}"
 
     @rx.event
-    def load_exercise(self):
+    def on_load(self):
         """
         Loads the exercise with exercise_id from the database.
+        And sets all button loading states to False.
         """
         self.check_is_loading = False
         self.waiting_for_response = False

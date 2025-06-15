@@ -43,7 +43,7 @@ class ManageExercisesState(rx.State):
     extracting_lesson_material: bool = False
 
     @rx.event
-    def initialize(self):
+    def on_load(self):
         """Initialize the state (call this in the on_load event)."""
         config = get_config()
         self.prompts = {p.name: p.prompt for p in config.exercise_prompts}
