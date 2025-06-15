@@ -137,6 +137,8 @@ class ChatState(SessionState):
         """
         Loads the exercise with exercise_id from the database.
         """
+        self.check_is_loading = False
+        self.waiting_for_response = False
         with rx.session() as session:
             exercise = session.exec(
                 Exercise.select().where(Exercise.id == int(self.exercise_id))
