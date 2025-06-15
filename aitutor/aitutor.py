@@ -4,8 +4,8 @@ This module contains the main app definition for Reflex.
 """
 
 import sys
-
 import reflex as rx
+import decouple
 from aitutor import pages
 from aitutor.auth.pages import custom_login_page, custom_register_page
 from aitutor.config import load_config
@@ -63,7 +63,17 @@ async def initialize():
     try:
         load_config()
     except Exception as e:
-        print(f"Error loading config: {e}")
+        print("\033[91m" + f"Error loading config: {e}" + "\033[0m")
+        sys.exit(1)
+
+    # check if an openai_key is in the .env, if not, we exit
+    API_KEY = str(decouple.config("OPENAI_API_KEY", cast=str, default=""))
+    if API_KEY == "":
+        print(
+            "\033[91m"
+            + "OPENAI_KEY is not set in the environment variables."
+            + "\033[0m"
+        )
         sys.exit(1)
 
     create_default_users()
