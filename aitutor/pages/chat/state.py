@@ -13,7 +13,7 @@ import aitutor.routes as routes
 from aitutor.models import Exercise, ExerciseResult
 from aitutor.auth.state import SessionState
 from aitutor.config import get_config
-from aitutor.global_vars import DEFAULT_MODEL, CHECK_RESULT_ROLE, TIME_FORMAT, TIME_ZONE
+from aitutor.global_vars import DEFAULT_MODEL, TIME_FORMAT, TIME_ZONE
 
 
 class Role(Enum):
@@ -68,7 +68,9 @@ async def get_chat_response(conversation):
     # Creates GPT instance
     client = AsyncOpenAI(api_key=API_KEY)
     # filter out messages with role 'check_result' from the conversation
-    conversation = [msg for msg in conversation if msg["role"] != CHECK_RESULT_ROLE]
+    conversation = [
+        msg for msg in conversation if msg["role"] != Role.CHECK_RESULT.value
+    ]
     # remove msg["check_passed"] from conversation
     for msg in conversation:
         if "check_passed" in msg:
@@ -100,7 +102,9 @@ async def get_check_conversation_response(
         raise ValueError("Check Conversation prompt not set in config.")
 
     # filter out messages with role 'check_result' from the conversation
-    conversation = [msg for msg in conversation if msg["role"] != CHECK_RESULT_ROLE]
+    conversation = [
+        msg for msg in conversation if msg["role"] != Role.CHECK_RESULT.value
+    ]
     # remove msg["check_passed"] from conversation
     for msg in conversation:
         if "check_passed" in msg:
@@ -442,7 +446,7 @@ class ChatState(SessionState):
 
                 if exercise_result:
                     for msg in exercise_result.conversation_text:
-                        if msg["role"] in ["user", "assistant", CHECK_RESULT_ROLE]:
+                        if msg["role"] != Role.SYSTEM.value:
                             self.append_chat_message(
                                 msg["content"],
                                 role=Role(msg["role"]),

@@ -7,7 +7,6 @@ import aitutor.routes as routes
 from aitutor.models import Exercise, ExerciseResult
 from aitutor.auth.state import SessionState
 from aitutor.pages.chat.state import ChatMessage, Role
-from aitutor.global_vars import CHECK_RESULT_ROLE
 
 
 class FinishedViewState(SessionState):
@@ -80,7 +79,7 @@ class FinishedViewState(SessionState):
 
                 if exercise_result:
                     for msg in exercise_result.finished_conversation:
-                        if msg["role"] in ["user", "assistant", CHECK_RESULT_ROLE]:
+                        if msg["role"] != Role.SYSTEM.value:
                             self.append_chat_message(
                                 msg["content"],
                                 role=Role(msg["role"]),
