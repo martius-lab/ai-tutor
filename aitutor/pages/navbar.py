@@ -22,7 +22,7 @@ links = [
     ("Exercises", routes.EXERCISES),
 ]
 MANAGE_EXERCISES = ("Manage Exercises", routes.MANAGE_EXERCISES)
-MANAGE_EXERCISES_LINK = navbar_link("Manage Exercises", routes.MANAGE_EXERCISES)
+MANAGE_EXERCISES_LINK = navbar_link(MANAGE_EXERCISES[0], MANAGE_EXERCISES[1])
 
 
 def get_user_icon():
