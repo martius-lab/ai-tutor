@@ -2,8 +2,7 @@
 
 import reflex as rx
 
-from aitutor.pages.chat.state import ChatState
-from aitutor.pages.chat.state import ChatMessage
+from aitutor.pages.chat.state import ChatState, ChatMessage, Role
 
 
 def message_box(chat_message: ChatMessage) -> rx.Component:
@@ -20,15 +19,21 @@ def message_box(chat_message: ChatMessage) -> rx.Component:
         rx.markdown(
             chat_message.message,
             background_color=rx.cond(
-                chat_message.is_check_result,
+                chat_message.role == Role.CHECK_RESULT,
                 rx.color(check_result_color, 4),
-                rx.cond(chat_message.is_llm, rx.color("mauve", 4), rx.color("iris", 4)),
+                rx.cond(
+                    chat_message.role == Role.AITUTOR,
+                    rx.color("mauve", 4),
+                    rx.color("iris", 4),
+                ),
             ),
             color=rx.cond(
-                chat_message.is_check_result,
+                chat_message.role == Role.CHECK_RESULT,
                 rx.color(check_result_color, 12),
                 rx.cond(
-                    chat_message.is_llm, rx.color("mauve", 12), rx.color("iris", 12)
+                    chat_message.role == Role.AITUTOR,
+                    rx.color("mauve", 12),
+                    rx.color("iris", 12),
                 ),
             ),
             display="inline-block",
@@ -37,9 +42,9 @@ def message_box(chat_message: ChatMessage) -> rx.Component:
             max_width=["30em", "30em", "50em", "50em", "50em", "50em"],
         ),
         text_align=rx.cond(
-            chat_message.is_check_result,
+            chat_message.role == Role.USER,
+            "right",
             "left",
-            rx.cond(chat_message.is_llm, "left", "right"),
         ),
         margin_top="1em",
         width="100%",
