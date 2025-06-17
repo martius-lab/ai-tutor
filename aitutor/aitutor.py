@@ -67,7 +67,7 @@ async def initialize():
         sys.exit(1)
 
     # check if an openai_key is in the .env, if not, we exit
-    API_KEY = str(decouple.config("OPENAI_API_KEY", cast=str, default=""))
+    API_KEY = decouple.config("OPENAI_API_KEY", cast=str, default="")
     if API_KEY == "":
         print(
             "\033[91m"
