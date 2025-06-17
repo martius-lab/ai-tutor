@@ -45,10 +45,8 @@ async def get_chat_response(conversation):
     conversation: Expects list of dictionaries of the previous messages between ChatGPT
     and the user.
     """
-    # I use python decouple to retrieve the API Key, can also use os.
-    # TODO: Do we really need decouple here? What's the advantage?
-    API_KEY = cast(str, decouple.config("OPENAI_API_KEY", cast=str, default=None))
-    if not API_KEY:
+    API_KEY = cast(str, decouple.config("OPENAI_API_KEY", cast=str, default=""))
+    if API_KEY == "":
         raise ValueError("API key not found.")
 
     # Creates GPT instance
@@ -97,8 +95,8 @@ async def get_check_conversation_response(
             "content": check_conversation_prompt,
         }
     )
-    API_KEY = cast(str, decouple.config("OPENAI_API_KEY", cast=str, default=None))
-    if not API_KEY:
+    API_KEY = cast(str, decouple.config("OPENAI_API_KEY", cast=str, default=""))
+    if API_KEY == "":
         raise ValueError("API key not found.")
     client = OpenAI(api_key=API_KEY)
     response = client.responses.parse(
