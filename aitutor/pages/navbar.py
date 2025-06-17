@@ -22,7 +22,6 @@ links = [
     ("Exercises", routes.EXERCISES),
 ]
 MANAGE_EXERCISES = ("Manage Exercises", routes.MANAGE_EXERCISES)
-MANAGE_EXERCISES_LINK = navbar_link(MANAGE_EXERCISES[0], MANAGE_EXERCISES[1])
 
 
 def get_user_icon():
@@ -194,7 +193,7 @@ def navbar() -> rx.Component:
                     *[navbar_link(text, url) for text, url in links],
                     rx.cond(
                         has_role_at_least(role=UserRole.ADMIN),
-                        MANAGE_EXERCISES_LINK,
+                        navbar_link(MANAGE_EXERCISES[0], MANAGE_EXERCISES[1]),
                     ),
                     spacing="5",
                 ),
