@@ -198,7 +198,7 @@ class ChatState(SessionState):
         # state changes
         for i in reversed(range(len(self.messages))):
             msg = self.messages[i]
-            if msg.role == Role.USER:
+            if msg.role == Role.USER.value:
                 self.user_input = msg.message
                 del self.messages[i:]
                 break
