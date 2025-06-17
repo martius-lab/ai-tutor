@@ -6,7 +6,7 @@ from typing import Optional
 import aitutor.routes as routes
 from aitutor.models import Exercise, ExerciseResult
 from aitutor.auth.state import SessionState
-from aitutor.pages.chat.state import ChatMessage
+from aitutor.pages.chat.state import ChatMessage, Role
 from aitutor.global_vars import CHECK_RESULT_ROLE
 
 
@@ -83,16 +83,14 @@ class FinishedViewState(SessionState):
                         if msg["role"] in ["user", "assistant", CHECK_RESULT_ROLE]:
                             self.append_chat_message(
                                 msg["content"],
-                                is_llm=(msg["role"] == "assistant"),
-                                is_check_result=(msg["role"] == CHECK_RESULT_ROLE),
+                                role=Role(msg["role"]),
                                 check_passed=msg.get("check_passed", False),
                             )
 
     def append_chat_message(
         self,
         message,
-        is_llm: bool = False,
-        is_check_result: bool = False,
+        role: Role,
         check_passed: bool = False,
     ):
         """
@@ -102,8 +100,7 @@ class FinishedViewState(SessionState):
         self.messages.append(
             ChatMessage(
                 message=message,
-                is_llm=is_llm,
-                is_check_result=is_check_result,
+                role=role,
                 check_passed=check_passed,
             )
         )
