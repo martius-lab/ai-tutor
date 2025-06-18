@@ -2,8 +2,7 @@
 
 import reflex as rx
 
-from aitutor.pages.chat.state import ChatState
-from aitutor.pages.chat.state import ChatMessage
+from aitutor.pages.chat.state import ChatState, ChatMessage, Role
 
 
 def message_box(chat_message: ChatMessage) -> rx.Component:
@@ -17,37 +16,72 @@ def message_box(chat_message: ChatMessage) -> rx.Component:
         "yellow",
     )
     return rx.box(
-        rx.box(
-            rx.markdown(
-                chat_message.message,
-                background_color=rx.cond(
-                    chat_message.is_check_result,
-                    rx.color(check_result_color, 4),
-                    rx.cond(
-                        chat_message.is_llm, rx.color("mauve", 4), rx.color("iris", 4)
-                    ),
+        rx.markdown(
+            chat_message.message,
+            background_color=rx.cond(
+                chat_message.role == Role.CHECK_RESULT,
+                rx.color(check_result_color, 4),
+                rx.cond(
+                    chat_message.role == Role.AITUTOR,
+                    rx.color("mauve", 4),
+                    rx.color("iris", 4),
                 ),
-                color=rx.cond(
-                    chat_message.is_check_result,
-                    rx.color(check_result_color, 12),
-                    rx.cond(
-                        chat_message.is_llm, rx.color("mauve", 12), rx.color("iris", 12)
-                    ),
+            ),
+            color=rx.cond(
+                chat_message.role == Role.CHECK_RESULT,
+                rx.color(check_result_color, 12),
+                rx.cond(
+                    chat_message.role == Role.AITUTOR,
+                    rx.color("mauve", 12),
+                    rx.color("iris", 12),
                 ),
-                display="inline-block",
-                padding="1em",
-                border_radius="8px",
-                max_width=["30em", "30em", "50em", "50em", "50em", "50em"],
             ),
-            text_align=rx.cond(
-                chat_message.is_check_result,
-                "left",
-                rx.cond(chat_message.is_llm, "left", "right"),
-            ),
-            margin_top="1em",
+            display="inline-block",
+            padding="1em",
+            border_radius="8px",
+            max_width=["30em", "30em", "50em", "50em", "50em", "50em"],
         ),
+        text_align=rx.cond(
+            chat_message.role == Role.USER,
+            "right",
+            "left",
+        ),
+        margin_top="1em",
         width="100%",
     )
+
+
+def show_messages() -> rx.Component:
+    """
+    Displays the chat with all the messages
+    """
+    last_user_msg_i = ChatState.last_user_message_index
+    return (
+        rx.auto_scroll(
+            rx.foreach(
+                ChatState.messages,
+                lambda msg, msg_i: rx.fragment(
+                    rx.vstack(
+                        message_box(msg),
+                        rx.cond(
+                            msg_i == last_user_msg_i,
+                            rx.box(
+                                edit_last_message_button(),
+                                text_align="right",
+                                width="100%",
+                                margin_top="0.5em",
+                            ),
+                        ),
+                        spacing="0",
+                    ),
+                ),
+            ),
+            scroll_to_bottom_on_update=True,
+            width="100%",
+            flex="1",
+            padding_right="8px",
+        ),
+    )  # type: ignore
 
 
 def chat_form() -> rx.Component:
@@ -60,6 +94,8 @@ def chat_form() -> rx.Component:
             rx.text_area(
                 name="user_response",
                 placeholder="Your Answer",
+                value=ChatState.user_input,
+                on_change=ChatState.set_user_input,  # type: ignore (reflex has default setters)
                 required=True,
                 width="100%",
                 color_scheme="iris",
@@ -77,6 +113,62 @@ def chat_form() -> rx.Component:
         ),
         on_submit=ChatState.send_message,
         reset_on_submit=True,
+    )
+
+
+def edit_last_message_button() -> rx.Component:
+    """
+    Render the button to delete the last message.
+    """
+    return rx.alert_dialog.root(
+        rx.alert_dialog.trigger(
+            rx.button(
+                rx.hstack(
+                    rx.icon("trash", size=20),
+                    rx.text("+", size="4"),
+                    rx.icon("pencil", size=20),
+                    spacing="1",
+                    align="center",
+                    justify="center",
+                ),
+                color_scheme="iris",
+                _hover=rx.cond(
+                    ChatState.waiting_for_response,
+                    {"cursor": "not-allowed"},
+                    {"cursor": "pointer"},
+                ),
+                disabled=rx.cond(
+                    ChatState.waiting_for_response,
+                    True,
+                    False,
+                ),
+                type="button",
+            ),
+        ),
+        rx.alert_dialog.content(
+            rx.alert_dialog.title("Edit Last Message"),
+            rx.alert_dialog.description(
+                "Do you want to delete this message and move it to the input field?"
+            ),
+            rx.hstack(
+                rx.alert_dialog.cancel(
+                    rx.button(
+                        "No",
+                        color_scheme="red",
+                        _hover={"cursor": "pointer"},
+                    ),
+                ),
+                rx.alert_dialog.action(
+                    rx.button(
+                        "Yes",
+                        color_scheme="iris",
+                        on_click=ChatState.edit_last_message,
+                        _hover={"cursor": "pointer"},
+                    ),
+                ),
+                margin_top="1em",
+            ),
+        ),
     )
 
 
@@ -105,7 +197,8 @@ def reset_conversation_button() -> rx.Component:
         rx.alert_dialog.root(
             rx.alert_dialog.trigger(
                 rx.button(
-                    "Reset Conversation",
+                    rx.desktop_only("Reset Conversation"),
+                    rx.mobile_and_tablet("Reset"),
                     color_scheme="red",
                     _hover=rx.cond(
                         ChatState.messages.length() < 2,  # type: ignore
@@ -168,7 +261,8 @@ def check_conversation_button() -> rx.Component:
         rx.cond(
             ChatState.check_is_loading,
             rx.button(
-                "Check Conversation",
+                rx.desktop_only("Check Conversation"),
+                rx.mobile_and_tablet("Check"),
                 color_scheme="yellow",
                 type="button",
                 _hover={"cursor": "not-allowed"},
@@ -177,7 +271,8 @@ def check_conversation_button() -> rx.Component:
             rx.alert_dialog.root(
                 rx.alert_dialog.trigger(
                     rx.button(
-                        "Check Conversation",
+                        rx.desktop_only("Check Conversation"),
+                        rx.mobile_and_tablet("Check"),
                         color_scheme="yellow",
                         type="button",
                         _hover=rx.cond(
