@@ -7,12 +7,27 @@ from openai import AsyncOpenAI, OpenAI
 from pydantic import BaseModel
 from datetime import datetime
 from zoneinfo import ZoneInfo
+from enum import Enum
 
 import aitutor.routes as routes
 from aitutor.models import Exercise, ExerciseResult
 from aitutor.auth.state import SessionState
 from aitutor.config import get_config
-from aitutor.global_vars import DEFAULT_MODEL, CHECK_RESULT_ROLE, TIME_FORMAT, TIME_ZONE
+from aitutor.global_vars import DEFAULT_MODEL, TIME_FORMAT, TIME_ZONE
+
+
+class Role(Enum):
+    """
+    Enum to represent the role of a message in the conversation.
+    """
+
+    # do not change these role names. They are used in the OpenAI API.
+    USER = "user"
+    AITUTOR = "assistant"
+    SYSTEM = "system"
+
+    # this role name can be changed freely.
+    CHECK_RESULT = "check_result"
 
 
 class ChatMessage(rx.Base):
@@ -22,8 +37,7 @@ class ChatMessage(rx.Base):
     """
 
     message: str
-    is_llm: bool = False
-    is_check_result: bool = False
+    role: Role
     # check_passed is used to color the check result message
     check_passed: bool = False
 
@@ -54,7 +68,9 @@ async def get_chat_response(conversation):
     # Creates GPT instance
     client = AsyncOpenAI(api_key=API_KEY)
     # filter out messages with role 'check_result' from the conversation
-    conversation = [msg for msg in conversation if msg["role"] != CHECK_RESULT_ROLE]
+    conversation = [
+        msg for msg in conversation if msg["role"] != Role.CHECK_RESULT.value
+    ]
     # remove msg["check_passed"] from conversation
     for msg in conversation:
         if "check_passed" in msg:
@@ -86,14 +102,16 @@ async def get_check_conversation_response(
         raise ValueError("Check Conversation prompt not set in config.")
 
     # filter out messages with role 'check_result' from the conversation
-    conversation = [msg for msg in conversation if msg["role"] != CHECK_RESULT_ROLE]
+    conversation = [
+        msg for msg in conversation if msg["role"] != Role.CHECK_RESULT.value
+    ]
     # remove msg["check_passed"] from conversation
     for msg in conversation:
         if "check_passed" in msg:
             del msg["check_passed"]
     conversation.append(
         {
-            "role": "system",
+            "role": Role.SYSTEM.value,
             "content": check_conversation_prompt,
         }
     )
@@ -121,6 +139,8 @@ class ChatState(SessionState):
     check_passed: bool = False
     conversation_is_submitted: bool = False
     submit_time_stamp: str = ""
+    user_input: str = ""
+    last_user_message_index: int = -1
 
     @rx.var
     def finished_view_url(self) -> str:
@@ -153,8 +173,11 @@ class ChatState(SessionState):
                 self.load_existing_conversation()
                 if not self.messages:
                     self.append_chat_message(
-                        self.current_exercise.description, is_llm=True
+                        self.current_exercise.description,
+                        role=Role.AITUTOR,
+                        check_passed=False,
                     )
+                self.update_last_user_message_index()
             else:
                 yield rx.redirect(routes.NOT_FOUND)
             if exercise_result:
@@ -171,6 +194,27 @@ class ChatState(SessionState):
                 self.check_passed = False
                 self.conversation_is_submitted = False
         yield
+
+    @rx.event
+    def edit_last_message(self):
+        """
+        Deletes the last user message in the chat and every message after it.
+        And copys the last user message to the input field.
+        """
+        check_already_passed = False
+        # state changes
+        for i in reversed(range(len(self.messages))):
+            msg = self.messages[i]
+            if msg.role == Role.USER.value:
+                self.user_input = msg.message
+                check_already_passed = msg.check_passed
+                del self.messages[i:]
+                break
+        self.check_passed = check_already_passed
+        self.update_last_user_message_index()
+
+        # update db
+        self.save_conversation_to_db(conversation=self.get_messages_dict_gpt())
 
     @rx.event
     def reset_conversation(self):
@@ -201,10 +245,15 @@ class ChatState(SessionState):
         # Only reset the conversation if there are messages beyond the initial message
         # by ChatGPT.
         self.check_passed = False
+        self.user_input = ""
         if len(self.messages) > 1:
             self.messages = []
             if self.current_exercise:
-                self.append_chat_message(self.current_exercise.description, is_llm=True)
+                self.append_chat_message(
+                    self.current_exercise.description,
+                    role=Role.AITUTOR,
+                    check_passed=False,
+                )
 
     @rx.event
     async def send_message(self, form_data: dict):
@@ -213,8 +262,11 @@ class ChatState(SessionState):
         """
         user_message = form_data.get("user_response")
         if user_message:
-            self.append_chat_message(message=user_message, is_llm=False)
+            self.append_chat_message(
+                message=user_message, role=Role.USER, check_passed=self.check_passed
+            )
             self.waiting_for_response = True
+            self.user_input = ""
             yield
             # Takes list of ChatMessage and turns into a list of dictionaries, so
             # the OpenAI API can handle the messages.
@@ -223,7 +275,10 @@ class ChatState(SessionState):
             llm_response = await get_chat_response(conversation=messages)
             # Append response generated by LLM to list of messages, set is_llm to
             # True to indicate that it is generated by the user.
-            self.append_chat_message(message=llm_response, is_llm=True)
+            self.append_chat_message(
+                message=llm_response, role=Role.AITUTOR, check_passed=self.check_passed
+            )
+            self.update_last_user_message_index()
             messages = self.get_messages_dict_gpt()
             self.waiting_for_response = False
             yield
@@ -259,8 +314,7 @@ class ChatState(SessionState):
                 + "🛈 _This result is not part of the conversation, "
                 + "meaning the AI cannot see it._\n\n"
                 + check_conversation_response.explanation,
-                is_llm=True,
-                is_check_result=True,
+                role=Role.CHECK_RESULT,
                 check_passed=self.check_passed,
             )
         conversation = self.get_messages_dict_gpt()
@@ -300,6 +354,19 @@ class ChatState(SessionState):
             self.submit_time_stamp = datetime.now(ZoneInfo(TIME_ZONE)).strftime(
                 TIME_FORMAT
             )
+
+    def update_last_user_message_index(self):
+        """
+        Sets the index of the last user message in the chat.
+        """
+        self.last_user_message_index = next(
+            (
+                i
+                for i in reversed(range(len(self.messages)))
+                if self.messages[i].role == Role.USER.value
+            ),
+            -1,
+        )
 
     def successfull_submit_message(self):
         """
@@ -356,7 +423,7 @@ class ChatState(SessionState):
         # TODO Initialization should change depending on the exercises.
         messages_gpt = [
             {
-                "role": "system",
+                "role": Role.SYSTEM.value,
                 "content": self.system_message_gpt,
                 "check_passed": False,
             }
@@ -364,14 +431,9 @@ class ChatState(SessionState):
         # Iterate through all message, create dictionary for each message and append
         # them to list of dictionaries.
         for chat_message in self.messages:
-            role = "user"
-            if chat_message.is_llm:
-                role = "assistant"
-            if chat_message.is_check_result:
-                role = CHECK_RESULT_ROLE
             messages_gpt.append(
                 {
-                    "role": role,
+                    "role": chat_message.role,
                     "content": chat_message.message,
                     "check_passed": chat_message.check_passed,
                 }
@@ -394,11 +456,10 @@ class ChatState(SessionState):
 
                 if exercise_result:
                     for msg in exercise_result.conversation_text:
-                        if msg["role"] in ["user", "assistant", CHECK_RESULT_ROLE]:
+                        if msg["role"] != Role.SYSTEM.value:
                             self.append_chat_message(
                                 msg["content"],
-                                is_llm=(msg["role"] == "assistant"),
-                                is_check_result=(msg["role"] == CHECK_RESULT_ROLE),
+                                role=Role(msg["role"]),
                                 check_passed=msg.get("check_passed", False),
                             )
 
@@ -407,7 +468,8 @@ class ChatState(SessionState):
         self.messages = []
         self.append_chat_message(
             "There are no exercises yet. Please wait till exercises are added.",
-            is_llm=True,
+            role=Role.AITUTOR,
+            check_passed=False,
         )
 
     def chat_not_available(self):
@@ -418,15 +480,15 @@ class ChatState(SessionState):
         self.append_chat_message(
             message="Chatting is unavailable while no exercises are available "
             + "or no exercise is selected.",
-            is_llm=True,
+            role=Role.AITUTOR,
+            check_passed=False,
         )
 
     def append_chat_message(
         self,
         message,
-        is_llm: bool = False,
-        is_check_result: bool = False,
-        check_passed: bool = False,
+        role: Role,
+        check_passed: bool,
     ):
         """
         Once a new message is generated by the user it is appended to the list of
@@ -435,8 +497,7 @@ class ChatState(SessionState):
         self.messages.append(
             ChatMessage(
                 message=message,
-                is_llm=is_llm,
-                is_check_result=is_check_result,
+                role=role,
                 check_passed=check_passed,
             )
         )
