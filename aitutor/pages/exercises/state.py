@@ -38,7 +38,7 @@ class ExercisesState(SessionState):
         }
 
     @rx.event
-    def fetch_exercises(self):
+    def on_load(self):
         """
         Fetch exercises from database
         """
