@@ -1,7 +1,7 @@
 """State for the exercises page."""
 
 import reflex as rx
-from sqlmodel import select
+from sqlmodel import or_, select
 from typing import Optional
 
 from aitutor.models import Exercise
@@ -43,7 +43,20 @@ class ExercisesState(SessionState):
         Fetch exercises from database
         """
         with rx.session() as session:
-            stmt = select(Exercise, ExerciseResult).join(ExerciseResult, isouter=True)
+            stmt = (
+                select(Exercise, ExerciseResult)
+                .join(
+                    ExerciseResult,
+                    isouter=True,
+                )
+                .filter(
+                    or_(
+                        ExerciseResult.userinfo_id == None,  # noqa: E711
+                        ExerciseResult.userinfo_id == self.authenticated_user.id,
+                    )
+                )
+            )
+
             exercises_with_result = session.exec(stmt).all()
             self.has_exercises = len(exercises_with_result) > 0
             self.has_tags = any(
