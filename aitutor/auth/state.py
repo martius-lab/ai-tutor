@@ -43,13 +43,6 @@ class SessionState(reflex_local_auth.LocalAuthState):
                 ),
             ).one_or_none()
 
-    def on_load(self):
-        """
-        Handles the loading of the session state.
-        """
-        if not self.is_authenticated:
-            return rx.redirect(routes.LOGIN, replace=True)
-
     def perform_logout(self):
         """
         Handles the logout process for the authenticated user.
