@@ -593,6 +593,21 @@ def add_edit_exercise_form(mode: Mode) -> rx.Component:
         pdf_upload(),
         # prompt
         select_prompt(mode),
+        # hidden checkbox
+        rx.hstack(
+            rx.text(
+                "Hide Exercise:",
+                size="3",
+                weight="medium",
+            ),
+            rx.checkbox(
+                checked=ManageExercisesState.current_hidden_state,
+                on_change=ManageExercisesState.set_current_hidden_state,  # type: ignore
+            ),
+            align="center",
+            padding_top="1.5em",
+            padding_bottom="0.5em",
+        ),
         # tags
         tag_management(),
         rx.hstack(
