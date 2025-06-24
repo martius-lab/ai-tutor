@@ -76,7 +76,10 @@ def render_exercises() -> rx.Component:
         rx.vstack(
             rx.foreach(
                 ExercisesState.exercises_with_result,
-                render_exercise_card,
+                lambda exercise_with_res: rx.cond(
+                    ~exercise_with_res[0].is_hidden,
+                    render_exercise_card(exercise_with_res),
+                ),
             ),
             spacing="4",
             width="100%",
