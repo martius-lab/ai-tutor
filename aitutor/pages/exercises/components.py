@@ -2,12 +2,14 @@
 
 import reflex as rx
 
-from aitutor.models import Exercise
-from aitutor.models import ExerciseResult
+from aitutor.models import Exercise, ExerciseResult, UserRole
 from aitutor.pages.exercises.state import ExercisesState, ExerciseWithResult
+from aitutor.auth.protection import has_role_at_least
 
 
-def render_exercise_card(exercise_with_res: ExerciseWithResult) -> rx.Component:
+def render_exercise_card(
+    exercise_with_res: ExerciseWithResult, hidden: bool
+) -> rx.Component:
     """Render exercises as cards"""
     exercise: Exercise = exercise_with_res[0]
     result: ExerciseResult | None = exercise_with_res[1]
@@ -66,6 +68,11 @@ def render_exercise_card(exercise_with_res: ExerciseWithResult) -> rx.Component:
             f"/chat/{exercise.id}",
         ),
         _hover={"cursor": "pointer"},
+        style=rx.cond(
+            hidden,
+            {"opacity": "0.5"},
+            {"opacity": "1"},
+        ),
     )
 
 
@@ -77,8 +84,14 @@ def render_exercises() -> rx.Component:
             rx.foreach(
                 ExercisesState.exercises_with_result,
                 lambda exercise_with_res: rx.cond(
-                    ~exercise_with_res[0].is_hidden,
-                    render_exercise_card(exercise_with_res),
+                    has_role_at_least(UserRole.TEACHER),
+                    render_exercise_card(
+                        exercise_with_res, hidden=exercise_with_res[0].is_hidden
+                    ),
+                    rx.cond(
+                        ~exercise_with_res[0].is_hidden,
+                        render_exercise_card(exercise_with_res, hidden=False),
+                    ),
                 ),
             ),
             spacing="4",
