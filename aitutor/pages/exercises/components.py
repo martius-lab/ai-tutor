@@ -82,12 +82,9 @@ def render_exercises() -> rx.Component:
             rx.foreach(
                 ExercisesState.exercises_with_result,
                 lambda exercise_with_res: rx.cond(
-                    has_role_at_least(UserRole.TEACHER),
+                    has_role_at_least(UserRole.TEACHER)
+                    | ~exercise_with_res[0].is_hidden,
                     render_exercise_card(exercise_with_res),
-                    rx.cond(
-                        ~exercise_with_res[0].is_hidden,
-                        render_exercise_card(exercise_with_res),
-                    ),
                 ),
             ),
             spacing="4",
