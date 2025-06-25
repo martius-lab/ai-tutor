@@ -136,6 +136,17 @@ def show_exercise(exercise: Exercise):
                 padding_left="1em",
             ),
         ),
+        rx.table.cell(
+            rx.center(
+                rx.cond(
+                    exercise.is_hidden,
+                    rx.icon("eye-off", size=18),
+                    rx.icon("eye", size=18),
+                ),
+                _hover={"cursor": "pointer"},
+                on_click=lambda: ManageExercisesState.toggle_visibility(exercise),
+            ),
+        ),
         style={"_hover": {"bg": rx.color("gray", 3)}},
         align="center",
     )
@@ -187,6 +198,7 @@ def exercise_table():
                         header_cell("Description", "book-open-text"),
                         header_cell("Tags", "tag"),
                         rx.table.column_header_cell("Delete | Edit", align="center"),
+                        rx.table.column_header_cell("Hide", align="center"),
                     ),
                 ),
                 # dynamically render each new entry
@@ -593,6 +605,21 @@ def add_edit_exercise_form(mode: Mode) -> rx.Component:
         pdf_upload(),
         # prompt
         select_prompt(mode),
+        # hidden checkbox
+        rx.hstack(
+            rx.text(
+                "Hide Exercise:",
+                size="3",
+                weight="medium",
+            ),
+            rx.checkbox(
+                checked=ManageExercisesState.current_hidden_state,
+                on_change=ManageExercisesState.set_current_hidden_state,  # type: ignore
+            ),
+            align="center",
+            padding_top="1.5em",
+            padding_bottom="0.5em",
+        ),
         # tags
         tag_management(),
         rx.hstack(
