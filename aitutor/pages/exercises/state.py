@@ -1,7 +1,7 @@
 """State for the exercises page."""
 
 import reflex as rx
-from sqlmodel import select
+from sqlmodel import and_, select
 from typing import Optional
 
 from aitutor.models import Exercise, ExerciseResult, UserRole
@@ -42,34 +42,21 @@ class ExercisesState(SessionState):
         Fetch exercises from database
         """
         with rx.session() as session:
-            exercises = session.exec(select(Exercise)).all()
-            exercise_results = session.exec(
-                ExerciseResult.select().where(
-                    ExerciseResult.userinfo_id == self.user_id,
-                )
-            ).all()
-            self.has_exercises = len(exercises) > 0
-            self.has_tags = any(len(exercise.tags) > 0 for exercise in exercises)
+            stmt = select(Exercise, ExerciseResult).join(
+                ExerciseResult,
+                and_(
+                    Exercise.id == ExerciseResult.exercise_id,
+                    ExerciseResult.userinfo_id == self.authenticated_user.id,
+                ),
+                isouter=True,
+            )
+            assert self.user_role is not None, "User role must be set."
+            if self.user_role < UserRole.TEACHER:
+                stmt = stmt.where(Exercise.is_hidden == False)  # noqa: E712
 
-            def is_visible(exercise):
-                return (
-                    self.user_role >= UserRole.TEACHER or not exercise.is_hidden
-                    if self.user_role
-                    else False
-                )
-
-            self.exercises_with_result = [
-                (
-                    exercise,
-                    next(
-                        (
-                            res
-                            for res in exercise_results
-                            if res.exercise_id == exercise.id
-                        ),
-                        None,
-                    ),
-                )
-                for exercise in exercises
-                if is_visible(exercise)
-            ]
+            exercises_with_result = session.exec(stmt).all()
+            self.has_exercises = len(exercises_with_result) > 0
+            self.has_tags = any(
+                len(exercise.tags) > 0 for exercise, _ in exercises_with_result
+            )
+            self.exercises_with_result = [(x[0], x[1]) for x in exercises_with_result]
