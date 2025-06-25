@@ -41,8 +41,6 @@ class ManageExercisesState(rx.State):
     prompt_names: list[str] = []
     #: Flag to control if lesson material is being extracted
     extracting_lesson_material: bool = False
-    #: Flag to control if the current exercise is hidden
-    current_hidden_state: bool = False
 
     @rx.event
     def on_load(self):
@@ -137,7 +135,6 @@ class ManageExercisesState(rx.State):
                 lesson_context=self.lesson_context,
             )
             new_exercise.prompt_name = self.current_prompt_name
-            new_exercise.is_hidden = self.current_hidden_state
             # add exercises to db
             session.add(new_exercise)
             session.commit()
@@ -260,7 +257,6 @@ class ManageExercisesState(rx.State):
             )
             updated_exercise.prompt_name = self.current_prompt_name
             updated_exercise.lesson_context = self.lesson_context
-            updated_exercise.is_hidden = self.current_hidden_state
 
             session.add(updated_exercise)
             session.commit()
@@ -317,7 +313,6 @@ class ManageExercisesState(rx.State):
         self.selected_tags = []
         self.current_prompt_name = ""
         self.current_tag = ""
-        self.current_hidden_state = False
 
     def delete_exercise(self, id: int):
         """Delete an exercise from the db."""
@@ -346,4 +341,3 @@ class ManageExercisesState(rx.State):
         self.lesson_context = _exercise.lesson_context
         self.selected_tags = _exercise.tags.copy() if _exercise.tags else []
         self.lesson_file_name = ""  # reset lesson_file_name
-        self.current_hidden_state = _exercise.is_hidden
