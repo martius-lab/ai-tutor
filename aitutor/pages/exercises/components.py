@@ -2,9 +2,8 @@
 
 import reflex as rx
 
-from aitutor.models import Exercise, ExerciseResult, UserRole
+from aitutor.models import Exercise, ExerciseResult
 from aitutor.pages.exercises.state import ExercisesState, ExerciseWithResult
-from aitutor.auth.protection import has_role_at_least
 
 
 def render_exercise_card(exercise_with_res: ExerciseWithResult) -> rx.Component:
@@ -81,11 +80,7 @@ def render_exercises() -> rx.Component:
         rx.vstack(
             rx.foreach(
                 ExercisesState.exercises_with_result,
-                lambda exercise_with_res: rx.cond(
-                    has_role_at_least(UserRole.TEACHER)
-                    | ~exercise_with_res[0].is_hidden,
-                    render_exercise_card(exercise_with_res),
-                ),
+                render_exercise_card,
             ),
             spacing="4",
             width="100%",
