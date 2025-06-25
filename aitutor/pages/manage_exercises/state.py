@@ -201,12 +201,11 @@ class ManageExercisesState(rx.State):
             ).one()
             # toggle visibility
             _exercise.is_hidden = not _exercise.is_hidden
-            session.add(_exercise)
             session.commit()
             # update the is_hidden field of the exercise in the state
             for i, e in enumerate(self.exercises):
                 if e.id == exercise.id:
-                    self.exercises[i].is_hidden = not e.is_hidden
+                    self.exercises[i].is_hidden = _exercise.is_hidden
                     break
             yield
 
