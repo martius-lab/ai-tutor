@@ -4,8 +4,7 @@ import reflex as rx
 from sqlmodel import select
 from typing import Optional
 
-from aitutor.models import Exercise
-from aitutor.models import ExerciseResult
+from aitutor.models import Exercise, ExerciseResult, UserRole
 from aitutor.auth.state import SessionState
 from aitutor.global_vars import TIME_FORMAT
 
@@ -51,6 +50,14 @@ class ExercisesState(SessionState):
             ).all()
             self.has_exercises = len(exercises) > 0
             self.has_tags = any(len(exercise.tags) > 0 for exercise in exercises)
+
+            def is_visible(exercise):
+                return (
+                    self.user_role >= UserRole.TEACHER or not exercise.is_hidden
+                    if self.user_role
+                    else False
+                )
+
             self.exercises_with_result = [
                 (
                     exercise,
@@ -64,4 +71,5 @@ class ExercisesState(SessionState):
                     ),
                 )
                 for exercise in exercises
+                if is_visible(exercise)
             ]

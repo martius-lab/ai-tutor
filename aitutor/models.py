@@ -27,6 +27,7 @@ class Exercise(rx.Model, table=True):
     prompt_name: str = Field(nullable=False, default="")
     prompt: str = Field(nullable=False, default="")
     tags: List[str] = Field(sa_column=Column(JSON), default=[])
+    is_hidden: bool = Field(default=False)
 
     # ORM relationship
     submissions: List["ExerciseResult"] = Relationship(

@@ -2,8 +2,7 @@
 
 import reflex as rx
 
-from aitutor.models import Exercise
-from aitutor.models import ExerciseResult
+from aitutor.models import Exercise, ExerciseResult
 from aitutor.pages.exercises.state import ExercisesState, ExerciseWithResult
 
 
@@ -66,6 +65,11 @@ def render_exercise_card(exercise_with_res: ExerciseWithResult) -> rx.Component:
             f"/chat/{exercise.id}",
         ),
         _hover={"cursor": "pointer"},
+        style=rx.cond(
+            exercise_with_res[0].is_hidden,
+            {"opacity": "0.5"},
+            {"opacity": "1"},
+        ),
     )
 
 
