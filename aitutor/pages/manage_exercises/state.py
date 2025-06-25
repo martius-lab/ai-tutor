@@ -192,6 +192,25 @@ class ManageExercisesState(rx.State):
             self.tag_names = [tag.name for tag in self.tag_list]
 
     @rx.event
+    def toggle_visibility(self, exercise: Exercise):
+        """Toggle the visibility of an exercise."""
+        with rx.session() as session:
+            # load exercise object from db
+            _exercise = session.exec(
+                select(Exercise).where(Exercise.id == exercise.id)
+            ).one()
+            # toggle visibility
+            _exercise.is_hidden = not _exercise.is_hidden
+            session.add(_exercise)
+            session.commit()
+            # update the is_hidden field of the exercise in the state
+            for i, e in enumerate(self.exercises):
+                if e.id == exercise.id:
+                    self.exercises[i].is_hidden = not e.is_hidden
+                    break
+            yield
+
+    @rx.event
     def submit_tag(self, form_data: dict):
         """Add tags to db."""
         with rx.session() as session:
