@@ -1,6 +1,7 @@
 """State for the exercises page."""
 
 import reflex as rx
+import reflex_local_auth
 from sqlmodel import and_, select
 from typing import Optional
 
@@ -41,6 +42,10 @@ class ExercisesState(SessionState):
         """
         Fetch exercises from database
         """
+        # protect data against unauthorized access
+        if not self.is_authenticated:
+            return reflex_local_auth.LoginState.redir
+
         with rx.session() as session:
             stmt = select(Exercise, ExerciseResult).join(
                 ExerciseResult,
@@ -50,7 +55,7 @@ class ExercisesState(SessionState):
                 ),
                 isouter=True,
             )
-            assert self.user_role is not None, "User role must be set."
+            assert self.user_role is not None, "User role not set.  This is a bug."
             if self.user_role < UserRole.TEACHER:
                 stmt = stmt.where(Exercise.is_hidden == False)  # noqa: E712
 
