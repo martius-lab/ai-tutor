@@ -13,7 +13,12 @@ import aitutor.routes as routes
 from aitutor.models import Exercise, ExerciseResult
 from aitutor.auth.state import SessionState
 from aitutor.config import get_config
-from aitutor.global_vars import DEFAULT_MODEL, TIME_FORMAT, TIME_ZONE
+from aitutor.global_vars import (
+    CHECK_AI_MODEL,
+    CONVERSATION_AI_MODEL,
+    TIME_FORMAT,
+    TIME_ZONE,
+)
 
 
 class Role(Enum):
@@ -75,7 +80,7 @@ async def get_chat_response(conversation):
             del msg["check_passed"]
     # Wait till Chat Completion Request is fulfilled.
     session = await client.chat.completions.create(
-        model=DEFAULT_MODEL, messages=conversation
+        model=CONVERSATION_AI_MODEL, messages=conversation
     )
     # Extracts the first response by CHATGPT. By default only a single response is
     # generated.
@@ -118,7 +123,7 @@ async def get_check_conversation_response(
         raise ValueError("API key not found.")
     client = OpenAI(api_key=API_KEY)
     response = client.responses.parse(
-        model=DEFAULT_MODEL,
+        model=CHECK_AI_MODEL,
         input=conversation,
         text_format=CheckConversationResponse,
     )
