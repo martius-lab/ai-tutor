@@ -69,3 +69,16 @@ Check if the answers of the student answered the exercise correctly.
 If the student did not answer correctly, respond with what the errors are but do not give the solution.
 If the student answered correctly, you can write on sentence that the student answered correctly and the task is finished.
 """
+```
+
+# ai models
+
+You can define which ai model should be used for the normal responses and which for the check conversation responses. To see which models you can use, please refer to the open ai [documentation](https://platform.openai.com/docs/models).
+
+```toml
+[response_ai_model]
+model = "gpt-4.1-mini"
+
+[check_ai_model]
+model = "gpt-4.1"
+```
