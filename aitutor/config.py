@@ -35,12 +35,21 @@ class ConfigCheckConversationPrompt:
 
 
 @dataclass
+class ConfigAiModel:
+    """The AI model used for responses."""
+
+    model: str
+
+
+@dataclass
 class AiTutorConfig:
     """Configuration class for AiTutor."""
 
     default_users: list[ConfigDefaultUser]
     exercise_prompts: list[ConfigExercisePrompt]
     check_conversation_prompt: ConfigCheckConversationPrompt
+    response_ai_model: ConfigAiModel
+    check_ai_model: ConfigAiModel
 
 
 _config = None
