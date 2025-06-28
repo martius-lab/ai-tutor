@@ -13,6 +13,7 @@ from aitutor.pages.manage_exercises.state import ManageExercisesState
 from aitutor.pages.exercises.state import ExercisesState
 from aitutor.pages.chat.state import ChatState
 from aitutor.pages.finished_view.state import FinishedViewState
+from aitutor.pages.submissions.state import SubmissionsState
 from aitutor.utilities.create_default_users import create_default_users
 import aitutor.routes as routes
 
@@ -27,6 +28,11 @@ app.add_page(
     pages.finished_view_page,
     route=routes.FINISHED_VIEW + "/[exercise_id]",
     on_load=FinishedViewState.on_load,
+)
+app.add_page(
+    pages.submissions_page,
+    route=routes.SUBMISSIONS + "/[exercise_id]",
+    on_load=SubmissionsState.on_load,
 )
 app.add_page(pages.home_page, route=routes.HOME)
 app.add_page(

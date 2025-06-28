@@ -10,6 +10,7 @@ EXERCISES = "/exercises"
 MANAGE_EXERCISES = "/manage_exercises"
 NOT_FOUND = "/404"
 FINISHED_VIEW = "/finished_view"  # needs to be /finished_view/[exercise_id] to work
+SUBMISSIONS = "/submissions"  # needs to be /submissions/[exercise_id] to work
 
 # we use the routes from reflex_local_auth to be
 # able to use functions like Loginstate.redir
