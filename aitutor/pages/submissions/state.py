@@ -3,14 +3,15 @@
 import reflex as rx
 
 from reflex_local_auth.user import LocalUser
-from aitutor.models import ExerciseResult, UserInfo
+from aitutor.models import ExerciseResult, UserInfo, Exercise
 from sqlmodel import and_, select
 
 
 class SubmissionsState(rx.State):
     """State for the submissions page."""
 
-    users_with_results: list[tuple[LocalUser, UserInfo, ExerciseResult]] = []
+    users_with_results: list[tuple[LocalUser, UserInfo, ExerciseResult]]
+    exercise_title: str = ""
 
     @rx.event
     def on_load(self):
@@ -34,6 +35,11 @@ class SubmissionsState(rx.State):
             self.users_with_results = [
                 (x[0], x[1], x[2]) for x in session.exec(stmt).all()
             ]
+            title = session.exec(
+                select(Exercise.title).where(Exercise.id == int(self.exercise_id))
+            ).one_or_none()
+            if title:
+                self.exercise_title = title
 
             # Debugging output to check the loaded users and results. TODO: Remove later
             for user_with_result in self.users_with_results:
