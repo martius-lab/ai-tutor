@@ -12,15 +12,18 @@ class SubmissionsState(rx.State):
     """State for the submissions page."""
 
     exercise_title: str = ""
-    table_rows: list[tuple[str, str, bool]]  # name, role, has_submitted
+    table_rows: list[tuple[LocalUser, str, bool]]  # name, role, has_submitted
 
     @rx.var
-    def finished_view_url(self) -> str:
+    def finished_view_teacher_url(self) -> str:
         """
         The exercise_id is used to identify the current exercise.
         It is set by the route parameter in the URL.
         """
-        return f"{routes.FINISHED_VIEW}/{self.router.page.params.get('exercise_id', 0)}"
+        return (
+            f"{routes.FINISHED_VIEW_TEACHER}/"
+            f"{self.router.page.params.get('exercise_id', 0)}/"
+        )
 
     @rx.event
     def on_load(self):
@@ -28,7 +31,7 @@ class SubmissionsState(rx.State):
         with rx.session() as session:
             stmt = (
                 select(
-                    LocalUser.username,
+                    LocalUser,
                     UserInfo.role,
                     ExerciseResult.finished_conversation,
                 )
@@ -47,7 +50,7 @@ class SubmissionsState(rx.State):
             )
             self.table_rows = [
                 (
-                    x[0],  # name
+                    x[0],  # LocalUser
                     UserRole(x[1]).name,  # userrole
                     x[2] != [] and x[2] is not None,  # -> submission exists
                 )
