@@ -14,11 +14,17 @@ from aitutor.pages.exercises.state import ExercisesState
 from aitutor.pages.chat.state import ChatState
 from aitutor.pages.finished_view.state import FinishedViewState
 from aitutor.pages.submissions.state import SubmissionsState
+from aitutor.pages.finished_view_teacher.state import FinishedViewTeacherState
 from aitutor.utilities.create_default_users import create_default_users
 import aitutor.routes as routes
 
 # info: add dynamic routes first
 app = rx.App()
+app.add_page(
+    pages.finished_view_teacher_page,
+    route=routes.FINISHED_VIEW_TEACHER + "/[exercise_id]/[url_user_id]",
+    on_load=FinishedViewTeacherState.on_load,
+)
 app.add_page(
     pages.chat_page,
     route=routes.CHAT + "/[exercise_id]",
