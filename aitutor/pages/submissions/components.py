@@ -25,8 +25,14 @@ def show_student(table_row: list[tuple[str, str, bool]]) -> rx.Component:
         rx.table.cell(
             rx.cond(
                 table_row[2],
-                "Yes",
-                "No",
+                rx.icon_button(
+                    "search",
+                    size="2",
+                    color_scheme="iris",
+                    on_click=rx.redirect(SubmissionsState.finished_view_url),
+                    _hover={"cursor": "pointer"},
+                ),
+                "No submission",
             )
         ),
         style={"_hover": {"bg": rx.color("gray", 3)}},
