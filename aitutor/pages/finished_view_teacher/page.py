@@ -26,8 +26,8 @@ def finished_view_teacher_page() -> rx.Component:
                         _hover={"cursor": "pointer"},
                     ),
                     rx.heading(
-                        "Your submission for exercise: "
-                        + FinishedViewTeacherState.exercise_title,
+                        f"Submitted by {FinishedViewTeacherState.username} "
+                        f"for exercise: {FinishedViewTeacherState.exercise_title}",
                         size="5",
                     ),
                     align="center",
