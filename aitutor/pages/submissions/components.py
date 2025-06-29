@@ -17,10 +17,18 @@ def header_cell(text: str, icon: str):
     )
 
 
-def show_student(student_name: int):
+def show_student(table_row: list[tuple[str, str, bool]]) -> rx.Component:
     """Show exercises on page in a table row."""
     return rx.table.row(
-        rx.table.cell(student_name),
+        rx.table.cell(table_row[0]),
+        rx.table.cell(table_row[1]),
+        rx.table.cell(
+            rx.cond(
+                table_row[2],
+                "Yes",
+                "No",
+            )
+        ),
         style={"_hover": {"bg": rx.color("gray", 3)}},
         align="center",
     )
@@ -33,12 +41,14 @@ def submissions_table():
             rx.table.header(
                 rx.table.row(
                     header_cell("Username", "user-round"),
+                    header_cell("Role", "shield_check"),
+                    header_cell("Submission", "circle-check"),
                 ),
             ),
             rx.table.body(
                 rx.foreach(
-                    SubmissionsState.users_with_results,
-                    lambda user_with_result: show_student(user_with_result[0].username),
+                    SubmissionsState.table_rows,
+                    show_student,
                 )
             ),
             variant="surface",
