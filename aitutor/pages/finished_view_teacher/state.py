@@ -2,6 +2,8 @@
 
 import reflex as rx
 from typing import Optional
+from sqlmodel import select
+from reflex_local_auth import LocalUser
 
 import aitutor.routes as routes
 from aitutor.models import Exercise, ExerciseResult
@@ -14,6 +16,7 @@ class FinishedViewTeacherState(SessionState):
 
     messages: list[ChatMessage] = []
     current_exercise: Optional[Exercise] = None
+    username: str
     exercise_title: str = "No Exercise Selected"
 
     @rx.var
@@ -37,6 +40,12 @@ class FinishedViewTeacherState(SessionState):
                 self.load_finished_conversation()
             else:
                 yield rx.redirect(routes.NOT_FOUND)
+            self.username = (
+                session.exec(
+                    select(LocalUser.username).where(LocalUser.id == self.url_user_id)
+                ).one_or_none()
+                or ""
+            )
 
     def load_finished_conversation(self):
         """Loads the finished conversation."""
