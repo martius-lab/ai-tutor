@@ -3,22 +3,26 @@
 import reflex as rx
 
 from reflex_local_auth.user import LocalUser
-from aitutor.models import ExerciseResult, UserInfo, Exercise
+from aitutor.models import ExerciseResult, UserInfo, Exercise, UserRole
 from sqlmodel import and_, select
 
 
 class SubmissionsState(rx.State):
     """State for the submissions page."""
 
-    users_with_results: list[tuple[LocalUser, UserInfo, ExerciseResult]]
     exercise_title: str = ""
+    table_rows: list[tuple[str, str, bool]]  # name, role, has_submitted
 
     @rx.event
     def on_load(self):
         """Loads the users and the submissions."""
         with rx.session() as session:
             stmt = (
-                select(LocalUser, UserInfo, ExerciseResult)
+                select(
+                    LocalUser.username,
+                    UserInfo.role,
+                    ExerciseResult.finished_conversation,
+                )
                 .join(
                     UserInfo,
                     and_(LocalUser.id == UserInfo.user_id),
@@ -32,22 +36,16 @@ class SubmissionsState(rx.State):
                     isouter=True,
                 )
             )
-            self.users_with_results = [
-                (x[0], x[1], x[2]) for x in session.exec(stmt).all()
+            self.table_rows = [
+                (
+                    x[0],  # name
+                    UserRole(x[1]).name,  # userrole
+                    x[2] != [] and x[2] is not None,  # -> submission exists
+                )
+                for x in session.exec(stmt).all()
             ]
             title = session.exec(
                 select(Exercise.title).where(Exercise.id == int(self.exercise_id))
             ).one_or_none()
             if title:
                 self.exercise_title = title
-
-            # Debugging output to check the loaded users and results. TODO: Remove later
-            for user_with_result in self.users_with_results:
-                print(
-                    f"User: {user_with_result[0].username}, "
-                    f"user role: {user_with_result[1].role.name}, "
-                    f"Result ID: {
-                        user_with_result[2].id if user_with_result[2] else 'None'
-                    }"
-                    "\n"
-                )
