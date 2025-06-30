@@ -27,14 +27,13 @@ class FinishedViewState(SessionState):
         """Loads the finished exercise and conversation."""
         if self.user_id:
             with rx.session() as session:
-                stmt = (
-                    select(
-                        Exercise,
-                        ExerciseResult.finished_conversation,
-                    )
-                    .where(Exercise.id == int(self.exercise_id))
-                    .where(ExerciseResult.exercise_id == Exercise.id)
-                    .where(ExerciseResult.userinfo_id == self.user_id)
+                stmt = select(
+                    Exercise,
+                    ExerciseResult.finished_conversation,
+                ).where(
+                    Exercise.id == int(self.exercise_id),
+                    ExerciseResult.exercise_id == Exercise.id,
+                    ExerciseResult.userinfo_id == self.user_id,
                 )
                 result = session.exec(stmt).one_or_none()
 

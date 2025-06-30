@@ -5,6 +5,7 @@ import reflex as rx
 from sqlmodel import Field, Column, JSON, Relationship, DateTime
 from typing import Any, Dict, Optional, List
 from datetime import datetime
+from reflex_local_auth.user import LocalUser
 
 
 class Tag(rx.Model, table=True):
@@ -94,3 +95,4 @@ class UserInfo(rx.Model, table=True):
     exercise_results: List["ExerciseResult"] = Relationship(
         back_populates="user", cascade_delete=True
     )
+    local_user: "LocalUser" = Relationship()
