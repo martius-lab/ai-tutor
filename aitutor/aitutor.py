@@ -8,7 +8,7 @@ import reflex as rx
 import decouple
 from aitutor import pages
 from aitutor.auth.pages import custom_login_page, custom_register_page
-from aitutor.config import load_config
+from aitutor.config import get_config
 from aitutor.pages.manage_exercises.state import ManageExercisesState
 from aitutor.pages.exercises.state import ExercisesState
 from aitutor.pages.chat.state import ChatState
@@ -61,7 +61,11 @@ async def initialize():
 
     # load config here, so we fail immediately if there is any issue with it
     try:
-        load_config()
+        config = get_config()
+        print(
+            f"Using {config.response_ai_model} for responses "
+            + f"and {config.check_ai_model} for checks."
+        )
     except Exception as e:
         print("\033[91m" + f"Error loading config: {e}" + "\033[0m")
         sys.exit(1)
