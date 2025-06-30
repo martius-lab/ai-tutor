@@ -1,5 +1,27 @@
 # What needs to be in the config.toml file?
 
+# check_conversation_prompt
+
+Here you define the prompt that should be given to the AI when the check conversation
+button is pressed.
+```toml
+check_conversation_prompt = """
+Check if the answers of the student answered the exercise correctly.
+If the student did not answer correctly, respond with what the errors are but do not give the solution.
+If the student answered correctly, you can write on sentence that the student answered correctly and the task is finished.
+"""
+```
+
+# ai models
+
+You can define which ai model should be used for the normal responses and which for the check conversation responses. To see which models you can use, please refer to the open ai [documentation](https://platform.openai.com/docs/models).
+
+```toml
+response_ai_model = "gpt-4.1-mini"
+
+check_ai_model = "gpt-4.1"
+```
+
 # default_users
 
 You can define a number of default users, that are automatically created.  This is
@@ -47,8 +69,9 @@ This is the lesson context uploaded by the teacher as a theoretical basis for th
 
 The user is a student who has to complete the exercise.
 The student will answer the exercise in a conversation with you.
-If the student answered the task "{description}" incorrectly, you can give him a hint to help him find the solution.
+If the student answered the task "{description}" incorrectly, you can give him a hint to help him find the solution but do **not** tell him the solution.
 If the student answered the task "{description}" correctly, you will tell him that he is correct and the task is finished.
+Do not engage in any other topics than the exercise at hand. If the student asks anything unrelated, tell him that you are only here to help with the exercise.
 """
 
 [[exercise_prompts]]
@@ -58,14 +81,3 @@ useless prompt
 """
 ```
 
-# check_conversation_prompt
-
-Here you define the prompt that should be given to the AI when the check conversation
-button is pressed.
-```toml
-[check_conversation_prompt]
-prompt = """
-Check if the answers of the student answered the exercise correctly.
-If the student did not answer correctly, respond with what the errors are but do not give the solution.
-If the student answered correctly, you can write on sentence that the student answered correctly and the task is finished.
-"""
