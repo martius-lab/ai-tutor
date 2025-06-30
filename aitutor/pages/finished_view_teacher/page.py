@@ -32,15 +32,13 @@ def finished_view_teacher_page() -> rx.Component:
                     ),
                     align="center",
                 ),
-                rx.auto_scroll(
+                rx.box(
                     rx.foreach(
                         FinishedViewTeacherState.messages,
                         message_box,
                     ),
-                    scroll_to_bottom_on_update=True,
+                    overflow="auto",
                     width="100%",
-                    flex="1",
-                    padding_right="8px",
                 ),
                 spacing="5",
                 justify="start",
