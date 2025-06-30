@@ -75,7 +75,7 @@ async def get_chat_response(conversation):
             del msg["check_passed"]
     # Wait till Chat Completion Request is fulfilled.
     session = await client.chat.completions.create(
-        model=get_config().response_ai_model.model, messages=conversation
+        model=get_config().response_ai_model, messages=conversation
     )
     # Extracts the first response by CHATGPT. By default only a single response is
     # generated.
@@ -95,7 +95,7 @@ async def get_check_conversation_response(
     and the user.
     """
     config = get_config()
-    check_conversation_prompt = config.check_conversation_prompt.prompt
+    check_conversation_prompt = config.check_conversation_prompt
     if not check_conversation_prompt:
         raise ValueError("Check Conversation prompt not set in config.")
 
@@ -118,7 +118,7 @@ async def get_check_conversation_response(
         raise ValueError("API key not found.")
     client = OpenAI(api_key=API_KEY)
     response = client.responses.parse(
-        model=config.check_ai_model.model,
+        model=config.check_ai_model,
         input=conversation,
         text_format=CheckConversationResponse,
     )

@@ -63,8 +63,8 @@ async def initialize():
     try:
         config = get_config()
         print(
-            f"Using {config.response_ai_model.model} for responses "
-            + f"and {config.check_ai_model.model} for checks."
+            f"Using {config.response_ai_model} for responses "
+            + f"and {config.check_ai_model} for checks."
         )
     except Exception as e:
         print("\033[91m" + f"Error loading config: {e}" + "\033[0m")
