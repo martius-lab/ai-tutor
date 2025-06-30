@@ -42,7 +42,9 @@ class FinishedViewTeacherState(SessionState):
                 yield rx.redirect(routes.NOT_FOUND)
             self.username = (
                 session.exec(
-                    select(LocalUser.username).where(LocalUser.id == self.url_user_id)
+                    select(LocalUser.username).where(
+                        LocalUser.id == int(self.url_user_id)
+                    )
                 ).one_or_none()
                 or ""
             )

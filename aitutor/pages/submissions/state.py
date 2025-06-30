@@ -49,13 +49,13 @@ class SubmissionsState(rx.State):
                 )
                 .join(
                     UserInfo,
-                    and_(LocalUser.id == UserInfo.user_id),
+                    LocalUser.id == UserInfo.user_id,  # type: ignore
                 )
                 .join(
                     ExerciseResult,
                     and_(
                         LocalUser.id == ExerciseResult.userinfo_id,
-                        ExerciseResult.exercise_id == self.exercise_id,
+                        ExerciseResult.exercise_id == int(self.exercise_id),
                     ),
                     isouter=True,
                 )
