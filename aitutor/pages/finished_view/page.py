@@ -33,15 +33,13 @@ def finished_view_page() -> rx.Component:
                     ),
                     align="center",
                 ),
-                rx.auto_scroll(
+                rx.box(
                     rx.foreach(
                         FinishedViewState.messages,
                         message_box,
                     ),
-                    scroll_to_bottom_on_update=True,
+                    overflow="auto",
                     width="100%",
-                    flex="1",
-                    padding_right="8px",
                 ),
                 delete_submission_button(),
                 spacing="5",
