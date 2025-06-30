@@ -1,18 +1,29 @@
 """The state for the submissions page."""
 
 import reflex as rx
-
 from reflex_local_auth.user import LocalUser
-from aitutor.models import ExerciseResult, UserInfo, Exercise, UserRole
 from sqlmodel import and_, select
 from aitutor import routes
+from dataclasses import dataclass
+
+from aitutor.models import ExerciseResult, UserInfo, Exercise, UserRole
+
+
+@dataclass
+class TableRow:
+    """A row in the submissions table."""
+
+    username: str
+    user_id: int | None
+    role: str
+    has_submitted: bool
 
 
 class SubmissionsState(rx.State):
     """State for the submissions page."""
 
     exercise_title: str = ""
-    table_rows: list[tuple[LocalUser, str, bool]]  # name, role, has_submitted
+    table_rows: list[TableRow]
 
     @rx.var
     def finished_view_teacher_url(self) -> str:
@@ -31,7 +42,8 @@ class SubmissionsState(rx.State):
         with rx.session() as session:
             stmt = (
                 select(
-                    LocalUser,
+                    LocalUser.username,
+                    LocalUser.id,
                     UserInfo.role,
                     ExerciseResult.finished_conversation,
                 )
@@ -50,9 +62,12 @@ class SubmissionsState(rx.State):
             )
             self.table_rows = [
                 (
-                    x[0],  # LocalUser
-                    UserRole(x[1]).name,  # userrole
-                    x[2] != [] and x[2] is not None,  # -> submission exists
+                    TableRow(
+                        username=x[0],
+                        user_id=x[1],
+                        role=UserRole(x[2]).name,
+                        has_submitted=bool(x[3]),
+                    )
                 )
                 for x in session.exec(stmt).all()
             ]

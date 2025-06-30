@@ -2,8 +2,7 @@
 
 import reflex as rx
 
-from aitutor.pages.submissions.state import SubmissionsState
-from reflex_local_auth.user import LocalUser
+from aitutor.pages.submissions.state import SubmissionsState, TableRow
 
 
 def header_cell(text: str, icon: str):
@@ -18,20 +17,20 @@ def header_cell(text: str, icon: str):
     )
 
 
-def show_student(table_row: tuple[LocalUser, str, bool]) -> rx.Component:
+def show_student(table_row: TableRow) -> rx.Component:
     """Show exercises on page in a table row."""
     return rx.table.row(
-        rx.table.cell(table_row[0].username),
-        rx.table.cell(table_row[1]),
+        rx.table.cell(table_row.username),
+        rx.table.cell(table_row.role),
         rx.table.cell(
             rx.cond(
-                table_row[2],
+                table_row.has_submitted,
                 rx.icon_button(
                     "search",
                     size="2",
                     color_scheme="iris",
                     on_click=rx.redirect(
-                        f"{SubmissionsState.finished_view_teacher_url}/{table_row[0].id}"
+                        f"{SubmissionsState.finished_view_teacher_url}/{table_row.user_id}"
                     ),
                     _hover={"cursor": "pointer"},
                 ),
