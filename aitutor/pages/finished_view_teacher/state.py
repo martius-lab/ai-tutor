@@ -30,16 +30,13 @@ class FinishedViewTeacherState(SessionState):
     def on_load(self):
         """Loads the finished exercise and user info."""
         with rx.session() as session:
-            stmt = (
-                select(
-                    Exercise, LocalUser.username, ExerciseResult.finished_conversation
-                )
-                .where(Exercise.id == int(self.exercise_id))
-                .where(LocalUser.id == int(self.url_user_id))
-                .where(
-                    ExerciseResult.exercise_id == Exercise.id,
-                    ExerciseResult.userinfo_id == LocalUser.id,
-                )
+            stmt = select(
+                Exercise, LocalUser.username, ExerciseResult.finished_conversation
+            ).where(
+                Exercise.id == int(self.exercise_id),
+                LocalUser.id == int(self.url_user_id),
+                ExerciseResult.exercise_id == Exercise.id,
+                ExerciseResult.userinfo_id == LocalUser.id,
             )
             result = session.exec(stmt).one_or_none()
 
