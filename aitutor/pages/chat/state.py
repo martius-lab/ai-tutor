@@ -507,3 +507,17 @@ class ChatState(SessionState):
                 check_passed=check_passed,
             )
         )
+
+    def on_logout(self):
+        """Clears the state when the user logs out."""
+        self.messages = []
+        self.current_exercise = None
+        self.exercise_title = "No Exercise Selected"
+        self.system_message_gpt = ""
+        self.check_is_loading = False
+        self.waiting_for_response = False
+        self.check_passed = False
+        self.conversation_is_submitted = False
+        self.submit_time_stamp = ""
+        self.user_input = ""
+        self.last_user_message_index = -1

@@ -94,3 +94,9 @@ class FinishedViewState(SessionState):
                         check_passed=msg.get("check_passed", False),
                     )
                 )
+
+    def on_logout(self):
+        """Clears the state when the user logs out."""
+        self.messages = []
+        self.current_exercise = None
+        self.exercise_title = "No Exercise Selected"

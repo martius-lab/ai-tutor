@@ -26,7 +26,6 @@ __all__ = [
     "finished_view_page",
     "submissions_page",
     "finished_view_teacher_page",
-
     # states
     "ChatState",
     "ExercisesState",
