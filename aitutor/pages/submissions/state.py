@@ -1,12 +1,14 @@
 """The state for the submissions page."""
 
 import reflex as rx
+import reflex_local_auth
 from reflex_local_auth.user import LocalUser
 from sqlmodel import and_, select
 from aitutor import routes
 from dataclasses import dataclass
 
 from aitutor.models import ExerciseResult, UserInfo, Exercise, UserRole
+from aitutor.auth.state import SessionState
 
 
 @dataclass
@@ -19,7 +21,7 @@ class TableRow:
     has_submitted: bool
 
 
-class SubmissionsState(rx.State):
+class SubmissionsState(SessionState):
     """State for the submissions page."""
 
     exercise_title: str = ""
@@ -39,6 +41,10 @@ class SubmissionsState(rx.State):
     @rx.event
     def on_load(self):
         """Loads the users and the submissions."""
+        # protect data against unauthorized access
+        if not self.is_authenticated:
+            return reflex_local_auth.LoginState.redir
+
         with rx.session() as session:
             stmt = (
                 select(

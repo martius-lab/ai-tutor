@@ -1,6 +1,7 @@
 """The state for the finished view page."""
 
 import reflex as rx
+import reflex_local_auth
 from typing import Optional
 from sqlmodel import select
 from reflex_local_auth import LocalUser
@@ -29,6 +30,10 @@ class FinishedViewTeacherState(SessionState):
     @rx.event
     def on_load(self):
         """Loads the finished exercise and user info."""
+        # protect data against unauthorized access
+        if not self.is_authenticated:
+            return reflex_local_auth.LoginState.redir
+
         with rx.session() as session:
             stmt = (
                 select(
