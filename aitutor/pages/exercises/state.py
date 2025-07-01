@@ -65,3 +65,9 @@ class ExercisesState(SessionState):
                 len(exercise.tags) > 0 for exercise, _ in exercises_with_result
             )
             self.exercises_with_result = [(x[0], x[1]) for x in exercises_with_result]
+
+    def on_logout(self):
+        """Clears the state when the user logs out."""
+        self.has_exercises = False
+        self.has_tags = False
+        self.exercises_with_result = []

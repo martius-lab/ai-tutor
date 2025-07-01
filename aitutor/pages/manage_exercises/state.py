@@ -352,3 +352,20 @@ class ManageExercisesState(SessionState):
         self.selected_tags = _exercise.tags.copy() if _exercise.tags else []
         self.lesson_file_name = ""  # reset lesson_file_name
         self.current_hidden_state = _exercise.is_hidden
+
+    def on_logout(self):
+        """Clears the state when the user logs out."""
+        self.exercises = []
+        self.tag_list = []
+        self.tag_names = []
+        self.search_value = ""
+        self.current_tag = ""
+        self.current_exercise = Exercise()
+        self.selected_tags = []
+        self.lesson_context = ""
+        self.lesson_file_name = ""
+        self.current_prompt_name = ""
+        self.prompts = {}
+        self.prompt_names = []
+        self.extracting_lesson_material = False
+        self.current_hidden_state = False

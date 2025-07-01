@@ -82,3 +82,8 @@ class SubmissionsState(SessionState):
             ).one_or_none()
             if title:
                 self.exercise_title = title
+
+    def on_logout(self):
+        """Clears the state when the user logs out."""
+        self.exercise_title = ""
+        self.table_rows = []
