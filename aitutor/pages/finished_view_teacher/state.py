@@ -6,7 +6,7 @@ from sqlmodel import select
 from reflex_local_auth import LocalUser
 
 import aitutor.routes as routes
-from aitutor.models import Exercise, ExerciseResult
+from aitutor.models import Exercise, ExerciseResult, UserInfo
 from aitutor.auth.state import SessionState
 from aitutor.pages.chat.state import ChatMessage, Role
 
@@ -30,13 +30,17 @@ class FinishedViewTeacherState(SessionState):
     def on_load(self):
         """Loads the finished exercise and user info."""
         with rx.session() as session:
-            stmt = select(
-                Exercise, LocalUser.username, ExerciseResult.finished_conversation
-            ).where(
-                Exercise.id == int(self.exercise_id),
-                LocalUser.id == int(self.url_user_id),
-                ExerciseResult.exercise_id == Exercise.id,
-                ExerciseResult.userinfo_id == LocalUser.id,
+            stmt = (
+                select(
+                    Exercise, LocalUser.username, ExerciseResult.finished_conversation
+                )
+                .join(ExerciseResult)
+                .join(UserInfo)
+                .join(LocalUser)
+                .where(
+                    Exercise.id == int(self.exercise_id),
+                    LocalUser.id == int(self.url_user_id),
+                )
             )
             result = session.exec(stmt).one_or_none()
 
