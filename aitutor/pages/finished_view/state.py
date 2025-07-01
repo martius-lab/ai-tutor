@@ -1,7 +1,7 @@
 """The state for the finished view page."""
 
 import reflex as rx
-import reflex_local_auth
+from reflex_local_auth.login import LoginState
 from typing import Optional
 
 import aitutor.routes as routes
@@ -28,7 +28,7 @@ class FinishedViewState(SessionState):
         """Loads the finished exercise and conversation."""
         # protect data against unauthorized access
         if not self.is_authenticated:
-            return reflex_local_auth.LoginState.redir
+            return LoginState.redir
 
         if self.user_id:
             with rx.session() as session:
