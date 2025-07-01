@@ -1,6 +1,7 @@
 """The state for the finished view page."""
 
 import reflex as rx
+import reflex_local_auth
 from typing import Optional
 
 import aitutor.routes as routes
@@ -25,6 +26,10 @@ class FinishedViewState(SessionState):
     @rx.event
     def on_load(self):
         """Loads the finished exercise and conversation."""
+        # protect data against unauthorized access
+        if not self.is_authenticated:
+            return reflex_local_auth.LoginState.redir
+
         if self.user_id:
             with rx.session() as session:
                 stmt = (

@@ -2,6 +2,7 @@
 
 import reflex as rx
 import decouple
+import reflex_local_auth
 from typing import Optional, cast
 from openai import AsyncOpenAI, OpenAI
 from pydantic import BaseModel
@@ -154,6 +155,10 @@ class ChatState(SessionState):
         Loads the exercise with exercise_id from the database.
         And sets all button loading states to False.
         """
+        # protect data against unauthorized access
+        if not self.is_authenticated:
+            return reflex_local_auth.LoginState.redir
+
         self.check_is_loading = False
         self.waiting_for_response = False
         with rx.session() as session:

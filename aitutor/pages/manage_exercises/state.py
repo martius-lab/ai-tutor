@@ -1,15 +1,17 @@
 """The state for the manage exercises page."""
 
 import reflex as rx
+import reflex_local_auth
 import pdfplumber
 import io
 from sqlmodel import select, or_
 
 from aitutor.config import get_config
 from aitutor.models import Exercise, Tag
+from aitutor.auth.state import SessionState
 
 
-class ManageExercisesState(rx.State):
+class ManageExercisesState(SessionState):
     """State for the exercises page."""
 
     # Flags to control if dialogs are open.  They are needed as a workaround due to a
@@ -47,6 +49,10 @@ class ManageExercisesState(rx.State):
     @rx.event
     def on_load(self):
         """Initialize the state"""
+        # protect data against unauthorized access
+        if not self.is_authenticated:
+            return reflex_local_auth.LoginState.redir
+
         config = get_config()
         self.prompts = {p.name: p.prompt for p in config.exercise_prompts}
         self.prompt_names = list(self.prompts.keys())

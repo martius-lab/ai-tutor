@@ -33,10 +33,10 @@ def require_role_at_least(role: UserRole):
 
     def decorator(page: rx.app.ComponentCallable) -> rx.app.ComponentCallable:
         def protected_page():
-            userrole = SessionState.user_role  # type: ignore
+            userrole = SessionState.user_role
             return rx.fragment(
                 rx.cond(
-                    LoginState.is_hydrated & LoginState.is_authenticated,  # type: ignore
+                    LoginState.is_hydrated & LoginState.is_authenticated,
                     rx.cond(
                         rx.cond(userrole, userrole >= role, False),  # type: ignore
                         page(),
