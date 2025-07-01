@@ -2,7 +2,7 @@
 
 import reflex as rx
 import decouple
-import reflex_local_auth
+from reflex_local_auth.login import LoginState
 from typing import Optional, cast
 from openai import AsyncOpenAI, OpenAI
 from pydantic import BaseModel
@@ -157,7 +157,7 @@ class ChatState(SessionState):
         """
         # protect data against unauthorized access
         if not self.is_authenticated:
-            return reflex_local_auth.LoginState.redir
+            return LoginState.redir
 
         self.check_is_loading = False
         self.waiting_for_response = False

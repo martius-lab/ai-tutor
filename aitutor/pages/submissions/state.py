@@ -1,8 +1,8 @@
 """The state for the submissions page."""
 
 import reflex as rx
-import reflex_local_auth
 from reflex_local_auth.user import LocalUser
+from reflex_local_auth.login import LoginState
 from sqlmodel import and_, select
 from aitutor import routes
 from dataclasses import dataclass
@@ -43,7 +43,7 @@ class SubmissionsState(SessionState):
         """Loads the users and the submissions."""
         # protect data against unauthorized access
         if not self.is_authenticated:
-            return reflex_local_auth.LoginState.redir
+            return LoginState.redir
 
         with rx.session() as session:
             stmt = (

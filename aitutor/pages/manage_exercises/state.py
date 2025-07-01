@@ -1,7 +1,7 @@
 """The state for the manage exercises page."""
 
 import reflex as rx
-import reflex_local_auth
+from reflex_local_auth.login import LoginState
 import pdfplumber
 import io
 from sqlmodel import select, or_
@@ -51,7 +51,7 @@ class ManageExercisesState(SessionState):
         """Initialize the state"""
         # protect data against unauthorized access
         if not self.is_authenticated:
-            return reflex_local_auth.LoginState.redir
+            return LoginState.redir
 
         config = get_config()
         self.prompts = {p.name: p.prompt for p in config.exercise_prompts}

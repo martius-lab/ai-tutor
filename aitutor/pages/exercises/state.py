@@ -1,7 +1,7 @@
 """State for the exercises page."""
 
 import reflex as rx
-import reflex_local_auth
+from reflex_local_auth.login import LoginState
 from sqlmodel import and_, select
 from typing import Optional
 
@@ -44,7 +44,7 @@ class ExercisesState(SessionState):
         """
         # protect data against unauthorized access
         if not self.is_authenticated:
-            return reflex_local_auth.LoginState.redir
+            return LoginState.redir
 
         with rx.session() as session:
             stmt = select(Exercise, ExerciseResult).join(
