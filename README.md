@@ -164,10 +164,9 @@ To deploy on a server
   The `-d` flag detaches the process from the terminal.  You can view the
   output with
   ```
-  docker compose logs
+  docker compose -f compose.yaml -f compose.prod.yaml logs
   ```
 - To shut it down:
   ```
-  docker compose down
+  docker compose -f compose.yaml -f compose.prod.yaml down
   ```
-
