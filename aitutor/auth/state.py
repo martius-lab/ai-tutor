@@ -45,23 +45,19 @@ class SessionState(reflex_local_auth.LocalAuthState):
         """
         Handles the logout process for the authenticated user.
         """
-        # get all states that need to be cleared on logout
-        chat_state = await self.get_state(pages.ChatState)
-        exercise_state = await self.get_state(pages.ExercisesState)
-        finished_view_state = await self.get_state(pages.FinishedViewState)
-        finished_view_teacher_state = await self.get_state(
-            pages.FinishedViewTeacherState
-        )
-        manage_exercises_state = await self.get_state(pages.ManageExercisesState)
-        submissions_state = await self.get_state(pages.SubmissionsState)
-
-        # clear the states
-        chat_state.on_logout()
-        exercise_state.on_logout()
-        finished_view_state.on_logout()
-        finished_view_teacher_state.on_logout()
-        manage_exercises_state.on_logout()
-        submissions_state.on_logout()
+        states = [
+            pages.ChatState,
+            pages.ExercisesState,
+            pages.FinishedViewState,
+            pages.FinishedViewTeacherState,
+            pages.ManageExercisesState,
+            pages.SubmissionsState,
+        ]
+        for state in states:
+            # get the state
+            state_instance = await self.get_state(state)
+            # clear the state
+            state_instance.on_logout()
 
         # logout
         self.do_logout()
