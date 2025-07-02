@@ -1,14 +1,14 @@
 """The state for the manage exercises page."""
 
 import reflex as rx
-from reflex_local_auth.login import LoginState
 import pdfplumber
 import io
 from sqlmodel import select, or_
 
-from aitutor.config import get_config
-from aitutor.models import Exercise, Tag
+from aitutor.models import Exercise, Tag, UserRole
 from aitutor.auth.state import SessionState
+from aitutor.config import get_config
+from aitutor.auth.protection import state_require_role_at_least
 
 
 class ManageExercisesState(SessionState):
@@ -47,11 +47,9 @@ class ManageExercisesState(SessionState):
     current_hidden_state: bool = False
 
     @rx.event
+    @state_require_role_at_least(UserRole.ADMIN)
     def on_load(self):
         """Initialize the state"""
-        # protect data against unauthorized access
-        if not self.is_authenticated:
-            return LoginState.redir
 
         config = get_config()
         self.prompts = {p.name: p.prompt for p in config.exercise_prompts}

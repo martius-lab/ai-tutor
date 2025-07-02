@@ -2,7 +2,6 @@
 
 import reflex as rx
 import decouple
-from reflex_local_auth.login import LoginState
 from typing import Optional, cast
 from openai import AsyncOpenAI, OpenAI
 from pydantic import BaseModel
@@ -11,9 +10,10 @@ from zoneinfo import ZoneInfo
 from enum import Enum
 
 import aitutor.routes as routes
-from aitutor.models import Exercise, ExerciseResult
+from aitutor.models import Exercise, ExerciseResult, UserRole
 from aitutor.auth.state import SessionState
 from aitutor.config import get_config
+from aitutor.auth.protection import state_require_role_at_least
 from aitutor.global_vars import TIME_FORMAT, TIME_ZONE
 
 
@@ -150,14 +150,12 @@ class ChatState(SessionState):
         return f"{routes.FINISHED_VIEW}/{self.router.page.params.get('exercise_id', 0)}"
 
     @rx.event
+    @state_require_role_at_least(UserRole.STUDENT)
     def on_load(self):
         """
         Loads the exercise with exercise_id from the database.
         And sets all button loading states to False.
         """
-        # protect data against unauthorized access
-        if not self.is_authenticated:
-            return LoginState.redir
 
         self.check_is_loading = False
         self.waiting_for_response = False

@@ -1,14 +1,14 @@
 """The state for the finished view page."""
 
 import reflex as rx
-from reflex_local_auth.login import LoginState
 from typing import Optional
 
 import aitutor.routes as routes
-from aitutor.models import Exercise, ExerciseResult
+from aitutor.models import Exercise, ExerciseResult, UserRole
 from aitutor.auth.state import SessionState
 from aitutor.pages.chat.state import ChatMessage, Role
 from sqlmodel import select
+from aitutor.auth.protection import state_require_role_at_least
 
 
 class FinishedViewState(SessionState):
@@ -24,11 +24,9 @@ class FinishedViewState(SessionState):
         return routes.CHAT + "/" + str(self.router.page.params.get("exercise_id", 0))
 
     @rx.event
+    @state_require_role_at_least(UserRole.STUDENT)
     def on_load(self):
         """Loads the finished exercise and conversation."""
-        # protect data against unauthorized access
-        if not self.is_authenticated:
-            return LoginState.redir
 
         if self.user_id:
             with rx.session() as session:

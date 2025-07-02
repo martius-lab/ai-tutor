@@ -2,13 +2,13 @@
 
 import reflex as rx
 from reflex_local_auth.user import LocalUser
-from reflex_local_auth.login import LoginState
 from sqlmodel import and_, select
 from aitutor import routes
 from dataclasses import dataclass
 
 from aitutor.models import ExerciseResult, UserInfo, Exercise, UserRole
 from aitutor.auth.state import SessionState
+from aitutor.auth.protection import state_require_role_at_least
 
 
 @dataclass
@@ -39,11 +39,9 @@ class SubmissionsState(SessionState):
         )
 
     @rx.event
+    @state_require_role_at_least(UserRole.TEACHER)
     def on_load(self):
         """Loads the users and the submissions."""
-        # protect data against unauthorized access
-        if not self.is_authenticated:
-            return LoginState.redir
 
         with rx.session() as session:
             stmt = (
