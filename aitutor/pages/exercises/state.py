@@ -1,13 +1,13 @@
 """State for the exercises page."""
 
 import reflex as rx
-import reflex_local_auth
 from sqlmodel import and_, select
 from typing import Optional
 
 from aitutor.models import Exercise, ExerciseResult, UserRole
 from aitutor.auth.state import SessionState
 from aitutor.global_vars import TIME_FORMAT
+from aitutor.auth.protection import state_require_role_at_least
 
 
 ExerciseWithResult = tuple[Exercise, Optional[ExerciseResult]]
@@ -38,13 +38,11 @@ class ExercisesState(SessionState):
         }
 
     @rx.event
+    @state_require_role_at_least(UserRole.STUDENT)
     def on_load(self):
         """
         Fetch exercises from database
         """
-        # protect data against unauthorized access
-        if not self.is_authenticated:
-            return reflex_local_auth.LoginState.redir
 
         with rx.session() as session:
             stmt = select(Exercise, ExerciseResult).join(
@@ -65,3 +63,9 @@ class ExercisesState(SessionState):
                 len(exercise.tags) > 0 for exercise, _ in exercises_with_result
             )
             self.exercises_with_result = [(x[0], x[1]) for x in exercises_with_result]
+
+    def on_logout(self):
+        """Clears the state when the user logs out."""
+        self.has_exercises = False
+        self.has_tags = False
+        self.exercises_with_result = []

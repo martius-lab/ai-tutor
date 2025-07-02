@@ -10,9 +10,10 @@ from zoneinfo import ZoneInfo
 from enum import Enum
 
 import aitutor.routes as routes
-from aitutor.models import Exercise, ExerciseResult
+from aitutor.models import Exercise, ExerciseResult, UserRole
 from aitutor.auth.state import SessionState
 from aitutor.config import get_config
+from aitutor.auth.protection import state_require_role_at_least
 from aitutor.global_vars import TIME_FORMAT, TIME_ZONE
 
 
@@ -149,11 +150,13 @@ class ChatState(SessionState):
         return f"{routes.FINISHED_VIEW}/{self.router.page.params.get('exercise_id', 0)}"
 
     @rx.event
+    @state_require_role_at_least(UserRole.STUDENT)
     def on_load(self):
         """
         Loads the exercise with exercise_id from the database.
         And sets all button loading states to False.
         """
+
         self.check_is_loading = False
         self.waiting_for_response = False
         with rx.session() as session:
@@ -502,3 +505,17 @@ class ChatState(SessionState):
                 check_passed=check_passed,
             )
         )
+
+    def on_logout(self):
+        """Clears the state when the user logs out."""
+        self.messages = []
+        self.current_exercise = None
+        self.exercise_title = "No Exercise Selected"
+        self.system_message_gpt = ""
+        self.check_is_loading = False
+        self.waiting_for_response = False
+        self.check_passed = False
+        self.conversation_is_submitted = False
+        self.submit_time_stamp = ""
+        self.user_input = ""
+        self.last_user_message_index = -1

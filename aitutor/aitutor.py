@@ -9,12 +9,6 @@ import decouple
 from aitutor import pages
 from aitutor.auth.pages import custom_login_page, custom_register_page
 from aitutor.config import get_config
-from aitutor.pages.manage_exercises.state import ManageExercisesState
-from aitutor.pages.exercises.state import ExercisesState
-from aitutor.pages.chat.state import ChatState
-from aitutor.pages.finished_view.state import FinishedViewState
-from aitutor.pages.submissions.state import SubmissionsState
-from aitutor.pages.finished_view_teacher.state import FinishedViewTeacherState
 from aitutor.utilities.create_default_users import create_default_users
 import aitutor.routes as routes
 
@@ -23,33 +17,33 @@ app = rx.App()
 app.add_page(
     pages.finished_view_teacher_page,
     route=routes.FINISHED_VIEW_TEACHER + "/[exercise_id]/[url_user_id]",
-    on_load=FinishedViewTeacherState.on_load,
+    on_load=pages.FinishedViewTeacherState.on_load,
 )
 app.add_page(
     pages.chat_page,
     route=routes.CHAT + "/[exercise_id]",
-    on_load=ChatState.on_load,
+    on_load=pages.ChatState.on_load,
 )
 app.add_page(
     pages.finished_view_page,
     route=routes.FINISHED_VIEW + "/[exercise_id]",
-    on_load=FinishedViewState.on_load,
+    on_load=pages.FinishedViewState.on_load,
 )
 app.add_page(
     pages.submissions_page,
     route=routes.SUBMISSIONS + "/[exercise_id]",
-    on_load=SubmissionsState.on_load,
+    on_load=pages.SubmissionsState.on_load,
 )
 app.add_page(pages.home_page, route=routes.HOME)
 app.add_page(
     pages.manage_exercises_page,
     route=routes.MANAGE_EXERCISES,
-    on_load=ManageExercisesState.on_load,
+    on_load=pages.ManageExercisesState.on_load,
 )
 app.add_page(
     pages.exercises_page,
     route=routes.EXERCISES,
-    on_load=ExercisesState.on_load,
+    on_load=pages.ExercisesState.on_load,
 )
 # reflex_local_auth pages
 app.add_page(

@@ -5,12 +5,12 @@ import reflex as rx
 from aitutor.models import UserRole
 from aitutor.pages.finished_view_teacher.state import FinishedViewTeacherState
 from aitutor.pages.navbar import with_navbar
-from aitutor.auth.protection import require_role_at_least
+from aitutor.auth.protection import page_require_role_at_least
 from aitutor.pages.chat.components import message_box
 
 
 @with_navbar
-@require_role_at_least(UserRole.TEACHER)
+@page_require_role_at_least(UserRole.TEACHER)
 def finished_view_teacher_page() -> rx.Component:
     """Renders the web page."""
     return rx.container(

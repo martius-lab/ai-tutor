@@ -7,6 +7,8 @@ from aitutor import routes
 from dataclasses import dataclass
 
 from aitutor.models import ExerciseResult, UserInfo, Exercise, UserRole
+from aitutor.auth.state import SessionState
+from aitutor.auth.protection import state_require_role_at_least
 
 
 @dataclass
@@ -19,7 +21,7 @@ class TableRow:
     has_submitted: bool
 
 
-class SubmissionsState(rx.State):
+class SubmissionsState(SessionState):
     """State for the submissions page."""
 
     exercise_title: str = ""
@@ -37,8 +39,10 @@ class SubmissionsState(rx.State):
         )
 
     @rx.event
+    @state_require_role_at_least(UserRole.TEACHER)
     def on_load(self):
         """Loads the users and the submissions."""
+
         with rx.session() as session:
             stmt = (
                 select(
@@ -76,3 +80,8 @@ class SubmissionsState(rx.State):
             ).one_or_none()
             if title:
                 self.exercise_title = title
+
+    def on_logout(self):
+        """Clears the state when the user logs out."""
+        self.exercise_title = ""
+        self.table_rows = []

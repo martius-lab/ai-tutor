@@ -5,14 +5,12 @@ including integration with local authentication and user role management.
 
 import reflex as rx
 import reflex_local_auth
-
+import sqlmodel
 from aitutor.models import UserInfo, UserRole
-
 from typing import Optional
 
-import sqlmodel
-
 import aitutor.routes as routes
+from aitutor import pages
 
 
 class SessionState(reflex_local_auth.LocalAuthState):
@@ -43,10 +41,25 @@ class SessionState(reflex_local_auth.LocalAuthState):
                 ),
             ).one_or_none()
 
-    def perform_logout(self):
+    async def perform_logout(self):
         """
         Handles the logout process for the authenticated user.
         """
+        states = [
+            pages.ChatState,
+            pages.ExercisesState,
+            pages.FinishedViewState,
+            pages.FinishedViewTeacherState,
+            pages.ManageExercisesState,
+            pages.SubmissionsState,
+        ]
+        for state in states:
+            # get the state
+            state_instance = await self.get_state(state)
+            # clear the state
+            state_instance.on_logout()
+
+        # logout
         self.do_logout()
         return rx.redirect(routes.HOME, replace=True)
 
