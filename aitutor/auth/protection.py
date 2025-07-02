@@ -70,11 +70,8 @@ def state_require_role_at_least(required_role):
     def decorator(func):
         @functools.wraps(func)
         def wrapper(self: SessionState, *args, **kwargs):
-            if not self.is_authenticated:
-                return
-            if self.is_authenticated and self.user_role < required_role:
-                return
-            return func(self, *args, **kwargs)
+            if self.is_authenticated and self.user_role >= required_role:
+                return func(self, *args, **kwargs)
 
         return wrapper
 
