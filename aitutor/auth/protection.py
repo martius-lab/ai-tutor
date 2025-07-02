@@ -2,6 +2,7 @@
 Utilities for access control and role-based protection.
 """
 
+import functools
 import reflex as rx
 from reflex_local_auth.login import LoginState
 from aitutor.auth.state import SessionState
@@ -16,19 +17,11 @@ def has_role_at_least(role):
     return user_role is not None and user_role >= role
 
 
-def require_role_at_least(role: UserRole):
+def page_require_role_at_least(required_role: UserRole):
     """
-    Decorator to restrict access to a page based on the user's role.
-
-    Parameters
-    ----------
-    role : UserRole
-        The minimum role required to access the page.
-
-    Returns
-    -------
-    Callable
-        A decorated page component callable that enforces the role restriction.
+    Checks if the user is authenticated and has the required role (in the frontend).
+    This decorator should be called with the page function.
+    It prevents that the page is rendered if the user does not have the required role.
     """
 
     def decorator(page: rx.app.ComponentCallable) -> rx.app.ComponentCallable:
@@ -38,7 +31,7 @@ def require_role_at_least(role: UserRole):
                 rx.cond(
                     LoginState.is_hydrated & LoginState.is_authenticated,
                     rx.cond(
-                        rx.cond(userrole, userrole >= role, False),  # type: ignore
+                        rx.cond(userrole, userrole >= required_role, False),  # type: ignore
                         page(),
                         rx.center(
                             rx.text(
@@ -49,8 +42,13 @@ def require_role_at_least(role: UserRole):
                         ),
                     ),
                     rx.center(
-                        # When this text mounts, it will redirect to the login page
-                        rx.text("Loading...", size="6", on_mount=LoginState.redir),
+                        rx.vstack(
+                            rx.spinner(size="3"),
+                            rx.text("Loading...", size="5"),
+                            align="center",
+                            justify="center",
+                            on_mount=LoginState.redir,
+                        ),
                         height="85vh",
                     ),
                 )
@@ -58,5 +56,26 @@ def require_role_at_least(role: UserRole):
 
         protected_page.__name__ = page.__name__
         return protected_page
+
+    return decorator
+
+
+def state_require_role_at_least(required_role):
+    """
+    Checks if the user is authenticated and has the required role (in the backend).
+    This decorator should be called with the on_load method of a state class.
+    It will prevent that data is loaded if the user does not have the required role.
+    """
+
+    def decorator(func):
+        @functools.wraps(func)
+        def wrapper(self: SessionState, *args, **kwargs):
+            if not self.is_authenticated:
+                return
+            if self.is_authenticated and self.user_role < required_role:
+                return
+            return func(self, *args, **kwargs)
+
+        return wrapper
 
     return decorator

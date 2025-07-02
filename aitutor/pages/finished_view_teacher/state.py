@@ -3,12 +3,13 @@
 import reflex as rx
 from typing import Optional
 from sqlmodel import select
-from reflex_local_auth import LocalUser, LoginState
+from reflex_local_auth import LocalUser
 
 import aitutor.routes as routes
-from aitutor.models import Exercise, ExerciseResult, UserInfo
+from aitutor.models import Exercise, ExerciseResult, UserInfo, UserRole
 from aitutor.auth.state import SessionState
 from aitutor.pages.chat.state import ChatMessage, Role
+from aitutor.auth.protection import state_require_role_at_least
 
 
 class FinishedViewTeacherState(SessionState):
@@ -27,11 +28,9 @@ class FinishedViewTeacherState(SessionState):
         )
 
     @rx.event
+    @state_require_role_at_least(UserRole.TEACHER)
     def on_load(self):
         """Loads the finished exercise and user info."""
-        # protect data against unauthorized access
-        if not self.is_authenticated:
-            return LoginState.redir
 
         with rx.session() as session:
             stmt = (
