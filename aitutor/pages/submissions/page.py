@@ -5,13 +5,13 @@ import reflex as rx
 from aitutor.models import UserRole
 from aitutor.pages.submissions.state import SubmissionsState
 from aitutor.pages.navbar import with_navbar
-from aitutor.auth.protection import require_role_at_least
+from aitutor.auth.protection import page_require_role_at_least
 from aitutor.pages.submissions.components import submissions_table
 from aitutor import routes
 
 
 @with_navbar
-@require_role_at_least(UserRole.TEACHER)
+@page_require_role_at_least(UserRole.TEACHER)
 def submissions_page() -> rx.Component:
     """Manage exercises page."""
     return rx.center(

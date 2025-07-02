@@ -5,11 +5,13 @@ import pdfplumber
 import io
 from sqlmodel import select, or_
 
+from aitutor.models import Exercise, Tag, UserRole
+from aitutor.auth.state import SessionState
 from aitutor.config import get_config
-from aitutor.models import Exercise, Tag
+from aitutor.auth.protection import state_require_role_at_least
 
 
-class ManageExercisesState(rx.State):
+class ManageExercisesState(SessionState):
     """State for the exercises page."""
 
     # Flags to control if dialogs are open.  They are needed as a workaround due to a
@@ -45,8 +47,10 @@ class ManageExercisesState(rx.State):
     current_hidden_state: bool = False
 
     @rx.event
+    @state_require_role_at_least(UserRole.ADMIN)
     def on_load(self):
         """Initialize the state"""
+
         config = get_config()
         self.prompts = {p.name: p.prompt for p in config.exercise_prompts}
         self.prompt_names = list(self.prompts.keys())
@@ -346,3 +350,20 @@ class ManageExercisesState(rx.State):
         self.selected_tags = _exercise.tags.copy() if _exercise.tags else []
         self.lesson_file_name = ""  # reset lesson_file_name
         self.current_hidden_state = _exercise.is_hidden
+
+    def on_logout(self):
+        """Clears the state when the user logs out."""
+        self.exercises = []
+        self.tag_list = []
+        self.tag_names = []
+        self.search_value = ""
+        self.current_tag = ""
+        self.current_exercise = Exercise()
+        self.selected_tags = []
+        self.lesson_context = ""
+        self.lesson_file_name = ""
+        self.current_prompt_name = ""
+        self.prompts = {}
+        self.prompt_names = []
+        self.extracting_lesson_material = False
+        self.current_hidden_state = False
