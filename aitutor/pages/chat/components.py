@@ -90,17 +90,31 @@ def chat_form() -> rx.Component:
     Render the chat form for user input. Includes button to send Reply and button to
     check the conversation.
     """
+
+    def text_area_with_key_submit(with_key_submit: bool) -> rx.Component:
+        """
+        Render a text area with enter key submit enabled or disabled.
+        """
+        return rx.text_area(
+            name="user_response",
+            placeholder="Your Answer",
+            value=ChatState.user_input,
+            on_change=ChatState.set_user_input,  # type: ignore (reflex has default setters)
+            required=True,
+            width="100%",
+            color_scheme="iris",
+            enter_key_submit=with_key_submit,
+        )
+
     return rx.form(
         rx.vstack(
-            rx.text_area(
-                name="user_response",
-                placeholder="Your Answer",
-                value=ChatState.user_input,
-                on_change=ChatState.set_user_input,  # type: ignore (reflex has default setters)
-                required=True,
+            rx.desktop_only(
+                text_area_with_key_submit(True),
                 width="100%",
-                color_scheme="iris",
-                enter_key_submit=True,
+            ),
+            rx.mobile_and_tablet(
+                text_area_with_key_submit(False),
+                width="100%",
             ),
             rx.hstack(
                 rx.hstack(
