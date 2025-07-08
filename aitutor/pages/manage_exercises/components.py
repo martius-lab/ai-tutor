@@ -256,6 +256,7 @@ def add_exercise_button() -> rx.Component:
             ),
             # add new tag
             new_tag_dialog(),
+            on_escape_key_down=ManageExercisesState.openDialog(DialogMode.ADD, False),
         ),
         open=ManageExercisesState.add_exercise_dialog_is_open,
     )
@@ -309,6 +310,7 @@ def edit_exercise_button(exercise: Exercise):
             ),
             # add new tag
             new_tag_dialog(),
+            on_escape_key_down=ManageExercisesState.openDialog(DialogMode.EDIT, False),
         ),
         open=ManageExercisesState.edit_exercise_dialog_is_open,
     )
