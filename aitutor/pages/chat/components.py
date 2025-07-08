@@ -17,7 +17,7 @@ def message_box(chat_message: ChatMessage) -> rx.Component:
     )
     return rx.box(
         rx.markdown(
-            chat_message.message.replace("\n", "  \n"),  # Ensure newlines are preserved
+            chat_message.message.replace("\n", "  \n"),  # transform to markdown newline
             background_color=rx.cond(
                 chat_message.role == Role.CHECK_RESULT,
                 rx.color(check_result_color, 4),
