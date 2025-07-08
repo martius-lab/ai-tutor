@@ -217,7 +217,7 @@ def add_exercise_button() -> rx.Component:
             rx.tablet_and_desktop(rx.text("Add Exercise", size="4")),
             size="3",
             _hover={"cursor": "pointer"},
-            on_click=ManageExercisesState.openDialog(DialogMode.ADD, True),
+            on_click=ManageExercisesState.open_dialog,
             type="button",
         ),
         rx.dialog.content(
@@ -269,7 +269,7 @@ def edit_exercise_button(exercise: Exercise):
             color_scheme="orange",
             size="2",
             variant="ghost",
-            on_click=ManageExercisesState.openDialog(DialogMode.EDIT, True, exercise),
+            on_click=ManageExercisesState.open_dialog(exercise),
             _hover={"cursor": "pointer"},
             type="button",
         ),
@@ -615,7 +615,7 @@ def add_edit_exercise_form(mode: DialogMode) -> rx.Component:
                 "Cancel",
                 color_scheme="red",
                 _hover={"cursor": "pointer"},
-                on_click=ManageExercisesState.openDialog(mode, False),
+                on_click=ManageExercisesState.close_dialog,
                 type="button",
             ),
             rx.form.submit(
