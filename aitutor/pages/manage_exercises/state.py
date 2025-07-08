@@ -357,26 +357,22 @@ class ManageExercisesState(SessionState):
         self.current_hidden_state = exercise.is_hidden
 
     @rx.event
-    def openDialog(
-        self,
-        dialog_mode: DialogMode,
-        open_dialog: bool,
-        exercise: Exercise | None = None,
-    ):
+    def open_dialog(self, exercise: Exercise | None = None):
         """Open the add/edit dialog."""
-        if open_dialog:
-            if DialogMode(dialog_mode) == DialogMode.ADD:
-                self.reset_exercise_form()
-                self.add_exercise_dialog_is_open = open_dialog
-            elif DialogMode(dialog_mode) == DialogMode.EDIT:
-                if exercise:
-                    self.load_exercise(exercise)
-                self.edit_exercise_dialog_is_open = open_dialog
-            else:
-                raise ValueError("Invalid dialog mode")
+        if exercise:
+            # open edit dialog
+            self.load_exercise(exercise)
+            self.edit_exercise_dialog_is_open = True
         else:
-            self.add_exercise_dialog_is_open = False
-            self.edit_exercise_dialog_is_open = False
+            # open add dialog
+            self.reset_exercise_form()
+            self.add_exercise_dialog_is_open = True
+
+    @rx.event
+    def close_dialog(self):
+        """Close the add/edit dialog."""
+        self.add_exercise_dialog_is_open = False
+        self.edit_exercise_dialog_is_open = False
 
     def on_logout(self):
         """Clears the state when the user logs out."""
