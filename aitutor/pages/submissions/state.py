@@ -63,7 +63,7 @@ class SubmissionsState(SessionState):
                     ),
                     isouter=True,
                 )
-            )
+            ).order_by(LocalUser.username)
             self.table_rows = [
                 (
                     TableRow(

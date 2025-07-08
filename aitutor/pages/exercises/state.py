@@ -57,7 +57,9 @@ class ExercisesState(SessionState):
             if self.user_role < UserRole.TEACHER:
                 stmt = stmt.where(Exercise.is_hidden == False)  # noqa: E712
 
-            exercises_with_result = session.exec(stmt).all()
+            exercises_with_result = session.exec(
+                stmt.order_by(Exercise.id.desc())  # type: ignore
+            ).all()
             self.has_exercises = len(exercises_with_result) > 0
             self.has_tags = any(
                 len(exercise.tags) > 0 for exercise, _ in exercises_with_result
