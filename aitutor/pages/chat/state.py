@@ -133,7 +133,6 @@ class ChatState(SessionState):
     current_exercise: Optional[Exercise] = None
     exercise_title: str = "No Exercise Selected"
     system_message_gpt: str
-    check_is_loading: bool = False
     waiting_for_response: bool = False
     check_passed: bool = False
     conversation_is_submitted: bool = False
@@ -157,7 +156,6 @@ class ChatState(SessionState):
         And sets all button loading states to False.
         """
 
-        self.check_is_loading = False
         self.waiting_for_response = False
         with rx.session() as session:
             exercise = session.exec(
@@ -302,14 +300,14 @@ class ChatState(SessionState):
         Check the conversation of the user.
         """
         async with self:
-            self.check_is_loading = True
+            self.waiting_for_response = True
             conversation = self.get_messages_dict_gpt()
         yield
         check_conversation_response = await get_check_conversation_response(
             conversation
         )
         async with self:
-            self.check_is_loading = False
+            self.waiting_for_response = False
             self.check_passed = (
                 check_conversation_response.check_passed
                 if check_conversation_response
@@ -520,7 +518,6 @@ class ChatState(SessionState):
         self.current_exercise = None
         self.exercise_title = "No Exercise Selected"
         self.system_message_gpt = ""
-        self.check_is_loading = False
         self.waiting_for_response = False
         self.check_passed = False
         self.conversation_is_submitted = False
