@@ -357,16 +357,16 @@ class ManageExercisesState(SessionState):
         self.current_hidden_state = exercise.is_hidden
 
     @rx.event
-    def open_dialog(self, exercise: Exercise | None = None):
+    def open_add_dialog(self):
         """Open the add/edit dialog."""
-        if exercise:
-            # open edit dialog
-            self.load_exercise(exercise)
-            self.edit_exercise_dialog_is_open = True
-        else:
-            # open add dialog
-            self.reset_exercise_form()
-            self.add_exercise_dialog_is_open = True
+        self.reset_exercise_form()
+        self.add_exercise_dialog_is_open = True
+
+    @rx.event
+    def open_edit_dialog(self, exercise: Exercise):
+        """Open the edit dialog for an exercise."""
+        self.load_exercise(exercise)
+        self.edit_exercise_dialog_is_open = True
 
     @rx.event
     def close_dialog(self):
