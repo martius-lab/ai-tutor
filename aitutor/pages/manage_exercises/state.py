@@ -3,12 +3,20 @@
 import reflex as rx
 import pdfplumber
 import io
+from enum import Enum
 from sqlmodel import select, or_
 
 from aitutor.models import Exercise, Tag, UserRole
 from aitutor.auth.state import SessionState
 from aitutor.config import get_config
 from aitutor.auth.protection import state_require_role_at_least
+
+
+class DialogMode(Enum):
+    """Enum for the mode of the add/edit function."""
+
+    ADD = "add"
+    EDIT = "edit"
 
 
 class ManageExercisesState(SessionState):
@@ -340,18 +348,28 @@ class ManageExercisesState(SessionState):
         )
 
     def load_exercise(self, exercise: Exercise):
-        """Get an exercise from the db."""
+        """load the exercise into the state variables."""
         self.current_exercise = exercise
-        with rx.session() as session:
-            # load exercise object from db
-            _exercise = session.exec(
-                select(Exercise).where(Exercise.id == self.current_exercise.id)
-            ).one()
-        self.current_prompt_name = _exercise.prompt_name
-        self.lesson_context = _exercise.lesson_context
-        self.selected_tags = _exercise.tags.copy() if _exercise.tags else []
+        self.current_prompt_name = exercise.prompt_name
+        self.lesson_context = exercise.lesson_context
+        self.selected_tags = exercise.tags.copy() if exercise.tags else []
         self.lesson_file_name = ""  # reset lesson_file_name
-        self.current_hidden_state = _exercise.is_hidden
+        self.current_hidden_state = exercise.is_hidden
+
+    @rx.event
+    def openDialog(
+        self, dialog_mode: DialogMode, open: bool, exercise: Exercise | None = None
+    ):
+        """Open the add/edit dialog."""
+        if DialogMode(dialog_mode) == DialogMode.ADD:
+            self.reset_exercise_form()
+            self.add_exercise_dialog_is_open = open
+        elif DialogMode(dialog_mode) == DialogMode.EDIT:
+            if exercise:
+                self.load_exercise(exercise)
+            self.edit_exercise_dialog_is_open = open
+        else:
+            raise ValueError("Invalid dialog mode")
 
     def on_logout(self):
         """Clears the state when the user logs out."""
