@@ -1,17 +1,9 @@
 """The Components for the manage exercises page."""
 
 import reflex as rx
-from enum import Enum
 
 from aitutor.models import Exercise
-from aitutor.pages.manage_exercises.state import ManageExercisesState
-
-
-class Mode(Enum):
-    """Enum for the mode of the add/edit function."""
-
-    ADD = "add"
-    EDIT = "edit"
+from aitutor.pages.manage_exercises.state import ManageExercisesState, DialogMode
 
 
 def new_tag_dialog():
@@ -132,6 +124,7 @@ def show_exercise(exercise: Exercise):
                 rx.hstack(
                     delete_exercise_button(exercise),
                     edit_exercise_button(exercise),
+                    spacing="4",
                 ),
                 padding_left="1em",
             ),
@@ -219,14 +212,13 @@ def exercise_table():
 def add_exercise_button() -> rx.Component:
     """Button for adding new exercises."""
     return rx.dialog.root(
-        rx.dialog.trigger(
-            rx.button(
-                rx.icon("file-plus", size=26),
-                rx.tablet_and_desktop(rx.text("Add Exercise", size="4")),
-                size="3",
-                _hover={"cursor": "pointer"},
-                on_click=ManageExercisesState.reset_exercise_form,
-            ),
+        rx.button(
+            rx.icon("file-plus", size=26),
+            rx.tablet_and_desktop(rx.text("Add Exercise", size="4")),
+            size="3",
+            _hover={"cursor": "pointer"},
+            on_click=ManageExercisesState.openDialog(DialogMode.ADD, True),
+            type="button",
         ),
         rx.dialog.content(
             rx.hstack(
@@ -256,7 +248,7 @@ def add_exercise_button() -> rx.Component:
                 width="100%",
             ),
             rx.form(
-                add_edit_exercise_form(mode=Mode.ADD),
+                add_edit_exercise_form(mode=DialogMode.ADD),
                 on_mount=ManageExercisesState.load_tags,
                 on_submit=ManageExercisesState.add_exercise,
                 reset_on_submit=False,
@@ -266,23 +258,20 @@ def add_exercise_button() -> rx.Component:
             new_tag_dialog(),
         ),
         open=ManageExercisesState.add_exercise_dialog_is_open,
-        on_open_change=ManageExercisesState.set_add_exercise_dialog_is_open,  # type: ignore
     )
 
 
 def edit_exercise_button(exercise: Exercise):
     """Edit exercises on page."""
     return rx.dialog.root(
-        rx.dialog.trigger(
-            rx.button(
-                rx.icon("wrench", size=22),
-                color_scheme="orange",
-                size="2",
-                variant="ghost",
-                on_click=ManageExercisesState.load_exercise(exercise),  # type: ignore
-                _hover={"cursor": "pointer"},
-            ),
-            padding_left="1em",
+        rx.button(
+            rx.icon("wrench", size=22),
+            color_scheme="orange",
+            size="2",
+            variant="ghost",
+            on_click=ManageExercisesState.openDialog(DialogMode.EDIT, True, exercise),
+            _hover={"cursor": "pointer"},
+            type="button",
         ),
         rx.dialog.content(
             rx.hstack(
@@ -312,7 +301,7 @@ def edit_exercise_button(exercise: Exercise):
                 width="100%",
             ),
             rx.form(
-                add_edit_exercise_form(mode=Mode.EDIT),
+                add_edit_exercise_form(mode=DialogMode.EDIT),
                 on_mount=ManageExercisesState.load_tags,
                 on_submit=ManageExercisesState.update_exercise,
                 reset_on_submit=False,
@@ -322,7 +311,6 @@ def edit_exercise_button(exercise: Exercise):
             new_tag_dialog(),
         ),
         open=ManageExercisesState.edit_exercise_dialog_is_open,
-        on_open_change=ManageExercisesState.set_edit_exercise_dialog_is_open,  # type: ignore
     )
 
 
@@ -387,7 +375,7 @@ def pdf_upload() -> rx.Component:
     )
 
 
-def select_prompt(mode: Mode) -> rx.Component:
+def select_prompt(mode: DialogMode) -> rx.Component:
     """The prompt selection component."""
     return (
         rx.text(
@@ -416,7 +404,7 @@ def select_prompt(mode: Mode) -> rx.Component:
                 rx.popover.content(
                     rx.flex(
                         rx.cond(
-                            mode == Mode.ADD,
+                            mode == DialogMode.ADD,
                             rx.text(
                                 ManageExercisesState.prompts[
                                     ManageExercisesState.current_prompt_name
@@ -534,7 +522,7 @@ def tag_management() -> rx.Component:
     )
 
 
-def add_edit_exercise_form(mode: Mode) -> rx.Component:
+def add_edit_exercise_form(mode: DialogMode) -> rx.Component:
     """Button for adding or editing exercises."""
     return (
         # title
@@ -548,7 +536,7 @@ def add_edit_exercise_form(mode: Mode) -> rx.Component:
         ),
         rx.input(
             default_value=rx.cond(
-                mode == Mode.EDIT,
+                mode == DialogMode.EDIT,
                 ManageExercisesState.current_exercise.title,
                 "",
             ),
@@ -570,7 +558,7 @@ def add_edit_exercise_form(mode: Mode) -> rx.Component:
         ),
         rx.text_area(
             rx.cond(
-                mode == Mode.EDIT,
+                mode == DialogMode.EDIT,
                 ManageExercisesState.current_exercise.description,
                 "",
             ),
@@ -623,16 +611,16 @@ def add_edit_exercise_form(mode: Mode) -> rx.Component:
         # tags
         tag_management(),
         rx.hstack(
-            rx.dialog.close(
-                rx.button(
-                    "Cancel",
-                    color_scheme="red",
-                    _hover={"cursor": "pointer"},
-                ),
+            rx.button(
+                "Cancel",
+                color_scheme="red",
+                _hover={"cursor": "pointer"},
+                on_click=ManageExercisesState.openDialog(mode, False),
+                type="button",
             ),
             rx.form.submit(
                 rx.cond(
-                    mode == Mode.ADD,
+                    mode == DialogMode.ADD,
                     rx.button(
                         "Add Task",
                         color_scheme="green",
