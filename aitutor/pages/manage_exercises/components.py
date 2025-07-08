@@ -205,6 +205,7 @@ def exercise_table():
                 overflow_y="auto",
                 max_height="70vh",
             ),
+            edit_exercise_dialog(),
         ),
     )
 
@@ -262,17 +263,21 @@ def add_exercise_button() -> rx.Component:
 
 
 def edit_exercise_button(exercise: Exercise):
-    """Edit exercises on page."""
+    """Button to open the edit exercise dialog."""
+    return rx.button(
+        rx.icon("wrench", size=22),
+        color_scheme="orange",
+        size="2",
+        variant="ghost",
+        on_click=ManageExercisesState.open_dialog(exercise),
+        _hover={"cursor": "pointer"},
+        type="button",
+    )
+
+
+def edit_exercise_dialog() -> rx.Component:
+    """Dialog for editing exercises."""
     return rx.dialog.root(
-        rx.button(
-            rx.icon("wrench", size=22),
-            color_scheme="orange",
-            size="2",
-            variant="ghost",
-            on_click=ManageExercisesState.open_dialog(exercise),
-            _hover={"cursor": "pointer"},
-            type="button",
-        ),
         rx.dialog.content(
             rx.hstack(
                 rx.badge(
