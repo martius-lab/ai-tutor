@@ -184,7 +184,9 @@ class ManageExercisesState(SessionState):
                         ],
                     )
                 )
-            self.exercises = list(session.exec(query_exercises).all())
+            self.exercises = list(
+                session.exec(query_exercises.order_by(Exercise.id.desc())).all()  # type: ignore
+            )
 
     @rx.event
     def load_tags(self):
