@@ -3,6 +3,7 @@
 import reflex as rx
 
 from aitutor.models import UserRole
+from aitutor.pages.submissions.state import SubmissionsState
 from aitutor.pages.navbar import with_navbar
 from aitutor.auth.protection import page_require_role_at_least
 from aitutor.pages.submissions.components import submissions_table
@@ -20,6 +21,11 @@ def submissions_page() -> rx.Component:
                 padding_top="1em",
                 padding_bottom="0.5em",
                 align="center",
+            ),
+            rx.input(
+                rx.input.slot(rx.icon("search")),
+                placeholder="Search...",
+                on_change=lambda value: SubmissionsState.search_submissions(value),
             ),
             submissions_table(),
             align="center",

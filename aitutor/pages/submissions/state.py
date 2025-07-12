@@ -26,12 +26,13 @@ class SubmissionsState(SessionState):
     """State for the submissions page."""
 
     table_rows: list[TableRow]
+    rendered_table_rows: list[TableRow]
+    search_value: str = ""
 
     @rx.event
     @state_require_role_at_least(UserRole.TEACHER)
     def on_load(self):
         """Loads the users and the submissions."""
-
         with rx.session() as session:
             stmt = (
                 select(
@@ -66,6 +67,26 @@ class SubmissionsState(SessionState):
                 for x in session.exec(stmt).all()
             ]
 
+    @rx.event
+    def search_submissions(self, value: str):
+        """sets the search value and calls the load function."""
+        self.search_value = value
+        result = self.table_rows
+        if self.search_value != "":
+            search_term = self.search_value.lower()
+            result = [
+                row
+                for row in self.table_rows
+                if search_term in row.username.lower()
+                or search_term in row.exercise_title.lower()
+                or any(search_term in tag.lower() for tag in row.exercise_tags)
+            ]
+
+        self.rendered_table_rows = result
+        yield
+
     def on_logout(self):
         """Clears the state when the user logs out."""
         self.table_rows = []
+        self.rendered_table_rows = []
+        self.search_value = ""
