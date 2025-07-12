@@ -23,7 +23,16 @@ def show_student(table_row: TableRow) -> rx.Component:
     return rx.table.row(
         rx.table.cell(table_row.username),
         rx.table.cell(table_row.exercise_title),
-        rx.table.cell(table_row.role),
+        rx.table.cell(
+            rx.hstack(
+                rx.foreach(
+                    table_row.exercise_tags,
+                    lambda tag: rx.badge(tag, variant="soft", color_scheme="blue"),
+                ),
+                spacing="1",
+                wrap="wrap",
+            )
+        ),
         rx.table.cell(
             rx.cond(
                 table_row.has_submitted,
@@ -52,7 +61,7 @@ def submissions_table():
                 rx.table.row(
                     header_cell("Username", "user-round"),
                     header_cell("Exercise", "book"),
-                    header_cell("Role", "shield_check"),
+                    header_cell("Tags", "tag"),
                     header_cell("Submission", "circle-check"),
                 ),
             ),

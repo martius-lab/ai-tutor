@@ -5,7 +5,7 @@ from reflex_local_auth.user import LocalUser
 from sqlmodel import literal_column, select
 from dataclasses import dataclass
 
-from aitutor.models import ExerciseResult, UserInfo, Exercise, UserRole
+from aitutor.models import ExerciseResult, Exercise, UserRole
 from aitutor.auth.state import SessionState
 from aitutor.auth.protection import state_require_role_at_least
 
@@ -16,10 +16,10 @@ class TableRow:
 
     username: str
     user_id: int | None
-    role: str
     has_submitted: bool
     exercise_id: int | None
     exercise_title: str
+    exercise_tags: list[str]
 
 
 class SubmissionsState(SessionState):
@@ -37,19 +37,18 @@ class SubmissionsState(SessionState):
                 select(
                     LocalUser.username,
                     LocalUser.id,
-                    UserInfo.role,
                     Exercise.id,
                     Exercise.title,
+                    Exercise.tags,
                     ExerciseResult.finished_conversation,
                 )  # type: ignore
                 .select_from(LocalUser)
-                .join(UserInfo, LocalUser.id == UserInfo.user_id)
                 # cartesian product
                 .join(Exercise, literal_column("1") == literal_column("1"))
                 .outerjoin(
                     ExerciseResult,
                     (ExerciseResult.exercise_id == Exercise.id)
-                    & (ExerciseResult.userinfo_id == UserInfo.id),
+                    & (ExerciseResult.userinfo_id == LocalUser.id),
                 )
                 .order_by(Exercise.title, LocalUser.username)
             )
@@ -58,9 +57,9 @@ class SubmissionsState(SessionState):
                     TableRow(
                         username=x[0],
                         user_id=x[1],
-                        role=UserRole(x[2]).name,
-                        exercise_id=x[3],
-                        exercise_title=x[4],
+                        exercise_id=x[2],
+                        exercise_title=x[3],
+                        exercise_tags=x[4],
                         has_submitted=bool(x[5]),
                     )
                 )
