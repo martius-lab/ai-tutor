@@ -3,6 +3,7 @@
 import reflex as rx
 
 from aitutor.pages.submissions.state import SubmissionsState, TableRow
+from aitutor import routes
 
 
 def header_cell(text: str, icon: str):
@@ -21,6 +22,7 @@ def show_student(table_row: TableRow) -> rx.Component:
     """Show exercises on page in a table row."""
     return rx.table.row(
         rx.table.cell(table_row.username),
+        rx.table.cell(table_row.exercise_title),
         rx.table.cell(table_row.role),
         rx.table.cell(
             rx.cond(
@@ -30,7 +32,7 @@ def show_student(table_row: TableRow) -> rx.Component:
                     size="2",
                     color_scheme="iris",
                     on_click=rx.redirect(
-                        f"{SubmissionsState.finished_view_teacher_url}/{table_row.user_id}"
+                        f"{routes.FINISHED_VIEW_TEACHER}/{table_row.exercise_id}/{table_row.user_id}"
                     ),
                     _hover={"cursor": "pointer"},
                 ),
@@ -49,6 +51,7 @@ def submissions_table():
             rx.table.header(
                 rx.table.row(
                     header_cell("Username", "user-round"),
+                    header_cell("Exercise", "book"),
                     header_cell("Role", "shield_check"),
                     header_cell("Submission", "circle-check"),
                 ),

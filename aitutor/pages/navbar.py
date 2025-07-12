@@ -21,6 +21,7 @@ links = [
     ("Home", routes.HOME),
     ("Exercises", routes.EXERCISES),
 ]
+SUBMISSIONS = ("Submissions", routes.SUBMISSIONS)
 MANAGE_EXERCISES = ("Manage Exercises", routes.MANAGE_EXERCISES)
 
 
@@ -192,6 +193,10 @@ def navbar() -> rx.Component:
                 rx.hstack(
                     *[navbar_link(text, url) for text, url in links],
                     rx.cond(
+                        has_role_at_least(role=UserRole.TEACHER),
+                        navbar_link(SUBMISSIONS[0], SUBMISSIONS[1]),
+                    ),
+                    rx.cond(
                         has_role_at_least(role=UserRole.ADMIN),
                         navbar_link(MANAGE_EXERCISES[0], MANAGE_EXERCISES[1]),
                     ),
@@ -235,6 +240,14 @@ def navbar() -> rx.Component:
                                 )
                                 for text, url in links
                             ],
+                            rx.cond(
+                                has_role_at_least(role=UserRole.TEACHER),
+                                rx.menu.item(
+                                    SUBMISSIONS[0],
+                                    on_click=lambda: rx.redirect(SUBMISSIONS[1]),
+                                    _hover={"cursor": "pointer"},
+                                ),
+                            ),
                             rx.cond(
                                 has_role_at_least(role=UserRole.ADMIN),
                                 rx.menu.item(
