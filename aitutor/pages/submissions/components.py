@@ -67,7 +67,7 @@ def submissions_table():
             ),
             rx.table.body(
                 rx.foreach(
-                    SubmissionsState.table_rows,
+                    SubmissionsState.rendered_table_rows,
                     show_student,
                 )
             ),
