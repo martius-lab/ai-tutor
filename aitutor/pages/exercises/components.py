@@ -2,10 +2,8 @@
 
 import reflex as rx
 
-from aitutor.models import Exercise, ExerciseResult, UserRole
+from aitutor.models import Exercise, ExerciseResult
 from aitutor.pages.exercises.state import ExercisesState, ExerciseWithResult
-from aitutor.routes import SUBMISSIONS
-from aitutor.auth.protection import has_role_at_least
 
 
 def render_exercise_card(exercise_with_res: ExerciseWithResult) -> rx.Component:
@@ -72,16 +70,6 @@ def render_exercise_card(exercise_with_res: ExerciseWithResult) -> rx.Component:
                 exercise_with_res[0].is_hidden,
                 {"opacity": "0.5"},
                 {"opacity": "1"},
-            ),
-        ),
-        rx.cond(
-            has_role_at_least(UserRole.TEACHER),
-            rx.icon_button(
-                "search",
-                size="2",
-                color_scheme="iris",
-                on_click=rx.redirect(SUBMISSIONS + f"/{exercise.id}"),
-                _hover={"cursor": "pointer"},
             ),
         ),
         align="center",
