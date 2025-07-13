@@ -68,6 +68,7 @@ class SubmissionsState(SessionState):
                 )
                 for x in session.exec(stmt).all()
             ]
+            # apply filters and fill rendered_table_rows
             self.search_submissions()
 
     @rx.event
@@ -98,7 +99,11 @@ class SubmissionsState(SessionState):
         self.search_submissions()
 
     def search_submissions(self):
-        """sets the search value and calls the load function."""
+        """filters the table based on:
+        - current_search_value
+        - search_values
+        - only_with_submission
+        """
         result = self.table_rows
         if self.current_search_value != "":
             search_term = self.current_search_value.lower()
