@@ -29,6 +29,7 @@ class SubmissionsState(SessionState):
     rendered_table_rows: list[TableRow]
     current_search_value: str = ""
     search_values: list[str] = []
+    only_with_submission: bool = False
 
     @rx.event
     @state_require_role_at_least(UserRole.TEACHER)
@@ -90,6 +91,12 @@ class SubmissionsState(SessionState):
             self.search_values.remove(value)
         self.search_submissions()
 
+    @rx.event
+    def toggle_only_with_submission(self):
+        """Toggles the only with submission filter."""
+        self.only_with_submission = not self.only_with_submission
+        self.search_submissions()
+
     def search_submissions(self):
         """sets the search value and calls the load function."""
         result = self.table_rows
@@ -113,6 +120,8 @@ class SubmissionsState(SessionState):
                         search_value.lower() in tag.lower() for tag in row.exercise_tags
                     )
                 ]
+        if self.only_with_submission:
+            result = [row for row in result if row.has_submitted]
         self.rendered_table_rows = result
 
     def on_logout(self):
@@ -121,3 +130,4 @@ class SubmissionsState(SessionState):
         self.rendered_table_rows = []
         self.current_search_value = ""
         self.search_values = []
+        self.only_with_submission = False

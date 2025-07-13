@@ -111,3 +111,36 @@ def search_badges() -> rx.Component:
         spacing="2",
         wrap="wrap",
     )
+
+
+def search_bar() -> rx.Component:
+    """Search bar for submissions."""
+    return rx.form.root(
+        rx.hstack(
+            rx.input(
+                rx.input.slot(rx.icon("search")),
+                name="search_value",
+                placeholder="Search...",
+                required=True,
+                value=SubmissionsState.current_search_value,
+                on_change=SubmissionsState.search_with_value,
+            ),
+            rx.button(
+                rx.icon("plus"),
+                _hover={"cursor": "pointer"},
+            ),
+        ),
+        on_submit=SubmissionsState.add_search_value,
+        reset_on_submit=True,
+        max_width="250px",
+    )
+
+
+def only_with_submissions() -> rx.Component:
+    """Checkbox to filter only submissions."""
+    return rx.checkbox(
+        "Only with submission",
+        is_checked=SubmissionsState.only_with_submission,
+        on_change=SubmissionsState.toggle_only_with_submission,
+        color_scheme="blue",
+    )
