@@ -78,3 +78,28 @@ def submissions_table():
             max_height="70vh",
         ),
     )
+
+
+def search_badges() -> rx.Component:
+    """Display search badges for the current search values."""
+    return rx.hstack(
+        rx.foreach(
+            SubmissionsState.search_values,
+            lambda value: rx.badge(
+                rx.hstack(
+                    rx.text(value),
+                    rx.icon(
+                        "x",
+                        on_click=SubmissionsState.remove_search_value(value),
+                        _hover={"cursor": "pointer"},
+                    ),
+                    spacing="1",
+                    align="center",
+                ),
+                variant="solid",
+                color_scheme="blue",
+            ),
+        ),
+        spacing="2",
+        wrap="wrap",
+    )
