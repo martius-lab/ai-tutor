@@ -23,12 +23,18 @@ def submissions_page() -> rx.Component:
                 align="center",
             ),
             rx.form.root(
-                rx.input(
-                    rx.input.slot(rx.icon("search")),
-                    placeholder="Search...",
-                    required=True,
-                    value=SubmissionsState.current_search_value,
-                    on_change=SubmissionsState.search_with_value,
+                rx.hstack(
+                    rx.input(
+                        rx.input.slot(rx.icon("search")),
+                        placeholder="Search...",
+                        required=True,
+                        value=SubmissionsState.current_search_value,
+                        on_change=SubmissionsState.search_with_value,
+                    ),
+                    rx.button(
+                        rx.icon("plus"),
+                        _hover={"cursor": "pointer"},
+                    ),
                 ),
                 on_submit=SubmissionsState.add_search_value,
                 reset_on_submit=True,
