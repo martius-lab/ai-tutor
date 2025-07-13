@@ -76,10 +76,10 @@ class SubmissionsState(SessionState):
         self.search_submissions()
 
     @rx.event
-    def add_search_value(self):
+    def add_search_value(self, form_data: dict):
         """Adds a search value to the list of search values."""
-        if self.current_search_value not in self.search_values:
-            self.search_values.append(self.current_search_value)
+        if form_data["search_value"] not in self.search_values:
+            self.search_values.append(form_data["search_value"])
         self.current_search_value = ""
         self.search_submissions()
 

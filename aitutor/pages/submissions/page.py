@@ -26,6 +26,7 @@ def submissions_page() -> rx.Component:
                 rx.hstack(
                     rx.input(
                         rx.input.slot(rx.icon("search")),
+                        name="search_value",
                         placeholder="Search...",
                         required=True,
                         value=SubmissionsState.current_search_value,
