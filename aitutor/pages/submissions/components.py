@@ -27,7 +27,15 @@ def show_student(table_row: TableRow) -> rx.Component:
             rx.hstack(
                 rx.foreach(
                     table_row.exercise_tags,
-                    lambda tag: rx.badge(tag, variant="soft", color_scheme="blue"),
+                    lambda tag: rx.badge(
+                        tag,
+                        variant="soft",
+                        color_scheme="blue",
+                        on_click=SubmissionsState.add_search_value(
+                            {"search_value": tag}
+                        ),
+                        _hover={"cursor": "pointer"},
+                    ),
                 ),
                 spacing="1",
                 wrap="wrap",
