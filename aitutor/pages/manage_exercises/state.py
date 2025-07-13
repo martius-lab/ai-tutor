@@ -221,7 +221,6 @@ class ManageExercisesState(SessionState):
                 if e.id == exercise.id:
                     self.exercises[i].is_hidden = _exercise.is_hidden
                     break
-            yield
 
     @rx.event
     def submit_tag(self, form_data: dict):

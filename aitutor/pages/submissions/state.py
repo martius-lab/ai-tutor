@@ -27,7 +27,8 @@ class SubmissionsState(SessionState):
 
     table_rows: list[TableRow]
     rendered_table_rows: list[TableRow]
-    search_value: str = ""
+    current_search_value: str = ""
+    search_values: list[str] = []
 
     @rx.event
     @state_require_role_at_least(UserRole.TEACHER)
@@ -66,27 +67,57 @@ class SubmissionsState(SessionState):
                 )
                 for x in session.exec(stmt).all()
             ]
+            self.search_submissions()
 
     @rx.event
-    def search_submissions(self, value: str):
+    def search_with_value(self, value: str):
+        """Searches the submissions with the given value."""
+        self.current_search_value = value
+        self.search_submissions()
+
+    @rx.event
+    def add_search_value(self):
+        """Adds a search value to the list of search values."""
+        if self.current_search_value not in self.search_values:
+            self.search_values.append(self.current_search_value)
+        self.current_search_value = ""
+        self.search_submissions()
+
+    @rx.event
+    def remove_search_value(self, value: str):
+        """Removes a search value from the list."""
+        if value in self.search_values:
+            self.search_values.remove(value)
+        self.search_submissions()
+
+    def search_submissions(self):
         """sets the search value and calls the load function."""
-        self.search_value = value
         result = self.table_rows
-        if self.search_value != "":
-            search_term = self.search_value.lower()
+        if self.current_search_value != "":
+            search_term = self.current_search_value.lower()
             result = [
                 row
-                for row in self.table_rows
+                for row in result
                 if search_term in row.username.lower()
                 or search_term in row.exercise_title.lower()
                 or any(search_term in tag.lower() for tag in row.exercise_tags)
             ]
-
+        if self.search_values:
+            for search_value in self.search_values:
+                result = [
+                    row
+                    for row in result
+                    if search_value.lower() in row.username.lower()
+                    or search_value.lower() in row.exercise_title.lower()
+                    or any(
+                        search_value.lower() in tag.lower() for tag in row.exercise_tags
+                    )
+                ]
         self.rendered_table_rows = result
-        yield
 
     def on_logout(self):
         """Clears the state when the user logs out."""
         self.table_rows = []
         self.rendered_table_rows = []
-        self.search_value = ""
+        self.current_search_value = ""
+        self.search_values = []
