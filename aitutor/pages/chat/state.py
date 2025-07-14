@@ -262,13 +262,18 @@ class ChatState(SessionState):
         """
         New messages get appended to list of ChatMessages.
         """
+        async with self:
+            if self.waiting_for_response:
+                # don't allow sending another message while waiting for a response
+                return
+            self.waiting_for_response = True
+
         user_message = form_data.get("user_response")
         if user_message:
             async with self:
                 self.append_chat_message(
                     message=user_message, role=Role.USER, check_passed=self.check_passed
                 )
-                self.waiting_for_response = True
                 self.user_input = ""
             yield
             # Takes list of ChatMessage and turns into a list of dictionaries, so
@@ -287,12 +292,12 @@ class ChatState(SessionState):
                 )
                 self.update_last_user_message_index()
                 messages = self.get_messages_dict_gpt()
-                self.waiting_for_response = False
             yield
 
             # Save conversation to database.
             async with self:
                 self.save_conversation_to_db(conversation=messages)
+                self.waiting_for_response = False
 
     @rx.event(background=True)
     async def check_conversation(self):
