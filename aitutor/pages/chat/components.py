@@ -274,7 +274,7 @@ def check_conversation_button() -> rx.Component:
             on_click=ChatState.submit_conversation,
         ),
         rx.cond(
-            ChatState.check_is_loading,
+            ChatState.waiting_for_response,
             rx.button(
                 rx.desktop_only("Check Conversation"),
                 rx.mobile_and_tablet("Check"),
