@@ -105,26 +105,17 @@ class SubmissionsState(SessionState):
         - only_with_submission
         """
         result = self.table_rows
-        if self.current_search_value != "":
-            search_term = self.current_search_value.lower()
+        search_values = self.search_values.copy()
+        if self.current_search_value:
+            search_values.append(self.current_search_value)
+        for search_value in search_values:
             result = [
                 row
                 for row in result
-                if search_term in row.username.lower()
-                or search_term in row.exercise_title.lower()
-                or any(search_term in tag.lower() for tag in row.exercise_tags)
+                if search_value.lower() in row.username.lower()
+                or search_value.lower() in row.exercise_title.lower()
+                or any(search_value.lower() in tag.lower() for tag in row.exercise_tags)
             ]
-        if self.search_values:
-            for search_value in self.search_values:
-                result = [
-                    row
-                    for row in result
-                    if search_value.lower() in row.username.lower()
-                    or search_value.lower() in row.exercise_title.lower()
-                    or any(
-                        search_value.lower() in tag.lower() for tag in row.exercise_tags
-                    )
-                ]
         if self.only_with_submission:
             result = [row for row in result if row.has_submitted]
         self.rendered_table_rows = result
