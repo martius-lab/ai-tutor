@@ -268,14 +268,16 @@ class ChatState(SessionState):
                 return
             self.waiting_for_response = True
 
-        user_message = form_data.get("user_response")
-        if user_message:
+        if self.user_input:
             async with self:
                 self.append_chat_message(
-                    message=user_message, role=Role.USER, check_passed=self.check_passed
+                    message=self.user_input,
+                    role=Role.USER,
+                    check_passed=self.check_passed,
                 )
                 self.user_input = ""
             yield
+
             # Takes list of ChatMessage and turns into a list of dictionaries, so
             # the OpenAI API can handle the messages.
             messages = self.get_messages_dict_gpt()
