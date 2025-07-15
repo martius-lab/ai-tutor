@@ -1,8 +1,9 @@
 """The state for the submissions page."""
 
 import reflex as rx
+import sqlalchemy
 from reflex_local_auth.user import LocalUser
-from sqlmodel import literal_column, select
+from sqlmodel import select
 from dataclasses import dataclass
 
 from aitutor.models import ExerciseResult, Exercise, UserRole
@@ -46,8 +47,7 @@ class SubmissionsState(SessionState):
                     ExerciseResult.finished_conversation,
                 )  # type: ignore
                 .select_from(LocalUser)
-                # cartesian product
-                .join(Exercise, literal_column("1") == literal_column("1"))
+                .join(Exercise, sqlalchemy.sql.true())  # cartesian product
                 .outerjoin(
                     ExerciseResult,
                     (ExerciseResult.exercise_id == Exercise.id)
