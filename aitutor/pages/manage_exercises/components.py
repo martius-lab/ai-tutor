@@ -107,17 +107,14 @@ def show_exercise(exercise: Exercise):
         rx.table.cell(exercise.title, max_width="175px"),
         rx.table.cell(exercise.description, max_width="400px"),
         rx.table.cell(
-            rx.flex(
+            rx.hstack(
                 rx.foreach(
                     exercise.tags,
-                    lambda tag: rx.text(tag + ","),
+                    lambda tag: rx.badge(tag, variant="soft", color_scheme="blue"),
                 ),
+                spacing="1",
                 wrap="wrap",
-            ),
-            max_width="100px",
-            max_height="100px",
-            overflow="auto",
-            padding="1em",
+            )
         ),
         rx.table.cell(
             rx.center(

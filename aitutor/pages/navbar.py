@@ -17,11 +17,29 @@ def navbar_link(text: str, url: str) -> rx.Component:
     return rx.link(rx.text(text, size="4", weight="medium"), href=url)
 
 
-links = [
+general_links = [
     ("Home", routes.HOME),
     ("Exercises", routes.EXERCISES),
 ]
-MANAGE_EXERCISES = ("Manage Exercises", routes.MANAGE_EXERCISES)
+teacher_links = [
+    ("Submissions", routes.SUBMISSIONS),
+]
+admin_links = [
+    ("Manage Exercises", routes.MANAGE_EXERCISES),
+]
+
+
+def get_links():
+    """Returns the list of navigation links for the current user role."""
+    return rx.cond(
+        has_role_at_least(UserRole.ADMIN),
+        general_links + teacher_links + admin_links,
+        rx.cond(
+            has_role_at_least(UserRole.TEACHER),
+            general_links + teacher_links,
+            general_links,
+        ),
+    )
 
 
 def get_user_icon():
@@ -174,6 +192,7 @@ def navbar() -> rx.Component:
     Returns:
         rx.Component: A Reflex box component containing the navigation bar.
     """
+    links = get_links()
     return rx.box(
         rx.desktop_only(
             rx.hstack(
@@ -190,10 +209,9 @@ def navbar() -> rx.Component:
                     align_items="center",
                 ),
                 rx.hstack(
-                    *[navbar_link(text, url) for text, url in links],
-                    rx.cond(
-                        has_role_at_least(role=UserRole.ADMIN),
-                        navbar_link(MANAGE_EXERCISES[0], MANAGE_EXERCISES[1]),
+                    rx.foreach(
+                        links,
+                        lambda link: navbar_link(link[0], link[1]),
                     ),
                     spacing="5",
                 ),
@@ -227,22 +245,14 @@ def navbar() -> rx.Component:
                             _hover={"cursor": "pointer"},
                         ),
                         rx.menu.content(
-                            *[
-                                rx.menu.item(
-                                    text,
-                                    on_click=lambda url=url: rx.redirect(url),
-                                    _hover={"cursor": "pointer"},
-                                )
-                                for text, url in links
-                            ],
-                            rx.cond(
-                                has_role_at_least(role=UserRole.ADMIN),
-                                rx.menu.item(
-                                    MANAGE_EXERCISES[0],
-                                    on_click=lambda: rx.redirect(MANAGE_EXERCISES[1]),
+                            rx.foreach(
+                                links,
+                                lambda link: rx.menu.item(
+                                    link[0],
+                                    on_click=lambda url=link[1]: rx.redirect(url),
                                     _hover={"cursor": "pointer"},
                                 ),
-                            ),
+                            )
                         ),
                     ),
                     profile_menu(),

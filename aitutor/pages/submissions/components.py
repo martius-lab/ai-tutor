@@ -3,6 +3,7 @@
 import reflex as rx
 
 from aitutor.pages.submissions.state import SubmissionsState, TableRow
+from aitutor import routes
 
 
 def header_cell(text: str, icon: str):
@@ -21,7 +22,25 @@ def show_student(table_row: TableRow) -> rx.Component:
     """Show exercises on page in a table row."""
     return rx.table.row(
         rx.table.cell(table_row.username),
-        rx.table.cell(table_row.role),
+        rx.table.cell(table_row.exercise_title),
+        rx.table.cell(
+            rx.hstack(
+                rx.foreach(
+                    table_row.exercise_tags,
+                    lambda tag: rx.badge(
+                        tag,
+                        variant="soft",
+                        color_scheme="blue",
+                        on_click=SubmissionsState.add_search_value(
+                            {"search_value": tag}
+                        ),
+                        _hover={"cursor": "pointer"},
+                    ),
+                ),
+                spacing="1",
+                wrap="wrap",
+            )
+        ),
         rx.table.cell(
             rx.cond(
                 table_row.has_submitted,
@@ -30,7 +49,7 @@ def show_student(table_row: TableRow) -> rx.Component:
                     size="2",
                     color_scheme="iris",
                     on_click=rx.redirect(
-                        f"{SubmissionsState.finished_view_teacher_url}/{table_row.user_id}"
+                        f"{routes.FINISHED_VIEW_TEACHER}/{table_row.exercise_id}/{table_row.user_id}"
                     ),
                     _hover={"cursor": "pointer"},
                 ),
@@ -49,13 +68,14 @@ def submissions_table():
             rx.table.header(
                 rx.table.row(
                     header_cell("Username", "user-round"),
-                    header_cell("Role", "shield_check"),
+                    header_cell("Exercise", "book"),
+                    header_cell("Tags", "tag"),
                     header_cell("Submission", "circle-check"),
                 ),
             ),
             rx.table.body(
                 rx.foreach(
-                    SubmissionsState.table_rows,
+                    SubmissionsState.rendered_table_rows,
                     show_student,
                 )
             ),
@@ -65,4 +85,62 @@ def submissions_table():
             overflow_y="auto",
             max_height="70vh",
         ),
+    )
+
+
+def search_badges() -> rx.Component:
+    """Display search badges for the current search values."""
+    return rx.hstack(
+        rx.foreach(
+            SubmissionsState.search_values,
+            lambda value: rx.badge(
+                rx.hstack(
+                    rx.text(value),
+                    rx.icon(
+                        "x",
+                        on_click=SubmissionsState.remove_search_value(value),
+                        _hover={"cursor": "pointer"},
+                    ),
+                    spacing="1",
+                    align="center",
+                ),
+                variant="solid",
+                color_scheme="blue",
+            ),
+        ),
+        spacing="2",
+        wrap="wrap",
+    )
+
+
+def search_bar() -> rx.Component:
+    """Search bar for submissions."""
+    return rx.form.root(
+        rx.hstack(
+            rx.input(
+                rx.input.slot(rx.icon("search")),
+                name="search_value",
+                placeholder="Search...",
+                required=True,
+                value=SubmissionsState.current_search_value,
+                on_change=SubmissionsState.search_with_value,
+            ),
+            rx.button(
+                rx.icon("plus"),
+                _hover={"cursor": "pointer"},
+            ),
+        ),
+        on_submit=SubmissionsState.add_search_value,
+        reset_on_submit=True,
+        max_width="250px",
+    )
+
+
+def only_with_submissions() -> rx.Component:
+    """Checkbox to filter only submissions."""
+    return rx.checkbox(
+        "Only with submission",
+        checked=SubmissionsState.only_with_submission,
+        on_change=SubmissionsState.toggle_only_with_submission,
+        color_scheme="blue",
     )
