@@ -31,7 +31,7 @@ app.add_page(
 )
 app.add_page(
     pages.submissions_page,
-    route=routes.SUBMISSIONS + "/[exercise_id]",
+    route=routes.SUBMISSIONS,
     on_load=pages.SubmissionsState.on_load,
 )
 app.add_page(pages.home_page, route=routes.HOME)

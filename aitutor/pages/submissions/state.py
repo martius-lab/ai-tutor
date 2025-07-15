@@ -1,12 +1,12 @@
 """The state for the submissions page."""
 
 import reflex as rx
+import sqlalchemy
 from reflex_local_auth.user import LocalUser
-from sqlmodel import and_, select
-from aitutor import routes
+from sqlmodel import select
 from dataclasses import dataclass
 
-from aitutor.models import ExerciseResult, UserInfo, Exercise, UserRole
+from aitutor.models import ExerciseResult, Exercise, UserRole
 from aitutor.auth.state import SessionState
 from aitutor.auth.protection import state_require_role_at_least
 
@@ -17,71 +17,113 @@ class TableRow:
 
     username: str
     user_id: int | None
-    role: str
     has_submitted: bool
+    exercise_id: int | None
+    exercise_title: str
+    exercise_tags: list[str]
 
 
 class SubmissionsState(SessionState):
     """State for the submissions page."""
 
-    exercise_title: str = ""
     table_rows: list[TableRow]
-
-    @rx.var
-    def finished_view_teacher_url(self) -> str:
-        """
-        The exercise_id is used to identify the current exercise.
-        It is set by the route parameter in the URL.
-        """
-        return (
-            f"{routes.FINISHED_VIEW_TEACHER}/"
-            f"{self.router.page.params.get('exercise_id', 0)}/"
-        )
+    rendered_table_rows: list[TableRow]
+    current_search_value: str = ""
+    search_values: list[str] = []
+    only_with_submission: bool = False
 
     @rx.event
     @state_require_role_at_least(UserRole.TEACHER)
     def on_load(self):
         """Loads the users and the submissions."""
-
         with rx.session() as session:
             stmt = (
                 select(
                     LocalUser.username,
                     LocalUser.id,
-                    UserInfo.role,
+                    Exercise.id,
+                    Exercise.title,
+                    Exercise.tags,
                     ExerciseResult.finished_conversation,
-                )
-                .join(
-                    UserInfo,
-                    LocalUser.id == UserInfo.user_id,  # type: ignore
-                )
-                .join(
+                )  # type: ignore
+                .select_from(LocalUser)
+                .join(Exercise, sqlalchemy.sql.true())  # cartesian product
+                .outerjoin(
                     ExerciseResult,
-                    and_(
-                        LocalUser.id == ExerciseResult.userinfo_id,
-                        ExerciseResult.exercise_id == int(self.exercise_id),
-                    ),
-                    isouter=True,
+                    (ExerciseResult.exercise_id == Exercise.id)
+                    & (ExerciseResult.userinfo_id == LocalUser.id),
                 )
-            ).order_by(LocalUser.username)
+                .order_by(Exercise.title, LocalUser.username)
+            )
             self.table_rows = [
                 (
                     TableRow(
                         username=x[0],
                         user_id=x[1],
-                        role=UserRole(x[2]).name,
-                        has_submitted=bool(x[3]),
+                        exercise_id=x[2],
+                        exercise_title=x[3],
+                        exercise_tags=x[4],
+                        has_submitted=bool(x[5]),
                     )
                 )
                 for x in session.exec(stmt).all()
             ]
-            title = session.exec(
-                select(Exercise.title).where(Exercise.id == int(self.exercise_id))
-            ).one_or_none()
-            if title:
-                self.exercise_title = title
+            # apply filters and fill rendered_table_rows
+            self.search_submissions()
+
+    @rx.event
+    def search_with_value(self, value: str):
+        """Searches the submissions with the given value."""
+        self.current_search_value = value
+        self.search_submissions()
+
+    @rx.event
+    def add_search_value(self, form_data: dict):
+        """Adds a search value to the list of search values."""
+        if form_data["search_value"] not in self.search_values:
+            self.search_values.append(form_data["search_value"])
+        self.current_search_value = ""
+        self.search_submissions()
+
+    @rx.event
+    def remove_search_value(self, value: str):
+        """Removes a search value from the list."""
+        if value in self.search_values:
+            self.search_values.remove(value)
+        self.search_submissions()
+
+    @rx.event
+    def toggle_only_with_submission(self):
+        """Toggles the only with submission filter."""
+        self.only_with_submission = not self.only_with_submission
+        self.search_submissions()
+
+    def search_submissions(self):
+        """filters the table based on:
+        - current_search_value
+        - search_values
+        - only_with_submission
+        """
+        result = self.table_rows
+        search_values = self.search_values.copy()
+        if self.current_search_value:
+            search_values.append(self.current_search_value)
+        for search_value in search_values:
+            result = [
+                row
+                for row in result
+                if search_value.lower() in row.username.lower()
+                or search_value.lower() in row.exercise_title.lower()
+                or any(search_value.lower() in tag.lower() for tag in row.exercise_tags)
+            ]
+        if self.only_with_submission:
+            result = [row for row in result if row.has_submitted]
+        self.rendered_table_rows = result
 
     def on_logout(self):
         """Clears the state when the user logs out."""
-        self.exercise_title = ""
         self.table_rows = []
+        self.rendered_table_rows = []
+        self.current_search_value = ""
+        self.search_values = []
+        self.only_with_submission = False

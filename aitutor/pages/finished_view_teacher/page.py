@@ -4,6 +4,7 @@ import reflex as rx
 
 from aitutor.models import UserRole
 from aitutor.pages.finished_view_teacher.state import FinishedViewTeacherState
+from aitutor import routes
 from aitutor.pages.navbar import with_navbar
 from aitutor.auth.protection import page_require_role_at_least
 from aitutor.pages.chat.components import message_box
@@ -21,7 +22,7 @@ def finished_view_teacher_page() -> rx.Component:
                         rx.icon("arrow-left", size=20),
                         color_scheme="iris",
                         on_click=rx.redirect(
-                            FinishedViewTeacherState.submissions_url,
+                            routes.SUBMISSIONS,
                         ),
                         _hover={"cursor": "pointer"},
                     ),

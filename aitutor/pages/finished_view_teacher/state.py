@@ -20,13 +20,6 @@ class FinishedViewTeacherState(SessionState):
     username: str
     exercise_title: str = "No Exercise Selected"
 
-    @rx.var
-    def submissions_url(self) -> str:
-        """Returns the URL for the chat page."""
-        return (
-            f"{routes.SUBMISSIONS}/{str(self.router.page.params.get('exercise_id', 0))}"
-        )
-
     @rx.event
     @state_require_role_at_least(UserRole.TEACHER)
     def on_load(self):

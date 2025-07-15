@@ -15,7 +15,12 @@ def manage_exercises_page() -> rx.Component:
     return rx.center(
         rx.vstack(
             rx.center(
-                rx.heading("Exercises", size="8", padding_top="2em"),
+                rx.heading(
+                    "Manage Exercises",
+                    size="8",
+                    padding_top="1em",
+                    align="center",
+                ),
                 padding_bottom="2em",
                 width="100%",
             ),
