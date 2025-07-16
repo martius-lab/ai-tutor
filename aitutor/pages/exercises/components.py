@@ -4,6 +4,7 @@ import reflex as rx
 
 from aitutor.models import Exercise, ExerciseResult
 from aitutor.pages.exercises.state import ExercisesState, ExerciseWithResult
+from aitutor.utilities.helper_functions import truncate_text_reflex_var
 
 
 def render_exercise_card(exercise_with_res: ExerciseWithResult) -> rx.Component:
@@ -18,7 +19,13 @@ def render_exercise_card(exercise_with_res: ExerciseWithResult) -> rx.Component:
                     rx.heading(exercise.title, size="6"),  # display title
                     rx.hstack(
                         rx.text("Description:", weight="bold", size="2"),
-                        rx.text(exercise.description, color="gray", size="2"),
+                        rx.text(
+                            truncate_text_reflex_var(
+                                exercise.description, max_length=150
+                            ),
+                            color="gray",
+                            size="2",
+                        ),
                         align_items="center",
                         align="center",
                     ),
@@ -34,28 +41,28 @@ def render_exercise_card(exercise_with_res: ExerciseWithResult) -> rx.Component:
                                     ),
                                 ),
                                 spacing="2",
+                                wrap="wrap",
                             ),
                         ),
                     ),
                     rx.cond(
                         is_submitted,
-                        rx.text(
-                            "Last submit: "
-                            + ExercisesState.submit_time_stamps[exercise.id],
-                            color_scheme="green",
-                            size="2",
+                        rx.hstack(
+                            rx.icon(
+                                "circle-check",
+                                color="green",
+                            ),
+                            rx.text(
+                                "Last submit: "
+                                + ExercisesState.submit_time_stamps[exercise.id],
+                                color_scheme="green",
+                                size="2",
+                            ),
+                            align="center",
                         ),
                     ),
                     spacing="2",
                     align="start",
-                ),
-                rx.cond(
-                    is_submitted,
-                    rx.icon(
-                        "circle-check",
-                        color="green",
-                        size=30,
-                    ),
                 ),
                 align="center",
                 justify="between",

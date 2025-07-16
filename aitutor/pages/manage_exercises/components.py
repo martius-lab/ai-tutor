@@ -4,6 +4,7 @@ import reflex as rx
 
 from aitutor.models import Exercise
 from aitutor.pages.manage_exercises.state import ManageExercisesState, DialogMode
+from aitutor.utilities.helper_functions import truncate_text_reflex_var
 
 
 def new_tag_dialog():
@@ -105,7 +106,10 @@ def show_exercise(exercise: Exercise):
     return rx.table.row(
         rx.table.cell(exercise.id),
         rx.table.cell(exercise.title, max_width="175px"),
-        rx.table.cell(exercise.description, max_width="400px"),
+        rx.table.cell(
+            truncate_text_reflex_var(exercise.description, max_length=150),
+            max_width="400px",
+        ),
         rx.table.cell(
             rx.hstack(
                 rx.foreach(
