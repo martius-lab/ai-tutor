@@ -263,9 +263,6 @@ def navbar() -> rx.Component:
         ),
         bg=rx.color("accent", 3),
         padding="1em",
-        position="sticky",
-        top="0px",
-        z_index="1000",
         width="100%",
     )
 
