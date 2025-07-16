@@ -47,23 +47,22 @@ def render_exercise_card(exercise_with_res: ExerciseWithResult) -> rx.Component:
                     ),
                     rx.cond(
                         is_submitted,
-                        rx.text(
-                            "Last submit: "
-                            + ExercisesState.submit_time_stamps[exercise.id],
-                            color_scheme="green",
-                            size="2",
+                        rx.hstack(
+                            rx.icon(
+                                "circle-check",
+                                color="green",
+                            ),
+                            rx.text(
+                                "Last submit: "
+                                + ExercisesState.submit_time_stamps[exercise.id],
+                                color_scheme="green",
+                                size="2",
+                            ),
+                            align="center",
                         ),
                     ),
                     spacing="2",
                     align="start",
-                ),
-                rx.cond(
-                    is_submitted,
-                    rx.icon(
-                        "circle-check",
-                        color="green",
-                        size=30,
-                    ),
                 ),
                 align="center",
                 justify="between",
