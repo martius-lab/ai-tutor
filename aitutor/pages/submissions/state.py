@@ -38,36 +38,29 @@ class SubmissionsState(SessionState):
         """Loads the users and the submissions."""
         with rx.session() as session:
             stmt = (
-                select(
-                    LocalUser.username,
-                    LocalUser.id,
-                    Exercise.id,
-                    Exercise.title,
-                    Exercise.tags,
-                    ExerciseResult.finished_conversation,
-                )  # type: ignore
+                select(LocalUser, Exercise, ExerciseResult)
                 .select_from(LocalUser)
                 .join(Exercise, sqlalchemy.sql.true())  # cartesian product
                 .outerjoin(
                     ExerciseResult,
                     (ExerciseResult.exercise_id == Exercise.id)
-                    & (ExerciseResult.userinfo_id == LocalUser.id),
+                    & (ExerciseResult.userinfo_id == LocalUser.id),  # type: ignore
                 )
+                .options(sqlalchemy.orm.selectinload(Exercise.tags))
                 .order_by(Exercise.title, LocalUser.username)
             )
-            self.table_rows = [
-                (
+
+            for user, exercise, result in session.exec(stmt).all():
+                self.table_rows.append(
                     TableRow(
-                        username=x[0],
-                        user_id=x[1],
-                        exercise_id=x[2],
-                        exercise_title=x[3],
-                        exercise_tags=x[4],
-                        has_submitted=bool(x[5]),
+                        username=user.username,
+                        user_id=user.id,
+                        exercise_id=exercise.id,
+                        exercise_title=exercise.title,
+                        exercise_tags=[tag.name for tag in exercise.tags],
+                        has_submitted=bool(result and result.finished_conversation),
                     )
                 )
-                for x in session.exec(stmt).all()
-            ]
             # apply filters and fill rendered_table_rows
             self.search_submissions()
 
