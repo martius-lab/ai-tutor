@@ -114,7 +114,7 @@ def show_exercise(exercise: Exercise):
             rx.hstack(
                 rx.foreach(
                     exercise.tags,
-                    lambda tag: rx.badge(tag, variant="soft", color_scheme="blue"),
+                    lambda tag: rx.badge(tag.name, variant="soft", color_scheme="blue"),
                 ),
                 spacing="1",
                 wrap="wrap",
@@ -199,7 +199,6 @@ def exercise_table():
                 rx.table.body(
                     rx.foreach(ManageExercisesState.exercises, show_exercise)
                 ),
-                on_mount=ManageExercisesState.load_exercises,
                 variant="surface",
                 size="3",
                 width="85vw",
@@ -271,7 +270,7 @@ def edit_exercise_button(exercise: Exercise):
         color_scheme="orange",
         size="2",
         variant="ghost",
-        on_click=ManageExercisesState.open_edit_dialog(exercise),
+        on_click=lambda: ManageExercisesState.open_edit_dialog(exercise),
         _hover={"cursor": "pointer"},
         type="button",
     )
@@ -509,9 +508,7 @@ def tag_management() -> rx.Component:
                             spacing="1",
                             align_items="center",
                         ),
-                        on_click=lambda: ManageExercisesState.remove_selected_tag(  # noqa: E501
-                            tag
-                        ),  # type: ignore
+                        on_click=ManageExercisesState.remove_selected_tag(tag),  # type: ignore
                         color_scheme="grass",
                         cursor="pointer",
                         size="3",
