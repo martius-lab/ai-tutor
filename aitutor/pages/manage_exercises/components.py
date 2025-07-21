@@ -88,9 +88,7 @@ def delete_exercise_button(exercise: Exercise):
                         rx.button(
                             "Confirm",
                             color_scheme="iris",
-                            on_click=lambda: ManageExercisesState.delete_exercise(
-                                exercise.id
-                            ),  # type: ignore
+                            on_click=ManageExercisesState.delete_exercise(exercise.id),  # type: ignore
                             _hover={"cursor": "pointer"},
                         ),
                     ),
@@ -138,7 +136,7 @@ def show_exercise(exercise: Exercise):
                     rx.icon("eye", size=18),
                 ),
                 _hover={"cursor": "pointer"},
-                on_click=lambda: ManageExercisesState.toggle_visibility(exercise),
+                on_click=ManageExercisesState.toggle_visibility(exercise),
             ),
         ),
         style={"_hover": {"bg": rx.color("gray", 3)}},
@@ -270,7 +268,7 @@ def edit_exercise_button(exercise: Exercise):
         color_scheme="orange",
         size="2",
         variant="ghost",
-        on_click=lambda: ManageExercisesState.open_edit_dialog(exercise),
+        on_click=ManageExercisesState.open_edit_dialog(exercise),
         _hover={"cursor": "pointer"},
         type="button",
     )
