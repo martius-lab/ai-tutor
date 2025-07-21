@@ -562,7 +562,7 @@ def add_edit_exercise_form(mode: DialogMode) -> rx.Component:
             padding_bottom="0.5em",
         ),
         rx.text_area(
-            rx.cond(
+            default_value=rx.cond(
                 mode == DialogMode.EDIT,
                 ManageExercisesState.current_exercise.description,
                 "",
