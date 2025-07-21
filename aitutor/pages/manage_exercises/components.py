@@ -621,23 +621,26 @@ def add_edit_exercise_form(mode: DialogMode) -> rx.Component:
                 on_click=ManageExercisesState.close_dialog,
                 type="button",
             ),
-            rx.form.submit(
-                rx.cond(
-                    mode == DialogMode.ADD,
+            rx.cond(
+                mode == DialogMode.ADD,
+                rx.form.submit(
                     rx.button(
                         "Add Task",
                         color_scheme="green",
                         type="submit",
                         _hover={"cursor": "pointer"},
                     ),
+                    as_child=True,
+                ),
+                rx.form.submit(
                     rx.button(
                         "Update Task",
                         color_scheme="yellow",
                         type="submit",
                         _hover={"cursor": "pointer"},
                     ),
+                    as_child=True,
                 ),
-                padding_bottom="0.5em",
             ),
             spacing="2",
             justify="end",
