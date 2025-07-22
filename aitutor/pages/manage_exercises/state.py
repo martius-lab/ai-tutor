@@ -5,6 +5,7 @@ import pdfplumber
 import io
 from enum import Enum
 from sqlmodel import select, or_
+from sqlalchemy.orm import selectinload
 
 from aitutor.models import Exercise, Tag, UserRole
 from aitutor.auth.state import SessionState
@@ -62,6 +63,7 @@ class ManageExercisesState(SessionState):
         config = get_config()
         self.prompts = {p.name: p.prompt for p in config.exercise_prompts}
         self.prompt_names = list(self.prompts.keys())
+        self.load_exercises()
 
     @rx.event
     def set_current_prompt_name(self, prompt_name: str):
@@ -130,36 +132,31 @@ class ManageExercisesState(SessionState):
                 return rx.window_alert(
                     "Please add some lesson context to the exercise."
                 )
-            # create instance and fill its fields
-            new_exercise = Exercise(
-                lesson_context=self.lesson_context,
-            )
-            new_exercise.title = form_data["title"]
-            new_exercise.description = form_data["description"]
-            # use the selected tags
-            new_exercise.tags = list(self.selected_tags)
-            # add prompt element
             if self.current_prompt_name == "":
                 return rx.window_alert(
                     "Please select a prompt template for the exercise."
                 )
-            new_exercise.prompt = self.prompts[self.current_prompt_name].format(
+            new_exercise = Exercise(
+                lesson_context=self.lesson_context,
                 title=form_data["title"],
                 description=form_data["description"],
-                lesson_context=self.lesson_context,
+                prompt=self.prompts[self.current_prompt_name].format(
+                    title=form_data["title"],
+                    description=form_data["description"],
+                    lesson_context=self.lesson_context,
+                ),
+                prompt_name=self.current_prompt_name,
+                is_hidden=self.current_hidden_state,
+                tags=session.exec(
+                    select(Tag).where(Tag.name.in_(self.selected_tags))  # type: ignore
+                ).all(),
             )
-            new_exercise.prompt_name = self.current_prompt_name
-            new_exercise.is_hidden = self.current_hidden_state
-            # add exercises to db
             session.add(new_exercise)
             session.commit()
-            # reload exercises
             self.load_exercises()
-            # clear fields after submission
             self.selected_tags = []
             self.lesson_context = ""
             self.lesson_file_name = ""
-
             self.add_exercise_dialog_is_open = False
 
         return rx.toast.success(
@@ -180,7 +177,7 @@ class ManageExercisesState(SessionState):
         """Get exercises from db."""
         with rx.session() as session:
             # load exercises
-            query_exercises = select(Exercise)
+            query_exercises = select(Exercise).options(selectinload(Exercise.tags))  # type: ignore
             # search for distinct entries
             if self.search_value:
                 search_value = f"%{str(self.search_value).lower()}%"
@@ -264,7 +261,9 @@ class ManageExercisesState(SessionState):
             # update fields
             updated_exercise.title = form_data["title"]
             updated_exercise.description = form_data["description"]
-            updated_exercise.tags = self.selected_tags
+            updated_exercise.tags = session.exec(
+                select(Tag).where(Tag.name.in_(self.selected_tags))  # type: ignore
+            ).all()
             updated_exercise.prompt = self.prompts[self.current_prompt_name].format(
                 title=form_data["title"],
                 description=form_data["description"],
@@ -348,10 +347,16 @@ class ManageExercisesState(SessionState):
 
     def load_exercise(self, exercise: Exercise):
         """load the exercise into the state variables."""
+        # load the exercise from the state variable so it also contains the tags.
+        # Because the argument exercise for some reason does not have the tags loaded.
+        for i, e in enumerate(self.exercises):
+            if e.id == exercise.id:
+                exercise = self.exercises[i]
+                break
         self.current_exercise = exercise
         self.current_prompt_name = exercise.prompt_name
         self.lesson_context = exercise.lesson_context
-        self.selected_tags = exercise.tags.copy() if exercise.tags else []
+        self.selected_tags = [tag.name for tag in exercise.tags]
         self.lesson_file_name = ""  # reset lesson_file_name
         self.current_hidden_state = exercise.is_hidden
 

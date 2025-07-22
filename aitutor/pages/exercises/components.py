@@ -37,7 +37,7 @@ def render_exercise_card(exercise_with_res: ExerciseWithResult) -> rx.Component:
                                 rx.foreach(
                                     exercise.tags,
                                     lambda tag: rx.badge(
-                                        tag, variant="soft", color_scheme="blue"
+                                        tag.name, variant="soft", color_scheme="blue"
                                     ),
                                 ),
                                 spacing="2",

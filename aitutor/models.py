@@ -8,11 +8,30 @@ from datetime import datetime
 from reflex_local_auth.user import LocalUser
 
 
+class ExerciseTagLink(rx.Model, table=True):
+    """
+    Link table for many-to-many relationship between Exercise and Tag.
+    """
+
+    # database relationships
+    exercise_id: Optional[int] = Field(
+        foreign_key="exercise.id", primary_key=True, ondelete="CASCADE"
+    )
+    tag_id: Optional[int] = Field(
+        foreign_key="tag.id", primary_key=True, ondelete="CASCADE"
+    )
+
+
 class Tag(rx.Model, table=True):
     """Tag model for storing allowed tags."""
 
     id: Optional[int] = Field(default=None, primary_key=True)
     name: str = Field(unique=True, nullable=False, index=True)
+
+    # ORM relationship
+    exercises: List["Exercise"] = Relationship(
+        back_populates="tags", link_model=ExerciseTagLink
+    )
 
     def __repr__(self):
         return f"<Tag(name='{self.name}')>"
@@ -27,12 +46,14 @@ class Exercise(rx.Model, table=True):
     lesson_context: str = Field(nullable=False, default="")
     prompt_name: str = Field(nullable=False, default="")
     prompt: str = Field(nullable=False, default="")
-    tags: List[str] = Field(sa_column=Column(JSON), default=[])
     is_hidden: bool = Field(default=False)
 
     # ORM relationship
     submissions: List["ExerciseResult"] = Relationship(
         back_populates="exercise", cascade_delete=True
+    )
+    tags: List[Tag] = Relationship(
+        back_populates="exercises", link_model=ExerciseTagLink
     )
 
     def __repr__(self):
