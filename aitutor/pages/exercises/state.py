@@ -2,6 +2,7 @@
 
 import reflex as rx
 from sqlmodel import and_, select
+from sqlalchemy.orm import selectinload
 from typing import Optional
 
 from aitutor.models import Exercise, ExerciseResult, UserRole
@@ -45,13 +46,19 @@ class ExercisesState(SessionState):
         """
 
         with rx.session() as session:
-            stmt = select(Exercise, ExerciseResult).join(
-                ExerciseResult,
-                and_(
-                    Exercise.id == ExerciseResult.exercise_id,
-                    ExerciseResult.userinfo_id == self.authenticated_user.id,
-                ),
-                isouter=True,
+            stmt = (
+                select(Exercise, ExerciseResult)
+                .options(
+                    selectinload(Exercise.tags),  # type: ignore
+                )
+                .join(
+                    ExerciseResult,
+                    and_(
+                        Exercise.id == ExerciseResult.exercise_id,
+                        ExerciseResult.userinfo_id == self.authenticated_user.id,
+                    ),
+                    isouter=True,
+                )
             )
             assert self.user_role is not None, "User role not set.  This is a bug."
             if self.user_role < UserRole.TEACHER:

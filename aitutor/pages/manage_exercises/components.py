@@ -88,9 +88,7 @@ def delete_exercise_button(exercise: Exercise):
                         rx.button(
                             "Confirm",
                             color_scheme="iris",
-                            on_click=lambda: ManageExercisesState.delete_exercise(
-                                exercise.id
-                            ),  # type: ignore
+                            on_click=ManageExercisesState.delete_exercise(exercise.id),  # type: ignore
                             _hover={"cursor": "pointer"},
                         ),
                     ),
@@ -114,7 +112,7 @@ def show_exercise(exercise: Exercise):
             rx.hstack(
                 rx.foreach(
                     exercise.tags,
-                    lambda tag: rx.badge(tag, variant="soft", color_scheme="blue"),
+                    lambda tag: rx.badge(tag.name, variant="soft", color_scheme="blue"),
                 ),
                 spacing="1",
                 wrap="wrap",
@@ -138,7 +136,7 @@ def show_exercise(exercise: Exercise):
                     rx.icon("eye", size=18),
                 ),
                 _hover={"cursor": "pointer"},
-                on_click=lambda: ManageExercisesState.toggle_visibility(exercise),
+                on_click=ManageExercisesState.toggle_visibility(exercise),
             ),
         ),
         style={"_hover": {"bg": rx.color("gray", 3)}},
@@ -199,7 +197,6 @@ def exercise_table():
                 rx.table.body(
                     rx.foreach(ManageExercisesState.exercises, show_exercise)
                 ),
-                on_mount=ManageExercisesState.load_exercises,
                 variant="surface",
                 size="3",
                 width="85vw",
@@ -509,9 +506,7 @@ def tag_management() -> rx.Component:
                             spacing="1",
                             align_items="center",
                         ),
-                        on_click=lambda: ManageExercisesState.remove_selected_tag(  # noqa: E501
-                            tag
-                        ),  # type: ignore
+                        on_click=ManageExercisesState.remove_selected_tag(tag),  # type: ignore
                         color_scheme="grass",
                         cursor="pointer",
                         size="3",
@@ -565,7 +560,7 @@ def add_edit_exercise_form(mode: DialogMode) -> rx.Component:
             padding_bottom="0.5em",
         ),
         rx.text_area(
-            rx.cond(
+            default_value=rx.cond(
                 mode == DialogMode.EDIT,
                 ManageExercisesState.current_exercise.description,
                 "",
@@ -626,23 +621,26 @@ def add_edit_exercise_form(mode: DialogMode) -> rx.Component:
                 on_click=ManageExercisesState.close_dialog,
                 type="button",
             ),
-            rx.form.submit(
-                rx.cond(
-                    mode == DialogMode.ADD,
+            rx.cond(
+                mode == DialogMode.ADD,
+                rx.form.submit(
                     rx.button(
                         "Add Task",
                         color_scheme="green",
                         type="submit",
                         _hover={"cursor": "pointer"},
                     ),
+                    as_child=True,
+                ),
+                rx.form.submit(
                     rx.button(
                         "Update Task",
                         color_scheme="yellow",
                         type="submit",
                         _hover={"cursor": "pointer"},
                     ),
+                    as_child=True,
                 ),
-                padding_bottom="0.5em",
             ),
             spacing="2",
             justify="end",
