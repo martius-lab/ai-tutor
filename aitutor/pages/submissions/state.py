@@ -41,6 +41,7 @@ class SubmissionsState(SessionState):
     @state_require_role_at_least(UserRole.TEACHER)
     def on_load(self):
         """Loads the users and the submissions."""
+        self.table_rows = []
         with rx.session() as session:
             stmt = (
                 select(LocalUser, Exercise, ExerciseResult)
