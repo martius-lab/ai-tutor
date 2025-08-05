@@ -133,7 +133,8 @@ class ChatState(SessionState):
     current_exercise: Optional[Exercise] = None
     exercise_title: str = "No Exercise Selected"
     system_message_gpt: str
-    waiting_for_response: bool = False
+    waiting_for_check: bool = False
+    waiting_for_answer: bool = False
     check_passed: bool = False
     conversation_is_submitted: bool = False
     submit_time_stamp: str = ""
@@ -156,7 +157,8 @@ class ChatState(SessionState):
         And sets all button loading states to False.
         """
 
-        self.waiting_for_response = False
+        self.waiting_for_check = False
+        self.waiting_for_answer = False
         with rx.session() as session:
             exercise = session.exec(
                 Exercise.select().where(Exercise.id == int(self.exercise_id))
@@ -263,10 +265,10 @@ class ChatState(SessionState):
         New messages get appended to list of ChatMessages.
         """
         async with self:
-            if self.waiting_for_response:
+            if self.waiting_for_check or self.waiting_for_answer:
                 # don't allow sending another message while waiting for a response
                 return
-            self.waiting_for_response = True
+            self.waiting_for_answer = True
 
         if self.user_input:
             async with self:
@@ -299,7 +301,7 @@ class ChatState(SessionState):
             # Save conversation to database.
             async with self:
                 self.save_conversation_to_db(conversation=messages)
-                self.waiting_for_response = False
+                self.waiting_for_answer = False
 
     @rx.event(background=True)
     async def check_conversation(self):
@@ -307,14 +309,14 @@ class ChatState(SessionState):
         Check the conversation of the user.
         """
         async with self:
-            self.waiting_for_response = True
+            self.waiting_for_check = True
             conversation = self.get_messages_dict_gpt()
         yield
         check_conversation_response = await get_check_conversation_response(
             conversation
         )
         async with self:
-            self.waiting_for_response = False
+            self.waiting_for_check = False
             self.check_passed = (
                 check_conversation_response.check_passed
                 if check_conversation_response
@@ -525,7 +527,8 @@ class ChatState(SessionState):
         self.current_exercise = None
         self.exercise_title = "No Exercise Selected"
         self.system_message_gpt = ""
-        self.waiting_for_response = False
+        self.waiting_for_check = False
+        self.waiting_for_answer = False
         self.check_passed = False
         self.conversation_is_submitted = False
         self.submit_time_stamp = ""
