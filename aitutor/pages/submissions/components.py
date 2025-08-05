@@ -4,6 +4,7 @@ import reflex as rx
 
 from aitutor.pages.submissions.state import SubmissionsState, TableRow
 from aitutor import routes
+from aitutor.pages.submissions.state import USER_KEY, EXERCISE_KEY, TAG_KEY
 
 
 def header_cell(text: str, icon: str):
@@ -32,7 +33,7 @@ def show_student(table_row: TableRow) -> rx.Component:
                         variant="soft",
                         color_scheme="blue",
                         on_click=SubmissionsState.add_search_value(
-                            {"search_value": tag}
+                            {"search_value": f'{TAG_KEY}:"{tag}"'}
                         ),
                         _hover={"cursor": "pointer"},
                     ),
@@ -95,7 +96,19 @@ def search_badges() -> rx.Component:
             SubmissionsState.search_values,
             lambda value: rx.badge(
                 rx.hstack(
-                    rx.text(value),
+                    rx.cond(
+                        value[0] == USER_KEY,
+                        rx.icon("user-round", size=18),
+                    ),
+                    rx.cond(
+                        value[0] == EXERCISE_KEY,
+                        rx.icon("book", size=18),
+                    ),
+                    rx.cond(
+                        value[0] == TAG_KEY,
+                        rx.icon("tag", size=18),
+                    ),
+                    rx.text(value[1]),
                     rx.icon(
                         "x",
                         on_click=SubmissionsState.remove_search_value(value),

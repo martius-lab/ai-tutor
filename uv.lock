@@ -13,6 +13,7 @@ dependencies = [
     { name = "passlib" },
     { name = "pdfplumber" },
     { name = "psycopg", extra = ["binary"] },
+    { name = "pyparsing" },
     { name = "pytest" },
     { name = "python-decouple" },
     { name = "reflex" },
@@ -41,6 +42,7 @@ requires-dist = [
     { name = "passlib" },
     { name = "pdfplumber" },
     { name = "psycopg", extras = ["binary"], specifier = ">=3.2" },
+    { name = "pyparsing", specifier = ">=3.2.3" },
     { name = "pytest" },
     { name = "python-decouple" },
     { name = "reflex", specifier = "==0.7.5" },
@@ -998,6 +1000,15 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/51/3d/cfcf7e093c98cccadbccdc8762194cd3afaa4d8aac6731ced5bea92489cb/pylsp_rope-0.1.17.tar.gz", hash = "sha256:4cd6f2fb32c84302b94cb4ce002bc0700b1b656dd5147e7db3dd92303a9a8dc2", size = 21312 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/42/0d/92a83f4f3f0a15017a7831589d7c01408ba8eaede0028eadf6ca022050ee/pylsp_rope-0.1.17-py3-none-any.whl", hash = "sha256:6be821913b3834b3125e64457a8bcf2030c4f1d5cd629bce4c26ba5c2c12f30b", size = 14186 },
+]
+
+[[package]]
+name = "pyparsing"
+version = "3.2.3"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/bb/22/f1129e69d94ffff626bdb5c835506b3a5b4f3d070f17ea295e12c2c6f60f/pyparsing-3.2.3.tar.gz", hash = "sha256:b9c13f1ab8b3b542f72e28f634bad4de758ab3ce4546e4301970ad6fa77c38be", size = 1088608 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/05/e7/df2285f3d08fee213f2d041540fa4fc9ca6c2d44cf36d3a035bf2a8d2bcc/pyparsing-3.2.3-py3-none-any.whl", hash = "sha256:a749938e02d6fd0b59b356ca504a24982314bb090c383e3cf201c95ef7e2bfcf", size = 111120 },
 ]
 
 [[package]]
