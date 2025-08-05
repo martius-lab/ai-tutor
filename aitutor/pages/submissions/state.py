@@ -9,6 +9,11 @@ from dataclasses import dataclass
 from aitutor.models import ExerciseResult, Exercise, UserRole
 from aitutor.auth.state import SessionState
 from aitutor.auth.protection import state_require_role_at_least
+from aitutor.utilities.parser import parse_query_keys
+
+USER_KEY = "user"
+EXERCISE_KEY = "exercise"
+TAG_KEY = "tag"
 
 
 @dataclass
@@ -29,7 +34,7 @@ class SubmissionsState(SessionState):
     table_rows: list[TableRow]
     rendered_table_rows: list[TableRow]
     current_search_value: str = ""
-    search_values: list[str] = []
+    search_values: list[tuple[str, str]] = []
     only_with_submission: bool = False
 
     @rx.event
@@ -73,16 +78,22 @@ class SubmissionsState(SessionState):
     @rx.event
     def add_search_value(self, form_data: dict):
         """Adds a search value to the list of search values."""
-        if form_data["search_value"] not in self.search_values:
-            self.search_values.append(form_data["search_value"])
+        parsed = parse_query_keys(
+            form_data["search_value"], [TAG_KEY, USER_KEY, EXERCISE_KEY]
+        )
+        for p in parsed:
+            if p not in self.search_values:
+                self.search_values.append(p)
         self.current_search_value = ""
         self.search_submissions()
 
     @rx.event
-    def remove_search_value(self, value: str):
+    def remove_search_value(self, value: tuple[str, str]):
         """Removes a search value from the list."""
-        if value in self.search_values:
-            self.search_values.remove(value)
+        for v in self.search_values:
+            if v[0] == value[0] and v[1] == value[1]:
+                self.search_values.remove(v)
+                break
         self.search_submissions()
 
     @rx.event
@@ -100,17 +111,39 @@ class SubmissionsState(SessionState):
         result = self.table_rows
         search_values = self.search_values.copy()
         if self.current_search_value:
-            search_values.append(self.current_search_value)
-        for search_value in search_values:
-            result = [
-                row
-                for row in result
-                if search_value.lower() in row.username.lower()
-                or search_value.lower() in row.exercise_title.lower()
-                or any(search_value.lower() in tag.lower() for tag in row.exercise_tags)
-            ]
+            parsed = parse_query_keys(
+                self.current_search_value, [TAG_KEY, USER_KEY, EXERCISE_KEY]
+            )
+            for p in parsed:
+                if p not in search_values:
+                    search_values.append(p)
+        for key, value in search_values:
+            value_lower = value.lower()
+            if key == "rest":
+                # Suche in allen relevanten Feldern
+                result = [
+                    row
+                    for row in result
+                    if value_lower in row.username.lower()
+                    or value_lower in row.exercise_title.lower()
+                    or any(value_lower in tag.lower() for tag in row.exercise_tags)
+                ]
+            elif key == USER_KEY:
+                result = [row for row in result if value_lower in row.username.lower()]
+            elif key == EXERCISE_KEY:
+                result = [
+                    row for row in result if value_lower in row.exercise_title.lower()
+                ]
+            elif key == TAG_KEY:
+                result = [
+                    row
+                    for row in result
+                    if any(value_lower in tag.lower() for tag in row.exercise_tags)
+                ]
+
         if self.only_with_submission:
             result = [row for row in result if row.has_submitted]
+
         self.rendered_table_rows = result
 
     def on_logout(self):
