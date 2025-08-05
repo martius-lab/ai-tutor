@@ -81,9 +81,8 @@ class SubmissionsState(SessionState):
         parsed = parse_query_keys(
             form_data["search_value"], [TAG_KEY, USER_KEY, EXERCISE_KEY]
         )
-        for p in parsed:
-            if p not in self.search_values:
-                self.search_values.append(p)
+        if parsed not in self.search_values:
+            self.search_values.append(parsed)
         self.current_search_value = ""
         self.search_submissions()
 
@@ -114,13 +113,11 @@ class SubmissionsState(SessionState):
             parsed = parse_query_keys(
                 self.current_search_value, [TAG_KEY, USER_KEY, EXERCISE_KEY]
             )
-            for p in parsed:
-                if p not in search_values:
-                    search_values.append(p)
+            if parsed not in search_values:
+                search_values.append(parsed)
         for key, value in search_values:
             value_lower = value.lower()
             if key == "rest":
-                # Suche in allen relevanten Feldern
                 result = [
                     row
                     for row in result
