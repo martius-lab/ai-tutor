@@ -14,10 +14,11 @@ def parse_query_keys(query: str, keys: list[str]) -> tuple[str, str]:
     """
     Parses a query string and returns a single (key, value) tuple.
 
-    Accepts both quoted and unquoted values (unquoted if no spaces).
-    If the input doesn't match this pattern:
-    key:value or key:"value with spaces",
-    it returns ('rest', query).
+    If Input matches the pattern:
+        'key:value' or 'key:"value with spaces"',
+    it returns ('key', 'value') or ('key', 'value with spaces').
+
+    Else it returns ('rest', query).
     """
     ParserElement.setDefaultWhitespaceChars(" \t")
 

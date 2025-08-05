@@ -109,23 +109,20 @@ class SubmissionsState(SessionState):
         """
         result = self.table_rows
         search_values = self.search_values.copy()
+
+        # append the parsed current search value
         if self.current_search_value:
             parsed = parse_query_keys(
-                self.current_search_value, [TAG_KEY, USER_KEY, EXERCISE_KEY]
+                self.current_search_value, [USER_KEY, EXERCISE_KEY, TAG_KEY]
             )
-            if parsed not in search_values:
+            if parsed not in self.search_values:
                 search_values.append(parsed)
+
+        # filter the result based on search values
         for key, value in search_values:
             value_lower = value.lower()
-            if key == "rest":
-                result = [
-                    row
-                    for row in result
-                    if value_lower in row.username.lower()
-                    or value_lower in row.exercise_title.lower()
-                    or any(value_lower in tag.lower() for tag in row.exercise_tags)
-                ]
-            elif key == USER_KEY:
+
+            if key == USER_KEY:
                 result = [row for row in result if value_lower in row.username.lower()]
             elif key == EXERCISE_KEY:
                 result = [
@@ -137,7 +134,16 @@ class SubmissionsState(SessionState):
                     for row in result
                     if any(value_lower in tag.lower() for tag in row.exercise_tags)
                 ]
+            elif key == "rest":
+                result = [
+                    row
+                    for row in result
+                    if value_lower in row.username.lower()
+                    or value_lower in row.exercise_title.lower()
+                    or any(value_lower in tag.lower() for tag in row.exercise_tags)
+                ]
 
+        # filter by only with submission
         if self.only_with_submission:
             result = [row for row in result if row.has_submitted]
 
