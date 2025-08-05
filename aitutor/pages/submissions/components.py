@@ -68,7 +68,7 @@ def submissions_table():
         rx.table.root(
             rx.table.header(
                 rx.table.row(
-                    header_cell("Username", "user-round"),
+                    header_cell("User", "user-round"),
                     header_cell("Exercise", "book"),
                     header_cell("Tags", "tag"),
                     header_cell("Submission", "circle-check"),
@@ -130,10 +130,27 @@ def search_bar() -> rx.Component:
     """Search bar for submissions."""
     return rx.form.root(
         rx.hstack(
+            rx.hover_card.root(
+                rx.hover_card.trigger(
+                    rx.icon(
+                        "info",
+                    ),
+                ),
+                rx.hover_card.content(
+                    rx.vstack(
+                        rx.text(
+                            "Search with 'key:searchValue' or 'key:\"search value\"' "
+                            "to search a specific column."
+                        ),
+                        rx.text("keys: user, exercise, tag"),
+                        rx.text("Without using 'key:' it searches in all columns."),
+                    ),
+                ),
+            ),
             rx.input(
                 rx.input.slot(rx.icon("search")),
                 name="search_value",
-                placeholder="Search...",
+                placeholder="tag:tagname",
                 required=True,
                 value=SubmissionsState.current_search_value,
                 on_change=SubmissionsState.search_with_value,
@@ -142,6 +159,8 @@ def search_bar() -> rx.Component:
                 rx.icon("plus"),
                 _hover={"cursor": "pointer"},
             ),
+            justify="center",
+            align="center",
         ),
         on_submit=SubmissionsState.add_search_value,
         reset_on_submit=True,
