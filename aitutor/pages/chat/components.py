@@ -200,7 +200,7 @@ def send_message_button() -> rx.Component:
             {"cursor": "not-allowed"},
             {"cursor": "pointer"},
         ),
-        loading=ChatState.waiting_for_response,
+        disabled=ChatState.waiting_for_response,
     )
 
 
@@ -281,7 +281,7 @@ def check_conversation_button() -> rx.Component:
                 color_scheme="yellow",
                 type="button",
                 _hover={"cursor": "not-allowed"},
-                loading=True,
+                disabled=True,
             ),
             rx.alert_dialog.root(
                 rx.alert_dialog.trigger(
