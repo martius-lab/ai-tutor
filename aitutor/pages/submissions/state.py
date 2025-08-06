@@ -2,6 +2,7 @@
 
 import reflex as rx
 import sqlalchemy
+import contextlib
 from reflex_local_auth.user import LocalUser
 from sqlmodel import select
 from dataclasses import dataclass
@@ -82,10 +83,8 @@ class SubmissionsState(SessionState):
     @rx.event
     def remove_search_value(self, value: tuple[str, str]):
         """Removes a search value from the list."""
-        for v in self.search_values:
-            if v[0] == value[0] and v[1] == value[1]:
-                self.search_values.remove(v)
-                break
+        with contextlib.suppress(ValueError):
+            self.search_values.remove(tuple[str, str](value))
         self.search_submissions()
 
     @rx.event
