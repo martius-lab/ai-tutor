@@ -24,7 +24,7 @@ def parse_query_keys(query: str, keys: list[str]) -> tuple[str, str]:
 
     key = oneOf(keys)
     quoted_value = dblQuotedString.setParseAction(removeQuotes)
-    unquoted_value = Word(alphanums + "_-./")  # erlaubte unquoted chars
+    unquoted_value = Word(alphanums + "_-./")
     value = quoted_value | unquoted_value
 
     pair = (key + ":" + value).setParseAction(lambda t: (t[0], t[2]))
