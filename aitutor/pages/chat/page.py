@@ -40,6 +40,12 @@ def chat_page() -> rx.Component:
                 ),
                 rx.mobile_only(show_exercise_status()),
                 show_messages(),
+                rx.cond(
+                    ChatState.waiting_for_response,
+                    rx.box(
+                        rx.spinner(),
+                    ),
+                ),
                 chat_form(),
                 spacing="5",
                 justify="start",
