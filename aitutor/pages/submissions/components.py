@@ -140,36 +140,24 @@ def search_badges() -> rx.Component:
 
 def search_bar() -> rx.Component:
     """Search bar for submissions."""
-    content = (
-        rx.vstack(
-            rx.text(
-                "Search with 'key:searchValue' or "
-                "'key:\"search value\"' "
-                "to search a specific column."
-            ),
-            rx.text("keys: user, exercise, tag"),
-            rx.text("Without using 'key:' it searches in all columns."),
-        ),
-    )
     return rx.form.root(
         rx.hstack(
-            rx.desktop_only(
-                rx.hover_card.root(
-                    rx.hover_card.trigger(
-                        rx.icon(
-                            "info",
-                        ),
-                    ),
-                    rx.hover_card.content(content),
+            rx.dialog.root(
+                rx.dialog.trigger(
+                    rx.icon("info"),
+                    _hover={"cursor": "pointer"},
                 ),
-            ),
-            rx.mobile_and_tablet(
-                rx.dialog.root(
-                    rx.dialog.trigger(
-                        rx.icon("info"),
+                rx.dialog.content(
+                    rx.vstack(
+                        rx.text(
+                            "Search with 'key:searchValue' or "
+                            "'key:\"search value\"' "
+                            "to search a specific column."
+                        ),
+                        rx.text("keys: user, exercise, tag"),
+                        rx.text("Without using 'key:' it searches in all columns."),
                     ),
-                    rx.dialog.content(content),
-                )
+                ),
             ),
             rx.input(
                 rx.input.slot(rx.icon("search")),
