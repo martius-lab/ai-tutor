@@ -22,8 +22,20 @@ def header_cell(text: str, icon: str):
 def show_student(table_row: TableRow) -> rx.Component:
     """Show exercises on page in a table row."""
     return rx.table.row(
-        rx.table.cell(table_row.username),
-        rx.table.cell(table_row.exercise_title),
+        rx.table.cell(
+            table_row.username,
+            on_click=SubmissionsState.add_search_value(
+                {"search_value": f'{USER_KEY}:"{table_row.username}"'}
+            ),
+            _hover={"cursor": "pointer"},
+        ),
+        rx.table.cell(
+            table_row.exercise_title,
+            on_click=SubmissionsState.add_search_value(
+                {"search_value": f'{EXERCISE_KEY}:"{table_row.exercise_title}"'}
+            ),
+            _hover={"cursor": "pointer"},
+        ),
         rx.table.cell(
             rx.hstack(
                 rx.foreach(
