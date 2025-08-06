@@ -2,6 +2,7 @@
 
 import reflex as rx
 import sqlalchemy
+import contextlib
 from reflex_local_auth.user import LocalUser
 from sqlmodel import select
 from dataclasses import dataclass
@@ -9,6 +10,11 @@ from dataclasses import dataclass
 from aitutor.models import ExerciseResult, Exercise, UserRole
 from aitutor.auth.state import SessionState
 from aitutor.auth.protection import state_require_role_at_least
+from aitutor.utilities.parser import parse_query_keys
+
+USER_KEY = "user"
+EXERCISE_KEY = "exercise"
+TAG_KEY = "tag"
 
 
 @dataclass
@@ -28,14 +34,14 @@ class SubmissionsState(SessionState):
 
     table_rows: list[TableRow]
     rendered_table_rows: list[TableRow]
-    current_search_value: str = ""
-    search_values: list[str] = []
+    search_values: list[tuple[str, str]] = []
     only_with_submission: bool = False
 
     @rx.event
     @state_require_role_at_least(UserRole.TEACHER)
     def on_load(self):
         """Loads the users and the submissions."""
+        self.table_rows = []
         with rx.session() as session:
             stmt = (
                 select(LocalUser, Exercise, ExerciseResult)
@@ -65,24 +71,20 @@ class SubmissionsState(SessionState):
             self.search_submissions()
 
     @rx.event
-    def search_with_value(self, value: str):
-        """Searches the submissions with the given value."""
-        self.current_search_value = value
-        self.search_submissions()
-
-    @rx.event
     def add_search_value(self, form_data: dict):
         """Adds a search value to the list of search values."""
-        if form_data["search_value"] not in self.search_values:
-            self.search_values.append(form_data["search_value"])
-        self.current_search_value = ""
+        parsed = parse_query_keys(
+            form_data["search_value"], [TAG_KEY, USER_KEY, EXERCISE_KEY]
+        )
+        if parsed not in self.search_values:
+            self.search_values.append(parsed)
         self.search_submissions()
 
     @rx.event
-    def remove_search_value(self, value: str):
+    def remove_search_value(self, value: tuple[str, str]):
         """Removes a search value from the list."""
-        if value in self.search_values:
-            self.search_values.remove(value)
+        with contextlib.suppress(ValueError):
+            self.search_values.remove(tuple[str, str](value))
         self.search_submissions()
 
     @rx.event
@@ -93,30 +95,46 @@ class SubmissionsState(SessionState):
 
     def search_submissions(self):
         """filters the table based on:
-        - current_search_value
         - search_values
         - only_with_submission
         """
         result = self.table_rows
         search_values = self.search_values.copy()
-        if self.current_search_value:
-            search_values.append(self.current_search_value)
-        for search_value in search_values:
-            result = [
-                row
-                for row in result
-                if search_value.lower() in row.username.lower()
-                or search_value.lower() in row.exercise_title.lower()
-                or any(search_value.lower() in tag.lower() for tag in row.exercise_tags)
-            ]
+
+        # filter the result based on search values
+        for key, value in search_values:
+            value_lower = value.lower()
+
+            if key == USER_KEY:
+                result = [row for row in result if value_lower in row.username.lower()]
+            elif key == EXERCISE_KEY:
+                result = [
+                    row for row in result if value_lower in row.exercise_title.lower()
+                ]
+            elif key == TAG_KEY:
+                result = [
+                    row
+                    for row in result
+                    if any(value_lower in tag.lower() for tag in row.exercise_tags)
+                ]
+            elif key == "rest":
+                result = [
+                    row
+                    for row in result
+                    if value_lower in row.username.lower()
+                    or value_lower in row.exercise_title.lower()
+                    or any(value_lower in tag.lower() for tag in row.exercise_tags)
+                ]
+
+        # filter by only with submission
         if self.only_with_submission:
             result = [row for row in result if row.has_submitted]
+
         self.rendered_table_rows = result
 
     def on_logout(self):
         """Clears the state when the user logs out."""
         self.table_rows = []
         self.rendered_table_rows = []
-        self.current_search_value = ""
         self.search_values = []
         self.only_with_submission = False

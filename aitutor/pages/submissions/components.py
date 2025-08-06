@@ -4,6 +4,7 @@ import reflex as rx
 
 from aitutor.pages.submissions.state import SubmissionsState, TableRow
 from aitutor import routes
+from aitutor.pages.submissions.state import USER_KEY, EXERCISE_KEY, TAG_KEY
 
 
 def header_cell(text: str, icon: str):
@@ -21,8 +22,20 @@ def header_cell(text: str, icon: str):
 def show_student(table_row: TableRow) -> rx.Component:
     """Show exercises on page in a table row."""
     return rx.table.row(
-        rx.table.cell(table_row.username),
-        rx.table.cell(table_row.exercise_title),
+        rx.table.cell(
+            table_row.username,
+            on_click=SubmissionsState.add_search_value(
+                {"search_value": f'{USER_KEY}:"{table_row.username}"'}
+            ),
+            _hover={"cursor": "pointer"},
+        ),
+        rx.table.cell(
+            table_row.exercise_title,
+            on_click=SubmissionsState.add_search_value(
+                {"search_value": f'{EXERCISE_KEY}:"{table_row.exercise_title}"'}
+            ),
+            _hover={"cursor": "pointer"},
+        ),
         rx.table.cell(
             rx.hstack(
                 rx.foreach(
@@ -32,7 +45,7 @@ def show_student(table_row: TableRow) -> rx.Component:
                         variant="soft",
                         color_scheme="blue",
                         on_click=SubmissionsState.add_search_value(
-                            {"search_value": tag}
+                            {"search_value": f'{TAG_KEY}:"{tag}"'}
                         ),
                         _hover={"cursor": "pointer"},
                     ),
@@ -67,7 +80,7 @@ def submissions_table():
         rx.table.root(
             rx.table.header(
                 rx.table.row(
-                    header_cell("Username", "user-round"),
+                    header_cell("User", "user-round"),
                     header_cell("Exercise", "book"),
                     header_cell("Tags", "tag"),
                     header_cell("Submission", "circle-check"),
@@ -95,7 +108,19 @@ def search_badges() -> rx.Component:
             SubmissionsState.search_values,
             lambda value: rx.badge(
                 rx.hstack(
-                    rx.text(value),
+                    rx.cond(
+                        value[0] == USER_KEY,
+                        rx.icon("user-round", size=18),
+                    ),
+                    rx.cond(
+                        value[0] == EXERCISE_KEY,
+                        rx.icon("book", size=18),
+                    ),
+                    rx.cond(
+                        value[0] == TAG_KEY,
+                        rx.icon("tag", size=18),
+                    ),
+                    rx.text(value[1]),
                     rx.icon(
                         "x",
                         on_click=SubmissionsState.remove_search_value(value),
@@ -117,18 +142,35 @@ def search_bar() -> rx.Component:
     """Search bar for submissions."""
     return rx.form.root(
         rx.hstack(
+            rx.dialog.root(
+                rx.dialog.trigger(
+                    rx.icon("info"),
+                    _hover={"cursor": "pointer"},
+                ),
+                rx.dialog.content(
+                    rx.vstack(
+                        rx.text(
+                            "Search with 'key:searchValue' or "
+                            "'key:\"search value\"' "
+                            "to search a specific column."
+                        ),
+                        rx.text("keys: user, exercise, tag"),
+                        rx.text("Without using 'key:' it searches in all columns."),
+                    ),
+                ),
+            ),
             rx.input(
                 rx.input.slot(rx.icon("search")),
                 name="search_value",
-                placeholder="Search...",
+                placeholder="tag:tagname",
                 required=True,
-                value=SubmissionsState.current_search_value,
-                on_change=SubmissionsState.search_with_value,
             ),
             rx.button(
                 rx.icon("plus"),
                 _hover={"cursor": "pointer"},
             ),
+            justify="center",
+            align="center",
         ),
         on_submit=SubmissionsState.add_search_value,
         reset_on_submit=True,
