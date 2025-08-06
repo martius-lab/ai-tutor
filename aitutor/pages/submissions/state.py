@@ -33,7 +33,6 @@ class SubmissionsState(SessionState):
 
     table_rows: list[TableRow]
     rendered_table_rows: list[TableRow]
-    current_search_value: str = ""
     search_values: list[tuple[str, str]] = []
     only_with_submission: bool = False
 
@@ -71,12 +70,6 @@ class SubmissionsState(SessionState):
             self.search_submissions()
 
     @rx.event
-    def search_with_value(self, value: str):
-        """Searches the submissions with the given value."""
-        self.current_search_value = value
-        self.search_submissions()
-
-    @rx.event
     def add_search_value(self, form_data: dict):
         """Adds a search value to the list of search values."""
         parsed = parse_query_keys(
@@ -84,7 +77,6 @@ class SubmissionsState(SessionState):
         )
         if parsed not in self.search_values:
             self.search_values.append(parsed)
-        self.current_search_value = ""
         self.search_submissions()
 
     @rx.event
@@ -104,20 +96,11 @@ class SubmissionsState(SessionState):
 
     def search_submissions(self):
         """filters the table based on:
-        - current_search_value
         - search_values
         - only_with_submission
         """
         result = self.table_rows
         search_values = self.search_values.copy()
-
-        # append the parsed current search value
-        if self.current_search_value:
-            parsed = parse_query_keys(
-                self.current_search_value, [USER_KEY, EXERCISE_KEY, TAG_KEY]
-            )
-            if parsed not in self.search_values:
-                search_values.append(parsed)
 
         # filter the result based on search values
         for key, value in search_values:
@@ -154,6 +137,5 @@ class SubmissionsState(SessionState):
         """Clears the state when the user logs out."""
         self.table_rows = []
         self.rendered_table_rows = []
-        self.current_search_value = ""
         self.search_values = []
         self.only_with_submission = False
