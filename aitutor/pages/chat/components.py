@@ -148,12 +148,12 @@ def edit_last_message_button() -> rx.Component:
                 ),
                 color_scheme="iris",
                 _hover=rx.cond(
-                    ChatState.waiting_for_check | ChatState.waiting_for_answer,
+                    ChatState.waiting_for_response,
                     {"cursor": "not-allowed"},
                     {"cursor": "pointer"},
                 ),
                 disabled=rx.cond(
-                    ChatState.waiting_for_check | ChatState.waiting_for_answer,
+                    ChatState.waiting_for_response,
                     True,
                     False,
                 ),
@@ -196,12 +196,11 @@ def send_message_button() -> rx.Component:
         type="submit",
         color_scheme="iris",
         _hover=rx.cond(
-            ChatState.waiting_for_check | ChatState.waiting_for_answer,
+            ChatState.waiting_for_response,
             {"cursor": "not-allowed"},
             {"cursor": "pointer"},
         ),
-        loading=ChatState.waiting_for_answer,
-        disabled=ChatState.waiting_for_check | ChatState.waiting_for_answer,
+        loading=ChatState.waiting_for_response,
     )
 
 
@@ -275,15 +274,14 @@ def check_conversation_button() -> rx.Component:
             on_click=ChatState.submit_conversation,
         ),
         rx.cond(
-            ChatState.waiting_for_check | ChatState.waiting_for_answer,
+            ChatState.waiting_for_response,
             rx.button(
                 rx.desktop_only("Check Conversation"),
                 rx.mobile_and_tablet("Check"),
                 color_scheme="yellow",
                 type="button",
                 _hover={"cursor": "not-allowed"},
-                loading=ChatState.waiting_for_check,
-                disabled=True,
+                loading=True,
             ),
             rx.alert_dialog.root(
                 rx.alert_dialog.trigger(
