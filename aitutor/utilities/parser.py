@@ -34,22 +34,3 @@ def parse_query_keys(query: str, keys: list[str]) -> tuple[str, str]:
         return (str(result[0]), str(result[1]))
     except Exception:
         return ("rest", query)
-
-
-def test():
-    """Test the parse_query_keys function."""
-    queries = [
-        "user:alice",
-        'user:"Alice Smith"',
-        "tag:science",
-        'exercise:"Advanced Math"',
-        "something else",
-        "user:Alice Smith",
-    ]
-    keys = ["tag", "user", "exercise"]
-    for q in queries:
-        print(f"Input: {q}\nParsed: {parse_query_keys(q, keys)}\n")
-
-
-if __name__ == "__main__":
-    test()
