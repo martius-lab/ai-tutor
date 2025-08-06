@@ -176,8 +176,6 @@ def search_bar() -> rx.Component:
                 name="search_value",
                 placeholder="tag:tagname",
                 required=True,
-                value=SubmissionsState.current_search_value,
-                on_change=SubmissionsState.search_with_value,
             ),
             rx.button(
                 rx.icon("plus"),
