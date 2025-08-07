@@ -11,10 +11,7 @@ from aitutor.models import ExerciseResult, Exercise, UserRole
 from aitutor.auth.state import SessionState
 from aitutor.auth.protection import state_require_role_at_least
 from aitutor.utilities.parser import parse_query_keys
-
-USER_KEY = "user"
-EXERCISE_KEY = "exercise"
-TAG_KEY = "tag"
+from aitutor.global_vars import USER_KEY, EXERCISE_KEY, TAG_KEY
 
 
 @dataclass
