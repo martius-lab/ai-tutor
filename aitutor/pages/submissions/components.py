@@ -19,7 +19,7 @@ def header_cell(text: str, icon: str):
     )
 
 
-def show_student(table_row: TableRow) -> rx.Component:
+def show_table_row(table_row: TableRow) -> rx.Component:
     """Show exercises on page in a table row."""
     return rx.table.row(
         rx.table.cell(
@@ -88,8 +88,8 @@ def submissions_table():
             ),
             rx.table.body(
                 rx.foreach(
-                    SubmissionsState.rendered_table_rows,
-                    show_student,
+                    SubmissionsState.table_rows,
+                    show_table_row,
                 )
             ),
             variant="surface",

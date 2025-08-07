@@ -4,10 +4,11 @@ import reflex as rx
 import sqlalchemy
 import contextlib
 from reflex_local_auth.user import LocalUser
-from sqlmodel import select
+from sqlmodel import select, and_
 from dataclasses import dataclass
+from sqlalchemy.orm import selectinload
 
-from aitutor.models import ExerciseResult, Exercise, UserRole
+from aitutor.models import ExerciseResult, Exercise, UserRole, Tag
 from aitutor.auth.state import SessionState
 from aitutor.auth.protection import state_require_role_at_least
 from aitutor.utilities.parser import parse_query_keys
@@ -30,16 +31,20 @@ class SubmissionsState(SessionState):
     """State for the submissions page."""
 
     table_rows: list[TableRow]
-    rendered_table_rows: list[TableRow]
     search_values: list[tuple[str, str]] = []
     only_with_submission: bool = False
 
     @rx.event
     @state_require_role_at_least(UserRole.TEACHER)
     def on_load(self):
-        """Loads the users and the submissions."""
-        self.table_rows = []
+        """gets executed when the page loads."""
+        self.load_submissions()
+
+    @rx.event
+    def load_submissions(self):
+        """Get submissions from db based on the current search values."""
         with rx.session() as session:
+            # statement to load all submissions
             stmt = (
                 select(LocalUser, Exercise, ExerciseResult)
                 .select_from(LocalUser)
@@ -49,23 +54,52 @@ class SubmissionsState(SessionState):
                     (ExerciseResult.exercise_id == Exercise.id)
                     & (ExerciseResult.userinfo_id == LocalUser.id),  # type: ignore
                 )
-                .options(sqlalchemy.orm.selectinload(Exercise.tags))
+                .options(selectinload(Exercise.tags))  # type: ignore
                 .order_by(Exercise.title, LocalUser.username)
             )
 
-            for user, exercise, result in session.exec(stmt).all():
-                self.table_rows.append(
-                    TableRow(
-                        username=user.username,
-                        user_id=user.id,
-                        exercise_id=exercise.id,
-                        exercise_title=exercise.title,
-                        exercise_tags=[tag.name for tag in exercise.tags],
-                        has_submitted=bool(result and result.finished_conversation),
-                    )
+            # filter with search values
+            if self.search_values:
+                search_conditions = []
+                for key, value in self.search_values:
+                    if key == USER_KEY:
+                        search_conditions.append(
+                            LocalUser.username.ilike(f"%{value}%")  # type: ignore
+                        )
+                    elif key == EXERCISE_KEY:
+                        search_conditions.append(
+                            Exercise.title.ilike(f"%{value}%")  # type: ignore
+                        )
+                    elif key == TAG_KEY:
+                        search_conditions.append(
+                            Exercise.tags.any(Tag.name.ilike(f"%{value}%"))  # type: ignore
+                        )
+                    else:
+                        search_conditions.append(
+                            sqlalchemy.or_(
+                                LocalUser.username.ilike(f"%{value}%"),  # type: ignore
+                                Exercise.title.ilike(f"%{value}%"),  # type: ignore
+                                Exercise.tags.any(Tag.name.ilike(f"%{value}%")),  # type: ignore
+                            )
+                        )
+                stmt = stmt.where(and_(*search_conditions))
+
+            # filter with only with submission
+            if self.only_with_submission:
+                stmt = stmt.where(ExerciseResult.finished_conversation != [])
+
+            # get submissions from db
+            self.table_rows = [
+                TableRow(
+                    username=user.username,
+                    user_id=user.id,
+                    exercise_id=exercise.id,
+                    exercise_title=exercise.title,
+                    exercise_tags=[tag.name for tag in exercise.tags],
+                    has_submitted=bool(result and result.finished_conversation),
                 )
-            # apply filters and fill rendered_table_rows
-            self.search_submissions()
+                for user, exercise, result in session.exec(stmt).all()
+            ]
 
     @rx.event
     def add_search_value(self, form_data: dict):
@@ -75,63 +109,23 @@ class SubmissionsState(SessionState):
         )
         if parsed not in self.search_values:
             self.search_values.append(parsed)
-        self.search_submissions()
+        self.load_submissions()
 
     @rx.event
     def remove_search_value(self, value: tuple[str, str]):
         """Removes a search value from the list."""
         with contextlib.suppress(ValueError):
             self.search_values.remove(tuple[str, str](value))
-        self.search_submissions()
+        self.load_submissions()
 
     @rx.event
     def toggle_only_with_submission(self):
         """Toggles the only with submission filter."""
         self.only_with_submission = not self.only_with_submission
-        self.search_submissions()
-
-    def search_submissions(self):
-        """filters the table based on:
-        - search_values
-        - only_with_submission
-        """
-        result = self.table_rows
-        search_values = self.search_values.copy()
-
-        # filter the result based on search values
-        for key, value in search_values:
-            value_lower = value.lower()
-
-            if key == USER_KEY:
-                result = [row for row in result if value_lower in row.username.lower()]
-            elif key == EXERCISE_KEY:
-                result = [
-                    row for row in result if value_lower in row.exercise_title.lower()
-                ]
-            elif key == TAG_KEY:
-                result = [
-                    row
-                    for row in result
-                    if any(value_lower in tag.lower() for tag in row.exercise_tags)
-                ]
-            elif key == "rest":
-                result = [
-                    row
-                    for row in result
-                    if value_lower in row.username.lower()
-                    or value_lower in row.exercise_title.lower()
-                    or any(value_lower in tag.lower() for tag in row.exercise_tags)
-                ]
-
-        # filter by only with submission
-        if self.only_with_submission:
-            result = [row for row in result if row.has_submitted]
-
-        self.rendered_table_rows = result
+        self.load_submissions()
 
     def on_logout(self):
         """Clears the state when the user logs out."""
         self.table_rows = []
-        self.rendered_table_rows = []
         self.search_values = []
         self.only_with_submission = False
