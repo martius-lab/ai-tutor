@@ -111,7 +111,15 @@ def show_exercise(exercise: Exercise):
             rx.hstack(
                 rx.foreach(
                     exercise.tags,
-                    lambda tag: rx.badge(tag.name, variant="soft", color_scheme="blue"),
+                    lambda tag: rx.badge(
+                        tag.name,
+                        variant="soft",
+                        color_scheme="blue",
+                        on_click=ManageExercisesState.add_search_value(
+                            {"search_value": f'tag:"{tag.name}"'}
+                        ),
+                        _hover={"cursor": "pointer"},
+                    ),
                 ),
                 spacing="1",
                 wrap="wrap",
