@@ -4,7 +4,7 @@ import reflex as rx
 from aitutor.global_vars import USER_KEY, EXERCISE_KEY, TAG_KEY
 
 
-def search_bar(state) -> rx.Component:
+def search_bar(state, keys_info:str) -> rx.Component:
     """Search bar for the input of search values."""
     return rx.form.root(
         rx.hstack(
@@ -20,7 +20,7 @@ def search_bar(state) -> rx.Component:
                             "'key:\"search value\"' "
                             "to search a specific column."
                         ),
-                        rx.text("keys: exercise, tag"),
+                        rx.text(f"keys: {keys_info}"),
                         rx.text("Without using 'key:' it searches in all columns."),
                     ),
                 ),
