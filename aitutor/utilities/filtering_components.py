@@ -4,7 +4,7 @@ import reflex as rx
 from aitutor.global_vars import USER_KEY, EXERCISE_KEY, TAG_KEY
 
 
-def search_bar(state, keys_info:str) -> rx.Component:
+def search_bar(state, keys_info: str) -> rx.Component:
     """Search bar for the input of search values."""
     return rx.form.root(
         rx.hstack(
@@ -40,7 +40,6 @@ def search_bar(state, keys_info:str) -> rx.Component:
         ),
         on_submit=state.add_search_value,  # needs to be called the same in all states
         reset_on_submit=True,
-        max_width="250px",
     )
 
 

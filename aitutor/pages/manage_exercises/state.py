@@ -1,5 +1,6 @@
 """The state for the manage exercises page."""
 
+import contextlib
 import reflex as rx
 import pdfplumber
 import io
@@ -11,6 +12,8 @@ from aitutor.models import Exercise, Tag, UserRole
 from aitutor.auth.state import SessionState
 from aitutor.config import get_config
 from aitutor.auth.protection import state_require_role_at_least
+from aitutor.utilities.parser import parse_query_keys
+from aitutor.global_vars import EXERCISE_KEY, TAG_KEY
 
 
 class DialogMode(Enum):
@@ -34,6 +37,7 @@ class ManageExercisesState(SessionState):
     tag_list: list[Tag] = []
     tag_names: list[str] = []
     search_value: str = ""
+    search_values: list[tuple[str, str]] = []
     #: the currently selected tag from the select window
     current_tag: str = ""
     #: the current exercise to be edited
@@ -167,9 +171,18 @@ class ManageExercisesState(SessionState):
         )
 
     @rx.event
-    def search_exercises(self, search_value):
-        """Search for a specific exercise."""
-        self.search_value = search_value
+    def add_search_value(self, form_data: dict):
+        """Adds a search value to the list of search values."""
+        parsed = parse_query_keys(form_data["search_value"], [TAG_KEY, EXERCISE_KEY])
+        if parsed not in self.search_values:
+            self.search_values.append(parsed)
+        self.load_exercises()
+
+    @rx.event
+    def remove_search_value(self, value: tuple[str, str]):
+        """Removes a search value from the list."""
+        with contextlib.suppress(ValueError):
+            self.search_values.remove(tuple[str, str](value))
         self.load_exercises()
 
     @rx.event
@@ -178,7 +191,9 @@ class ManageExercisesState(SessionState):
         with rx.session() as session:
             # load exercises
             query_exercises = select(Exercise).options(selectinload(Exercise.tags))  # type: ignore
+
             # search for distinct entries
+            # TODO: replace this with the new search functionality (search_values)
             if self.search_value:
                 search_value = f"%{str(self.search_value).lower()}%"
                 query_exercises = query_exercises.where(
@@ -189,6 +204,7 @@ class ManageExercisesState(SessionState):
                         ],
                     )
                 )
+
             self.exercises = list(
                 session.exec(query_exercises.order_by(Exercise.id.desc())).all()  # type: ignore
             )
@@ -384,6 +400,7 @@ class ManageExercisesState(SessionState):
         self.tag_list = []
         self.tag_names = []
         self.search_value = ""
+        self.search_values = []
         self.current_tag = ""
         self.current_exercise = Exercise()
         self.selected_tags = []
