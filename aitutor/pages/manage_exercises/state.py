@@ -5,7 +5,7 @@ import reflex as rx
 import pdfplumber
 import io
 from enum import Enum
-from sqlmodel import select, or_
+from sqlmodel import select, and_, or_
 from sqlalchemy.orm import selectinload
 
 from aitutor.models import Exercise, Tag, UserRole
@@ -36,7 +36,6 @@ class ManageExercisesState(SessionState):
     exercises: list[Exercise] = []
     tag_list: list[Tag] = []
     tag_names: list[str] = []
-    search_value: str = ""
     search_values: list[tuple[str, str]] = []
     #: the currently selected tag from the select window
     current_tag: str = ""
@@ -192,19 +191,27 @@ class ManageExercisesState(SessionState):
             # load exercises
             query_exercises = select(Exercise).options(selectinload(Exercise.tags))  # type: ignore
 
-            # search for distinct entries
-            # TODO: replace this with the new search functionality (search_values)
-            if self.search_value:
-                search_value = f"%{str(self.search_value).lower()}%"
-                query_exercises = query_exercises.where(
-                    or_(
-                        *[
-                            getattr(Exercise, field).ilike(search_value)
-                            for field in Exercise.get_fields()
-                        ],
-                    )
-                )
+            # filter with search values
+            if self.search_values:
+                search_conditions = []
+                for key, value in self.search_values:
+                    if key == EXERCISE_KEY:
+                        search_conditions.append(Exercise.title.ilike(f"%{value}%"))  # type: ignore
+                    elif key == TAG_KEY:
+                        search_conditions.append(
+                            Exercise.tags.any(Tag.name.ilike(f"%{value}%"))  # type: ignore
+                        )
+                    else:
+                        search_conditions.append(
+                            or_(
+                                Exercise.title.ilike(f"%{value}%"),  # type: ignore
+                                Exercise.description.ilike(f"%{value}%"),  # type: ignore
+                                Exercise.tags.any(Tag.name.ilike(f"%{value}%")),  # type: ignore
+                            )
+                        )
+                query_exercises = query_exercises.where(and_(*search_conditions))
 
+            # get exercises from db and order by id descending
             self.exercises = list(
                 session.exec(query_exercises.order_by(Exercise.id.desc())).all()  # type: ignore
             )
@@ -399,7 +406,6 @@ class ManageExercisesState(SessionState):
         self.exercises = []
         self.tag_list = []
         self.tag_names = []
-        self.search_value = ""
         self.search_values = []
         self.current_tag = ""
         self.current_exercise = Exercise()
