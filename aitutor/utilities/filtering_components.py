@@ -1,7 +1,7 @@
 """Components that are used in the frontend for filtering tables"""
 
 import reflex as rx
-from aitutor.global_vars import USER_KEY, EXERCISE_KEY, TAG_KEY
+from aitutor.global_vars import SEARCH_USER_KEY, SEARCH_EXERCISE_KEY, SEARCH_TAG_KEY
 
 
 def search_bar(state, keys_info: str) -> rx.Component:
@@ -51,15 +51,15 @@ def search_badges(state) -> rx.Component:
             lambda value: rx.badge(
                 rx.hstack(
                     rx.cond(
-                        value[0] == USER_KEY,
+                        value[0] == SEARCH_USER_KEY,
                         rx.icon("user-round", size=18),
                     ),
                     rx.cond(
-                        value[0] == EXERCISE_KEY,
+                        value[0] == SEARCH_EXERCISE_KEY,
                         rx.icon("book", size=18),
                     ),
                     rx.cond(
-                        value[0] == TAG_KEY,
+                        value[0] == SEARCH_TAG_KEY,
                         rx.icon("tag", size=18),
                     ),
                     rx.text(value[1]),

@@ -13,7 +13,7 @@ from aitutor.auth.state import SessionState
 from aitutor.config import get_config
 from aitutor.auth.protection import state_require_role_at_least
 from aitutor.utilities.parser import parse_query_keys
-from aitutor.global_vars import EXERCISE_KEY, TAG_KEY
+from aitutor.global_vars import SEARCH_EXERCISE_KEY, SEARCH_TAG_KEY
 
 
 class DialogMode(Enum):
@@ -36,6 +36,7 @@ class ManageExercisesState(SessionState):
     exercises: list[Exercise] = []
     tag_list: list[Tag] = []
     tag_names: list[str] = []
+    # a list of search values, each a tuple of (key, value)
     search_values: list[tuple[str, str]] = []
     #: the currently selected tag from the select window
     current_tag: str = ""
@@ -172,7 +173,9 @@ class ManageExercisesState(SessionState):
     @rx.event
     def add_search_value(self, form_data: dict):
         """Adds a search value to the list of search values."""
-        parsed = parse_query_keys(form_data["search_value"], [TAG_KEY, EXERCISE_KEY])
+        parsed = parse_query_keys(
+            form_data["search_value"], [SEARCH_TAG_KEY, SEARCH_EXERCISE_KEY]
+        )
         if parsed not in self.search_values:
             self.search_values.append(parsed)
         self.load_exercises()
@@ -195,9 +198,9 @@ class ManageExercisesState(SessionState):
             if self.search_values:
                 search_conditions = []
                 for key, value in self.search_values:
-                    if key == EXERCISE_KEY:
+                    if key == SEARCH_EXERCISE_KEY:
                         search_conditions.append(Exercise.title.ilike(f"%{value}%"))  # type: ignore
-                    elif key == TAG_KEY:
+                    elif key == SEARCH_TAG_KEY:
                         search_conditions.append(
                             Exercise.tags.any(Tag.name.ilike(f"%{value}%"))  # type: ignore
                         )
