@@ -29,7 +29,7 @@ def manage_exercises_page() -> rx.Component:
                 padding_bottom="2em",
                 width="100%",
             ),
-            search_bar(ManageExercisesState, "exercise, tag"),
+            search_bar(ManageExercisesState),
             search_badges(ManageExercisesState),
             rx.hstack(
                 add_exercise_button(),

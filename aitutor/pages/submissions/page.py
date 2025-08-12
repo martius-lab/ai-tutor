@@ -26,7 +26,7 @@ def submissions_page() -> rx.Component:
                 padding_bottom="0.5em",
                 align="center",
             ),
-            search_bar(SubmissionsState, "user, exercise, tag"),
+            search_bar(SubmissionsState),
             only_with_submissions(),
             search_badges(SubmissionsState),
             submissions_table(),

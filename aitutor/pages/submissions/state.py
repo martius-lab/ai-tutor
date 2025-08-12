@@ -2,7 +2,7 @@
 
 import reflex as rx
 import sqlalchemy
-import contextlib
+from typing import override
 from reflex_local_auth.user import LocalUser
 from sqlmodel import select, and_
 from dataclasses import dataclass
@@ -10,8 +10,8 @@ from sqlalchemy.orm import selectinload
 
 from aitutor.models import ExerciseResult, Exercise, UserRole, Tag
 from aitutor.auth.state import SessionState
+from aitutor.utilities.filtering_components import FilterMixin
 from aitutor.auth.protection import state_require_role_at_least
-from aitutor.utilities.parser import parse_query_keys
 from aitutor.global_vars import SEARCH_USER_KEY, SEARCH_EXERCISE_KEY, SEARCH_TAG_KEY
 
 
@@ -27,12 +27,14 @@ class TableRow:
     exercise_tags: list[str]
 
 
-class SubmissionsState(SessionState):
+class SubmissionsState(FilterMixin, SessionState):
     """State for the submissions page."""
 
     table_rows: list[TableRow]
-    search_values: list[tuple[str, str]] = []
     only_with_submission: bool = False
+
+    # valid search keys. overrides the var from FilterMixin
+    search_keys: list[str] = [SEARCH_USER_KEY, SEARCH_EXERCISE_KEY, SEARCH_TAG_KEY]
 
     @rx.event
     @state_require_role_at_least(UserRole.TEACHER)
@@ -40,7 +42,12 @@ class SubmissionsState(SessionState):
         """gets executed when the page loads."""
         self.load_submissions()
 
+    @override
     @rx.event
+    def load_filtered_data(self):
+        """implements the abstract method from FilterMixin"""
+        self.load_submissions()
+
     def load_submissions(self):
         """Get submissions from db based on the current search values."""
         with rx.session() as session:
@@ -102,24 +109,6 @@ class SubmissionsState(SessionState):
             ]
 
     @rx.event
-    def add_search_value(self, form_data: dict):
-        """Adds a search value to the list of search values."""
-        parsed = parse_query_keys(
-            form_data["search_value"],
-            [SEARCH_TAG_KEY, SEARCH_USER_KEY, SEARCH_EXERCISE_KEY],
-        )
-        if parsed not in self.search_values:
-            self.search_values.append(parsed)
-        self.load_submissions()
-
-    @rx.event
-    def remove_search_value(self, value: tuple[str, str]):
-        """Removes a search value from the list."""
-        with contextlib.suppress(ValueError):
-            self.search_values.remove(tuple[str, str](value))
-        self.load_submissions()
-
-    @rx.event
     def toggle_only_with_submission(self):
         """Toggles the only with submission filter."""
         self.only_with_submission = not self.only_with_submission
@@ -128,5 +117,5 @@ class SubmissionsState(SessionState):
     def on_logout(self):
         """Clears the state when the user logs out."""
         self.table_rows = []
-        self.search_values = []
+        self.search_values = []  # from FilterMixin
         self.only_with_submission = False

@@ -1,18 +1,18 @@
 """The state for the manage exercises page."""
 
-import contextlib
 import reflex as rx
 import pdfplumber
 import io
+from typing import override
 from enum import Enum
 from sqlmodel import select, and_, or_
 from sqlalchemy.orm import selectinload
 
 from aitutor.models import Exercise, Tag, UserRole
 from aitutor.auth.state import SessionState
+from aitutor.utilities.filtering_components import FilterMixin
 from aitutor.config import get_config
 from aitutor.auth.protection import state_require_role_at_least
-from aitutor.utilities.parser import parse_query_keys
 from aitutor.global_vars import SEARCH_EXERCISE_KEY, SEARCH_TAG_KEY
 
 
@@ -23,7 +23,7 @@ class DialogMode(Enum):
     EDIT = "edit"
 
 
-class ManageExercisesState(SessionState):
+class ManageExercisesState(FilterMixin, SessionState):
     """State for the exercises page."""
 
     # Flags to control if dialogs are open.  They are needed as a workaround due to a
@@ -36,8 +36,8 @@ class ManageExercisesState(SessionState):
     exercises: list[Exercise] = []
     tag_list: list[Tag] = []
     tag_names: list[str] = []
-    # a list of search values, each a tuple of (key, value)
-    search_values: list[tuple[str, str]] = []
+    # valid search keys. overrides the var from FilterMixin
+    search_keys: list[str] = [SEARCH_EXERCISE_KEY, SEARCH_TAG_KEY]
     #: the currently selected tag from the select window
     current_tag: str = ""
     #: the current exercise to be edited
@@ -170,24 +170,12 @@ class ManageExercisesState(SessionState):
             invert=True,
         )
 
+    @override
     @rx.event
-    def add_search_value(self, form_data: dict):
-        """Adds a search value to the list of search values."""
-        parsed = parse_query_keys(
-            form_data["search_value"], [SEARCH_TAG_KEY, SEARCH_EXERCISE_KEY]
-        )
-        if parsed not in self.search_values:
-            self.search_values.append(parsed)
+    def load_filtered_data(self):
+        """implements the abstract method from FilterMixin"""
         self.load_exercises()
 
-    @rx.event
-    def remove_search_value(self, value: tuple[str, str]):
-        """Removes a search value from the list."""
-        with contextlib.suppress(ValueError):
-            self.search_values.remove(tuple[str, str](value))
-        self.load_exercises()
-
-    @rx.event
     def load_exercises(self):
         """Get exercises from db."""
         with rx.session() as session:
@@ -409,7 +397,7 @@ class ManageExercisesState(SessionState):
         self.exercises = []
         self.tag_list = []
         self.tag_names = []
-        self.search_values = []
+        self.search_values = []  # from FilterMixin
         self.current_tag = ""
         self.current_exercise = Exercise()
         self.selected_tags = []
