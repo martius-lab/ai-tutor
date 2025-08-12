@@ -12,7 +12,7 @@ from aitutor.models import ExerciseResult, Exercise, UserRole, Tag
 from aitutor.auth.state import SessionState
 from aitutor.auth.protection import state_require_role_at_least
 from aitutor.utilities.parser import parse_query_keys
-from aitutor.global_vars import USER_KEY, EXERCISE_KEY, TAG_KEY
+from aitutor.global_vars import SEARCH_USER_KEY, SEARCH_EXERCISE_KEY, SEARCH_TAG_KEY
 
 
 @dataclass
@@ -62,15 +62,15 @@ class SubmissionsState(SessionState):
             if self.search_values:
                 search_conditions = []
                 for key, value in self.search_values:
-                    if key == USER_KEY:
+                    if key == SEARCH_USER_KEY:
                         search_conditions.append(
                             LocalUser.username.ilike(f"%{value}%")  # type: ignore
                         )
-                    elif key == EXERCISE_KEY:
+                    elif key == SEARCH_EXERCISE_KEY:
                         search_conditions.append(
                             Exercise.title.ilike(f"%{value}%")  # type: ignore
                         )
-                    elif key == TAG_KEY:
+                    elif key == SEARCH_TAG_KEY:
                         search_conditions.append(
                             Exercise.tags.any(Tag.name.ilike(f"%{value}%"))  # type: ignore
                         )
@@ -105,7 +105,8 @@ class SubmissionsState(SessionState):
     def add_search_value(self, form_data: dict):
         """Adds a search value to the list of search values."""
         parsed = parse_query_keys(
-            form_data["search_value"], [TAG_KEY, USER_KEY, EXERCISE_KEY]
+            form_data["search_value"],
+            [SEARCH_TAG_KEY, SEARCH_USER_KEY, SEARCH_EXERCISE_KEY],
         )
         if parsed not in self.search_values:
             self.search_values.append(parsed)

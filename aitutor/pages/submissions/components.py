@@ -4,7 +4,11 @@ import reflex as rx
 
 from aitutor.pages.submissions.state import SubmissionsState, TableRow
 from aitutor import routes
-from aitutor.pages.submissions.state import USER_KEY, EXERCISE_KEY, TAG_KEY
+from aitutor.pages.submissions.state import (
+    SEARCH_USER_KEY,
+    SEARCH_EXERCISE_KEY,
+    SEARCH_TAG_KEY,
+)
 
 
 def header_cell(text: str, icon: str):
@@ -25,14 +29,14 @@ def show_table_row(table_row: TableRow) -> rx.Component:
         rx.table.cell(
             table_row.username,
             on_click=SubmissionsState.add_search_value(
-                {"search_value": f'{USER_KEY}:"{table_row.username}"'}
+                {"search_value": f'{SEARCH_USER_KEY}:"{table_row.username}"'}
             ),
             _hover={"cursor": "pointer"},
         ),
         rx.table.cell(
             table_row.exercise_title,
             on_click=SubmissionsState.add_search_value(
-                {"search_value": f'{EXERCISE_KEY}:"{table_row.exercise_title}"'}
+                {"search_value": f'{SEARCH_EXERCISE_KEY}:"{table_row.exercise_title}"'}
             ),
             _hover={"cursor": "pointer"},
         ),
@@ -45,7 +49,7 @@ def show_table_row(table_row: TableRow) -> rx.Component:
                         variant="soft",
                         color_scheme="blue",
                         on_click=SubmissionsState.add_search_value(
-                            {"search_value": f'{TAG_KEY}:"{tag}"'}
+                            {"search_value": f'{SEARCH_TAG_KEY}:"{tag}"'}
                         ),
                         _hover={"cursor": "pointer"},
                     ),

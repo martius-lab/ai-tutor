@@ -2,6 +2,6 @@
 
 TIME_FORMAT = "%d.%m.%Y %H:%M:%S MEZ"
 TIME_ZONE = "Europe/Berlin"
-USER_KEY = "user"
-EXERCISE_KEY = "exercise"
-TAG_KEY = "tag"
+SEARCH_USER_KEY = "user"
+SEARCH_EXERCISE_KEY = "exercise"
+SEARCH_TAG_KEY = "tag"
