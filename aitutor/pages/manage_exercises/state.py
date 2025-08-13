@@ -13,7 +13,7 @@ from aitutor.auth.state import SessionState
 from aitutor.utilities.filtering_components import FilterMixin
 from aitutor.config import get_config
 from aitutor.auth.protection import state_require_role_at_least
-from aitutor.global_vars import SEARCH_EXERCISE_KEY, SEARCH_TAG_KEY
+import aitutor.global_vars as gv
 
 
 class DialogMode(Enum):
@@ -37,7 +37,7 @@ class ManageExercisesState(FilterMixin, SessionState):
     tag_list: list[Tag] = []
     tag_names: list[str] = []
     # valid search keys. overrides the var from FilterMixin
-    search_keys: list[str] = [SEARCH_EXERCISE_KEY, SEARCH_TAG_KEY]
+    search_keys: list[str] = [gv.SEARCH_EXERCISE_KEY, gv.SEARCH_TAG_KEY]
     #: the currently selected tag from the select window
     current_tag: str = ""
     #: the current exercise to be edited
@@ -186,20 +186,21 @@ class ManageExercisesState(FilterMixin, SessionState):
             if self.search_values:
                 search_conditions = []
                 for key, value in self.search_values:
-                    if key == SEARCH_EXERCISE_KEY:
-                        search_conditions.append(Exercise.title.ilike(f"%{value}%"))  # type: ignore
-                    elif key == SEARCH_TAG_KEY:
-                        search_conditions.append(
-                            Exercise.tags.any(Tag.name.ilike(f"%{value}%"))  # type: ignore
-                        )
-                    else:
-                        search_conditions.append(
-                            or_(
-                                Exercise.title.ilike(f"%{value}%"),  # type: ignore
-                                Exercise.description.ilike(f"%{value}%"),  # type: ignore
-                                Exercise.tags.any(Tag.name.ilike(f"%{value}%")),  # type: ignore
+                    match key:
+                        case gv.SEARCH_EXERCISE_KEY:
+                            search_conditions.append(Exercise.title.ilike(f"%{value}%"))  # type: ignore
+                        case gv.SEARCH_TAG_KEY:
+                            search_conditions.append(
+                                Exercise.tags.any(Tag.name.ilike(f"%{value}%"))  # type: ignore
                             )
-                        )
+                        case _:
+                            search_conditions.append(
+                                or_(
+                                    Exercise.title.ilike(f"%{value}%"),  # type: ignore
+                                    Exercise.description.ilike(f"%{value}%"),  # type: ignore
+                                    Exercise.tags.any(Tag.name.ilike(f"%{value}%")),  # type: ignore
+                                )
+                            )
                 query_exercises = query_exercises.where(and_(*search_conditions))
 
             # get exercises from db and order by id descending

@@ -4,7 +4,7 @@ import reflex as rx
 
 from aitutor.pages.submissions.state import SubmissionsState, TableRow
 from aitutor import routes
-from aitutor.pages.submissions.state import (
+from aitutor.global_vars import (
     SEARCH_USER_KEY,
     SEARCH_EXERCISE_KEY,
     SEARCH_TAG_KEY,
