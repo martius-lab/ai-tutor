@@ -39,7 +39,7 @@ class FilterMixin(rx.State, mixin=True):
         self.load_filtered_data()
 
 
-def search_bar(state) -> rx.Component:
+def search_bar(state: type[FilterMixin]) -> rx.Component:
     """Search bar for the input of search values."""
     return rx.form.root(
         rx.hstack(
@@ -78,7 +78,7 @@ def search_bar(state) -> rx.Component:
     )
 
 
-def search_badges(state) -> rx.Component:
+def search_badges(state: type[FilterMixin]) -> rx.Component:
     """Display search badges for the current search values."""
     return rx.hstack(
         rx.foreach(
