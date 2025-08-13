@@ -4,7 +4,11 @@ import reflex as rx
 
 from aitutor.pages.submissions.state import SubmissionsState, TableRow
 from aitutor import routes
-from aitutor.pages.submissions.state import USER_KEY, EXERCISE_KEY, TAG_KEY
+from aitutor.global_vars import (
+    SEARCH_USER_KEY,
+    SEARCH_EXERCISE_KEY,
+    SEARCH_TAG_KEY,
+)
 
 
 def header_cell(text: str, icon: str):
@@ -19,20 +23,20 @@ def header_cell(text: str, icon: str):
     )
 
 
-def show_student(table_row: TableRow) -> rx.Component:
+def show_table_row(table_row: TableRow) -> rx.Component:
     """Show exercises on page in a table row."""
     return rx.table.row(
         rx.table.cell(
             table_row.username,
             on_click=SubmissionsState.add_search_value(
-                {"search_value": f'{USER_KEY}:"{table_row.username}"'}
+                {"search_value": f'{SEARCH_USER_KEY}:"{table_row.username}"'}
             ),
             _hover={"cursor": "pointer"},
         ),
         rx.table.cell(
             table_row.exercise_title,
             on_click=SubmissionsState.add_search_value(
-                {"search_value": f'{EXERCISE_KEY}:"{table_row.exercise_title}"'}
+                {"search_value": f'{SEARCH_EXERCISE_KEY}:"{table_row.exercise_title}"'}
             ),
             _hover={"cursor": "pointer"},
         ),
@@ -45,7 +49,7 @@ def show_student(table_row: TableRow) -> rx.Component:
                         variant="soft",
                         color_scheme="blue",
                         on_click=SubmissionsState.add_search_value(
-                            {"search_value": f'{TAG_KEY}:"{tag}"'}
+                            {"search_value": f'{SEARCH_TAG_KEY}:"{tag}"'}
                         ),
                         _hover={"cursor": "pointer"},
                     ),
@@ -88,8 +92,8 @@ def submissions_table():
             ),
             rx.table.body(
                 rx.foreach(
-                    SubmissionsState.rendered_table_rows,
-                    show_student,
+                    SubmissionsState.table_rows,
+                    show_table_row,
                 )
             ),
             variant="surface",
@@ -98,83 +102,6 @@ def submissions_table():
             overflow_y="auto",
             max_height="70vh",
         ),
-    )
-
-
-def search_badges() -> rx.Component:
-    """Display search badges for the current search values."""
-    return rx.hstack(
-        rx.foreach(
-            SubmissionsState.search_values,
-            lambda value: rx.badge(
-                rx.hstack(
-                    rx.cond(
-                        value[0] == USER_KEY,
-                        rx.icon("user-round", size=18),
-                    ),
-                    rx.cond(
-                        value[0] == EXERCISE_KEY,
-                        rx.icon("book", size=18),
-                    ),
-                    rx.cond(
-                        value[0] == TAG_KEY,
-                        rx.icon("tag", size=18),
-                    ),
-                    rx.text(value[1]),
-                    rx.icon(
-                        "x",
-                        on_click=SubmissionsState.remove_search_value(value),
-                        _hover={"cursor": "pointer"},
-                    ),
-                    spacing="1",
-                    align="center",
-                ),
-                variant="solid",
-                color_scheme="blue",
-            ),
-        ),
-        spacing="2",
-        wrap="wrap",
-    )
-
-
-def search_bar() -> rx.Component:
-    """Search bar for submissions."""
-    return rx.form.root(
-        rx.hstack(
-            rx.dialog.root(
-                rx.dialog.trigger(
-                    rx.icon("info"),
-                    _hover={"cursor": "pointer"},
-                ),
-                rx.dialog.content(
-                    rx.vstack(
-                        rx.text(
-                            "Search with 'key:searchValue' or "
-                            "'key:\"search value\"' "
-                            "to search a specific column."
-                        ),
-                        rx.text("keys: user, exercise, tag"),
-                        rx.text("Without using 'key:' it searches in all columns."),
-                    ),
-                ),
-            ),
-            rx.input(
-                rx.input.slot(rx.icon("search")),
-                name="search_value",
-                placeholder="tag:tagname",
-                required=True,
-            ),
-            rx.button(
-                rx.icon("plus"),
-                _hover={"cursor": "pointer"},
-            ),
-            justify="center",
-            align="center",
-        ),
-        on_submit=SubmissionsState.add_search_value,
-        reset_on_submit=True,
-        max_width="250px",
     )
 
 

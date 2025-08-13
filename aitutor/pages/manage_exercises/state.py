@@ -3,14 +3,17 @@
 import reflex as rx
 import pdfplumber
 import io
+from typing import override
 from enum import Enum
-from sqlmodel import select, or_
+from sqlmodel import select, and_, or_
 from sqlalchemy.orm import selectinload
 
 from aitutor.models import Exercise, Tag, UserRole
 from aitutor.auth.state import SessionState
+from aitutor.utilities.filtering_components import FilterMixin
 from aitutor.config import get_config
 from aitutor.auth.protection import state_require_role_at_least
+import aitutor.global_vars as gv
 
 
 class DialogMode(Enum):
@@ -20,7 +23,7 @@ class DialogMode(Enum):
     EDIT = "edit"
 
 
-class ManageExercisesState(SessionState):
+class ManageExercisesState(FilterMixin, SessionState):
     """State for the exercises page."""
 
     # Flags to control if dialogs are open.  They are needed as a workaround due to a
@@ -33,7 +36,8 @@ class ManageExercisesState(SessionState):
     exercises: list[Exercise] = []
     tag_list: list[Tag] = []
     tag_names: list[str] = []
-    search_value: str = ""
+    # valid search keys. overrides the var from FilterMixin
+    search_keys: list[str] = [gv.SEARCH_EXERCISE_KEY, gv.SEARCH_TAG_KEY]
     #: the currently selected tag from the select window
     current_tag: str = ""
     #: the current exercise to be edited
@@ -166,29 +170,40 @@ class ManageExercisesState(SessionState):
             invert=True,
         )
 
+    @override
     @rx.event
-    def search_exercises(self, search_value):
-        """Search for a specific exercise."""
-        self.search_value = search_value
+    def load_filtered_data(self):
+        """implements the abstract method from FilterMixin"""
         self.load_exercises()
 
-    @rx.event
     def load_exercises(self):
         """Get exercises from db."""
         with rx.session() as session:
             # load exercises
             query_exercises = select(Exercise).options(selectinload(Exercise.tags))  # type: ignore
-            # search for distinct entries
-            if self.search_value:
-                search_value = f"%{str(self.search_value).lower()}%"
-                query_exercises = query_exercises.where(
-                    or_(
-                        *[
-                            getattr(Exercise, field).ilike(search_value)
-                            for field in Exercise.get_fields()
-                        ],
-                    )
-                )
+
+            # filter with search values
+            if self.search_values:
+                search_conditions = []
+                for key, value in self.search_values:
+                    match key:
+                        case gv.SEARCH_EXERCISE_KEY:
+                            search_conditions.append(Exercise.title.ilike(f"%{value}%"))  # type: ignore
+                        case gv.SEARCH_TAG_KEY:
+                            search_conditions.append(
+                                Exercise.tags.any(Tag.name.ilike(f"%{value}%"))  # type: ignore
+                            )
+                        case _:
+                            search_conditions.append(
+                                or_(
+                                    Exercise.title.ilike(f"%{value}%"),  # type: ignore
+                                    Exercise.description.ilike(f"%{value}%"),  # type: ignore
+                                    Exercise.tags.any(Tag.name.ilike(f"%{value}%")),  # type: ignore
+                                )
+                            )
+                query_exercises = query_exercises.where(and_(*search_conditions))
+
+            # get exercises from db and order by id descending
             self.exercises = list(
                 session.exec(query_exercises.order_by(Exercise.id.desc())).all()  # type: ignore
             )
@@ -383,7 +398,7 @@ class ManageExercisesState(SessionState):
         self.exercises = []
         self.tag_list = []
         self.tag_names = []
-        self.search_value = ""
+        self.search_values = []  # from FilterMixin
         self.current_tag = ""
         self.current_exercise = Exercise()
         self.selected_tags = []

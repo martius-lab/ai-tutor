@@ -102,7 +102,6 @@ def delete_exercise_button(exercise: Exercise):
 def show_exercise(exercise: Exercise):
     """Show exercises on page in a table row."""
     return rx.table.row(
-        rx.table.cell(exercise.id),
         rx.table.cell(exercise.title, max_width="175px"),
         rx.table.cell(
             truncate_text_reflex_var(exercise.description, max_length=150),
@@ -112,7 +111,15 @@ def show_exercise(exercise: Exercise):
             rx.hstack(
                 rx.foreach(
                     exercise.tags,
-                    lambda tag: rx.badge(tag.name, variant="soft", color_scheme="blue"),
+                    lambda tag: rx.badge(
+                        tag.name,
+                        variant="soft",
+                        color_scheme="blue",
+                        on_click=ManageExercisesState.add_search_value(
+                            {"search_value": f'tag:"{tag.name}"'}
+                        ),
+                        _hover={"cursor": "pointer"},
+                    ),
                 ),
                 spacing="1",
                 wrap="wrap",
@@ -160,33 +167,11 @@ def exercise_table():
     """The main table"""
     return (
         rx.fragment(
-            rx.flex(
-                rx.box(
-                    # search bar
-                    rx.input(
-                        rx.input.slot(rx.icon("search")),
-                        placeholder="Search...",
-                        size="3",
-                        max_width="250px",
-                        style={"_hover": {"bg": rx.color("gray", 2)}},
-                        on_change=lambda value: ManageExercisesState.search_exercises(
-                            value
-                        ),
-                    ),
-                    flex="1",
-                ),
-                # the button for adding exercises
-                rx.box(
-                    add_exercise_button(),
-                ),
-                width="100%",
-            ),
             # head cells for the main table
             rx.table.root(
                 rx.table.header(
                     rx.table.row(
-                        header_cell("ID", "file-digit"),
-                        header_cell("Task", "briefcase-business"),
+                        header_cell("Exercise", "book"),
                         header_cell("Description", "book-open-text"),
                         header_cell("Tags", "tag"),
                         rx.table.column_header_cell("Delete | Edit", align="center"),
@@ -213,7 +198,7 @@ def add_exercise_button() -> rx.Component:
     return rx.dialog.root(
         rx.button(
             rx.icon("file-plus", size=26),
-            rx.tablet_and_desktop(rx.text("Add Exercise", size="4")),
+            rx.text("Add Exercise", size="4"),
             size="3",
             _hover={"cursor": "pointer"},
             on_click=ManageExercisesState.open_add_dialog,
