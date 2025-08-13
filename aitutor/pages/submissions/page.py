@@ -7,10 +7,10 @@ from aitutor.pages.navbar import with_navbar
 from aitutor.auth.protection import page_require_role_at_least
 from aitutor.pages.submissions.components import (
     submissions_table,
-    search_badges,
-    search_bar,
     only_with_submissions,
 )
+from aitutor.pages.submissions.state import SubmissionsState
+from aitutor.utilities.filtering_components import search_bar, search_badges
 
 
 @with_navbar
@@ -26,9 +26,9 @@ def submissions_page() -> rx.Component:
                 padding_bottom="0.5em",
                 align="center",
             ),
-            search_bar(),
+            search_bar(SubmissionsState),
             only_with_submissions(),
-            search_badges(),
+            search_badges(SubmissionsState),
             submissions_table(),
             align="center",
             justify="center",
