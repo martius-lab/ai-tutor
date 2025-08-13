@@ -12,7 +12,7 @@ from aitutor.models import ExerciseResult, Exercise, UserRole, Tag
 from aitutor.auth.state import SessionState
 from aitutor.utilities.filtering_components import FilterMixin
 from aitutor.auth.protection import state_require_role_at_least
-from aitutor.global_vars import SEARCH_USER_KEY, SEARCH_EXERCISE_KEY, SEARCH_TAG_KEY
+import aitutor.global_vars as gv
 
 
 @dataclass
@@ -34,7 +34,11 @@ class SubmissionsState(FilterMixin, SessionState):
     only_with_submission: bool = False
 
     # valid search keys. overrides the var from FilterMixin
-    search_keys: list[str] = [SEARCH_USER_KEY, SEARCH_EXERCISE_KEY, SEARCH_TAG_KEY]
+    search_keys: list[str] = [
+        gv.SEARCH_USER_KEY,
+        gv.SEARCH_EXERCISE_KEY,
+        gv.SEARCH_TAG_KEY,
+    ]
 
     @rx.event
     @state_require_role_at_least(UserRole.TEACHER)
@@ -69,26 +73,27 @@ class SubmissionsState(FilterMixin, SessionState):
             if self.search_values:
                 search_conditions = []
                 for key, value in self.search_values:
-                    if key == SEARCH_USER_KEY:
-                        search_conditions.append(
-                            LocalUser.username.ilike(f"%{value}%")  # type: ignore
-                        )
-                    elif key == SEARCH_EXERCISE_KEY:
-                        search_conditions.append(
-                            Exercise.title.ilike(f"%{value}%")  # type: ignore
-                        )
-                    elif key == SEARCH_TAG_KEY:
-                        search_conditions.append(
-                            Exercise.tags.any(Tag.name.ilike(f"%{value}%"))  # type: ignore
-                        )
-                    else:
-                        search_conditions.append(
-                            sqlalchemy.or_(
-                                LocalUser.username.ilike(f"%{value}%"),  # type: ignore
-                                Exercise.title.ilike(f"%{value}%"),  # type: ignore
-                                Exercise.tags.any(Tag.name.ilike(f"%{value}%")),  # type: ignore
+                    match key:
+                        case gv.SEARCH_USER_KEY:
+                            search_conditions.append(
+                                LocalUser.username.ilike(f"%{value}%")  # type: ignore
                             )
-                        )
+                        case gv.SEARCH_EXERCISE_KEY:
+                            search_conditions.append(
+                                Exercise.title.ilike(f"%{value}%")  # type: ignore
+                            )
+                        case gv.SEARCH_TAG_KEY:
+                            search_conditions.append(
+                                Exercise.tags.any(Tag.name.ilike(f"%{value}%"))  # type: ignore
+                            )
+                        case _:
+                            search_conditions.append(
+                                sqlalchemy.or_(
+                                    LocalUser.username.ilike(f"%{value}%"),  # type: ignore
+                                    Exercise.title.ilike(f"%{value}%"),  # type: ignore
+                                    Exercise.tags.any(Tag.name.ilike(f"%{value}%")),  # type: ignore
+                                )
+                            )
                 stmt = stmt.where(and_(*search_conditions))
 
             # filter with only with submission
