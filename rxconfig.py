@@ -5,6 +5,7 @@ import reflex as rx
 config = rx.Config(
     app_name="aitutor",
     db_url="sqlite:///reflex.db",
+    plugins=[rx.plugins.SitemapPlugin()],
     watch_ignore_patterns=[
         ".venv/*",
         ".git/*",
