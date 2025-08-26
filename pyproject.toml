@@ -13,7 +13,7 @@ authors = [
 
 requires-python = ">=3.13"
 dependencies = [
-    "reflex==0.7.5",
+    "reflex==0.8.8",
     "pytest",
     "passlib",
     "python-decouple",
