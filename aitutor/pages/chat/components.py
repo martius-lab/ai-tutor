@@ -102,8 +102,10 @@ def chat_form() -> rx.Component:
             on_change=ChatState.set_user_input,  # type: ignore (reflex has default setters)
             required=True,
             width="100%",
+            max_height="40vh",
             color_scheme="iris",
             enter_key_submit=with_key_submit,
+            resize="vertical",
         )
 
     return rx.form(
