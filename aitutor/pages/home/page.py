@@ -2,12 +2,10 @@
 
 import reflex as rx
 
-import aitutor.routes as routes
 from aitutor.pages.navbar import with_navbar
 from aitutor.auth.state import SessionState
 
 
-@rx.page(route=routes.HOME, title="Home")
 @with_navbar
 def home_page() -> rx.Component:
     """Render the homepage with navbar."""

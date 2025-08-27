@@ -21,7 +21,7 @@ class FinishedViewState(SessionState):
     @rx.var
     def chat_url(self) -> str:
         """Returns the URL for the chat page."""
-        return routes.CHAT + "/" + str(self.router.page.params.get("exercise_id", 0))
+        return f"{routes.CHAT}/{self.exercise_id}"
 
     @rx.event
     @state_require_role_at_least(UserRole.STUDENT)
