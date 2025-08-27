@@ -106,6 +106,7 @@ def chat_form() -> rx.Component:
             color_scheme="iris",
             enter_key_submit=with_key_submit,
             resize="vertical",
+            rows="4",
         )
 
     return rx.form(
