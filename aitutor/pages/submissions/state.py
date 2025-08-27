@@ -98,7 +98,7 @@ class SubmissionsState(FilterMixin, SessionState):
 
             # filter with only with submission
             if self.only_with_submission:
-                stmt = stmt.where(ExerciseResult.finished_conversation != [])
+                stmt = stmt.where(ExerciseResult.submit_time_stamp != None)  # noqa: E711
 
             # get submissions from db
             self.table_rows = [
