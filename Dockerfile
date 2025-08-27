@@ -30,13 +30,13 @@ RUN uv run reflex init
 # Call db migrate to have the database set up.  This is needed for the export step
 # TODO: Is this really needed or are we doing something wrong?
 RUN test -d "alembic" && uv run reflex db migrate
-# Export static copy of frontend to /app/.web/_static
+# Export static copy of frontend to /app/.web/build/client
 RUN uv run reflex export --frontend-only --no-zip
 
 # Copy static files out of /app to save space in backend image
-RUN mv .web/_static /tmp/_static
-RUN rm -rf .web && mkdir .web
-RUN mv /tmp/_static .web/_static
+RUN mv .web/build/client /tmp/client
+RUN rm -rf .web && mkdir -p .web/build
+RUN mv /tmp/client .web/build/client
 
 # =======================================
 # Stage 2: copy artifacts into slim image
