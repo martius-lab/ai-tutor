@@ -249,7 +249,7 @@ def navbar() -> rx.Component:
                                 links,
                                 lambda link: rx.menu.item(
                                     link[0],
-                                    on_click=lambda url=link[1]: rx.redirect(url),
+                                    on_click=rx.redirect(link[1]),
                                     _hover={"cursor": "pointer"},
                                 ),
                             )
