@@ -596,6 +596,53 @@ def add_edit_exercise_form(mode: DialogMode) -> rx.Component:
             padding_top="1.5em",
             padding_bottom="0.5em",
         ),
+        # deadline
+        rx.hstack(
+            rx.text(
+                "Activate Deadline:",
+                size="3",
+                weight="medium",
+            ),
+            rx.checkbox(
+                checked=ManageExercisesState.use_deadline,
+                on_change=ManageExercisesState.set_use_deadline,  # type: ignore
+            ),
+            align="center",
+            padding_top="1.5em",
+            padding_bottom="0.5em",
+        ),
+        rx.cond(
+            ManageExercisesState.use_deadline,
+            rx.hstack(
+                rx.vstack(
+                    rx.text(
+                        "Deadline:",
+                        size="3",
+                        weight="medium",
+                    ),
+                    rx.input(
+                        value=ManageExercisesState.current_deadline,
+                        on_change=ManageExercisesState.set_current_deadline,  # type: ignore
+                        type="datetime-local",
+                    ),
+                ),
+                rx.vstack(
+                    rx.text(
+                        "Days to Complete:",
+                        size="3",
+                        weight="medium",
+                    ),
+                    rx.input(
+                        placeholder="e.g. 7",
+                        value=ManageExercisesState.current_days_to_complete,
+                        on_change=ManageExercisesState.set_current_days_to_complete,  # type: ignore
+                        type="number",
+                        step="1",
+                        min="1",
+                    ),
+                ),
+            ),
+        ),
         # tags
         tag_management(),
         rx.hstack(

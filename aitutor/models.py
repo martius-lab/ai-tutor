@@ -47,6 +47,8 @@ class Exercise(rx.Model, table=True):
     prompt_name: str = Field(nullable=False, default="")
     prompt: str = Field(nullable=False, default="")
     is_hidden: bool = Field(default=False)
+    deadline: Optional[str] = Field(default=None)
+    days_to_complete: Optional[int] = Field(default=None)
 
     # ORM relationship
     submissions: List["ExerciseResult"] = Relationship(
