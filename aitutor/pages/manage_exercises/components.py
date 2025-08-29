@@ -126,6 +126,9 @@ def show_exercise(exercise: Exercise):
             )
         ),
         rx.table.cell(
+            ManageExercisesState.editing_periods[exercise.id]  # type: ignore
+        ),
+        rx.table.cell(
             rx.center(
                 rx.hstack(
                     delete_exercise_button(exercise),
@@ -174,6 +177,7 @@ def exercise_table():
                         header_cell("Exercise", "book"),
                         header_cell("Description", "book-open-text"),
                         header_cell("Tags", "tag"),
+                        header_cell("Editing period", "calendar-clock"),
                         rx.table.column_header_cell("Delete | Edit", align="center"),
                         rx.table.column_header_cell("Hide", align="center"),
                     ),
