@@ -231,7 +231,7 @@ class ManageExercisesState(FilterMixin, SessionState):
                     end = datetime.strptime(exercise.deadline, "%Y-%m-%dT%H:%M")
                     start = end - timedelta(days=exercise.days_to_complete)
                     self.editing_periods[exercise.id] = (  # type: ignore
-                        f"{start.strftime('%d.%m.%Y')}-\
+                        f"{start.strftime('%d.%m.%Y')} -\
                         {end.strftime('%d.%m.%Y, %H:%MUhr')}"
                     )
                 else:
