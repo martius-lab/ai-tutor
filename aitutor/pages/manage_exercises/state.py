@@ -7,7 +7,6 @@ from typing import override
 from enum import Enum
 from sqlmodel import select, and_, or_
 from sqlalchemy.orm import selectinload
-from datetime import datetime, timedelta
 
 from aitutor.models import Exercise, Tag, UserRole
 from aitutor.auth.state import SessionState
@@ -65,9 +64,14 @@ class ManageExercisesState(FilterMixin, SessionState):
     current_days_to_complete: str = ""
     #: flag to control if the exercise should have a deadline
     use_deadline: bool = True
+
+    # These dictionarys are needed because reflex does not accept propertys like
+    # exercise.is_started or exercise.editing_period in the components.
+    # So this is a workaround.
     #: dictionary to store editing periods for exercises. Key is exercise id.
-    #: this dictionary is needed because reflex is pain...
     editing_periods: dict[int, str] = {}
+    #: dictionary to store which exercises are started. Key is exercise id.
+    exercise_is_started: dict[int, bool] = {}
 
     @rx.event
     @state_require_role_at_least(UserRole.ADMIN)
@@ -225,17 +229,10 @@ class ManageExercisesState(FilterMixin, SessionState):
             self.exercises = list(
                 session.exec(query_exercises.order_by(Exercise.id.desc())).all()  # type: ignore
             )
-            # update editing periods
+            # update editing periods and exercise_is_started
             for exercise in self.exercises:
-                if exercise.deadline and exercise.days_to_complete:
-                    end = datetime.strptime(exercise.deadline, "%Y-%m-%dT%H:%M")
-                    start = end - timedelta(days=exercise.days_to_complete)
-                    self.editing_periods[exercise.id] = (  # type: ignore
-                        f"{start.strftime('%d.%m.%Y')} -\
-                        {end.strftime('%d.%m.%Y, %H:%MUhr')}"
-                    )
-                else:
-                    self.editing_periods[exercise.id] = "No deadline"  # type: ignore
+                self.editing_periods[exercise.id] = exercise.editing_period  # type: ignore
+                self.exercise_is_started[exercise.id] = exercise.is_started  # type: ignore
 
     @rx.event
     def load_tags(self):

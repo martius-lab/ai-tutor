@@ -143,7 +143,22 @@ def show_exercise(exercise: Exercise):
                 rx.cond(
                     exercise.is_hidden,
                     rx.icon("eye-off", size=18),
-                    rx.icon("eye", size=18),
+                    rx.cond(
+                        ManageExercisesState.exercise_is_started[exercise.id],  # type: ignore
+                        rx.icon("eye", size=18),
+                        rx.hover_card.root(
+                            rx.hover_card.trigger(
+                                rx.icon("view", size=18),
+                                _hover={"cursor": "pointer"},
+                            ),
+                            rx.hover_card.content(
+                                rx.text(
+                                    "Exercise is automatically hidden "
+                                    "until its release date.",
+                                ),
+                            ),
+                        ),
+                    ),
                 ),
                 _hover={"cursor": "pointer"},
                 on_click=ManageExercisesState.toggle_visibility(exercise),
