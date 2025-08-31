@@ -4,10 +4,12 @@ import reflex as rx
 from sqlmodel import and_, select
 from sqlalchemy.orm import selectinload
 from typing import Optional
+from datetime import datetime, timedelta
+from zoneinfo import ZoneInfo
 
 from aitutor.models import Exercise, ExerciseResult, UserRole
 from aitutor.auth.state import SessionState
-from aitutor.global_vars import TIME_FORMAT
+from aitutor.global_vars import TIME_FORMAT, TIME_ZONE
 from aitutor.auth.protection import state_require_role_at_least
 
 
@@ -72,6 +74,20 @@ class ExercisesState(SessionState):
                 len(exercise.tags) > 0 for exercise, _ in exercises_with_result
             )
             self.exercises_with_result = [(x[0], x[1]) for x in exercises_with_result]
+            self.hide_not_started_exercises()
+
+    def hide_not_started_exercises(self):
+        """Hide exercises that have not started yet."""
+        for exercise_with_res in self.exercises_with_result:
+            exercise = exercise_with_res[0]
+            if exercise.deadline and exercise.days_to_complete:
+                end = datetime.strptime(exercise.deadline, "%Y-%m-%dT%H:%M").replace(
+                    tzinfo=ZoneInfo(TIME_ZONE)
+                )
+                start = end - timedelta(days=exercise.days_to_complete)
+                current_time = datetime.now(ZoneInfo(TIME_ZONE))
+                if current_time < start:
+                    exercise.is_hidden = True
 
     def on_logout(self):
         """Clears the state when the user logs out."""
