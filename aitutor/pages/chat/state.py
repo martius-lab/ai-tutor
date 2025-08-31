@@ -148,6 +148,16 @@ class ChatState(SessionState):
         """
         return f"{routes.FINISHED_VIEW}/{self.exercise_id}"
 
+    @rx.var
+    def deadline_exceeded(self) -> bool:
+        """Check if the deadline for the current exercise is exceeded."""
+        if self.current_exercise and self.current_exercise.deadline:
+            deadline = datetime.strptime(
+                self.current_exercise.deadline, "%Y-%m-%dT%H:%M"
+            ).replace(tzinfo=ZoneInfo(TIME_ZONE))
+            return datetime.now(ZoneInfo(TIME_ZONE)) > deadline
+        return False
+
     @rx.event
     @state_require_role_at_least(UserRole.STUDENT)
     def on_load(self):
