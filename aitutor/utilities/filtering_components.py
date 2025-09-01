@@ -65,6 +65,7 @@ def search_bar(state: type[FilterMixin]) -> rx.Component:
                 name="search_value",
                 placeholder="tag:tagname",
                 required=True,
+                max_width="60vw",
             ),
             rx.button(
                 rx.icon("plus"),

@@ -29,6 +29,14 @@ def render_exercise_card(exercise_with_res: ExerciseWithResult) -> rx.Component:
                         align_items="center",
                         align="center",
                     ),
+                    rx.hstack(
+                        rx.text("Deadline:", weight="bold", size="2"),
+                        rx.text(
+                            ExercisesState.deadline_strings[exercise.id],  # type: ignore
+                            color="gray",
+                            size="2",
+                        ),
+                    ),
                     rx.cond(  # display tags if they exist
                         ExercisesState.has_tags,
                         rx.hstack(
