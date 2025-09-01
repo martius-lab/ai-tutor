@@ -7,6 +7,7 @@ from typing import override
 from enum import Enum
 from sqlmodel import select, and_, or_
 from sqlalchemy.orm import selectinload
+from datetime import datetime
 
 from aitutor.models import Exercise, Tag, UserRole
 from aitutor.auth.state import SessionState
@@ -174,7 +175,9 @@ class ManageExercisesState(FilterMixin, SessionState):
             # alert the user if no values were provided
             if alert:
                 return alert
-            new_exercise.deadline = deadline
+            new_exercise.deadline = (
+                datetime.strptime(deadline, "%Y-%m-%dT%H:%M") if deadline else None
+            )
             new_exercise.days_to_complete = days_to_complete
 
             session.add(new_exercise)
@@ -318,7 +321,9 @@ class ManageExercisesState(FilterMixin, SessionState):
             # alert the user if no values were provided
             if alert:
                 return alert
-            updated_exercise.deadline = deadline
+            updated_exercise.deadline = (
+                datetime.strptime(deadline, "%Y-%m-%dT%H:%M") if deadline else None
+            )
             updated_exercise.days_to_complete = days_to_complete
 
             session.add(updated_exercise)
@@ -411,7 +416,9 @@ class ManageExercisesState(FilterMixin, SessionState):
         self.selected_tags = [tag.name for tag in exercise.tags]
         self.lesson_file_name = ""  # reset lesson_file_name
         self.current_hidden_state = exercise.is_hidden
-        self.current_deadline = exercise.deadline or ""
+        self.current_deadline = (
+            exercise.deadline.strftime("%Y-%m-%dT%H:%M") if exercise.deadline else ""
+        )
         self.current_days_to_complete = str(exercise.days_to_complete) or ""
         self.use_deadline = (
             exercise.deadline is not None and exercise.days_to_complete is not None

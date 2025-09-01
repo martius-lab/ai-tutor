@@ -152,9 +152,9 @@ class ChatState(SessionState):
     def deadline_exceeded(self) -> bool:
         """Check if the deadline for the current exercise is exceeded."""
         if self.current_exercise and self.current_exercise.deadline:
-            deadline = datetime.strptime(
-                self.current_exercise.deadline, "%Y-%m-%dT%H:%M"
-            ).replace(tzinfo=ZoneInfo(TIME_ZONE))
+            deadline = self.current_exercise.deadline.replace(
+                tzinfo=ZoneInfo(TIME_ZONE)
+            )
             return datetime.now(ZoneInfo(TIME_ZONE)) > deadline
         return False
 

@@ -80,9 +80,7 @@ class ExercisesState(SessionState):
         for exercise_with_res in self.exercises_with_result:
             exercise = exercise_with_res[0]
             if exercise.deadline and exercise.days_to_complete:
-                end = datetime.strptime(exercise.deadline, "%Y-%m-%dT%H:%M").replace(
-                    tzinfo=ZoneInfo(TIME_ZONE)
-                )
+                end = exercise.deadline.replace(tzinfo=ZoneInfo(TIME_ZONE))
                 start = end - timedelta(days=exercise.days_to_complete)
                 current_time = datetime.now(ZoneInfo(TIME_ZONE))
                 if current_time < start:
@@ -105,8 +103,9 @@ class ExercisesState(SessionState):
         for ex_wth_res in self.exercises_with_result:
             exercise = ex_wth_res[0]
             if exercise.deadline:
-                dt = datetime.strptime(exercise.deadline, "%Y-%m-%dT%H:%M")
-                self.deadline_strings[exercise.id] = dt.strftime("%d.%m.%Y, %H:%MUhr")  # type: ignore
+                self.deadline_strings[exercise.id] = exercise.deadline.strftime(  # type: ignore
+                    "%d.%m.%Y, %H:%MUhr"
+                )
             else:
                 self.deadline_strings[exercise.id] = "No deadline"  # type: ignore
 
