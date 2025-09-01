@@ -69,15 +69,12 @@ class ExercisesState(SessionState):
             exercises_with_result = session.exec(
                 stmt.order_by(Exercise.id.desc())  # type: ignore
             ).all()
-            self.has_exercises = len(exercises_with_result) > 0
-            self.has_tags = any(
-                len(exercise.tags) > 0 for exercise, _ in exercises_with_result
-            )
             self.exercises_with_result = [(x[0], x[1]) for x in exercises_with_result]
             self.hide_not_started_exercises()
 
     def hide_not_started_exercises(self):
         """Hide exercises that have not started yet."""
+        # set is_hidden for not started exercises
         for exercise_with_res in self.exercises_with_result:
             exercise = exercise_with_res[0]
             if exercise.deadline and exercise.days_to_complete:
@@ -88,6 +85,18 @@ class ExercisesState(SessionState):
                 current_time = datetime.now(ZoneInfo(TIME_ZONE))
                 if current_time < start:
                     exercise.is_hidden = True
+        # remove non started exercises for students
+        assert self.user_role is not None, "User role not set.  This is a bug."
+        if self.user_role < UserRole.TEACHER:
+            self.exercises_with_result = [
+                ex_res
+                for ex_res in self.exercises_with_result
+                if not ex_res[0].is_hidden
+            ]
+        self.has_exercises = len(self.exercises_with_result) > 0
+        self.has_tags = any(
+            len(exercise.tags) > 0 for exercise, _ in self.exercises_with_result
+        )
 
     def on_logout(self):
         """Clears the state when the user logs out."""
