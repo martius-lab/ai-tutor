@@ -49,7 +49,9 @@ class Exercise(rx.Model, table=True):
     prompt_name: str = Field(nullable=False, default="")
     prompt: str = Field(nullable=False, default="")
     is_hidden: bool = Field(default=False)
-    deadline: Optional[str] = Field(default=None)
+    deadline: Optional[datetime] = Field(
+        sa_column=Column(DateTime, nullable=True), default=None
+    )
     days_to_complete: Optional[int] = Field(default=None)
 
     # ORM relationship
@@ -67,10 +69,9 @@ class Exercise(rx.Model, table=True):
         the deadline and days to complete.
         """
         if self.deadline and self.days_to_complete:
-            end = datetime.strptime(self.deadline, "%Y-%m-%dT%H:%M")
-            start = end - timedelta(days=self.days_to_complete)
+            start = self.deadline - timedelta(days=self.days_to_complete)
             return f"{start.strftime('%d.%m.%Y')} -\
-                {end.strftime('%d.%m.%Y, %H:%MUhr')}"
+                {self.deadline.strftime('%d.%m.%Y, %H:%MUhr')}"
         else:
             return "No deadline"
 
@@ -81,9 +82,7 @@ class Exercise(rx.Model, table=True):
         It is used to show what exercise is automatically hidden
         """
         if self.deadline and self.days_to_complete:
-            end = datetime.strptime(self.deadline, "%Y-%m-%dT%H:%M").replace(
-                tzinfo=ZoneInfo(TIME_ZONE)
-            )
+            end = self.deadline.replace(tzinfo=ZoneInfo(TIME_ZONE))
             start = end - timedelta(days=self.days_to_complete)
             current_time = datetime.now(ZoneInfo(TIME_ZONE))
             return current_time > start
