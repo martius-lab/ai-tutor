@@ -22,6 +22,7 @@ class ExercisesState(SessionState):
     has_exercises: bool = False
     has_tags: bool = False
     exercises_with_result: list[ExerciseWithResult] = []
+    deadline_strings: dict[int, str] = {}  # (exercise_id, deadline_string)
 
     @rx.var
     def submit_time_stamps(self) -> dict[int, str]:
@@ -71,6 +72,7 @@ class ExercisesState(SessionState):
             ).all()
             self.exercises_with_result = [(x[0], x[1]) for x in exercises_with_result]
             self.hide_not_started_exercises()
+            self.generate_deadline_strings()
 
     def hide_not_started_exercises(self):
         """Hide exercises that have not started yet."""
@@ -98,8 +100,19 @@ class ExercisesState(SessionState):
             len(exercise.tags) > 0 for exercise, _ in self.exercises_with_result
         )
 
+    def generate_deadline_strings(self):
+        """Get the deadline string for every exercise."""
+        for ex_wth_res in self.exercises_with_result:
+            exercise = ex_wth_res[0]
+            if exercise.deadline:
+                dt = datetime.strptime(exercise.deadline, "%Y-%m-%dT%H:%M")
+                self.deadline_strings[exercise.id] = dt.strftime("%d.%m.%Y, %H:%MUhr")  # type: ignore
+            else:
+                self.deadline_strings[exercise.id] = "No deadline"  # type: ignore
+
     def on_logout(self):
         """Clears the state when the user logs out."""
         self.has_exercises = False
         self.has_tags = False
         self.exercises_with_result = []
+        self.deadline_strings = {}
