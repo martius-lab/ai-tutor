@@ -284,7 +284,7 @@ def check_conversation_button() -> rx.Component:
                     ),
                 ),
                 rx.hover_card.content(
-                    rx.text("The deadline for this exercise is exceeded."),
+                    rx.text("The deadline for this exercise has passed."),
                 ),
             ),
             # enabled Submit button
