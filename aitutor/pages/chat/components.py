@@ -271,7 +271,7 @@ def check_conversation_button() -> rx.Component:
         ChatState.check_passed,
         # show Submit button
         rx.cond(
-            ChatState.deadline_exceeded,
+            ChatState.is_overdue,
             # disabled Submit button with hover card
             rx.hover_card.root(
                 rx.hover_card.trigger(

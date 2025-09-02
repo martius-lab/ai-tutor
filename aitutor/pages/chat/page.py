@@ -40,7 +40,7 @@ def chat_page() -> rx.Component:
                 ),
                 rx.mobile_only(show_exercise_status()),
                 rx.cond(
-                    ChatState.deadline_exceeded,
+                    ChatState.is_overdue,
                     rx.callout(
                         "This chat can no longer be submitted. "
                         "The deadline has passed.",
