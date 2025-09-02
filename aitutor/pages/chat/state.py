@@ -171,7 +171,7 @@ class ChatState(SessionState):
             if exercise:
                 self.current_exercise = exercise
                 self.exercise_title = self.current_exercise.title
-                self.is_overdue = self.current_exercise.is_overdue
+                self.is_overdue = self.current_exercise.deadline_exceeded
                 self.system_message_gpt = self.current_exercise.prompt
                 self.messages = []
                 self.load_existing_conversation()
