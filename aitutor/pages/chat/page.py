@@ -39,6 +39,16 @@ def chat_page() -> rx.Component:
                     width="100%",
                 ),
                 rx.mobile_only(show_exercise_status()),
+                rx.cond(
+                    ChatState.deadline_exceeded,
+                    rx.callout(
+                        "This chat can no longer be submitted. "
+                        "The deadline has passed.",
+                        icon="info",
+                        width="100%",
+                        color_scheme="orange",
+                    ),
+                ),
                 show_messages(),
                 rx.cond(
                     ChatState.waiting_for_response,
