@@ -171,7 +171,7 @@ class ManageExercisesState(FilterMixin, SessionState):
                 ).all(),
             )
             # set deadline and days to complete
-            alert, deadline, days_to_complete = self.set_deadline_and_days_to_complete()
+            alert, deadline, days_to_complete = self.get_deadline_and_days_to_complete()
             # alert the user if no values were provided
             if alert:
                 return alert
@@ -317,7 +317,7 @@ class ManageExercisesState(FilterMixin, SessionState):
             updated_exercise.is_hidden = self.current_hidden_state
 
             # set deadline and days to complete if use_deadline is True
-            alert, deadline, days_to_complete = self.set_deadline_and_days_to_complete()
+            alert, deadline, days_to_complete = self.get_deadline_and_days_to_complete()
             # alert the user if no values were provided
             if alert:
                 return alert
@@ -442,7 +442,7 @@ class ManageExercisesState(FilterMixin, SessionState):
         self.add_exercise_dialog_is_open = False
         self.edit_exercise_dialog_is_open = False
 
-    def set_deadline_and_days_to_complete(self):
+    def get_deadline_and_days_to_complete(self):
         """
         set deadline and days to complete if use_deadline is True
         returns a tuple of (alert, deadline, days_to_complete)
