@@ -89,6 +89,16 @@ class Exercise(rx.Model, table=True):
         # if no deadline is set, the exercise counts as started
         return True
 
+    @property
+    def is_overdue(self) -> bool:
+        """
+        flag wheter the deadline of the exercise is over.
+        """
+        if self.deadline:
+            deadline = self.deadline.replace(tzinfo=ZoneInfo(TIME_ZONE))
+            return datetime.now(ZoneInfo(TIME_ZONE)) > deadline
+        return False
+
     def __repr__(self):
         return f"<Exercise(id={self.id}, title='{self.title}')>"
 

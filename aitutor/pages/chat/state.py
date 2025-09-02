@@ -139,6 +139,7 @@ class ChatState(SessionState):
     submit_time_stamp: str = ""
     user_input: str = ""
     last_user_message_index: int = -1
+    is_overdue: bool = False
 
     @rx.var
     def finished_view_url(self) -> str:
@@ -147,16 +148,6 @@ class ChatState(SessionState):
         It is set by the route parameter in the URL.
         """
         return f"{routes.FINISHED_VIEW}/{self.exercise_id}"
-
-    @rx.var
-    def deadline_exceeded(self) -> bool:
-        """Check if the deadline for the current exercise is exceeded."""
-        if self.current_exercise and self.current_exercise.deadline:
-            deadline = self.current_exercise.deadline.replace(
-                tzinfo=ZoneInfo(TIME_ZONE)
-            )
-            return datetime.now(ZoneInfo(TIME_ZONE)) > deadline
-        return False
 
     @rx.event
     @state_require_role_at_least(UserRole.STUDENT)
@@ -180,6 +171,7 @@ class ChatState(SessionState):
             if exercise:
                 self.current_exercise = exercise
                 self.exercise_title = self.current_exercise.title
+                self.is_overdue = self.current_exercise.is_overdue
                 self.system_message_gpt = self.current_exercise.prompt
                 self.messages = []
                 self.load_existing_conversation()
@@ -541,3 +533,4 @@ class ChatState(SessionState):
         self.submit_time_stamp = ""
         self.user_input = ""
         self.last_user_message_index = -1
+        self.is_overdue = False
