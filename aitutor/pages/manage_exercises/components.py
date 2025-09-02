@@ -5,6 +5,7 @@ import reflex as rx
 from aitutor.models import Exercise
 from aitutor.pages.manage_exercises.state import ManageExercisesState, DialogMode
 from aitutor.utilities.helper_functions import truncate_text_reflex_var
+from aitutor.global_vars import TIME_ZONE
 
 
 def new_tag_dialog():
@@ -632,34 +633,37 @@ def add_edit_exercise_form(mode: DialogMode) -> rx.Component:
         ),
         rx.cond(
             ManageExercisesState.use_deadline,
-            rx.hstack(
-                rx.vstack(
-                    rx.text(
-                        "Deadline:",
-                        size="3",
-                        weight="medium",
+            rx.vstack(
+                rx.hstack(
+                    rx.vstack(
+                        rx.text(
+                            "Deadline:",
+                            size="3",
+                            weight="medium",
+                        ),
+                        rx.input(
+                            value=ManageExercisesState.current_deadline,
+                            on_change=ManageExercisesState.set_current_deadline,  # type: ignore
+                            type="datetime-local",
+                        ),
                     ),
-                    rx.input(
-                        value=ManageExercisesState.current_deadline,
-                        on_change=ManageExercisesState.set_current_deadline,  # type: ignore
-                        type="datetime-local",
+                    rx.vstack(
+                        rx.text(
+                            "Days to Complete:",
+                            size="3",
+                            weight="medium",
+                        ),
+                        rx.input(
+                            placeholder="e.g. 7",
+                            value=ManageExercisesState.current_days_to_complete,
+                            on_change=ManageExercisesState.set_current_days_to_complete,  # type: ignore
+                            type="number",
+                            step="1",
+                            min="1",
+                        ),
                     ),
                 ),
-                rx.vstack(
-                    rx.text(
-                        "Days to Complete:",
-                        size="3",
-                        weight="medium",
-                    ),
-                    rx.input(
-                        placeholder="e.g. 7",
-                        value=ManageExercisesState.current_days_to_complete,
-                        on_change=ManageExercisesState.set_current_days_to_complete,  # type: ignore
-                        type="number",
-                        step="1",
-                        min="1",
-                    ),
-                ),
+                rx.text("Timezone: " + TIME_ZONE),
             ),
         ),
         # tags
