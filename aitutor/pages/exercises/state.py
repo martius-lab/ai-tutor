@@ -71,7 +71,18 @@ class ExercisesState(SessionState):
                 stmt.order_by(Exercise.id.desc())  # type: ignore
             ).all()
             self.exercises_with_result = [(x[0], x[1]) for x in exercises_with_result]
+
             self.hide_not_started_exercises()
+
+            # if the user is a student, remove not started exercises
+            assert self.user_role is not None, "User role not set.  This is a bug."
+            if self.user_role < UserRole.TEACHER:
+                self.exercises_with_result = self.remove_not_started_exercises()
+
+            self.has_exercises = len(self.exercises_with_result) > 0
+            self.has_tags = any(
+                len(exercise.tags) > 0 for exercise, _ in self.exercises_with_result
+            )
             self.generate_deadline_strings()
 
     def hide_not_started_exercises(self):
@@ -85,18 +96,13 @@ class ExercisesState(SessionState):
                 current_time = datetime.now(ZoneInfo(TIME_ZONE))
                 if current_time < start:
                     exercise.is_hidden = True
-        # remove non started exercises for students
-        assert self.user_role is not None, "User role not set.  This is a bug."
-        if self.user_role < UserRole.TEACHER:
-            self.exercises_with_result = [
-                ex_res
-                for ex_res in self.exercises_with_result
-                if not ex_res[0].is_hidden
-            ]
-        self.has_exercises = len(self.exercises_with_result) > 0
-        self.has_tags = any(
-            len(exercise.tags) > 0 for exercise, _ in self.exercises_with_result
-        )
+
+    def remove_not_started_exercises(self) -> list[ExerciseWithResult]:
+        """remove non started exercises"""
+        exercises_with_result = [
+            ex_res for ex_res in self.exercises_with_result if not ex_res[0].is_hidden
+        ]
+        return exercises_with_result
 
     def generate_deadline_strings(self):
         """Get the deadline string for every exercise."""
