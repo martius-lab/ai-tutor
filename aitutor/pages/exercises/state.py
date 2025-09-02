@@ -106,8 +106,7 @@ class ExercisesState(SessionState):
 
     def generate_deadline_strings(self):
         """Get the deadline string for every exercise."""
-        for ex_wth_res in self.exercises_with_result:
-            exercise = ex_wth_res[0]
+        for exercise, _ in self.exercises_with_result:
             if exercise.deadline:
                 self.deadline_strings[exercise.id] = exercise.deadline.strftime(  # type: ignore
                     "%d.%m.%Y, %H:%MUhr"
