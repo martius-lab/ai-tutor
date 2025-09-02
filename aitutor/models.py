@@ -90,7 +90,7 @@ class Exercise(rx.Model, table=True):
         return True
 
     @property
-    def is_overdue(self) -> bool:
+    def deadline_exceeded(self) -> bool:
         """
         flag wheter the deadline of the exercise is over.
         """

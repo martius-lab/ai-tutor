@@ -72,7 +72,7 @@ class ExercisesState(SessionState):
             ).all()
             self.exercises_with_result = [(x[0], x[1]) for x in exercises_with_result]
 
-            self.hide_not_started_exercises()
+            self.exercises_with_result = self.hide_not_started_exercises()
 
             # if the user is a student, remove not started exercises
             assert self.user_role is not None, "User role not set.  This is a bug."
@@ -85,17 +85,18 @@ class ExercisesState(SessionState):
             )
             self.generate_deadline_strings()
 
-    def hide_not_started_exercises(self):
+    def hide_not_started_exercises(self) -> list[ExerciseWithResult]:
         """Hide exercises that have not started yet."""
         # set is_hidden for not started exercises
-        for exercise_with_res in self.exercises_with_result:
-            exercise = exercise_with_res[0]
+        exercises_with_result = self.exercises_with_result
+        for exercise, _ in exercises_with_result:
             if exercise.deadline and exercise.days_to_complete:
                 end = exercise.deadline.replace(tzinfo=ZoneInfo(TIME_ZONE))
                 start = end - timedelta(days=exercise.days_to_complete)
                 current_time = datetime.now(ZoneInfo(TIME_ZONE))
                 if current_time < start:
                     exercise.is_hidden = True
+        return exercises_with_result
 
     def remove_not_started_exercises(self) -> list[ExerciseWithResult]:
         """remove non started exercises"""
