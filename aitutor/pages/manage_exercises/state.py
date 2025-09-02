@@ -176,7 +176,7 @@ class ManageExercisesState(FilterMixin, SessionState):
             if alert:
                 return alert
             new_exercise.deadline = (
-                datetime.strptime(deadline, "%Y-%m-%dT%H:%M") if deadline else None
+                datetime.fromisoformat(deadline) if deadline else None
             )
             new_exercise.days_to_complete = days_to_complete
 
@@ -322,7 +322,7 @@ class ManageExercisesState(FilterMixin, SessionState):
             if alert:
                 return alert
             updated_exercise.deadline = (
-                datetime.strptime(deadline, "%Y-%m-%dT%H:%M") if deadline else None
+                datetime.fromisoformat(deadline) if deadline else None
             )
             updated_exercise.days_to_complete = days_to_complete
 
