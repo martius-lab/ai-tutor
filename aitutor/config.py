@@ -31,11 +31,14 @@ class ConfigExercisePrompt:
 class AiTutorConfig:
     """Configuration class for AiTutor."""
 
-    default_users: list[ConfigDefaultUser]
-    exercise_prompts: list[ConfigExercisePrompt]
     check_conversation_prompt: str
     response_ai_model: str
     check_ai_model: str
+    how_to_use_text: str
+    general_information_text: str
+    lecture_information_text: str
+    default_users: list[ConfigDefaultUser]
+    exercise_prompts: list[ConfigExercisePrompt]
 
 
 _config = None

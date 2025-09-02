@@ -22,6 +22,34 @@ response_ai_model = "gpt-4.1-mini"
 check_ai_model = "gpt-4.1"
 ```
 
+# info text on the home page
+The homepage has 3 sections to display your information.
+- One section to explain how to use the ai tutor
+- One section with general information
+- One section with specific information about the lecture
+These information texts can be set in the configfile and get rendered in markdown format.
+
+```toml
+how_to_use_text = """
+I am your AI tutor and I want to help you understand the content of the lecture. Here's how it works:
+
+1. Explain to me the question I ask you at the beginning of the conversation.
+2. When you think the question has been answered – and I also confirm that it has been answered – you can use the "Check Answer" button to verify the conversation. A separate AI will then check whether the task was solved correctly. If the check is successful, you can submit the chat history.
+
+I’m looking forward to working with you!
+"""
+general_information_text = """
+- The AI tutor should only be used for working on the tasks.
+- Tutors and professors can view chats that have been submitted.
+"""
+lecture_information_text = """
+# Lecture: Example Lecture XY
+- Lecturer: Prof. Dr. Max Mustermann
+- Contact: max.mustermann@uni-tuebingen.de
+- Content: This lecture is intended to provide an understanding of basic methods and concepts of XY.
+"""
+```
+
 # default_users
 
 You can define a number of default users, that are automatically created.  This is
