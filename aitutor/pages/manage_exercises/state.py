@@ -419,7 +419,9 @@ class ManageExercisesState(FilterMixin, SessionState):
         self.current_deadline = (
             exercise.deadline.strftime("%Y-%m-%dT%H:%M") if exercise.deadline else ""
         )
-        self.current_days_to_complete = str(exercise.days_to_complete) or ""
+        self.current_days_to_complete = (
+            str(exercise.days_to_complete) if exercise.days_to_complete else ""
+        )
         self.use_deadline = (
             exercise.deadline is not None and exercise.days_to_complete is not None
         )
