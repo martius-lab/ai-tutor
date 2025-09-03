@@ -269,13 +269,34 @@ def check_conversation_button() -> rx.Component:
     """
     return rx.cond(
         ChatState.check_passed,
-        rx.button(
-            "Submit",
-            color_scheme="green",
-            type="button",
-            _hover={"cursor": "pointer"},
-            on_click=ChatState.submit_conversation,
+        # show Submit button
+        rx.cond(
+            ChatState.is_overdue,
+            # disabled Submit button with hover card
+            rx.hover_card.root(
+                rx.hover_card.trigger(
+                    rx.button(
+                        "Submit",
+                        color_scheme="green",
+                        type="button",
+                        _hover={"cursor": "disabled"},
+                        disabled=True,
+                    ),
+                ),
+                rx.hover_card.content(
+                    rx.text("The deadline for this exercise has passed."),
+                ),
+            ),
+            # enabled Submit button
+            rx.button(
+                "Submit",
+                color_scheme="green",
+                type="button",
+                _hover={"cursor": "pointer"},
+                on_click=ChatState.submit_conversation,
+            ),
         ),
+        # show Check Conversation button
         rx.cond(
             ChatState.waiting_for_response,
             rx.button(

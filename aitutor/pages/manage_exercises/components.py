@@ -5,6 +5,7 @@ import reflex as rx
 from aitutor.models import Exercise
 from aitutor.pages.manage_exercises.state import ManageExercisesState, DialogMode
 from aitutor.utilities.helper_functions import truncate_text_reflex_var
+from aitutor.global_vars import TIME_ZONE
 
 
 def new_tag_dialog():
@@ -126,6 +127,9 @@ def show_exercise(exercise: Exercise):
             )
         ),
         rx.table.cell(
+            ManageExercisesState.editing_periods[exercise.id]  # type: ignore
+        ),
+        rx.table.cell(
             rx.center(
                 rx.hstack(
                     delete_exercise_button(exercise),
@@ -140,7 +144,22 @@ def show_exercise(exercise: Exercise):
                 rx.cond(
                     exercise.is_hidden,
                     rx.icon("eye-off", size=18),
-                    rx.icon("eye", size=18),
+                    rx.cond(
+                        ManageExercisesState.exercise_is_started[exercise.id],  # type: ignore
+                        rx.icon("eye", size=18),
+                        rx.hover_card.root(
+                            rx.hover_card.trigger(
+                                rx.icon("view", size=18),
+                                _hover={"cursor": "pointer"},
+                            ),
+                            rx.hover_card.content(
+                                rx.text(
+                                    "Exercise is automatically hidden "
+                                    "until its release date.",
+                                ),
+                            ),
+                        ),
+                    ),
                 ),
                 _hover={"cursor": "pointer"},
                 on_click=ManageExercisesState.toggle_visibility(exercise),
@@ -174,6 +193,7 @@ def exercise_table():
                         header_cell("Exercise", "book"),
                         header_cell("Description", "book-open-text"),
                         header_cell("Tags", "tag"),
+                        header_cell("Editing period", "calendar-clock"),
                         rx.table.column_header_cell("Delete | Edit", align="center"),
                         rx.table.column_header_cell("Hide", align="center"),
                     ),
@@ -186,7 +206,7 @@ def exercise_table():
                 size="3",
                 width="85vw",
                 overflow_y="auto",
-                max_height="70vh",
+                max_height="54vh",
             ),
             edit_exercise_dialog(),
         ),
@@ -595,6 +615,56 @@ def add_edit_exercise_form(mode: DialogMode) -> rx.Component:
             align="center",
             padding_top="1.5em",
             padding_bottom="0.5em",
+        ),
+        # deadline
+        rx.hstack(
+            rx.text(
+                "Activate Deadline:",
+                size="3",
+                weight="medium",
+            ),
+            rx.checkbox(
+                checked=ManageExercisesState.use_deadline,
+                on_change=ManageExercisesState.set_use_deadline,  # type: ignore
+            ),
+            align="center",
+            padding_top="1.5em",
+            padding_bottom="0.5em",
+        ),
+        rx.cond(
+            ManageExercisesState.use_deadline,
+            rx.vstack(
+                rx.hstack(
+                    rx.vstack(
+                        rx.text(
+                            "Deadline:",
+                            size="3",
+                            weight="medium",
+                        ),
+                        rx.input(
+                            value=ManageExercisesState.current_deadline,
+                            on_change=ManageExercisesState.set_current_deadline,  # type: ignore
+                            type="datetime-local",
+                        ),
+                    ),
+                    rx.vstack(
+                        rx.text(
+                            "Days to Complete:",
+                            size="3",
+                            weight="medium",
+                        ),
+                        rx.input(
+                            placeholder="e.g. 7",
+                            value=ManageExercisesState.current_days_to_complete,
+                            on_change=ManageExercisesState.set_current_days_to_complete,  # type: ignore
+                            type="number",
+                            step="1",
+                            min="1",
+                        ),
+                    ),
+                ),
+                rx.text("Timezone: " + TIME_ZONE),
+            ),
         ),
         # tags
         tag_management(),
