@@ -95,12 +95,13 @@ class ExercisesState(SessionState):
             if exercise.deadline:
                 deadline = exercise.deadline.replace(tzinfo=ZoneInfo(TIME_ZONE))
                 time_left = deadline - datetime.now(ZoneInfo(TIME_ZONE))
-                days = time_left.days
-                hours, remainder = divmod(time_left.seconds, 3600)
-                minutes, _ = divmod(remainder, 60)
-                self.time_left_strings[exercise.id] = f"{days}d {hours}h {minutes}m"  # type: ignore
                 if time_left.total_seconds() <= 0:
                     self.time_left_strings[exercise.id] = "deadline has passed"  # type: ignore
+                else:
+                    days = time_left.days
+                    hours, remainder = divmod(time_left.seconds, 3600)
+                    minutes, _ = divmod(remainder, 60)
+                    self.time_left_strings[exercise.id] = f"{days}d {hours}h {minutes}m"  # type: ignore
 
     def generate_deadline_strings(self):
         """Get the deadline string for every exercise."""
