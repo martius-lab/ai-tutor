@@ -50,7 +50,7 @@ def render_exercise_card(exercise_with_res: ExerciseWithResult) -> rx.Component:
                         ),
                     ),
                     rx.cond(  # display tags if they exist
-                        ExercisesState.has_tags,
+                        exercise.tags.length() > 0,  # type: ignore
                         rx.hstack(
                             rx.text("Tags:", weight="bold", size="2"),
                             rx.hstack(
@@ -108,7 +108,7 @@ def render_exercise_card(exercise_with_res: ExerciseWithResult) -> rx.Component:
 def render_exercises() -> rx.Component:
     """Render the list of exercises"""
     return rx.cond(
-        ExercisesState.has_exercises,  # if they exist
+        ExercisesState.exercises_with_result.length() > 0,  # type: ignore
         rx.vstack(
             rx.foreach(
                 ExercisesState.exercises_with_result,
