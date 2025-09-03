@@ -23,6 +23,7 @@ class ExercisesState(SessionState):
     has_tags: bool = False
     exercises_with_result: list[ExerciseWithResult] = []
     deadline_strings: dict[int, str] = {}  # (exercise_id, deadline_string)
+    time_left_strings: dict[int, str] = {}  # (exercise_id, time_left_string)
 
     @rx.var
     def submit_time_stamps(self) -> dict[int, str]:
@@ -84,6 +85,7 @@ class ExercisesState(SessionState):
                 len(exercise.tags) > 0 for exercise, _ in self.exercises_with_result
             )
             self.generate_deadline_strings()
+            self.update_time_left_strings()
 
     def hide_not_started_exercises(self) -> list[ExerciseWithResult]:
         """Hide exercises that have not started yet."""
@@ -115,9 +117,24 @@ class ExercisesState(SessionState):
             else:
                 self.deadline_strings[exercise.id] = "No deadline"  # type: ignore
 
+    @rx.event
+    def update_time_left_strings(self):
+        """get the datetime time left for every exercise"""
+        for exercise, _ in self.exercises_with_result:
+            if exercise.deadline:
+                deadline = exercise.deadline.replace(tzinfo=ZoneInfo(TIME_ZONE))
+                time_left = deadline - datetime.now(ZoneInfo(TIME_ZONE))
+                days = time_left.days
+                hours, remainder = divmod(time_left.seconds, 3600)
+                minutes, _ = divmod(remainder, 60)
+                self.time_left_strings[exercise.id] = f"{days}d {hours}h {minutes}m"  # type: ignore
+                if time_left.total_seconds() <= 0:
+                    self.time_left_strings[exercise.id] = "deadline has passed"  # type: ignore
+
     def on_logout(self):
         """Clears the state when the user logs out."""
         self.has_exercises = False
         self.has_tags = False
         self.exercises_with_result = []
         self.deadline_strings = {}
+        self.time_left_strings = {}
