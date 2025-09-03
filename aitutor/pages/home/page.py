@@ -3,15 +3,15 @@
 import reflex as rx
 
 from aitutor.pages.navbar import with_navbar
-from aitutor.auth.state import SessionState
 from aitutor.config import get_config
+from aitutor.pages.home.state import HomeState
 
 
 @with_navbar
 def home_page() -> rx.Component:
     """Render the homepage with dashboard and info texts."""
 
-    username = SessionState.authenticated_user.username
+    username = HomeState.authenticated_user.username
     config = get_config()
 
     # TODO: replace dummy data with real data
