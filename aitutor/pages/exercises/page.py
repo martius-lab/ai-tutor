@@ -6,6 +6,7 @@ from aitutor.pages.navbar import with_navbar
 from aitutor.auth.protection import page_require_role_at_least
 from aitutor.models import UserRole
 from aitutor.pages.exercises.components import render_exercises
+from aitutor.pages.exercises.state import ExercisesState
 
 
 @with_navbar
@@ -15,6 +16,14 @@ def exercises_page() -> rx.Component:
     return rx.container(
         rx.vstack(
             rx.heading("Exercises", size="8"),
+            rx.hstack(
+                rx.icon(tag="clock"),
+                rx.moment(
+                    format="HH:mm:ss [Uhr]",
+                    interval=1000,
+                    on_change=ExercisesState.update_time_left_strings,
+                ),
+            ),
             render_exercises(),
             spacing="5",
             justify="center",
