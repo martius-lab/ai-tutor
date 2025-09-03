@@ -10,14 +10,7 @@ from aitutor.config import get_config
 def dashboard_card():
     """Render the dashboard card"""
     username = HomeState.authenticated_user.username
-
-    # TODO: replace dummy data with real data
-    # Dummy data
-    total_tasks = 10
-    completed_tasks = 6
-    open_with_deadline = 3
-    next_deadline_task = "Mathe Übungsblatt 5 – 10.09.2025"
-    progress_value = int((completed_tasks / total_tasks) * 100)
+    exercises_num = HomeState.exercises_with_result.length()  # type: ignore
 
     return (
         rx.card(
@@ -29,10 +22,20 @@ def dashboard_card():
                         "Dashboard",
                     ),
                     rx.text(f"Welcome back, {username}!", weight="medium"),
-                    rx.progress(value=progress_value, max=100, width="100%"),
-                    rx.text(f"{completed_tasks}/{total_tasks} Aufgaben erledigt"),
-                    rx.text(f"{open_with_deadline} Aufgaben mit Deadline offen"),
-                    rx.text(f"Nächste Deadline: {next_deadline_task}"),
+                    rx.progress(value=HomeState.progress_value, max=100, width="100%"),  # type: ignore
+                    rx.hstack(
+                        rx.icon("circle-check", color="green", size=20),
+                        rx.text(
+                            f"{HomeState.completed_exercises_num} \
+                            /{exercises_num} exercises submitted"
+                        ),
+                        align="center",
+                    ),
+                    rx.hstack(
+                        rx.text("Next Deadline:", weight="bold"),
+                        rx.text(HomeState.next_deadline_task),
+                        align="center",
+                    ),
                     spacing="4",
                     align="start",
                     width="100%",
