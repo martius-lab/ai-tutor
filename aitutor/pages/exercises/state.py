@@ -82,7 +82,7 @@ class ExercisesState(SessionState):
                 self.exercises_with_result = [
                     ex_res
                     for ex_res in self.exercises_with_result
-                    if ex_res[0].is_started
+                    if not ex_res[0].is_hidden
                 ]
 
             self.update_time_left_strings()
