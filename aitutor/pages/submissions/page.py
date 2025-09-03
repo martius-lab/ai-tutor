@@ -32,5 +32,6 @@ def submissions_page() -> rx.Component:
             submissions_table(),
             align="center",
             justify="center",
+            padding_bottom="2em",
         ),
     )

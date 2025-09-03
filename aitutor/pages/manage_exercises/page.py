@@ -39,5 +39,6 @@ def manage_exercises_page() -> rx.Component:
             exercise_table(),
             align="center",
             justify="center",
+            padding_bottom="2em",
         ),
     )

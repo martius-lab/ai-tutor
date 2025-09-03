@@ -7,6 +7,7 @@ from typing import override
 from enum import Enum
 from sqlmodel import select, and_, or_
 from sqlalchemy.orm import selectinload
+from datetime import datetime
 
 from aitutor.models import Exercise, Tag, UserRole
 from aitutor.auth.state import SessionState
@@ -58,6 +59,20 @@ class ManageExercisesState(FilterMixin, SessionState):
     extracting_lesson_material: bool = False
     #: Flag to control if the current exercise is hidden
     current_hidden_state: bool = False
+    #: the current deadline
+    current_deadline: str = ""
+    #: days to complete the exercise
+    current_days_to_complete: str = ""
+    #: flag to control if the exercise should have a deadline
+    use_deadline: bool = True
+
+    # These dictionarys are needed because reflex does not accept propertys like
+    # exercise.is_started or exercise.editing_period in the components.
+    # So this is a workaround.
+    #: dictionary to store editing periods for exercises. Key is exercise id.
+    editing_periods: dict[int, str] = {}
+    #: dictionary to store which exercises are started. Key is exercise id.
+    exercise_is_started: dict[int, bool] = {}
 
     @rx.event
     @state_require_role_at_least(UserRole.ADMIN)
@@ -155,6 +170,16 @@ class ManageExercisesState(FilterMixin, SessionState):
                     select(Tag).where(Tag.name.in_(self.selected_tags))  # type: ignore
                 ).all(),
             )
+            # set deadline and days to complete
+            alert, deadline, days_to_complete = self.get_deadline_and_days_to_complete()
+            # alert the user if no values were provided
+            if alert:
+                return alert
+            new_exercise.deadline = (
+                datetime.fromisoformat(deadline) if deadline else None
+            )
+            new_exercise.days_to_complete = days_to_complete
+
             session.add(new_exercise)
             session.commit()
             self.load_exercises()
@@ -207,6 +232,10 @@ class ManageExercisesState(FilterMixin, SessionState):
             self.exercises = list(
                 session.exec(query_exercises.order_by(Exercise.id.desc())).all()  # type: ignore
             )
+            # update editing periods and exercise_is_started
+            for exercise in self.exercises:
+                self.editing_periods[exercise.id] = exercise.editing_period  # type: ignore
+                self.exercise_is_started[exercise.id] = exercise.is_started  # type: ignore
 
     @rx.event
     def load_tags(self):
@@ -267,7 +296,6 @@ class ManageExercisesState(FilterMixin, SessionState):
     @rx.event
     def update_exercise(self, form_data: dict):
         """Update exercises in db."""
-        self.edit_exercise_dialog_is_open = False
 
         with rx.session() as session:
             updated_exercise = session.exec(
@@ -288,9 +316,20 @@ class ManageExercisesState(FilterMixin, SessionState):
             updated_exercise.lesson_context = self.lesson_context
             updated_exercise.is_hidden = self.current_hidden_state
 
+            # set deadline and days to complete if use_deadline is True
+            alert, deadline, days_to_complete = self.get_deadline_and_days_to_complete()
+            # alert the user if no values were provided
+            if alert:
+                return alert
+            updated_exercise.deadline = (
+                datetime.fromisoformat(deadline) if deadline else None
+            )
+            updated_exercise.days_to_complete = days_to_complete
+
             session.add(updated_exercise)
             session.commit()
             self.load_exercises()
+            self.edit_exercise_dialog_is_open = False
 
         # reset selected tags
         self.selected_tags = []
@@ -344,6 +383,9 @@ class ManageExercisesState(FilterMixin, SessionState):
         self.current_prompt_name = ""
         self.current_tag = ""
         self.current_hidden_state = False
+        self.current_deadline = ""
+        self.current_days_to_complete = ""
+        self.use_deadline = True
 
     def delete_exercise(self, id: int):
         """Delete an exercise from the db."""
@@ -374,6 +416,15 @@ class ManageExercisesState(FilterMixin, SessionState):
         self.selected_tags = [tag.name for tag in exercise.tags]
         self.lesson_file_name = ""  # reset lesson_file_name
         self.current_hidden_state = exercise.is_hidden
+        self.current_deadline = (
+            exercise.deadline.strftime("%Y-%m-%dT%H:%M") if exercise.deadline else ""
+        )
+        self.current_days_to_complete = (
+            str(exercise.days_to_complete) if exercise.days_to_complete else ""
+        )
+        self.use_deadline = (
+            exercise.deadline is not None and exercise.days_to_complete is not None
+        )
 
     @rx.event
     def open_add_dialog(self):
@@ -393,6 +444,27 @@ class ManageExercisesState(FilterMixin, SessionState):
         self.add_exercise_dialog_is_open = False
         self.edit_exercise_dialog_is_open = False
 
+    def get_deadline_and_days_to_complete(self):
+        """
+        set deadline and days to complete if use_deadline is True
+        returns a tuple of (alert, deadline, days_to_complete)
+        """
+        deadline = None
+        days_to_complete = None
+        if self.use_deadline:
+            if self.current_deadline != "" and self.current_days_to_complete != "":
+                deadline = self.current_deadline
+                days_to_complete = int(self.current_days_to_complete)
+            else:
+                return (
+                    rx.window_alert(
+                        "Please enter both a deadline and days to complete."
+                    ),
+                    None,
+                    None,
+                )
+        return None, deadline, days_to_complete
+
     def on_logout(self):
         """Clears the state when the user logs out."""
         self.exercises = []
@@ -409,3 +481,6 @@ class ManageExercisesState(FilterMixin, SessionState):
         self.prompt_names = []
         self.extracting_lesson_material = False
         self.current_hidden_state = False
+        self.current_deadline = ""
+        self.current_days_to_complete = ""
+        self.use_deadline = True

@@ -4,8 +4,10 @@ from enum import IntEnum
 import reflex as rx
 from sqlmodel import Field, Column, JSON, Relationship, DateTime
 from typing import Any, Dict, Optional, List
-from datetime import datetime
 from reflex_local_auth.user import LocalUser
+from datetime import datetime, timedelta
+from zoneinfo import ZoneInfo
+from aitutor.global_vars import TIME_ZONE
 
 
 class ExerciseTagLink(rx.Model, table=True):
@@ -47,6 +49,10 @@ class Exercise(rx.Model, table=True):
     prompt_name: str = Field(nullable=False, default="")
     prompt: str = Field(nullable=False, default="")
     is_hidden: bool = Field(default=False)
+    deadline: Optional[datetime] = Field(
+        sa_column=Column(DateTime, nullable=True), default=None
+    )
+    days_to_complete: Optional[int] = Field(default=None)
 
     # ORM relationship
     submissions: List["ExerciseResult"] = Relationship(
@@ -55,6 +61,43 @@ class Exercise(rx.Model, table=True):
     tags: List[Tag] = Relationship(
         back_populates="exercises", link_model=ExerciseTagLink
     )
+
+    @property
+    def editing_period(self) -> str:
+        """
+        Returns a string representing the editing period based on
+        the deadline and days to complete.
+        """
+        if self.deadline and self.days_to_complete:
+            start = self.deadline - timedelta(days=self.days_to_complete)
+            return f"{start.strftime('%d.%m.%Y')} -\
+                {self.deadline.strftime('%d.%m.%Y, %H:%MUhr')}"
+        else:
+            return "No deadline"
+
+    @property
+    def is_started(self) -> bool:
+        """
+        flag wheter the exercise is started.
+        It is used to show what exercise is automatically hidden
+        """
+        if self.deadline and self.days_to_complete:
+            end = self.deadline.replace(tzinfo=ZoneInfo(TIME_ZONE))
+            start = end - timedelta(days=self.days_to_complete)
+            current_time = datetime.now(ZoneInfo(TIME_ZONE))
+            return current_time > start
+        # if no deadline is set, the exercise counts as started
+        return True
+
+    @property
+    def deadline_exceeded(self) -> bool:
+        """
+        flag wheter the deadline of the exercise is over.
+        """
+        if self.deadline:
+            deadline = self.deadline.replace(tzinfo=ZoneInfo(TIME_ZONE))
+            return datetime.now(ZoneInfo(TIME_ZONE)) > deadline
+        return False
 
     def __repr__(self):
         return f"<Exercise(id={self.id}, title='{self.title}')>"
