@@ -28,8 +28,10 @@ The homepage has 3 sections to display your information.
 - One section to explain how to use the ai tutor
 - One section with general information
 - One section with specific information about the lecture
-The lecture title also gets displayed. You can set it in the variable `course_name`
+
 These information texts can be set in the configfile and get rendered in markdown format.
+They are **optional**. If you don't want to use one of them. Just set them to: `""`
+
 
 ```toml
 how_to_use_text = """
@@ -50,7 +52,11 @@ lecture_information_text = """
 - Contact: max.mustermann@uni-tuebingen.de
 - Content: This lecture is intended to provide an understanding of basic methods and concepts of XY.
 """
+```
 
+The lecture title also gets displayed. You can set it in the variable `course_name`. This is mandatory.
+
+```toml
 course_name = "Example Lecture XY"
 ```
 
