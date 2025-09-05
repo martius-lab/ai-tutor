@@ -111,21 +111,35 @@ def info_accordion():
     """Render the info accordion"""
     config = get_config()
     return (
-        rx.accordion.root(
-            rx.accordion.item(
-                header="How To Use AI Tutor",
-                content=rx.markdown(config.how_to_use_text),
+        rx.cond(
+            (config.how_to_use_text != "")
+            | (config.general_information_text != "")
+            | (config.lecture_information_text != ""),
+            rx.accordion.root(
+                rx.cond(
+                    config.how_to_use_text != "",
+                    rx.accordion.item(
+                        header="How To Use AI Tutor",
+                        content=rx.markdown(config.how_to_use_text),
+                    ),
+                ),
+                rx.cond(
+                    config.general_information_text != "",
+                    rx.accordion.item(
+                        header="General Information",
+                        content=rx.markdown(config.general_information_text),
+                    ),
+                ),
+                rx.cond(
+                    config.lecture_information_text != "",
+                    rx.accordion.item(
+                        header="Lecture Information",
+                        content=rx.markdown(config.lecture_information_text),
+                    ),
+                ),
+                width="100%",
+                collapsible=True,
+                variant="outline",
             ),
-            rx.accordion.item(
-                header="General Information",
-                content=rx.markdown(config.general_information_text),
-            ),
-            rx.accordion.item(
-                header="Lecture Information",
-                content=rx.markdown(config.lecture_information_text),
-            ),
-            width="100%",
-            collapsible=True,
-            variant="outline",
         ),
     )
