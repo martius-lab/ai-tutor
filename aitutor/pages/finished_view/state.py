@@ -71,6 +71,7 @@ class FinishedViewState(SessionState):
                         session.delete(exercise_result)
                     else:
                         exercise_result.finished_conversation = []
+                        exercise_result.submit_time_stamp = None
                     session.commit()
                 yield rx.toast.success(
                     title="Submission Deleted",
