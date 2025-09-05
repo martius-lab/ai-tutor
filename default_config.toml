@@ -27,6 +27,8 @@ lecture_information_text = """
 - Content: This lecture is intended to provide an understanding of basic methods and concepts of XY.
 """
 
+course_name = "Example Lecture XY"
+
 [[default_users]]
 role = "admin"
 name = "admin"

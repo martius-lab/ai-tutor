@@ -1,6 +1,7 @@
 # What needs to be in the config.toml file?
+The config file is mandatory. If you don't create one yourself, a default config is used. But if you create one, you need to set all variables.
 
-# check_conversation_prompt
+## check_conversation_prompt
 
 Here you define the prompt that should be given to the AI when the check conversation
 button is pressed.
@@ -12,7 +13,7 @@ If the student answered correctly, you can write on sentence that the student an
 """
 ```
 
-# ai models
+## ai models
 
 You can define which ai model should be used for the normal responses and which for the check conversation responses. To see which models you can use, please refer to the open ai [documentation](https://platform.openai.com/docs/models).
 
@@ -22,11 +23,12 @@ response_ai_model = "gpt-4.1-mini"
 check_ai_model = "gpt-4.1"
 ```
 
-# info text on the home page
+## info text on the home page
 The homepage has 3 sections to display your information.
 - One section to explain how to use the ai tutor
 - One section with general information
 - One section with specific information about the lecture
+The lecture title also gets displayed. You can set it in the variable `course_name`
 These information texts can be set in the configfile and get rendered in markdown format.
 
 ```toml
@@ -48,9 +50,11 @@ lecture_information_text = """
 - Contact: max.mustermann@uni-tuebingen.de
 - Content: This lecture is intended to provide an understanding of basic methods and concepts of XY.
 """
+
+course_name = "Example Lecture XY"
 ```
 
-# default_users
+## default_users
 
 You can define a number of default users, that are automatically created.  This is
 intended to make testing easier.
@@ -76,10 +80,10 @@ password = "1234"
 email = "student@mail.de"
 ```
 
-# exercise_prompts
+## exercise_prompts
 
 Here you can define the prompts that the admin can choose from when creating a new
-exercise. you have access to the {title}, {description} and {lesson_context} variables to
+exercise. you have access to the `{title}`, `{description}` and `{lesson_context}` variables to
 use in your prompts.
 
 Here is an example of how to define the prompts:
