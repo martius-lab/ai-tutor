@@ -19,7 +19,7 @@ def exercises_page() -> rx.Component:
             rx.hstack(
                 rx.icon(tag="clock"),
                 rx.moment(
-                    format="HH:mm:ss [Uhr]",
+                    format="HH:mm:ss",
                     interval=1000,
                     on_change=ExercisesState.update_time_left_strings,
                 ),
