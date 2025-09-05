@@ -1,7 +1,7 @@
 """The state for the home page."""
 
 import reflex as rx
-from sqlmodel import select, and_
+from sqlmodel import select, and_, or_
 from typing import Optional
 from datetime import datetime
 from zoneinfo import ZoneInfo
@@ -49,24 +49,32 @@ class HomeState(SessionState):
             return "No upcoming deadlines"
 
         title, deadline = min(tasks, key=lambda t: t[1])
-        return f"{title} – {deadline.strftime("%d.%m.%Y, %H:%M o'clock")}"
+        return f"{title} – {deadline.strftime('%d.%m.%Y, %H:%M')}"
 
     @rx.event
     @state_require_role_at_least(UserRole.STUDENT)
     def on_load(self):
         """Load exercises when the home page is loaded."""
         with rx.session() as session:
-            stmt = select(Exercise, ExerciseResult).join(
-                ExerciseResult,
-                and_(
-                    Exercise.id == ExerciseResult.exercise_id,
-                    ExerciseResult.userinfo_id == self.authenticated_user.id,
-                ),
-                isouter=True,
+            stmt = (
+                select(Exercise, ExerciseResult)
+                .join(
+                    ExerciseResult,
+                    and_(
+                        Exercise.id == ExerciseResult.exercise_id,
+                        ExerciseResult.userinfo_id == self.authenticated_user.id,
+                    ),
+                    isouter=True,
+                )
+                .where(
+                    or_(
+                        Exercise.deadline == None,  # noqa: E711
+                        Exercise.deadline > datetime.now(ZoneInfo(TIME_ZONE)),  # type: ignore
+                    )
+                )
             )
-            exercises_with_result = session.exec(
-                stmt.order_by(Exercise.id.desc())  # type: ignore
-            ).all()
+            exercises_with_result = session.exec(stmt).all()
+
             self.exercises_with_result = [(x[0], x[1]) for x in exercises_with_result]
 
             self.exercises_with_result = [

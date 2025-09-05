@@ -25,9 +25,13 @@ def dashboard_card():
                     rx.progress(value=HomeState.progress_value, max=100, width="100%"),  # type: ignore
                     rx.hstack(
                         rx.icon("circle-check", color="green", size=20),
-                        rx.text(
-                            f"{HomeState.completed_exercises_num} \
-                            /{exercises_num} exercises submitted"
+                        rx.cond(
+                            exercises_num > 0,
+                            rx.text(
+                                f"{HomeState.completed_exercises_num} \
+                                /{exercises_num} open exercises submitted"
+                            ),
+                            rx.text("No pending exercises"),
                         ),
                         align="center",
                     ),
