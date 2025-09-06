@@ -66,6 +66,8 @@ class HomeState(SessionState):
                     ),
                     isouter=True,
                 )
+                # only load exercises that have no deadline
+                # or the deadline is in the future
                 .where(
                     or_(
                         Exercise.deadline == None,  # noqa: E711
@@ -77,6 +79,7 @@ class HomeState(SessionState):
 
             self.exercises_with_result = [(x[0], x[1]) for x in exercises_with_result]
 
+            # remove hidden exercises and not started exercises
             self.exercises_with_result = [
                 (exercise, result)
                 for exercise, result in self.exercises_with_result
