@@ -8,6 +8,7 @@ from aitutor.auth.state import SessionState
 from aitutor.models import UserRole
 import aitutor.routes as routes
 from aitutor.auth.protection import has_role_at_least
+from aitutor.config import get_config
 
 
 def navbar_link(text: str, url: str) -> rx.Component:
@@ -18,14 +19,14 @@ def navbar_link(text: str, url: str) -> rx.Component:
 
 
 general_links = [
-    ("Home", routes.HOME),
-    ("Exercises", routes.EXERCISES),
+    ("Home", routes.HOME, "house"),
+    ("Exercises", routes.EXERCISES, "book"),
 ]
 teacher_links = [
-    ("Submissions", routes.SUBMISSIONS),
+    ("Submissions", routes.SUBMISSIONS, "search-check"),
 ]
 admin_links = [
-    ("Manage Exercises", routes.MANAGE_EXERCISES),
+    ("Manage Exercises", routes.MANAGE_EXERCISES, "pencil-line"),
 ]
 
 
@@ -192,6 +193,7 @@ def navbar() -> rx.Component:
     Returns:
         rx.Component: A Reflex box component containing the navigation bar.
     """
+    config = get_config()
     links = get_links()
     return rx.box(
         rx.desktop_only(
@@ -208,12 +210,16 @@ def navbar() -> rx.Component:
                     rx.heading("AI Tutor", size="7", weight="bold"),
                     align_items="center",
                 ),
-                rx.hstack(
-                    rx.foreach(
-                        links,
-                        lambda link: navbar_link(link[0], link[1]),
+                rx.vstack(
+                    rx.text(config.course_name, weight="bold"),
+                    rx.hstack(
+                        rx.foreach(
+                            links,
+                            lambda link: navbar_link(link[0], link[1]),
+                        ),
+                        spacing="5",
                     ),
-                    spacing="5",
+                    align="center",
                 ),
                 rx.hstack(
                     rx.color_mode.button(),
@@ -245,20 +251,35 @@ def navbar() -> rx.Component:
                             _hover={"cursor": "pointer"},
                         ),
                         rx.menu.content(
+                            rx.box(
+                                rx.text(
+                                    config.course_name,
+                                    color_scheme="gray",
+                                    weight="bold",
+                                ),
+                                padding="0.5em",
+                            ),
+                            rx.separator(),
                             rx.foreach(
                                 links,
                                 lambda link: rx.menu.item(
-                                    link[0],
+                                    rx.hstack(
+                                        rx.icon(link[2], size=15),
+                                        link[0],
+                                        align="center",
+                                    ),
                                     on_click=rx.redirect(link[1]),
                                     _hover={"cursor": "pointer"},
                                 ),
-                            )
+                            ),
+                            max_width="90vw",
                         ),
                     ),
                     profile_menu(),
                 ),
                 justify="between",
                 align_items="center",
+                width="100%",
             ),
         ),
         bg=rx.color("accent", 3),

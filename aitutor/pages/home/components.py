@@ -39,10 +39,6 @@ def dashboard_card():
                         rx.text("Next Deadline:", weight="bold"),
                         rx.text(HomeState.next_deadline_task),
                     ),
-                    rx.hstack(
-                        rx.text("Lecture: ", weight="bold"),
-                        rx.text(get_config().course_name),
-                    ),
                     spacing="4",
                     align="start",
                     width="100%",
