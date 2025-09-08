@@ -47,6 +47,7 @@ class SessionState(reflex_local_auth.LocalAuthState):
         """
         states = [
             pages.ChatState,
+            pages.HomeState,
             pages.ExercisesState,
             pages.FinishedViewState,
             pages.FinishedViewTeacherState,

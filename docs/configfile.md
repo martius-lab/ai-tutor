@@ -1,6 +1,7 @@
 # What needs to be in the config.toml file?
+The config file is mandatory. If you don't create one yourself, a default config is used. But if you create one, you need to set all variables.
 
-# check_conversation_prompt
+## check_conversation_prompt
 
 Here you define the prompt that should be given to the AI when the check conversation
 button is pressed.
@@ -12,7 +13,7 @@ If the student answered correctly, you can write on sentence that the student an
 """
 ```
 
-# ai models
+## ai models
 
 You can define which ai model should be used for the normal responses and which for the check conversation responses. To see which models you can use, please refer to the open ai [documentation](https://platform.openai.com/docs/models).
 
@@ -22,7 +23,44 @@ response_ai_model = "gpt-4.1-mini"
 check_ai_model = "gpt-4.1"
 ```
 
-# default_users
+## info text on the home page
+The homepage has 3 sections to display your information.
+- One section to explain how to use the ai tutor
+- One section with general information
+- One section with specific information about the lecture
+
+These information texts can be set in the configfile and get rendered in markdown format.
+They are **optional**. If you don't want to use one of them. Just set them to: `""`
+
+
+```toml
+how_to_use_text = """
+I am your AI tutor and I want to help you understand the content of the lecture. Here's how it works:
+
+1. Explain to me the question I ask you at the beginning of the conversation.
+2. When you think the question has been answered – and I also confirm that it has been answered – you can use the "Check Answer" button to verify the conversation. A separate AI will then check whether the task was solved correctly. If the check is successful, you can submit the chat history.
+
+I’m looking forward to working with you!
+"""
+general_information_text = """
+- The AI tutor should only be used for working on the tasks.
+- Tutors and professors can view chats that have been submitted.
+"""
+lecture_information_text = """
+# Lecture: Example Lecture XY
+- Lecturer: Prof. Dr. Max Mustermann
+- Contact: max.mustermann@uni-tuebingen.de
+- Content: This lecture is intended to provide an understanding of basic methods and concepts of XY.
+"""
+```
+
+The lecture title also gets displayed. You can set it in the variable `course_name`. This is mandatory.
+
+```toml
+course_name = "Example Lecture XY"
+```
+
+## default_users
 
 You can define a number of default users, that are automatically created.  This is
 intended to make testing easier.
@@ -48,10 +86,10 @@ password = "1234"
 email = "student@mail.de"
 ```
 
-# exercise_prompts
+## exercise_prompts
 
 Here you can define the prompts that the admin can choose from when creating a new
-exercise. you have access to the {title}, {description} and {lesson_context} variables to
+exercise. you have access to the `{title}`, `{description}` and `{lesson_context}` variables to
 use in your prompts.
 
 Here is an example of how to define the prompts:

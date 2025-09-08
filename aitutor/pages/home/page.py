@@ -3,23 +3,23 @@
 import reflex as rx
 
 from aitutor.pages.navbar import with_navbar
-from aitutor.auth.state import SessionState
+from aitutor.pages.home.components import dashboard_card, info_accordion
 
 
 @with_navbar
 def home_page() -> rx.Component:
-    """Render the homepage with navbar."""
-    username = SessionState.authenticated_user.username
-    return rx.container(
-        rx.flex(
-            rx.cond(
-                SessionState.is_authenticated,
-                rx.heading(f"Welcome back, {username}!", size="7"),
-                rx.heading("You are not logged in.", size="7"),
-            ),
+    """Render the homepage with dashboard and info texts."""
+
+    return rx.center(
+        rx.vstack(
+            # Dashboard Card
+            dashboard_card(),
+            info_accordion(),
+            width="100%",
             align="center",
             justify="center",
-            height="85vh",
-            width="100%",
-        )
+        ),
+        margin_top="2em",
+        margin_bottom="2em",
+        width="90%",
     )

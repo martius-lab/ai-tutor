@@ -100,7 +100,7 @@ def submissions_table():
             size="3",
             width="85vw",
             overflow_y="auto",
-            max_height="59vh",
+            max_height="58vh",
         ),
     )
 
