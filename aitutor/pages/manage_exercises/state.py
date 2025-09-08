@@ -75,6 +75,36 @@ class ManageExercisesState(FilterMixin, SessionState):
     exercise_is_started: dict[int, bool] = {}
 
     @rx.event
+    def set_lesson_context(self, context: str):
+        """Set the lesson context."""
+        self.lesson_context = context
+
+    @rx.event
+    def set_use_deadline(self, use: bool):
+        """Set the use_deadline flag."""
+        self.use_deadline = use
+
+    @rx.event
+    def set_current_deadline(self, deadline: str):
+        """Set the current deadline."""
+        self.current_deadline = deadline
+
+    @rx.event
+    def set_current_days_to_complete(self, days: str):
+        """Set the current days to complete."""
+        self.current_days_to_complete = days
+
+    @rx.event
+    def set_current_hidden_state(self, hidden: bool):
+        """Set the current hidden state."""
+        self.current_hidden_state = hidden
+
+    @rx.event
+    def set_add_tag_dialog_is_open(self, is_open: bool):
+        """Set the add tag dialog is open flag."""
+        self.add_tag_dialog_is_open = is_open
+
+    @rx.event
     @state_require_role_at_least(UserRole.ADMIN)
     def on_load(self):
         """Initialize the state"""
