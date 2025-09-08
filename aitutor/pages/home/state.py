@@ -19,7 +19,7 @@ class HomeState(SessionState):
 
     @rx.var
     def completed_exercises_num(self) -> int:
-        """List of completed exercises."""
+        """Number of completed exercises."""
         return sum(
             1
             for _, result in self.exercises_with_result
