@@ -71,7 +71,7 @@ class Exercise(rx.Model, table=True):
         if self.deadline and self.days_to_complete:
             start = self.deadline - timedelta(days=self.days_to_complete)
             return f"{start.strftime('%d.%m.%Y')} -\
-                {self.deadline.strftime('%d.%m.%Y, %H:%MUhr')}"
+                {self.deadline.strftime('%d.%m.%Y, %H:%M')}"
         else:
             return "No deadline"
 

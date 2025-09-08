@@ -108,7 +108,7 @@ class ExercisesState(SessionState):
         for exercise, _ in self.exercises_with_result:
             if exercise.deadline:
                 self.deadline_strings[exercise.id] = exercise.deadline.strftime(  # type: ignore
-                    "%d.%m.%Y, %H:%MUhr"
+                    "%d.%m.%Y, %H:%M"
                 )
             else:
                 self.deadline_strings[exercise.id] = "No deadline"  # type: ignore
