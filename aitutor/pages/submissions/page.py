@@ -20,19 +20,14 @@ def submissions_page() -> rx.Component:
     """Manage exercises page."""
     return rx.center(
         rx.vstack(
-            rx.heading(
-                "Submissions",
-                size="8",
-                padding_top="1em",
-                padding_bottom="0.5em",
-                align="center",
-            ),
             search_bar(SubmissionsState),
             only_with_submissions(),
             search_badges(SubmissionsState),
             submissions_table(),
             align="center",
             justify="center",
-            padding_bottom="2em",
         ),
+        margin_top="2em",
+        margin_bottom="2em",
+        width="90%",
     )
