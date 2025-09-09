@@ -11,18 +11,27 @@ from aitutor.auth.protection import has_role_at_least
 from aitutor.config import get_config
 
 
+def link_is_active(link_url: str, current_route: str) -> bool:
+    """
+    Determines if a navigation link is active based on the current route.
+    """
+    # Special case: Exercises is active when on chat or finished view pages
+    is_exercises_subpage = (link_url == routes.EXERCISES) & (
+        (current_route == routes.CHAT) | (current_route == routes.FINISHED_VIEW)
+    )
+    # Special case: Submissions is active when on finished view teacher page
+    is_submission_subpage = (link_url == routes.SUBMISSIONS) & (
+        current_route == routes.FINISHED_VIEW_TEACHER
+    )
+    return (link_url == current_route) | is_exercises_subpage | is_submission_subpage
+
+
 def navbar_link(text: str, url: str, route) -> rx.Component:
     """
     Creates a navigation link component.
     """
-    # Special case: Exercises is active when on chat or finished view pages
-    is_exercises_subpage = (url == routes.EXERCISES) & (
-        (route == routes.CHAT) | (route == routes.FINISHED_VIEW)
-    )
-    # determine if the user is on the page the link points to
-    is_active = (url == route) | is_exercises_subpage
     return rx.cond(
-        is_active,
+        link_is_active(url, route),
         rx.link(
             rx.button(
                 rx.text(text, size="4", weight="medium"), _hover={"cursor": "pointer"}
@@ -285,10 +294,23 @@ def navbar(route: str) -> rx.Component:
                             rx.foreach(
                                 links,
                                 lambda link: rx.menu.item(
-                                    rx.hstack(
-                                        rx.icon(link[2], size=15),
-                                        link[0],
-                                        align="center",
+                                    rx.cond(
+                                        link_is_active(link[1], route),
+                                        rx.hstack(
+                                            # (color="#0d74ce") == (color_scheme="blue")
+                                            rx.icon(link[2], size=15, color="#0d74ce"),
+                                            rx.text(
+                                                link[0],
+                                                weight="bold",
+                                                color_scheme="blue",
+                                            ),
+                                            align="center",
+                                        ),
+                                        rx.hstack(
+                                            rx.icon(link[2], size=15),
+                                            rx.text(link[0]),
+                                            align="center",
+                                        ),
                                     ),
                                     on_click=rx.redirect(link[1]),
                                     _hover={"cursor": "pointer"},
