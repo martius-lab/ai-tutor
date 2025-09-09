@@ -10,19 +10,20 @@ WORKDIR /app
 
 ENV UV_COMPILE_BYTECODE=1
 ENV UV_NO_CACHE=1
+ENV UV_NO_DEV=1
 
 # Install dependencies (do this as a separate layer to improve docker build time during
 # development).
 RUN --mount=type=bind,source=uv.lock,target=uv.lock \
     --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
-    uv sync --locked --no-dev --no-install-project
+    uv sync --locked --no-install-project
 
 # Copy local context to `/app` inside container (see .dockerignore)
 COPY . .
 RUN mkdir -p /app/data /app/uploaded_files
 
 # Install application in venv
-RUN uv sync --no-dev --locked
+RUN uv sync --locked
 
 # Deploy templates and prepare app
 RUN uv run reflex init
@@ -39,6 +40,7 @@ RUN mv /tmp/client .web/build/client
 # Stage 2: copy artifacts into slim image
 # =======================================
 FROM python:3.13-slim
+
 WORKDIR /app
 RUN adduser --disabled-password --home /app reflex
 COPY --chown=reflex --from=init /app /app
