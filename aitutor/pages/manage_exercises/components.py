@@ -208,7 +208,7 @@ def exercise_table():
                 size="3",
                 width="85vw",
                 overflow_y="auto",
-                max_height="53vh",
+                max_height="60vh",
             ),
             edit_exercise_dialog(),
         ),

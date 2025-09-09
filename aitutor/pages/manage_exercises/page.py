@@ -20,26 +20,18 @@ def manage_exercises_page() -> rx.Component:
     """Manage exercises page."""
     return rx.center(
         rx.vstack(
-            rx.center(
-                rx.heading(
-                    "Manage Exercises",
-                    size="8",
-                    padding_top="1em",
-                    align="center",
-                ),
-                padding_bottom="2em",
-                width="100%",
-            ),
             search_bar(ManageExercisesState),
             search_badges(ManageExercisesState),
-            rx.hstack(
-                add_exercise_button(),
-                width="100%",
-                justify="end",
-            ),
             exercise_table(),
+            rx.box(
+                add_exercise_button(),
+                margin_top="1em",
+            ),
+            spacing="3",
             align="center",
             justify="center",
-            padding_bottom="2em",
         ),
+        margin_top="2em",
+        margin_bottom="2em",
+        width="90%",
     )

@@ -14,9 +14,8 @@ from aitutor import routes
 @page_require_role_at_least(UserRole.STUDENT)
 def exercises_page() -> rx.Component:
     """Default wrapper for exercises page"""
-    return rx.container(
+    return rx.center(
         rx.vstack(
-            rx.heading("Exercises", size="8"),
             rx.hstack(
                 rx.icon(tag="clock"),
                 rx.moment(
@@ -28,7 +27,9 @@ def exercises_page() -> rx.Component:
             render_exercises(),
             spacing="5",
             justify="center",
-            min_height="85vh",
             align="center",
         ),
+        margin_top="2em",
+        margin_bottom="2em",
+        width="90%",
     )
