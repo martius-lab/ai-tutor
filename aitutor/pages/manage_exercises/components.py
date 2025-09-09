@@ -1,5 +1,7 @@
 """The Components for the manage exercises page."""
 
+from typing import Sequence
+
 import reflex as rx
 
 from aitutor.models import Exercise
@@ -54,7 +56,7 @@ def new_tag_dialog():
                 ),
             ),
             open=ManageExercisesState.add_tag_dialog_is_open,
-            on_open_change=ManageExercisesState.set_add_tag_dialog_is_open,  # type: ignore
+            on_open_change=ManageExercisesState.set_add_tag_dialog_is_open,
         ),
     )
 
@@ -530,7 +532,7 @@ def tag_management() -> rx.Component:
     )
 
 
-def add_edit_exercise_form(mode: DialogMode) -> rx.Component:
+def add_edit_exercise_form(mode: DialogMode) -> Sequence[rx.Component]:
     """Button for adding or editing exercises."""
     return (
         # title
@@ -590,7 +592,7 @@ def add_edit_exercise_form(mode: DialogMode) -> rx.Component:
         rx.text_area(
             placeholder="Add lesson context here",
             value=ManageExercisesState.lesson_context,
-            on_change=ManageExercisesState.set_lesson_context,  # type: ignore
+            on_change=ManageExercisesState.set_lesson_context,
             size="3",
             width="100%",
             height="200px",
@@ -610,7 +612,7 @@ def add_edit_exercise_form(mode: DialogMode) -> rx.Component:
             ),
             rx.checkbox(
                 checked=ManageExercisesState.current_hidden_state,
-                on_change=ManageExercisesState.set_current_hidden_state,  # type: ignore
+                on_change=ManageExercisesState.set_current_hidden_state,
             ),
             align="center",
             padding_top="1.5em",
@@ -625,7 +627,7 @@ def add_edit_exercise_form(mode: DialogMode) -> rx.Component:
             ),
             rx.checkbox(
                 checked=ManageExercisesState.use_deadline,
-                on_change=ManageExercisesState.set_use_deadline,  # type: ignore
+                on_change=ManageExercisesState.set_use_deadline,
             ),
             align="center",
             padding_top="1.5em",
@@ -643,7 +645,7 @@ def add_edit_exercise_form(mode: DialogMode) -> rx.Component:
                         ),
                         rx.input(
                             value=ManageExercisesState.current_deadline,
-                            on_change=ManageExercisesState.set_current_deadline,  # type: ignore
+                            on_change=ManageExercisesState.set_current_deadline,
                             type="datetime-local",
                         ),
                     ),
@@ -656,7 +658,7 @@ def add_edit_exercise_form(mode: DialogMode) -> rx.Component:
                         rx.input(
                             placeholder="e.g. 7",
                             value=ManageExercisesState.current_days_to_complete,
-                            on_change=ManageExercisesState.set_current_days_to_complete,  # type: ignore
+                            on_change=ManageExercisesState.set_current_days_to_complete,
                             type="number",
                             step="1",
                             min="1",
