@@ -13,7 +13,7 @@ authors = [
 
 requires-python = ">=3.13"
 dependencies = [
-    "reflex==0.8.8",
+    "reflex",
     "pytest",
     "passlib",
     "python-decouple",
@@ -21,7 +21,7 @@ dependencies = [
     "pdfplumber",
     "dotenv",
     "bcrypt",
-    "reflex-local-auth>=0.3.0",
+    "reflex-local-auth>=0.4.0",
     "variconf[toml]>=1.0.1",
     "psycopg[binary]>=3.2",
     "pyparsing>=3.2.3",
