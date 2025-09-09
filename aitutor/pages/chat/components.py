@@ -99,7 +99,7 @@ def chat_form() -> rx.Component:
             name="user_response",
             placeholder="Your Answer",
             value=ChatState.user_input,
-            on_change=ChatState.set_user_input,  # type: ignore (reflex has default setters)
+            on_change=ChatState.set_user_input,
             required=True,
             width="100%",
             max_height="40vh",
