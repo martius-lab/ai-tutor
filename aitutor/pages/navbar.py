@@ -297,12 +297,11 @@ def navbar(route: str) -> rx.Component:
                                     rx.cond(
                                         link_is_active(link[1], route),
                                         rx.hstack(
-                                            # (color="#0d74ce") == (color_scheme="blue")
                                             rx.icon(link[2], size=15, color="#0d74ce"),
                                             rx.text(
                                                 link[0],
                                                 weight="bold",
-                                                color_scheme="blue",
+                                                color="#0d74ce",
                                             ),
                                             align="center",
                                         ),
