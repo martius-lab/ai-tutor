@@ -141,6 +141,11 @@ class ChatState(SessionState):
     last_user_message_index: int = -1
     is_overdue: bool = False
 
+    @rx.event
+    def set_user_input(self, value: str):
+        """Sets the user input value."""
+        self.user_input = value
+
     @rx.var
     def finished_view_url(self) -> str:
         """
