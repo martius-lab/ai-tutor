@@ -2,6 +2,7 @@
 
 import reflex as rx
 
+from aitutor import routes
 from aitutor.models import UserRole
 from aitutor.pages.manage_exercises.state import ManageExercisesState
 from aitutor.pages.navbar import with_navbar
@@ -13,7 +14,7 @@ from aitutor.pages.manage_exercises.components import (
 from aitutor.utilities.filtering_components import search_bar, search_badges
 
 
-@with_navbar
+@with_navbar(routes.MANAGE_EXERCISES)
 @page_require_role_at_least(UserRole.ADMIN)
 def manage_exercises_page() -> rx.Component:
     """Manage exercises page."""
