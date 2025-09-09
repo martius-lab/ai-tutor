@@ -11,11 +11,29 @@ from aitutor.auth.protection import has_role_at_least
 from aitutor.config import get_config
 
 
-def navbar_link(text: str, url: str) -> rx.Component:
+def navbar_link(text: str, url: str, route) -> rx.Component:
     """
     Creates a navigation link component.
     """
-    return rx.link(rx.text(text, size="4", weight="medium"), href=url)
+    # Special case: Exercises is active when on chat or finished view pages
+    is_exercises_subpage = (url == routes.EXERCISES) & (
+        (route == routes.CHAT) | (route == routes.FINISHED_VIEW)
+    )
+    # determine if the user is on the page the link points to
+    is_active = (url == route) | is_exercises_subpage
+    return rx.cond(
+        is_active,
+        rx.link(
+            rx.button(
+                rx.text(text, size="4", weight="medium"), _hover={"cursor": "pointer"}
+            ),
+            href=url,
+        ),
+        rx.link(
+            rx.text(text, size="4", weight="medium"),
+            href=url,
+        ),
+    )
 
 
 general_links = [
@@ -186,9 +204,12 @@ def profile_menu() -> rx.Component:
     )
 
 
-def navbar() -> rx.Component:
+def navbar(route: str) -> rx.Component:
     """
     Creates the default navigation bar component for the application.
+
+    Args:
+        route (str): The current route to determine the active link.
 
     Returns:
         rx.Component: A Reflex box component containing the navigation bar.
@@ -215,9 +236,10 @@ def navbar() -> rx.Component:
                     rx.hstack(
                         rx.foreach(
                             links,
-                            lambda link: navbar_link(link[0], link[1]),
+                            lambda link: navbar_link(link[0], link[1], route),
                         ),
                         spacing="5",
+                        align="center",
                     ),
                     align="center",
                 ),
@@ -288,20 +310,27 @@ def navbar() -> rx.Component:
     )
 
 
-def with_navbar(
-    component_factory: rx.app.ComponentCallable,
-) -> rx.app.ComponentCallable:
+def with_navbar(route: str):
     """
     Decorator to add a navigation bar to a component.
-
-    Args:
-        component_factory (rx.app.ComponentCallable):
-        A callable that returns a Reflex component.
-
-    Returns:
-        rx.app.ComponentCallable:
-        A callable that returns a Reflex component with the navigation bar.
     """
-    return lambda: rx.vstack(
-        navbar(), component_factory(), spacing="0", padding="0", align="center"
-    )
+
+    def decorator(
+        component_factory: rx.app.ComponentCallable,
+    ) -> rx.app.ComponentCallable:
+        """
+        Decorator to add a navigation bar to a component.
+
+        Args:
+            component_factory (rx.app.ComponentCallable):
+            A callable that returns a Reflex component.
+
+        Returns:
+            rx.app.ComponentCallable:
+            A callable that returns a Reflex component with the navigation bar.
+        """
+        return lambda: rx.vstack(
+            navbar(route), component_factory(), spacing="0", padding="0", align="center"
+        )
+
+    return decorator

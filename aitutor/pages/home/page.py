@@ -2,11 +2,12 @@
 
 import reflex as rx
 
+from aitutor import routes
 from aitutor.pages.navbar import with_navbar
 from aitutor.pages.home.components import dashboard_card, info_accordion
 
 
-@with_navbar
+@with_navbar(routes.HOME)
 def home_page() -> rx.Component:
     """Render the homepage with dashboard and info texts."""
 

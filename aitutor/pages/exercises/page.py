@@ -7,9 +7,10 @@ from aitutor.auth.protection import page_require_role_at_least
 from aitutor.models import UserRole
 from aitutor.pages.exercises.components import render_exercises
 from aitutor.pages.exercises.state import ExercisesState
+from aitutor import routes
 
 
-@with_navbar
+@with_navbar(routes.EXERCISES)
 @page_require_role_at_least(UserRole.STUDENT)
 def exercises_page() -> rx.Component:
     """Default wrapper for exercises page"""

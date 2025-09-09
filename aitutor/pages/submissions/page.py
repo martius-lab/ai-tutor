@@ -2,6 +2,7 @@
 
 import reflex as rx
 
+from aitutor import routes
 from aitutor.models import UserRole
 from aitutor.pages.navbar import with_navbar
 from aitutor.auth.protection import page_require_role_at_least
@@ -13,7 +14,7 @@ from aitutor.pages.submissions.state import SubmissionsState
 from aitutor.utilities.filtering_components import search_bar, search_badges
 
 
-@with_navbar
+@with_navbar(routes.SUBMISSIONS)
 @page_require_role_at_least(UserRole.TEACHER)
 def submissions_page() -> rx.Component:
     """Manage exercises page."""

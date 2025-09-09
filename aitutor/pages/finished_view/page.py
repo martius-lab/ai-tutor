@@ -8,9 +8,10 @@ from aitutor.pages.navbar import with_navbar
 from aitutor.auth.protection import page_require_role_at_least
 from aitutor.pages.chat.components import message_box
 from aitutor.pages.finished_view.components import delete_submission_button
+from aitutor import routes
 
 
-@with_navbar
+@with_navbar(routes.FINISHED_VIEW)
 @page_require_role_at_least(UserRole.STUDENT)
 def finished_view_page() -> rx.Component:
     """Renders the web page."""
