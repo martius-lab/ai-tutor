@@ -11,27 +11,12 @@ from aitutor.auth.protection import has_role_at_least
 from aitutor.config import get_config
 
 
-def link_is_active(link_url: str, current_route: str) -> bool:
-    """
-    Determines if a navigation link is active based on the current route.
-    """
-    # Special case: Exercises is active when on chat or finished view pages
-    is_exercises_subpage = (link_url == routes.EXERCISES) & (
-        (current_route == routes.CHAT) | (current_route == routes.FINISHED_VIEW)
-    )
-    # Special case: Submissions is active when on finished view teacher page
-    is_submission_subpage = (link_url == routes.SUBMISSIONS) & (
-        current_route == routes.FINISHED_VIEW_TEACHER
-    )
-    return (link_url == current_route) | is_exercises_subpage | is_submission_subpage
-
-
-def navbar_link(text: str, url: str, route) -> rx.Component:
+def navbar_link(text: str, url: str, route_to_highlight) -> rx.Component:
     """
     Creates a navigation link component.
     """
     return rx.cond(
-        link_is_active(url, route),
+        url == route_to_highlight,
         rx.link(
             rx.button(
                 rx.text(text, size="4", weight="medium"), _hover={"cursor": "pointer"}
@@ -213,12 +198,13 @@ def profile_menu() -> rx.Component:
     )
 
 
-def navbar(route: str) -> rx.Component:
+def navbar(route_to_highlight: str) -> rx.Component:
     """
     Creates the default navigation bar component for the application.
 
     Args:
-        route (str): The current route to determine the active link.
+        route_to_highlight (str): The route that identifies which link to highlight
+        in the navbar.
 
     Returns:
         rx.Component: A Reflex box component containing the navigation bar.
@@ -245,7 +231,9 @@ def navbar(route: str) -> rx.Component:
                     rx.hstack(
                         rx.foreach(
                             links,
-                            lambda link: navbar_link(link[0], link[1], route),
+                            lambda link: navbar_link(
+                                link[0], link[1], route_to_highlight
+                            ),
                         ),
                         spacing="5",
                         align="center",
@@ -295,7 +283,7 @@ def navbar(route: str) -> rx.Component:
                                 links,
                                 lambda link: rx.menu.item(
                                     rx.cond(
-                                        link_is_active(link[1], route),
+                                        link[1] == route_to_highlight,
                                         rx.hstack(
                                             rx.icon(link[2], size=15, color="#0d74ce"),
                                             rx.text(
@@ -331,9 +319,13 @@ def navbar(route: str) -> rx.Component:
     )
 
 
-def with_navbar(route: str):
+def with_navbar(route_to_highlight: str):
     """
     Decorator to add a navigation bar to a component.
+
+    Args:
+        route_to_highlight (str): The route that identifies which link to highlight
+        in the navbar.
     """
 
     def decorator(
@@ -351,7 +343,11 @@ def with_navbar(route: str):
             A callable that returns a Reflex component with the navigation bar.
         """
         return lambda: rx.vstack(
-            navbar(route), component_factory(), spacing="0", padding="0", align="center"
+            navbar(route_to_highlight),
+            component_factory(),
+            spacing="0",
+            padding="0",
+            align="center",
         )
 
     return decorator
