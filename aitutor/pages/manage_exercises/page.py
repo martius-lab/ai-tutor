@@ -2,6 +2,7 @@
 
 import reflex as rx
 
+from aitutor import routes
 from aitutor.models import UserRole
 from aitutor.pages.manage_exercises.state import ManageExercisesState
 from aitutor.pages.navbar import with_navbar
@@ -13,32 +14,39 @@ from aitutor.pages.manage_exercises.components import (
 from aitutor.utilities.filtering_components import search_bar, search_badges
 
 
-@with_navbar
+@with_navbar(routes.MANAGE_EXERCISES)
 @page_require_role_at_least(UserRole.ADMIN)
 def manage_exercises_page() -> rx.Component:
     """Manage exercises page."""
     return rx.center(
         rx.vstack(
-            rx.center(
-                rx.heading(
-                    "Manage Exercises",
-                    size="8",
-                    padding_top="1em",
+            rx.desktop_only(
+                rx.hstack(
+                    search_bar(ManageExercisesState),
+                    add_exercise_button(),
                     align="center",
+                    justify="start",
+                    width="100%",
+                    name="top_bar_stack",
                 ),
-                padding_bottom="2em",
                 width="100%",
             ),
-            search_bar(ManageExercisesState),
+            rx.mobile_and_tablet(
+                rx.box(
+                    add_exercise_button(),
+                    margin_bottom="1em",
+                )
+            ),
+            rx.mobile_and_tablet(
+                search_bar(ManageExercisesState),
+            ),
             search_badges(ManageExercisesState),
-            rx.hstack(
-                add_exercise_button(),
-                width="100%",
-                justify="end",
-            ),
             exercise_table(),
+            spacing="3",
             align="center",
             justify="center",
-            padding_bottom="2em",
         ),
+        margin_top="2em",
+        margin_bottom="2em",
+        width="90%",
     )

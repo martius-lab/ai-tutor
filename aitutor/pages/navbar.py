@@ -11,11 +11,23 @@ from aitutor.auth.protection import has_role_at_least
 from aitutor.config import get_config
 
 
-def navbar_link(text: str, url: str) -> rx.Component:
+def navbar_link(text: str, url: str, route_to_highlight) -> rx.Component:
     """
     Creates a navigation link component.
     """
-    return rx.link(rx.text(text, size="4", weight="medium"), href=url)
+    return rx.cond(
+        url == route_to_highlight,
+        rx.link(
+            rx.button(
+                rx.text(text, size="4", weight="medium"), _hover={"cursor": "pointer"}
+            ),
+            href=url,
+        ),
+        rx.link(
+            rx.text(text, size="4", weight="medium"),
+            href=url,
+        ),
+    )
 
 
 general_links = [
@@ -186,9 +198,13 @@ def profile_menu() -> rx.Component:
     )
 
 
-def navbar() -> rx.Component:
+def navbar(route_to_highlight: str) -> rx.Component:
     """
     Creates the default navigation bar component for the application.
+
+    Args:
+        route_to_highlight (str): The route that identifies which link to highlight
+        in the navbar.
 
     Returns:
         rx.Component: A Reflex box component containing the navigation bar.
@@ -215,9 +231,12 @@ def navbar() -> rx.Component:
                     rx.hstack(
                         rx.foreach(
                             links,
-                            lambda link: navbar_link(link[0], link[1]),
+                            lambda link: navbar_link(
+                                link[0], link[1], route_to_highlight
+                            ),
                         ),
                         spacing="5",
+                        align="center",
                     ),
                     align="center",
                 ),
@@ -263,10 +282,22 @@ def navbar() -> rx.Component:
                             rx.foreach(
                                 links,
                                 lambda link: rx.menu.item(
-                                    rx.hstack(
-                                        rx.icon(link[2], size=15),
-                                        link[0],
-                                        align="center",
+                                    rx.cond(
+                                        link[1] == route_to_highlight,
+                                        rx.hstack(
+                                            rx.icon(link[2], size=15, color="#0d74ce"),
+                                            rx.text(
+                                                link[0],
+                                                weight="bold",
+                                                color="#0d74ce",
+                                            ),
+                                            align="center",
+                                        ),
+                                        rx.hstack(
+                                            rx.icon(link[2], size=15),
+                                            rx.text(link[0]),
+                                            align="center",
+                                        ),
                                     ),
                                     on_click=rx.redirect(link[1]),
                                     _hover={"cursor": "pointer"},
@@ -288,20 +319,35 @@ def navbar() -> rx.Component:
     )
 
 
-def with_navbar(
-    component_factory: rx.app.ComponentCallable,
-) -> rx.app.ComponentCallable:
+def with_navbar(route_to_highlight: str):
     """
     Decorator to add a navigation bar to a component.
 
     Args:
-        component_factory (rx.app.ComponentCallable):
-        A callable that returns a Reflex component.
-
-    Returns:
-        rx.app.ComponentCallable:
-        A callable that returns a Reflex component with the navigation bar.
+        route_to_highlight (str): The route that identifies which link to highlight
+        in the navbar.
     """
-    return lambda: rx.vstack(
-        navbar(), component_factory(), spacing="0", padding="0", align="center"
-    )
+
+    def decorator(
+        component_factory: rx.app.ComponentCallable,
+    ) -> rx.app.ComponentCallable:
+        """
+        Decorator to add a navigation bar to a component.
+
+        Args:
+            component_factory (rx.app.ComponentCallable):
+            A callable that returns a Reflex component.
+
+        Returns:
+            rx.app.ComponentCallable:
+            A callable that returns a Reflex component with the navigation bar.
+        """
+        return lambda: rx.vstack(
+            navbar(route_to_highlight),
+            component_factory(),
+            spacing="0",
+            padding="0",
+            align="center",
+        )
+
+    return decorator
