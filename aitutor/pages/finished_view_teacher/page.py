@@ -10,7 +10,7 @@ from aitutor.auth.protection import page_require_role_at_least
 from aitutor.pages.chat.components import message_box
 
 
-@with_navbar(routes.FINISHED_VIEW_TEACHER)
+@with_navbar(routes.SUBMISSIONS)
 @page_require_role_at_least(UserRole.TEACHER)
 def finished_view_teacher_page() -> rx.Component:
     """Renders the web page."""

@@ -10,7 +10,7 @@ from aitutor.auth.protection import page_require_role_at_least
 from aitutor.pages.chat.components import show_messages, chat_form, show_exercise_status
 
 
-@with_navbar(routes.CHAT)
+@with_navbar(routes.EXERCISES)
 @page_require_role_at_least(UserRole.STUDENT)
 def chat_page() -> rx.Component:
     """Renders the web page."""
