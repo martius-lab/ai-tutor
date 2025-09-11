@@ -48,3 +48,30 @@ class LanguageState(SessionState):
                 return "Übungsverwaltung"
             case _:
                 return "Manage Exercises"
+
+    @rx.var
+    def log_in(self) -> str:
+        """Log in string"""
+        match self.language:
+            case LanguageEnum.DE:
+                return "Anmelden"
+            case _:
+                return "Log in"
+
+    @rx.var
+    def register(self) -> str:
+        """Register string"""
+        match self.language:
+            case LanguageEnum.DE:
+                return "Registrieren"
+            case _:
+                return "Register"
+
+    @rx.var
+    def log_out(self) -> str:
+        """Log out string"""
+        match self.language:
+            case LanguageEnum.DE:
+                return "Abmelden"
+            case _:
+                return "Log out"

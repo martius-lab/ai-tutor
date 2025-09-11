@@ -160,7 +160,7 @@ def profile_menu() -> rx.Component:
                             size=15,
                         ),
                         rx.text(
-                            "Log out",
+                            LanguageState.log_out,
                             size="2",
                             margin_bottom="6px",
                             margin_top="6px",
@@ -200,7 +200,7 @@ def profile_menu() -> rx.Component:
                             size=15,
                         ),
                         rx.text(
-                            "Log in",
+                            LanguageState.log_in,
                             size="2",
                             margin_bottom="6px",
                             margin_top="6px",
@@ -219,7 +219,7 @@ def profile_menu() -> rx.Component:
                             size=15,
                         ),
                         rx.text(
-                            "Register",
+                            LanguageState.register,
                             size="2",
                             margin_bottom="6px",
                             margin_top="6px",
