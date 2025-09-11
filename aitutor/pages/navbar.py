@@ -141,7 +141,7 @@ def profile_menu() -> rx.Component:
                             size=15,
                         ),
                         rx.text(
-                            LanguageState.language,
+                            SessionState.language,
                             size="2",
                             margin_bottom="6px",
                             margin_top="6px",
@@ -150,7 +150,7 @@ def profile_menu() -> rx.Component:
                         justify="center",
                         spacing="1",
                     ),
-                    on_click=LanguageState.toggle_language,
+                    on_click=SessionState.toggle_language,
                     _hover={"cursor": "pointer"},
                 ),
                 rx.menu.item(
