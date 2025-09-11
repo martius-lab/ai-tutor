@@ -162,6 +162,7 @@ class ChatState(SessionState):
         And sets all button loading states to False.
         """
 
+        self.global_load()
         self.waiting_for_response = False
         with rx.session() as session:
             exercise = session.exec(

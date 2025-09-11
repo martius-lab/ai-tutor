@@ -28,6 +28,7 @@ class FinishedViewState(SessionState):
     def on_load(self):
         """Loads the finished exercise and conversation."""
 
+        self.global_load()
         if self.user_id:
             with rx.session() as session:
                 stmt = (

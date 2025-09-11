@@ -55,6 +55,7 @@ class HomeState(SessionState):
     @state_require_role_at_least(UserRole.STUDENT)
     def on_load(self):
         """Load exercises when the home page is loaded."""
+        self.global_load()
         with rx.session() as session:
             stmt = (
                 select(Exercise, ExerciseResult)

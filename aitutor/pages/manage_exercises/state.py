@@ -109,6 +109,7 @@ class ManageExercisesState(FilterMixin, SessionState):
     def on_load(self):
         """Initialize the state"""
 
+        self.global_load()
         config = get_config()
         self.prompts = {p.name: p.prompt for p in config.exercise_prompts}
         self.prompt_names = list(self.prompts.keys())
