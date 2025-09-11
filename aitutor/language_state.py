@@ -128,3 +128,19 @@ class LanguageState(SessionState):
         return self.translate(
             de="Keine bevorstehenden Fristen", en="No upcoming deadlines"
         )
+
+    # Exercise Page Strings ------------------------------------------------------------
+    @rx.var
+    def deadline(self) -> str:
+        """Deadline string"""
+        return self.translate(de="Frist:", en="Deadline:")
+
+    @rx.var
+    def time_left(self) -> str:
+        """Time left string"""
+        return self.translate(de="Verbleibende Zeit:", en="Time left:")
+
+    @rx.var
+    def last_submit(self) -> str:
+        """Last submit string"""
+        return self.translate(de="Zuletzt abgegeben: ", en="Last submit: ")

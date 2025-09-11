@@ -112,7 +112,7 @@ class ExercisesState(SessionState):
                     "%d.%m.%Y, %H:%M"
                 )
             else:
-                self.deadline_strings[exercise.id] = "No deadline"  # type: ignore
+                self.deadline_strings[exercise.id] = ""  # type: ignore
 
     def on_logout(self):
         """Clears the state when the user logs out."""
