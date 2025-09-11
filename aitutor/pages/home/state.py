@@ -46,7 +46,7 @@ class HomeState(SessionState):
         ]
 
         if not tasks:
-            return "No upcoming deadlines"
+            return ""
 
         title, deadline = min(tasks, key=lambda t: t[1])
         return f"{title} – {deadline.strftime('%d.%m.%Y, %H:%M')}"
