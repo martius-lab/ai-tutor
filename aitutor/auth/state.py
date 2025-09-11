@@ -8,16 +8,34 @@ import reflex_local_auth
 import sqlmodel
 from aitutor.models import UserInfo, UserRole
 from typing import Optional
+from enum import Enum
 
 import aitutor.routes as routes
 from aitutor import pages
 
 
+class LanguageEnum(Enum):
+    """Enum for supported languages."""
+
+    EN = "English"
+    DE = "Deutsch"
+
+
 class SessionState(reflex_local_auth.LocalAuthState):
     """
-    A custom local authentication state class that provides additional
-    functionality for retrieving authenticated user information.
+    The state for managing user sessions.
     """
+
+    language: LanguageEnum = LanguageEnum.EN
+
+    @rx.event
+    def toggle_language(self):
+        """Toggle the language between English and German."""
+        match self.language:
+            case LanguageEnum.EN:
+                self.language = LanguageEnum.DE
+            case LanguageEnum.DE:
+                self.language = LanguageEnum.EN
 
     @rx.var(cache=True, initial_value=None)
     def authenticated_user_info(self) -> Optional[UserInfo]:

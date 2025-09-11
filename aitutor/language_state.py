@@ -6,29 +6,11 @@ The base case is English.
 
 import reflex as rx
 
-from enum import Enum
+from aitutor.auth.state import SessionState, LanguageEnum
 
 
-class LanguageEnum(Enum):
-    """Enum for supported languages."""
-
-    EN = "English"
-    DE = "Deutsch"
-
-
-class LanguageState(rx.State):
+class LanguageState(SessionState):
     """State that returns all strings in the current language."""
-
-    language: LanguageEnum = LanguageEnum.EN
-
-    @rx.event
-    def toggle_language(self):
-        """Toggle the language between English and German."""
-        match self.language:
-            case LanguageEnum.EN:
-                self.language = LanguageEnum.DE
-            case LanguageEnum.DE:
-                self.language = LanguageEnum.EN
 
     # Navigation Bar Strings -----------------------------------------------------------
     @rx.var
