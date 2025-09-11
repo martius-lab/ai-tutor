@@ -9,6 +9,7 @@ from aitutor.models import UserRole
 import aitutor.routes as routes
 from aitutor.auth.protection import has_role_at_least
 from aitutor.config import get_config
+from aitutor.language_state import LanguageState
 
 
 def navbar_link(text: str, url: str, route_to_highlight) -> rx.Component:
@@ -31,14 +32,14 @@ def navbar_link(text: str, url: str, route_to_highlight) -> rx.Component:
 
 
 general_links = [
-    ("Home", routes.HOME, "house"),
-    ("Exercises", routes.EXERCISES, "book"),
+    (LanguageState.homeLink, routes.HOME, "house"),
+    (LanguageState.exercisesLink, routes.EXERCISES, "book"),
 ]
 teacher_links = [
-    ("Submissions", routes.SUBMISSIONS, "search-check"),
+    (LanguageState.SubmissionsLink, routes.SUBMISSIONS, "search-check"),
 ]
 admin_links = [
-    ("Manage Exercises", routes.MANAGE_EXERCISES, "pencil-line"),
+    (LanguageState.manageExercisesLink, routes.MANAGE_EXERCISES, "pencil-line"),
 ]
 
 
@@ -133,6 +134,25 @@ def profile_menu() -> rx.Component:
                     spacing="1",
                 ),
                 rx.separator(),
+                rx.menu.item(
+                    rx.hstack(
+                        rx.icon(
+                            "languages",
+                            size=15,
+                        ),
+                        rx.text(
+                            LanguageState.language,
+                            size="2",
+                            margin_bottom="6px",
+                            margin_top="6px",
+                        ),
+                        align="center",
+                        justify="center",
+                        spacing="1",
+                    ),
+                    on_click=LanguageState.toggle_language,
+                    _hover={"cursor": "pointer"},
+                ),
                 rx.menu.item(
                     rx.hstack(
                         rx.icon(
