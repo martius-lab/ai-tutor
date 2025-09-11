@@ -16,34 +16,26 @@ def render_exercise_card(exercise_with_res: ExerciseWithResult) -> rx.Component:
         rx.card(  # create a card for each exercise
             rx.hstack(
                 rx.vstack(
-                    rx.heading(exercise.title, size="6"),  # display title
-                    rx.hstack(
-                        rx.text("Description:", weight="bold", size="2"),
-                        rx.text(
-                            truncate_text_reflex_var(
-                                exercise.description, max_length=150
-                            ),
-                            color="gray",
-                            size="2",
-                        ),
-                        align_items="center",
-                        align="center",
+                    rx.heading(exercise.title, size="6"),
+                    rx.text(
+                        truncate_text_reflex_var(exercise.description, max_length=150),
+                        size="2",
                     ),
                     rx.hstack(
+                        rx.icon("calendar-clock", size=20),
                         rx.text("Deadline:", weight="bold", size="2"),
                         rx.text(
                             ExercisesState.deadline_strings[exercise.id],  # type: ignore
-                            color="gray",
                             size="2",
                         ),
                     ),
                     rx.cond(
                         exercise.deadline,
                         rx.hstack(
+                            rx.icon("hourglass", size=20),
                             rx.text("Time left:", weight="bold", size="2"),
                             rx.text(
                                 ExercisesState.time_left_strings[exercise.id],  # type: ignore
-                                color="gray",
                                 size="2",
                             ),
                             align="center",
@@ -52,7 +44,7 @@ def render_exercise_card(exercise_with_res: ExerciseWithResult) -> rx.Component:
                     rx.cond(  # display tags if they exist
                         exercise.tags.length() > 0,  # type: ignore
                         rx.hstack(
-                            rx.text("Tags:", weight="bold", size="2"),
+                            rx.icon("tag", size=20),
                             rx.hstack(
                                 rx.foreach(
                                     exercise.tags,
@@ -71,6 +63,7 @@ def render_exercise_card(exercise_with_res: ExerciseWithResult) -> rx.Component:
                             rx.icon(
                                 "circle-check",
                                 color="green",
+                                size=20,
                             ),
                             rx.text(
                                 "Last submit: "
