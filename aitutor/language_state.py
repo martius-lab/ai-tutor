@@ -20,6 +20,17 @@ class LanguageState(SessionState):
             case _:
                 return en
 
+    # General Strings ------------------------------------------------------------------
+    @rx.var
+    def confirm(self) -> str:
+        """Confirm string"""
+        return self.translate(de="Bestätigen", en="Confirm")
+
+    @rx.var
+    def cancel(self) -> str:
+        """Cancel string"""
+        return self.translate(de="Abbrechen", en="Cancel")
+
     # Navigation Bar Strings -----------------------------------------------------------
     @rx.var
     def homeLink(self) -> str:
@@ -144,3 +155,122 @@ class LanguageState(SessionState):
     def last_submit(self) -> str:
         """Last submit string"""
         return self.translate(de="Zuletzt abgegeben: ", en="Last submit: ")
+
+    @rx.var
+    def deadline_has_passed(self) -> str:
+        """Deadline has passed string"""
+        return self.translate(de="Frist ist abgelaufen", en="deadline has passed")
+
+    # Chat Page Strings ----------------------------------------------------------------
+    @rx.var
+    def view_your_submission(self) -> str:
+        """View your submission string"""
+        return self.translate(
+            de="Sehen Sie sich Ihre Abgabe an", en="View your submitted conversation"
+        )
+
+    @rx.var
+    def reset_conversation(self) -> str:
+        """Reset conversation string"""
+        return self.translate(de="Chat zurücksetzen", en="Reset chat")
+
+    @rx.var
+    def reset_string(self) -> str:
+        """Reset string"""
+        return self.translate(de="Zurücksetzen", en="Reset")
+
+    @rx.var
+    def reset_info_message_submitted(self) -> str:
+        """Reset info message string"""
+        return self.translate(
+            de=(
+                "Möchten Sie den Chat wirklich zurücksetzen? "
+                + "(Dies löscht Ihre Abgabe nicht.)"
+            ),
+            en=(
+                "Are you sure you want to reset the conversation? "
+                + "(This will not delete your submission.)"
+            ),
+        )
+
+    @rx.var
+    def reset_info_message_not_submitted(self) -> str:
+        """Reset info message string"""
+        return self.translate(
+            de="Möchten Sie den Chat wirklich zurücksetzen?",
+            en="Are you sure you want to reset the conversation?",
+        )
+
+    @rx.var
+    def submit(self) -> str:
+        """Submit string"""
+        return self.translate(de="Abgeben", en="Submit")
+
+    @rx.var
+    def check_conversation(self) -> str:
+        """Check conversation string"""
+        return self.translate(de="Konversation überprüfen", en="Check conversation")
+
+    @rx.var
+    def check(self) -> str:
+        """Check string"""
+        return self.translate(de="Überprüfen", en="Check")
+
+    @rx.var
+    def not_submitted_yet(self) -> str:
+        """Not submitted yet string"""
+        return self.translate(
+            de="Noch nicht abgegeben",
+            en="Not submitted yet",
+        )
+
+    @rx.var
+    def cannot_submit_anymore_info(self) -> str:
+        """Cannot submit anymore info string"""
+        return self.translate(
+            de="Dieser Chat kann nicht mehr abgegeben werden. "
+            "Die Frist ist abgelaufen.",
+            en="This chat can no longer be submitted. The deadline has passed.",
+        )
+
+    @rx.var
+    def deadline_has_passed_info(self) -> str:
+        """Deadline has passed info string"""
+        return self.translate(
+            de="Die Frist für diese Übung ist abgelaufen.",
+            en="The deadline for this exercise has passed.",
+        )
+
+    @rx.var
+    def edit_last_message(self) -> str:
+        """Edit last message string"""
+        return self.translate(
+            de="Letzte Nachricht bearbeiten",
+            en="Edit last message",
+        )
+
+    @rx.var
+    def edit_last_message_info(self) -> str:
+        """Edit last message info string"""
+        return self.translate(
+            de="Möchten Sie diese Nachricht löschen und "
+            "in das Eingabefeld verschieben?",
+            en="Do you want to delete this message and move it to the input field?",
+        )
+
+    @rx.var
+    def check_conversation_info(self) -> str:
+        """Check conversation info string"""
+        return self.translate(
+            de="Sind Sie mit der Übung fertig und möchten Ihre "
+            "Konversation überprüfen?",
+            en="Are you done with the exercise and want to check your conversation?",
+        )
+
+    @rx.var
+    def your_answer(self) -> str:
+        """Your answer string"""
+        return self.translate(
+            de="Ihre Antwort",
+            en="Your answer",
+        )

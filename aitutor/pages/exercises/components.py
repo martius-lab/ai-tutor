@@ -39,7 +39,11 @@ def render_exercise_card(exercise_with_res: ExerciseWithResult) -> rx.Component:
                             rx.icon("hourglass", size=20),
                             rx.text(LanguageState.time_left, weight="bold", size="2"),
                             rx.text(
-                                ExercisesState.time_left_strings[exercise.id],  # type: ignore
+                                rx.cond(
+                                    ExercisesState.time_left_strings[exercise.id],  # type: ignore
+                                    ExercisesState.time_left_strings[exercise.id],  # type: ignore
+                                    LanguageState.deadline_has_passed,
+                                ),
                                 size="2",
                             ),
                             align="center",
