@@ -12,164 +12,119 @@ from aitutor.auth.state import SessionState, LanguageEnum
 class LanguageState(SessionState):
     """State that returns all strings in the current language."""
 
+    def translate(self, *, de: str, en: str) -> str:
+        """Helper function to translate strings."""
+        match self.language:
+            case LanguageEnum.DE:
+                return de
+            case _:
+                return en
+
     # Navigation Bar Strings -----------------------------------------------------------
     @rx.var
     def homeLink(self) -> str:
         """The string for the 'Home' link."""
-        match self.language:
-            case LanguageEnum.DE:
-                return "Startseite"
-            case _:
-                return "Home"
+        return self.translate(de="Startseite", en="Home")
 
     @rx.var
     def exercisesLink(self) -> str:
         """The string for the 'Exercises' link."""
-        match self.language:
-            case LanguageEnum.DE:
-                return "Übungen"
-            case _:
-                return "Exercises"
+        return self.translate(de="Übungen", en="Exercises")
 
     @rx.var
     def SubmissionsLink(self) -> str:
         """The string for the 'Submissions' link."""
-        match self.language:
-            case LanguageEnum.DE:
-                return "Abgaben"
-            case _:
-                return "Submissions"
+        return self.translate(de="Abgaben", en="Submissions")
 
     @rx.var
     def manageExercisesLink(self) -> str:
         """The string for the 'Manage Exercises' link."""
-        match self.language:
-            case LanguageEnum.DE:
-                return "Übungsverwaltung"
-            case _:
-                return "Manage Exercises"
+        return self.translate(de="Übungsverwaltung", en="Manage Exercises")
 
     @rx.var
     def log_in(self) -> str:
         """Log in string"""
-        match self.language:
-            case LanguageEnum.DE:
-                return "Anmelden"
-            case _:
-                return "Log in"
+        return self.translate(de="Anmelden", en="Log in")
 
     @rx.var
     def register(self) -> str:
         """Register string"""
-        match self.language:
-            case LanguageEnum.DE:
-                return "Registrieren"
-            case _:
-                return "Register"
+        return self.translate(de="Registrieren", en="Register")
 
     @rx.var
     def log_out(self) -> str:
         """Log out string"""
-        match self.language:
-            case LanguageEnum.DE:
-                return "Abmelden"
-            case _:
-                return "Log out"
+        return self.translate(de="Abmelden", en="Log out")
 
     # Home Page Strings ----------------------------------------------------------------
     @rx.var
     def dashboard(self) -> str:
         """The string for the 'Dashboard' heading."""
-        match self.language:
-            case LanguageEnum.DE:
-                return "Übersicht"
-            case _:
-                return "Dashboard"
+        return self.translate(de="Übersicht", en="Dashboard")
 
     @rx.var
     def welcome_back(self) -> str:
         """Welcome back string"""
         username = self.authenticated_user.username
-        match self.language:
-            case LanguageEnum.DE:
-                return f"Willkommen zurück, {username}!"
-            case _:
-                return f"Welcome back, {username}!"
+        return self.translate(
+            de=f"Willkommen zurück, {username}!", en=f"Welcome back, {username}!"
+        )
 
     @rx.var
     def welcome_message(self) -> str:
         """Welcome message"""
-        match self.language:
-            case LanguageEnum.DE:
-                return (
-                    "Willkommen beim AI Tutor. Bitte melden Sie sich an oder "
-                    "registrieren Sie sich, um Ihren Fortschritt zu sehen."
-                )
-            case _:
-                return (
-                    "Welcome to the AI Tutor. Please log in or register to see "
-                    "your progress."
-                )
+        return self.translate(
+            de=(
+                "Willkommen beim AI Tutor. Bitte melden Sie sich an oder "
+                "registrieren Sie sich, um Ihren Fortschritt zu sehen."
+            ),
+            en=(
+                "Welcome to the AI Tutor. Please log in or register to see "
+                "your progress."
+            ),
+        )
 
     @rx.var
     def how_to_use_aitutor(self) -> str:
         """How to use AI Tutor string"""
-        match self.language:
-            case LanguageEnum.DE:
-                return "So verwenden Sie den AI Tutor"
-            case _:
-                return "How To Use AI Tutor"
+        return self.translate(
+            de="So verwenden Sie den AI Tutor", en="How To Use AI Tutor"
+        )
 
     @rx.var
     def general_info(self) -> str:
         """General info string"""
-        match self.language:
-            case LanguageEnum.DE:
-                return "Allgemeine Informationen"
-            case _:
-                return "General Information"
+        return self.translate(de="Allgemeine Informationen", en="General Information")
 
     @rx.var
     def lecture_info(self) -> str:
         """Lecture info string"""
-        match self.language:
-            case LanguageEnum.DE:
-                return "Informationen zur Vorlesung"
-            case _:
-                return "Lecture Information"
+        return self.translate(
+            de="Informationen zur Vorlesung", en="Lecture Information"
+        )
 
     @rx.var
     def open_exercises_submitted(self) -> str:
         """Open exercises submitted string"""
-        match self.language:
-            case LanguageEnum.DE:
-                return "offene Übungen abgegeben"
-            case _:
-                return "open exercises submitted"
+        return self.translate(
+            de="offene Übungen abgegeben", en="open exercises submitted"
+        )
 
     @rx.var
     def next_deadline(self) -> str:
         """Next deadline string"""
-        match self.language:
-            case LanguageEnum.DE:
-                return "Nächste Frist:"
-            case _:
-                return "Next Deadline:"
+        return self.translate(de="Nächste Frist:", en="Next Deadline:")
 
     @rx.var
     def no_pending_exercises(self) -> str:
         """No pending exercises string"""
-        match self.language:
-            case LanguageEnum.DE:
-                return "Keine ausstehenden Übungen"
-            case _:
-                return "No pending exercises"
+        return self.translate(
+            de="Keine ausstehenden Übungen", en="No pending exercises"
+        )
 
     @rx.var
     def no_upcoming_deadlines(self) -> str:
         """No upcoming deadlines string"""
-        match self.language:
-            case LanguageEnum.DE:
-                return "Keine bevorstehenden Fristen"
-            case _:
-                return "No upcoming deadlines"
+        return self.translate(
+            de="Keine bevorstehenden Fristen", en="No upcoming deadlines"
+        )
