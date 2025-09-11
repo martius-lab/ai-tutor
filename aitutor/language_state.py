@@ -75,3 +75,101 @@ class LanguageState(SessionState):
                 return "Abmelden"
             case _:
                 return "Log out"
+
+    # Home Page Strings ----------------------------------------------------------------
+    @rx.var
+    def dashboard(self) -> str:
+        """The string for the 'Dashboard' heading."""
+        match self.language:
+            case LanguageEnum.DE:
+                return "Übersicht"
+            case _:
+                return "Dashboard"
+
+    @rx.var
+    def welcome_back(self) -> str:
+        """Welcome back string"""
+        username = self.authenticated_user.username
+        match self.language:
+            case LanguageEnum.DE:
+                return f"Willkommen zurück, {username}!"
+            case _:
+                return f"Welcome back, {username}!"
+
+    @rx.var
+    def welcome_message(self) -> str:
+        """Welcome message"""
+        match self.language:
+            case LanguageEnum.DE:
+                return (
+                    "Willkommen beim AI Tutor. Bitte melden Sie sich an oder "
+                    "registrieren Sie sich, um Ihren Fortschritt zu sehen."
+                )
+            case _:
+                return (
+                    "Welcome to the AI Tutor. Please log in or register to see "
+                    "your progress."
+                )
+
+    @rx.var
+    def how_to_use_aitutor(self) -> str:
+        """How to use AI Tutor string"""
+        match self.language:
+            case LanguageEnum.DE:
+                return "So verwenden Sie den AI Tutor"
+            case _:
+                return "How To Use AI Tutor"
+
+    @rx.var
+    def general_info(self) -> str:
+        """General info string"""
+        match self.language:
+            case LanguageEnum.DE:
+                return "Allgemeine Informationen"
+            case _:
+                return "General Information"
+
+    @rx.var
+    def lecture_info(self) -> str:
+        """Lecture info string"""
+        match self.language:
+            case LanguageEnum.DE:
+                return "Informationen zur Vorlesung"
+            case _:
+                return "Lecture Information"
+
+    @rx.var
+    def open_exercises_submitted(self) -> str:
+        """Open exercises submitted string"""
+        match self.language:
+            case LanguageEnum.DE:
+                return "offene Übungen abgegeben"
+            case _:
+                return "open exercises submitted"
+
+    @rx.var
+    def next_deadline(self) -> str:
+        """Next deadline string"""
+        match self.language:
+            case LanguageEnum.DE:
+                return "Nächste Frist:"
+            case _:
+                return "Next Deadline:"
+
+    @rx.var
+    def no_pending_exercises(self) -> str:
+        """No pending exercises string"""
+        match self.language:
+            case LanguageEnum.DE:
+                return "Keine ausstehenden Übungen"
+            case _:
+                return "No pending exercises"
+
+    @rx.var
+    def no_upcoming_deadlines(self) -> str:
+        """No upcoming deadlines string"""
+        match self.language:
+            case LanguageEnum.DE:
+                return "Keine bevorstehenden Fristen"
+            case _:
+                return "No upcoming deadlines"

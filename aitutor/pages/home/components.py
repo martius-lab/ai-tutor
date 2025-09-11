@@ -5,11 +5,11 @@ import reflex as rx
 from aitutor.pages.home.state import HomeState
 from aitutor.routes import LOGIN, REGISTER
 from aitutor.config import get_config
+from aitutor.language_state import LanguageState
 
 
 def dashboard_card():
     """Render the dashboard card"""
-    username = HomeState.authenticated_user.username
     exercises_num = HomeState.exercises_with_result.length()  # type: ignore
 
     return (
@@ -19,9 +19,9 @@ def dashboard_card():
                 # dashboard for logged in users
                 rx.vstack(
                     rx.heading(
-                        "Dashboard",
+                        LanguageState.dashboard,
                     ),
-                    rx.text(f"Welcome back, {username}!", weight="medium"),
+                    rx.text(LanguageState.welcome_back, weight="medium"),
                     rx.progress(value=HomeState.progress_value, max=100, width="100%"),  # type: ignore
                     rx.hstack(
                         rx.icon("circle-check", color="green", size=20),
@@ -29,15 +29,20 @@ def dashboard_card():
                             exercises_num > 0,
                             rx.text(
                                 f"{HomeState.completed_exercises_num} \
-                                /{exercises_num} open exercises submitted"
+                                /{exercises_num} \
+                                    {LanguageState.open_exercises_submitted}"
                             ),
-                            rx.text("No pending exercises"),
+                            rx.text(LanguageState.no_pending_exercises),
                         ),
                         align="center",
                     ),
                     rx.hstack(
-                        rx.text("Next Deadline:", weight="bold"),
-                        rx.text(HomeState.next_deadline_task),
+                        rx.text(LanguageState.next_deadline, weight="bold"),
+                        rx.cond(
+                            HomeState.next_deadline_task,
+                            rx.text(HomeState.next_deadline_task),
+                            rx.text(LanguageState.no_upcoming_deadlines),
+                        ),
                     ),
                     spacing="4",
                     align="start",
@@ -45,10 +50,9 @@ def dashboard_card():
                 ),
                 # dashboard for not logged in users
                 rx.vstack(
-                    rx.heading("Dashboard"),
+                    rx.heading(LanguageState.dashboard),
                     rx.text(
-                        "Welcome to the AI Tutor. Please log in or register to "
-                        "see your progress.",
+                        LanguageState.welcome_message,
                         weight="medium",
                     ),
                     rx.hstack(
@@ -59,7 +63,7 @@ def dashboard_card():
                                     size=15,
                                 ),
                                 rx.text(
-                                    "Log in",
+                                    LanguageState.log_in,
                                     size="2",
                                     margin_bottom="6px",
                                     margin_top="6px",
@@ -79,7 +83,7 @@ def dashboard_card():
                                     size=15,
                                 ),
                                 rx.text(
-                                    "Register",
+                                    LanguageState.register,
                                     size="2",
                                     margin_bottom="6px",
                                     margin_top="6px",
@@ -115,21 +119,21 @@ def info_accordion():
                 rx.cond(
                     config.how_to_use_text != "",
                     rx.accordion.item(
-                        header="How To Use AI Tutor",
+                        header=LanguageState.how_to_use_aitutor,
                         content=rx.markdown(config.how_to_use_text),
                     ),
                 ),
                 rx.cond(
                     config.general_information_text != "",
                     rx.accordion.item(
-                        header="General Information",
+                        header=LanguageState.general_info,
                         content=rx.markdown(config.general_information_text),
                     ),
                 ),
                 rx.cond(
                     config.lecture_information_text != "",
                     rx.accordion.item(
-                        header="Lecture Information",
+                        header=LanguageState.lecture_info,
                         content=rx.markdown(config.lecture_information_text),
                     ),
                 ),
