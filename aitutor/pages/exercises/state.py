@@ -47,6 +47,7 @@ class ExercisesState(SessionState):
         Fetch exercises from database
         """
 
+        self.global_load()
         with rx.session() as session:
             stmt = (
                 select(Exercise, ExerciseResult)

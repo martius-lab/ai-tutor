@@ -6,19 +6,11 @@ including integration with local authentication and user role management.
 import reflex as rx
 import reflex_local_auth
 import sqlmodel
-from aitutor.models import UserInfo, UserRole
+from aitutor.models import UserInfo, UserRole, LanguageEnum
 from typing import Optional
-from enum import Enum
 
 import aitutor.routes as routes
 from aitutor import pages
-
-
-class LanguageEnum(Enum):
-    """Enum for supported languages."""
-
-    EN = "English"
-    DE = "Deutsch"
 
 
 class SessionState(reflex_local_auth.LocalAuthState):
@@ -29,13 +21,39 @@ class SessionState(reflex_local_auth.LocalAuthState):
     language: LanguageEnum = LanguageEnum.EN
 
     @rx.event
+    def global_load(self):
+        """
+        Load the relevant session information.
+        This method should be called in all pages' on_load methods.
+        """
+        with rx.session() as session:
+            # set the language based on the authenticated user's language
+            user_info = session.exec(
+                UserInfo.select().where(UserInfo.user_id == self.authenticated_user.id)
+            ).one_or_none()
+            if user_info:
+                self.language = user_info.language
+
+    @rx.event
     def toggle_language(self):
         """Toggle the language between English and German."""
-        match self.language:
-            case LanguageEnum.EN:
-                self.language = LanguageEnum.DE
-            case LanguageEnum.DE:
-                self.language = LanguageEnum.EN
+        with rx.session() as session:
+            user_info = session.exec(
+                UserInfo.select().where(UserInfo.user_id == self.authenticated_user.id)
+            ).one_or_none()
+            match self.language:
+                case LanguageEnum.EN:
+                    self.language = LanguageEnum.DE
+                    if user_info:
+                        user_info.language = LanguageEnum.DE
+                        session.add(user_info)
+                        session.commit()
+                case LanguageEnum.DE:
+                    self.language = LanguageEnum.EN
+                    if user_info:
+                        user_info.language = LanguageEnum.EN
+                        session.add(user_info)
+                        session.commit()
 
     @rx.var(cache=True, initial_value=None)
     def authenticated_user_info(self) -> Optional[UserInfo]:

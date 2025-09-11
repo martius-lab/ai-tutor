@@ -177,6 +177,25 @@ def profile_menu() -> rx.Component:
                 rx.menu.item(
                     rx.hstack(
                         rx.icon(
+                            "languages",
+                            size=15,
+                        ),
+                        rx.text(
+                            SessionState.language,
+                            size="2",
+                            margin_bottom="6px",
+                            margin_top="6px",
+                        ),
+                        align="center",
+                        justify="center",
+                        spacing="1",
+                    ),
+                    on_click=SessionState.toggle_language,
+                    _hover={"cursor": "pointer"},
+                ),
+                rx.menu.item(
+                    rx.hstack(
+                        rx.icon(
                             "log-in",
                             size=15,
                         ),

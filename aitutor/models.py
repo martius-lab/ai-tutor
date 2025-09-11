@@ -1,6 +1,6 @@
 """Module defining database models."""
 
-from enum import IntEnum
+from enum import IntEnum, StrEnum
 import reflex as rx
 from sqlmodel import Field, Column, JSON, Relationship, DateTime
 from typing import Any, Dict, Optional, List
@@ -8,6 +8,25 @@ from reflex_local_auth.user import LocalUser
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 from aitutor.global_vars import TIME_ZONE
+
+
+class LanguageEnum(StrEnum):
+    """
+    Enum for supported languages.
+    """
+
+    EN = "English"
+    DE = "Deutsch"
+
+
+class UserRole(IntEnum):
+    """
+    Enum for user roles.
+    """
+
+    STUDENT = 1
+    TEACHER = 2
+    ADMIN = 3
 
 
 class ExerciseTagLink(rx.Model, table=True):
@@ -136,24 +155,15 @@ class ExerciseResult(rx.Model, table=True):
         )
 
 
-class UserRole(IntEnum):
-    """
-    Enum for user roles.
-    """
-
-    STUDENT = 1
-    TEACHER = 2
-    ADMIN = 3
-
-
 class UserInfo(rx.Model, table=True):
     """
     Adds more attributes to a user than just name and password.
     """
 
+    user_id: int = Field(foreign_key="localuser.id", ondelete="CASCADE")
     email: str
     role: UserRole
-    user_id: int = Field(foreign_key="localuser.id", ondelete="CASCADE")
+    language: LanguageEnum = Field(default=LanguageEnum.EN)
 
     # ORM relationship
     exercise_results: List["ExerciseResult"] = Relationship(
