@@ -97,7 +97,7 @@ class ExercisesState(SessionState):
                 deadline = exercise.deadline.replace(tzinfo=ZoneInfo(TIME_ZONE))
                 time_left = deadline - datetime.now(ZoneInfo(TIME_ZONE))
                 if time_left.total_seconds() <= 0:
-                    self.time_left_strings[exercise.id] = "deadline has passed"  # type: ignore
+                    self.time_left_strings[exercise.id] = ""  # type: ignore
                 else:
                     days = time_left.days
                     hours, remainder = divmod(time_left.seconds, 3600)
