@@ -327,4 +327,40 @@ class LanguageState(SessionState):
     @rx.var
     def submitted_chat(self) -> str:
         """submitted chat string"""
-        return self.translate(de="Abgegebener Chat für:", en="Submitted chat for:")
+        return self.translate(de="Abgegebener Chat für:", en="Submitted chat for:")  #
+
+    @rx.var
+    def user(self) -> str:
+        """User string"""
+        return self.translate(de="Benutzer", en="User")
+
+    @rx.var
+    def exercise(self) -> str:
+        """Exercise string"""
+        return self.translate(de="Übung", en="Exercise")
+
+    @rx.var
+    def tags(self) -> str:
+        """Tags string"""
+        return self.translate(de="Tags", en="Tags")
+
+    @rx.var
+    def submission(self) -> str:
+        """Submission string"""
+        return self.translate(de="Abgabe", en="Submission")
+
+    @rx.var
+    def only_with_submission(self) -> str:
+        """Only with submission string"""
+        return self.translate(
+            de="Nur mit Abgabe",
+            en="Only with submission",
+        )
+
+    @rx.var
+    def no_submission(self) -> str:
+        """No submission string"""
+        return self.translate(
+            de="Keine Abgabe",
+            en="No submission",
+        )
