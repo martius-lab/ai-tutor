@@ -43,6 +43,29 @@ class LanguageState(SessionState):
         """Cancel string"""
         return self.translate(de="Abbrechen", en="Cancel")
 
+    # Search Bar Strings ---------------------------------------------------------------
+    @rx.var
+    def search_placeholder(self) -> str:
+        """Search placeholder string"""
+        return self.translate(de="tag:tagname", en="tag:tagname")
+
+    @rx.var
+    def search_info_one(self) -> str:
+        """Search info string part one"""
+        return self.translate(
+            de="Suchen Sie mit 'key:Suchbegriff' oder 'key:\"Suchbegriff\"'",
+            en="Search with 'key:searchValue' or 'key:\"search value\"' "
+            "to search a specific column.",
+        )
+
+    @rx.var
+    def search_info_two(self) -> str:
+        """Search info string part two"""
+        return self.translate(
+            de="Ohne Verwendung von 'key:' wird in allen Spalten gesucht.",
+            en="Without using 'key:' it searches in all columns.",
+        )
+
     # Navigation Bar Strings -----------------------------------------------------------
     @rx.var
     def homeLink(self) -> str:

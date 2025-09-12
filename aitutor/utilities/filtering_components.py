@@ -6,6 +6,7 @@ import contextlib
 
 from aitutor.global_vars import SEARCH_USER_KEY, SEARCH_EXERCISE_KEY, SEARCH_TAG_KEY
 from aitutor.utilities.parser import parse_query_keys
+from aitutor.language_state import LanguageState
 
 
 class FilterMixin(rx.State, mixin=True):
@@ -51,19 +52,17 @@ def search_bar(state: type[FilterMixin]) -> rx.Component:
                 rx.dialog.content(
                     rx.vstack(
                         rx.text(
-                            "Search with 'key:searchValue' or "
-                            "'key:\"search value\"' "
-                            "to search a specific column."
+                            LanguageState.search_info_one,
                         ),
                         rx.text(f"keys: {state.search_keys}"),
-                        rx.text("Without using 'key:' it searches in all columns."),
+                        rx.text(LanguageState.search_info_two),
                     ),
                 ),
             ),
             rx.input(
                 rx.input.slot(rx.icon("search")),
                 name="search_value",
-                placeholder="tag:tagname",
+                placeholder=LanguageState.search_placeholder,
                 required=True,
                 max_width="60vw",
             ),
