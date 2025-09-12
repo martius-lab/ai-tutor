@@ -2,11 +2,23 @@
 State that returns all strings in the current language.
 Every var function checks for the current language and returns the appropriate string.
 The base case is English.
+
+This class has all strings used in the frontend code. Strings that are used in the
+backend code (e.g. error/success messages) are in the corresponding state class.
 """
 
 import reflex as rx
 
 from aitutor.auth.state import SessionState, LanguageEnum
+
+
+def backend_translate(language: LanguageEnum, *, de: str, en: str) -> str:
+    """Helper function to translate strings in the backend."""
+    match language:
+        case LanguageEnum.DE:
+            return de
+        case _:
+            return en
 
 
 class LanguageState(SessionState):
@@ -217,6 +229,15 @@ class LanguageState(SessionState):
         return self.translate(de="Überprüfen", en="Check")
 
     @rx.var
+    def check_conversation_info(self) -> str:
+        """Check conversation info string"""
+        return self.translate(
+            de="Sind Sie mit der Übung fertig und möchten Ihre "
+            "Konversation überprüfen?",
+            en="Are you done with the exercise and want to check your conversation?",
+        )
+
+    @rx.var
     def not_submitted_yet(self) -> str:
         """Not submitted yet string"""
         return self.translate(
@@ -259,18 +280,28 @@ class LanguageState(SessionState):
         )
 
     @rx.var
-    def check_conversation_info(self) -> str:
-        """Check conversation info string"""
-        return self.translate(
-            de="Sind Sie mit der Übung fertig und möchten Ihre "
-            "Konversation überprüfen?",
-            en="Are you done with the exercise and want to check your conversation?",
-        )
-
-    @rx.var
     def your_answer(self) -> str:
         """Your answer string"""
         return self.translate(
             de="Ihre Antwort",
             en="Your answer",
         )
+
+    # Finished View Page Strings -------------------------------------------------------
+    @rx.var
+    def delete_submission(self) -> str:
+        """Delete submission string"""
+        return self.translate(de="Abgabe löschen", en="Delete submission")
+
+    @rx.var
+    def delete_submission_info(self) -> str:
+        """Delete submission info string"""
+        return self.translate(
+            de="Möchten Sie Ihre Abgabe wirklich löschen?",
+            en="Are you sure you want to delete your submision?",
+        )
+
+    @rx.var
+    def submitted_chat(self) -> str:
+        """submitted chat string"""
+        return self.translate(de="Abgegebener Chat für:", en="Submitted chat for:")

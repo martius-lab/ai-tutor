@@ -9,6 +9,7 @@ from aitutor.auth.state import SessionState
 from aitutor.pages.chat.state import ChatMessage, Role
 from sqlmodel import select
 from aitutor.auth.protection import state_require_role_at_least
+from aitutor.language_state import backend_translate
 
 
 class FinishedViewState(SessionState):
@@ -74,9 +75,20 @@ class FinishedViewState(SessionState):
                         exercise_result.finished_conversation = []
                         exercise_result.submit_time_stamp = None
                     session.commit()
+
+                # get the info message in the correct language
+                title_string = backend_translate(
+                    self.language, de="Abgabe gelöscht", en="Submission Deleted"
+                )
+                description_string = backend_translate(
+                    self.language,
+                    de="Ihre Abgabe wurde erfolgreich gelöscht.",
+                    en="Your submission has been deleted successfully.",
+                )
+
                 yield rx.toast.success(
-                    title="Submission Deleted",
-                    description="Your submission has been deleted successfully.",
+                    title=title_string,
+                    description=description_string,
                     duration=2500,
                     position="bottom-center",
                     invert=True,

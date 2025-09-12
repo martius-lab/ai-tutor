@@ -9,6 +9,7 @@ from aitutor.auth.protection import page_require_role_at_least
 from aitutor.pages.chat.components import message_box
 from aitutor.pages.finished_view.components import delete_submission_button
 from aitutor import routes
+from aitutor.language_state import LanguageState
 
 
 @with_navbar(routes.EXERCISES)
@@ -27,12 +28,26 @@ def finished_view_page() -> rx.Component:
                         ),
                         _hover={"cursor": "pointer"},
                     ),
+                    rx.icon("circle-check", color="green"),
                     rx.heading(
-                        "Your submission for exercise: "
-                        + FinishedViewState.exercise_title,
+                        LanguageState.submitted_chat,
                         size="5",
                     ),
+                    rx.tablet_and_desktop(
+                        rx.text(
+                            FinishedViewState.exercise_title,
+                            weight="bold",
+                            size="3",
+                        ),
+                    ),
                     align="center",
+                ),
+                rx.mobile_only(
+                    rx.text(
+                        FinishedViewState.exercise_title,
+                        weight="bold",
+                        size="3",
+                    ),
                 ),
                 rx.box(
                     rx.foreach(
