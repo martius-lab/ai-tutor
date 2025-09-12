@@ -57,7 +57,7 @@ def chat_page() -> rx.Component:
                     ),
                 ),
                 chat_form(),
-                spacing="5",
+                spacing="3",
                 justify="start",
                 min_height="82vh",
                 max_height="82vh",
