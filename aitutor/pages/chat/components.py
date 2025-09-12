@@ -405,5 +405,8 @@ def show_exercise_status() -> rx.Component:
     return rx.cond(
         ChatState.conversation_is_submitted,
         submitted_status(),
-        not_submitted_status(),
+        rx.cond(
+            ~ChatState.is_overdue,
+            not_submitted_status(),
+        ),
     )
