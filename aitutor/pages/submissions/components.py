@@ -9,9 +9,10 @@ from aitutor.global_vars import (
     SEARCH_EXERCISE_KEY,
     SEARCH_TAG_KEY,
 )
+from aitutor.language_state import LanguageState
 
 
-def header_cell(text: str, icon: str):
+def header_cell(text, icon: str):
     """Create header cells."""
     return rx.table.column_header_cell(
         rx.hstack(
@@ -70,7 +71,7 @@ def show_table_row(table_row: TableRow) -> rx.Component:
                     ),
                     _hover={"cursor": "pointer"},
                 ),
-                "No submission",
+                LanguageState.no_submission,
             )
         ),
         style={"_hover": {"bg": rx.color("gray", 3)}},
@@ -84,10 +85,10 @@ def submissions_table():
         rx.table.root(
             rx.table.header(
                 rx.table.row(
-                    header_cell("User", "user-round"),
-                    header_cell("Exercise", "book"),
-                    header_cell("Tags", "tag"),
-                    header_cell("Submission", "circle-check"),
+                    header_cell(LanguageState.user, "user-round"),
+                    header_cell(LanguageState.exercise, "book"),
+                    header_cell(LanguageState.tags, "tag"),
+                    header_cell(LanguageState.submission, "circle-check"),
                 ),
             ),
             rx.table.body(
@@ -108,7 +109,7 @@ def submissions_table():
 def only_with_submissions() -> rx.Component:
     """Checkbox to filter only submissions."""
     return rx.checkbox(
-        "Only with submission",
+        LanguageState.only_with_submission,
         checked=SubmissionsState.only_with_submission,
         on_change=SubmissionsState.toggle_only_with_submission,
         color_scheme="blue",
