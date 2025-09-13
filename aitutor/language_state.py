@@ -370,3 +370,198 @@ class LanguageState(SessionState):
     def submitted_chat_teacher(self) -> str:
         """Submitted chat string"""
         return self.translate(de="Abgegebener Chat", en="Submitted chat")
+
+    # Manage Exercises Page Strings ----------------------------------------------------
+    @rx.var
+    def new_tag(self) -> str:
+        """Create new tag string"""
+        return self.translate(de="Neues Tag", en="New tag")
+
+    @rx.var
+    def tagname(self) -> str:
+        """Name string"""
+        return self.translate(de="Tag Name", en="tagname")
+
+    @rx.var
+    def add_tag(self) -> str:
+        """Add tag string"""
+        return self.translate(de="Tag hinzufügen", en="Add tag")
+
+    @rx.var
+    def delete_exercise(self) -> str:
+        """Delete exercise string"""
+        return self.translate(de="Übung löschen", en="Delete exercise")
+
+    @rx.var
+    def delete_exercise_info(self) -> str:
+        """Delete exercise info string"""
+        return self.translate(
+            de="Möchten Sie diese Übung wirklich löschen?",
+            en="Are you sure you want to delete this exercise?",
+        )
+
+    @rx.var
+    def exercise_hidden_hover_info(self) -> str:
+        """Exercise hidden hover info string"""
+        return self.translate(
+            de="Übung wird bis zum Veröffentlichungsdatum automatisch ausgeblendet.",
+            en="Exercise is automatically hidden until its release date.",
+        )
+
+    @rx.var
+    def description(self) -> str:
+        """Description string"""
+        return self.translate(de="Beschreibung", en="Description")
+
+    @rx.var
+    def editing_period(self) -> str:
+        """Editing period string"""
+        return self.translate(de="Bearbeitungszeitraum", en="Editing period")
+
+    @rx.var
+    def settings(self) -> str:
+        """Settings string"""
+        return self.translate(de="Einstellungen", en="Settings")
+
+    @rx.var
+    def add_exercise(self) -> str:
+        """Add exercise string"""
+        return self.translate(de="Neue Übung", en="Add exercise")
+
+    @rx.var
+    def add_exercise_description(self) -> str:
+        """Add exercise description string"""
+        return self.translate(
+            de="Fügen Sie eine neue Übung für die Studenten hinzu",
+            en="add a new exercise for the students",
+        )
+
+    @rx.var
+    def edit_exercise(self) -> str:
+        """Edit exercise string"""
+        return self.translate(de="Übung bearbeiten", en="Edit exercise")
+
+    @rx.var
+    def edit_exercise_description(self) -> str:
+        """Edit exercise description string"""
+        return self.translate(
+            de="Bereits vorhandene Übung bearbeiten",
+            en="Edit already existing exercise",
+        )
+
+    @rx.var
+    def add_lesson_context_pdf(self) -> str:
+        """Add lesson context pdf string"""
+        return self.translate(
+            de="Aufgabenkontext (PDF) hinzufügen:",
+            en="Add lesson context (PDF):",
+        )
+
+    @rx.var
+    def select_file(self) -> str:
+        """Select file string"""
+        return self.translate(de="Datei auswählen", en="Select file")
+
+    @rx.var
+    def pdf_upload_info(self) -> str:
+        """PDF upload info string"""
+        return self.translate(
+            de="Drag & Drop oder auf den Button klicken, um auszuwählen",
+            en="Drag and drop or click the button to select",
+        )
+
+    @rx.var
+    def last_uploaded_file(self) -> str:
+        """Last uploaded file string"""
+        return self.translate(
+            de="Zuletzt hochgeladene Datei:",
+            en="Last uploaded file:",
+        )
+
+    @rx.var
+    def prompt(self) -> str:
+        """Prompt string"""
+        return self.translate(de="Prompt:", en="Prompt:")
+
+    @rx.var
+    def select_prompt(self) -> str:
+        """Select prompt string"""
+        return self.translate(de="Prompt auswählen", en="Select prompt")
+
+    @rx.var
+    def select_tag(self) -> str:
+        """Select tag string"""
+        return self.translate(de="Tag auswählen", en="Select tag")
+
+    @rx.var
+    def link_tag_to_exercise(self) -> str:
+        """Link tag to exercise string"""
+        return self.translate(de="Tag mit Übung verknüpfen", en="Link tag to exercise")
+
+    @rx.var
+    def title(self) -> str:
+        """Title string"""
+        return self.translate(de="Titel:", en="Title:")
+
+    @rx.var
+    def exercise_title_placeholder(self) -> str:
+        """Exercise title placeholder string"""
+        return self.translate(
+            de="Titel der Übung",
+            en="Exercise title",
+        )
+
+    @rx.var
+    def description_placeholder(self) -> str:
+        """Description placeholder string"""
+        return self.translate(
+            de="Beschreibung der Übung. Dies ist die erste Nachricht, "
+            "die der Student im Chat sieht.",
+            en="Describe the task here. This is the first message "
+            "the student sees in the chat.",
+        )
+
+    @rx.var
+    def lesson_context(self) -> str:
+        """Lesson context string"""
+        return self.translate(de="Aufgabenkontext:", en="Lesson context:")
+
+    @rx.var
+    def lesson_context_placeholder(self) -> str:
+        """Lesson context placeholder string"""
+        return self.translate(
+            de="Fügen Sie hier den Aufgabenkontext hinzu. Der Kontext hilft der KI zu "
+            "beurteilen, ob die Antwort des Studenten ausreichend ist.",
+            en="Add lesson context here. The context helps the AI to assess whether "
+            "the student's answer is sufficient.",
+        )
+
+    @rx.var
+    def hide_exercise(self) -> str:
+        """Hide exercises string"""
+        return self.translate(de="Übung ausblenden:", en="Hide exercise:")
+
+    @rx.var
+    def activate_deadline(self) -> str:
+        """Activate deadline string"""
+        return self.translate(de="Frist aktivieren:", en="Activate deadline:")
+
+    @rx.var
+    def days_to_complete(self) -> str:
+        """Days to complete string"""
+        return self.translate(de="Tage zur Bearbeitung:", en="Days to complete:")
+
+    @rx.var
+    def timezone(self) -> str:
+        """Timezone string"""
+        return self.translate(de="Zeitzone: ", en="Timezone: ")
+
+    @rx.var
+    def add_task(self) -> str:
+        """Add task string"""
+        return self.translate(de="Aufgabe hinzufügen", en="Add exercise")
+
+    @rx.var
+    def update_task(self) -> str:
+        """Update task string"""
+        return self.translate(de="Änderungen speichern", en="Update exercise")
