@@ -49,7 +49,7 @@ def my_login_form() -> rx.Component:
             input("password", placeholder=LanguageState.password, type="password"),
             rx.button(LanguageState.log_in, width="100%", _hover={"cursor": "pointer"}),
             rx.center(
-                rx.link(LanguageState.register, on_click=rx.redirect(routes.REGISTER)),
+                rx.link(LanguageState.register),
                 width="100%",
             ),
             min_width=MIN_WIDTH,
