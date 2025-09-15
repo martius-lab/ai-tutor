@@ -10,13 +10,13 @@ from zoneinfo import ZoneInfo
 from aitutor.global_vars import TIME_ZONE
 
 
-class LanguageEnum(StrEnum):
+class Language(StrEnum):
     """
     Enum for supported languages.
     """
 
-    EN = "English"
-    DE = "Deutsch"
+    DE = "de"
+    EN = "en"
 
 
 class UserRole(IntEnum):
@@ -163,7 +163,7 @@ class UserInfo(rx.Model, table=True):
     user_id: int = Field(foreign_key="localuser.id", ondelete="CASCADE")
     email: str
     role: UserRole
-    language: LanguageEnum = Field(default=LanguageEnum.EN)
+    language: Language = Field(default=Language.EN)
 
     # ORM relationship
     exercise_results: List["ExerciseResult"] = Relationship(

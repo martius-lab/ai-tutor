@@ -6,7 +6,7 @@ including integration with local authentication and user role management.
 import reflex as rx
 import reflex_local_auth
 import sqlmodel
-from aitutor.models import UserInfo, UserRole, LanguageEnum
+from aitutor.models import UserInfo, UserRole, Language
 from typing import Optional
 
 import aitutor.routes as routes
@@ -18,7 +18,7 @@ class SessionState(reflex_local_auth.LocalAuthState):
     The state for managing user sessions.
     """
 
-    language: LanguageEnum = LanguageEnum.EN
+    language: Language = Language.EN
 
     @rx.event
     def global_load(self):
@@ -42,18 +42,14 @@ class SessionState(reflex_local_auth.LocalAuthState):
                 UserInfo.select().where(UserInfo.user_id == self.authenticated_user.id)
             ).one_or_none()
             match self.language:
-                case LanguageEnum.EN:
-                    self.language = LanguageEnum.DE
-                    if user_info:
-                        user_info.language = LanguageEnum.DE
-                        session.add(user_info)
-                        session.commit()
-                case LanguageEnum.DE:
-                    self.language = LanguageEnum.EN
-                    if user_info:
-                        user_info.language = LanguageEnum.EN
-                        session.add(user_info)
-                        session.commit()
+                case Language.EN:
+                    self.language = Language.DE
+                case _:
+                    self.language = Language.EN
+            if user_info:
+                user_info.language = self.language
+                session.add(user_info)
+                session.commit()
 
     @rx.var(cache=True, initial_value=None)
     def authenticated_user_info(self) -> Optional[UserInfo]:
