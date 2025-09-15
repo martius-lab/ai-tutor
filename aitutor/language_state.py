@@ -39,6 +39,16 @@ class LanguageState(SessionState):
         """Cancel string"""
         return self.translate(de="Abbrechen", en="Cancel")
 
+    @rx.var
+    def log_in(self) -> str:
+        """Log in string"""
+        return self.translate(de="Anmelden", en="Log in")
+
+    @rx.var
+    def register(self) -> str:
+        """Register string"""
+        return self.translate(de="Registrieren", en="Register")
+
     # Search Bar Strings ---------------------------------------------------------------
     @rx.var
     def search_placeholder(self) -> str:
@@ -87,16 +97,6 @@ class LanguageState(SessionState):
     def language_string(self) -> str:
         """The current language as a string."""
         return self.translate(de="Deutsch", en="English")
-
-    @rx.var
-    def log_in(self) -> str:
-        """Log in string"""
-        return self.translate(de="Anmelden", en="Log in")
-
-    @rx.var
-    def register(self) -> str:
-        """Register string"""
-        return self.translate(de="Registrieren", en="Register")
 
     @rx.var
     def log_out(self) -> str:
@@ -566,3 +566,36 @@ class LanguageState(SessionState):
     def update_task(self) -> str:
         """Update task string"""
         return self.translate(de="Änderungen speichern", en="Update exercise")
+
+    # Login and Registration Page Strings ----------------------------------------------
+    @rx.var
+    def login_heading(self) -> str:
+        """Login heading string"""
+        return self.translate(
+            de="Melden Sie sich in Ihrem Konto an", en="Log in to your Account"
+        )
+
+    @rx.var
+    def username(self) -> str:
+        """Username string"""
+        return self.translate(de="Benutzername", en="Username")
+
+    @rx.var
+    def password(self) -> str:
+        """Password string"""
+        return self.translate(de="Passwort", en="Password")
+
+    @rx.var
+    def register_heading(self) -> str:
+        """Register heading string"""
+        return self.translate(de="Erstellen Sie ein Konto", en="Create an account")
+
+    @rx.var
+    def email(self) -> str:
+        """Email string"""
+        return self.translate(de="E-Mail", en="Email")
+
+    @rx.var
+    def confirm_password(self) -> str:
+        """Confirm password string"""
+        return self.translate(de="Passwort bestätigen", en="Confirm Password")

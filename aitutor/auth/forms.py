@@ -5,10 +5,11 @@ including registration and error handling.
 
 import reflex as rx
 import reflex_local_auth
-from reflex_local_auth.pages.components import input_100w, MIN_WIDTH
+from reflex_local_auth.pages.components import MIN_WIDTH
 import aitutor.routes as routes
 
 from aitutor.auth.state import MyRegisterState
+from aitutor.language_state import LanguageState
 
 
 def login_error() -> rx.Component:
@@ -25,19 +26,30 @@ def login_error() -> rx.Component:
     )
 
 
+def input(name, placeholder, **props) -> rx.Component:
+    """Render a 100% width input with a placeholder."""
+    return rx.input(
+        placeholder=placeholder,
+        id=name,
+        name=name,
+        width="100%",
+        **props,
+    )
+
+
 def my_login_form() -> rx.Component:
     """Render the login form."""
     return rx.form(
         rx.vstack(
-            rx.heading("Login into your Account", size="7"),
+            rx.heading(LanguageState.login_heading, size="7"),
             login_error(),
-            rx.text("Username"),
-            input_100w("username"),
-            rx.text("Password"),
-            input_100w("password", type="password"),
-            rx.button("Sign in", width="100%", _hover={"cursor": "pointer"}),
+            rx.text(LanguageState.username),
+            input("username", placeholder=LanguageState.username),
+            rx.text(LanguageState.password),
+            input("password", placeholder=LanguageState.password, type="password"),
+            rx.button(LanguageState.log_in, width="100%", _hover={"cursor": "pointer"}),
             rx.center(
-                rx.link("Register", on_click=rx.redirect(routes.REGISTER)),
+                rx.link(LanguageState.register, on_click=rx.redirect(routes.REGISTER)),
                 width="100%",
             ),
             min_width=MIN_WIDTH,
@@ -64,20 +76,31 @@ def my_register_form() -> rx.Component:
     """Render the registration form."""
     return rx.form(
         rx.vstack(
-            rx.heading("Create an account", size="7"),
+            rx.heading(LanguageState.register_heading, size="7"),
             register_error(),
-            rx.text("Username"),
-            input_100w("username"),
-            rx.text("Email"),
-            input_100w("email", type="email", required=True),
-            rx.text("Password"),
-            input_100w("password", type="password"),
-            rx.text("Confirm Password"),
-            input_100w("confirm_password", type="password"),
-            rx.button("Sign up", width="100%", _hover={"cursor": "pointer"}),
+            rx.text(LanguageState.username),
+            input("username", placeholder=LanguageState.username),
+            rx.text(LanguageState.email),
+            input(
+                "email", placeholder=LanguageState.email, type="email", required=True
+            ),
+            rx.text(LanguageState.password),
+            input("password", placeholder=LanguageState.password, type="password"),
+            rx.text(LanguageState.confirm_password),
+            input(
+                "confirm_password",
+                placeholder=LanguageState.confirm_password,
+                type="password",
+            ),
+            rx.button(
+                LanguageState.register,
+                width="100%",
+                _hover={"cursor": "pointer"},
+                on_click=rx.redirect(routes.LOGIN),
+            ),
             rx.center(
                 rx.link(
-                    "Login",
+                    LanguageState.log_in,
                     on_click=lambda: rx.redirect(routes.LOGIN),
                 ),
                 width="100%",
