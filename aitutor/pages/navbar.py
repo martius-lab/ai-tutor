@@ -32,14 +32,14 @@ def navbar_link(text: str, url: str, route_to_highlight) -> rx.Component:
 
 
 general_links = [
-    (LanguageState.homeLink, routes.HOME, "house"),
-    (LanguageState.exercisesLink, routes.EXERCISES, "book"),
+    (LanguageState.home_link, routes.HOME, "house"),
+    (LanguageState.exercises_link, routes.EXERCISES, "book"),
 ]
 teacher_links = [
-    (LanguageState.SubmissionsLink, routes.SUBMISSIONS, "search-check"),
+    (LanguageState.submissions_link, routes.SUBMISSIONS, "search-check"),
 ]
 admin_links = [
-    (LanguageState.manageExercisesLink, routes.MANAGE_EXERCISES, "pencil-line"),
+    (LanguageState.manage_exercises_link, routes.MANAGE_EXERCISES, "pencil-line"),
 ]
 
 
@@ -141,7 +141,7 @@ def profile_menu() -> rx.Component:
                             size=15,
                         ),
                         rx.text(
-                            SessionState.language,
+                            LanguageState.language_string,
                             size="2",
                             margin_bottom="6px",
                             margin_top="6px",
@@ -181,7 +181,7 @@ def profile_menu() -> rx.Component:
                             size=15,
                         ),
                         rx.text(
-                            SessionState.language,
+                            LanguageState.language_string,
                             size="2",
                             margin_bottom="6px",
                             margin_top="6px",

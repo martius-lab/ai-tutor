@@ -9,13 +9,13 @@ backend code (e.g. error/success messages) are in the corresponding state class.
 
 import reflex as rx
 
-from aitutor.auth.state import SessionState, LanguageEnum
+from aitutor.auth.state import SessionState, Language
 
 
-def backend_translate(language: LanguageEnum, *, de: str, en: str) -> str:
+def translate(language: Language, *, de: str, en: str) -> str:
     """Helper function to translate strings in the backend."""
     match language:
-        case LanguageEnum.DE:
+        case Language.DE:
             return de
         case _:
             return en
@@ -25,12 +25,8 @@ class LanguageState(SessionState):
     """State that returns all strings in the current language."""
 
     def translate(self, *, de: str, en: str) -> str:
-        """Helper function to translate strings."""
-        match self.language:
-            case LanguageEnum.DE:
-                return de
-            case _:
-                return en
+        """Helper function to translate strings in the LanguageState."""
+        return translate(self.language, de=de, en=en)
 
     # General Strings ------------------------------------------------------------------
     @rx.var
@@ -68,24 +64,29 @@ class LanguageState(SessionState):
 
     # Navigation Bar Strings -----------------------------------------------------------
     @rx.var
-    def homeLink(self) -> str:
+    def home_link(self) -> str:
         """The string for the 'Home' link."""
         return self.translate(de="Startseite", en="Home")
 
     @rx.var
-    def exercisesLink(self) -> str:
+    def exercises_link(self) -> str:
         """The string for the 'Exercises' link."""
         return self.translate(de="Übungen", en="Exercises")
 
     @rx.var
-    def SubmissionsLink(self) -> str:
+    def submissions_link(self) -> str:
         """The string for the 'Submissions' link."""
         return self.translate(de="Abgaben", en="Submissions")
 
     @rx.var
-    def manageExercisesLink(self) -> str:
+    def manage_exercises_link(self) -> str:
         """The string for the 'Manage Exercises' link."""
         return self.translate(de="Übungsverwaltung", en="Manage Exercises")
+
+    @rx.var
+    def language_string(self) -> str:
+        """The current language as a string."""
+        return self.translate(de="Deutsch", en="English")
 
     @rx.var
     def log_in(self) -> str:
