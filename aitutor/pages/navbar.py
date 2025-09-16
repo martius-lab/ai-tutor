@@ -9,6 +9,7 @@ from aitutor.models import UserRole
 import aitutor.routes as routes
 from aitutor.auth.protection import has_role_at_least
 from aitutor.config import get_config
+from aitutor.language_state import LanguageState
 
 
 def navbar_link(text: str, url: str, route_to_highlight) -> rx.Component:
@@ -31,14 +32,14 @@ def navbar_link(text: str, url: str, route_to_highlight) -> rx.Component:
 
 
 general_links = [
-    ("Home", routes.HOME, "house"),
-    ("Exercises", routes.EXERCISES, "book"),
+    (LanguageState.home_link, routes.HOME, "house"),
+    (LanguageState.exercises_link, routes.EXERCISES, "book"),
 ]
 teacher_links = [
-    ("Submissions", routes.SUBMISSIONS, "search-check"),
+    (LanguageState.submissions_link, routes.SUBMISSIONS, "search-check"),
 ]
 admin_links = [
-    ("Manage Exercises", routes.MANAGE_EXERCISES, "pencil-line"),
+    (LanguageState.manage_exercises_link, routes.MANAGE_EXERCISES, "pencil-line"),
 ]
 
 
@@ -136,11 +137,30 @@ def profile_menu() -> rx.Component:
                 rx.menu.item(
                     rx.hstack(
                         rx.icon(
+                            "languages",
+                            size=15,
+                        ),
+                        rx.text(
+                            LanguageState.language_string,
+                            size="2",
+                            margin_bottom="6px",
+                            margin_top="6px",
+                        ),
+                        align="center",
+                        justify="center",
+                        spacing="1",
+                    ),
+                    on_click=SessionState.toggle_language,
+                    _hover={"cursor": "pointer"},
+                ),
+                rx.menu.item(
+                    rx.hstack(
+                        rx.icon(
                             "log-out",
                             size=15,
                         ),
                         rx.text(
-                            "Log out",
+                            LanguageState.log_out,
                             size="2",
                             margin_bottom="6px",
                             margin_top="6px",
@@ -157,11 +177,30 @@ def profile_menu() -> rx.Component:
                 rx.menu.item(
                     rx.hstack(
                         rx.icon(
+                            "languages",
+                            size=15,
+                        ),
+                        rx.text(
+                            LanguageState.language_string,
+                            size="2",
+                            margin_bottom="6px",
+                            margin_top="6px",
+                        ),
+                        align="center",
+                        justify="center",
+                        spacing="1",
+                    ),
+                    on_click=SessionState.toggle_language,
+                    _hover={"cursor": "pointer"},
+                ),
+                rx.menu.item(
+                    rx.hstack(
+                        rx.icon(
                             "log-in",
                             size=15,
                         ),
                         rx.text(
-                            "Log in",
+                            LanguageState.log_in,
                             size="2",
                             margin_bottom="6px",
                             margin_top="6px",
@@ -180,7 +219,7 @@ def profile_menu() -> rx.Component:
                             size=15,
                         ),
                         rx.text(
-                            "Register",
+                            LanguageState.register,
                             size="2",
                             margin_bottom="6px",
                             margin_top="6px",

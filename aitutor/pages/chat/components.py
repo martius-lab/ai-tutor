@@ -3,6 +3,7 @@
 import reflex as rx
 
 from aitutor.pages.chat.state import ChatState, ChatMessage, Role
+from aitutor.language_state import LanguageState
 
 
 def message_box(chat_message: ChatMessage) -> rx.Component:
@@ -97,7 +98,7 @@ def chat_form() -> rx.Component:
         """
         return rx.text_area(
             name="user_response",
-            placeholder="Your Answer",
+            placeholder=LanguageState.your_answer,
             value=ChatState.user_input,
             on_change=ChatState.set_user_input,
             required=True,
@@ -164,21 +165,19 @@ def edit_last_message_button() -> rx.Component:
             ),
         ),
         rx.alert_dialog.content(
-            rx.alert_dialog.title("Edit Last Message"),
-            rx.alert_dialog.description(
-                "Do you want to delete this message and move it to the input field?"
-            ),
+            rx.alert_dialog.title(LanguageState.edit_last_message),
+            rx.alert_dialog.description(LanguageState.edit_last_message_info),
             rx.hstack(
                 rx.alert_dialog.cancel(
                     rx.button(
-                        "No",
+                        LanguageState.cancel,
                         color_scheme="red",
                         _hover={"cursor": "pointer"},
                     ),
                 ),
                 rx.alert_dialog.action(
                     rx.button(
-                        "Yes",
+                        LanguageState.confirm,
                         color_scheme="iris",
                         on_click=ChatState.edit_last_message,
                         _hover={"cursor": "pointer"},
@@ -215,8 +214,8 @@ def reset_conversation_button() -> rx.Component:
         rx.alert_dialog.root(
             rx.alert_dialog.trigger(
                 rx.button(
-                    rx.desktop_only("Reset Conversation"),
-                    rx.mobile_and_tablet("Reset"),
+                    rx.desktop_only(LanguageState.reset_conversation),
+                    rx.mobile_and_tablet(LanguageState.reset_string),
                     color_scheme="red",
                     _hover=rx.cond(
                         ChatState.messages.length() < 2,  # type: ignore
@@ -231,26 +230,25 @@ def reset_conversation_button() -> rx.Component:
                 )
             ),
             rx.alert_dialog.content(
-                rx.alert_dialog.title("Reset Conversation"),
+                rx.alert_dialog.title(LanguageState.reset_conversation),
                 rx.alert_dialog.description(
                     rx.cond(
                         ChatState.conversation_is_submitted,
-                        "Are you sure you want to reset the conversation? "
-                        + "(This will not delete your submission.)",
-                        "Are you sure you want to reset the conversation? ",
+                        LanguageState.reset_info_message_submitted,
+                        LanguageState.reset_info_message_not_submitted,
                     )
                 ),
                 rx.hstack(
                     rx.alert_dialog.cancel(
                         rx.button(
-                            "Cancel",
+                            rx.text(LanguageState.cancel),
                             color_scheme="red",
                             _hover={"cursor": "pointer"},
                         ),
                     ),
                     rx.alert_dialog.action(
                         rx.button(
-                            "Confirm",
+                            LanguageState.confirm,
                             color_scheme="iris",
                             on_click=ChatState.reset_conversation,
                             _hover={"cursor": "pointer"},
@@ -276,7 +274,7 @@ def check_conversation_button() -> rx.Component:
             rx.hover_card.root(
                 rx.hover_card.trigger(
                     rx.button(
-                        "Submit",
+                        LanguageState.submit,
                         color_scheme="green",
                         type="button",
                         _hover={"cursor": "disabled"},
@@ -284,12 +282,12 @@ def check_conversation_button() -> rx.Component:
                     ),
                 ),
                 rx.hover_card.content(
-                    rx.text("The deadline for this exercise has passed."),
+                    rx.text(LanguageState.deadline_has_passed_info),
                 ),
             ),
             # enabled Submit button
             rx.button(
-                "Submit",
+                LanguageState.submit,
                 color_scheme="green",
                 type="button",
                 _hover={"cursor": "pointer"},
@@ -300,8 +298,8 @@ def check_conversation_button() -> rx.Component:
         rx.cond(
             ChatState.waiting_for_response,
             rx.button(
-                rx.desktop_only("Check Conversation"),
-                rx.mobile_and_tablet("Check"),
+                rx.desktop_only(LanguageState.check_conversation),
+                rx.mobile_and_tablet(LanguageState.check),
                 color_scheme="yellow",
                 type="button",
                 _hover={"cursor": "not-allowed"},
@@ -310,8 +308,8 @@ def check_conversation_button() -> rx.Component:
             rx.alert_dialog.root(
                 rx.alert_dialog.trigger(
                     rx.button(
-                        rx.desktop_only("Check Conversation"),
-                        rx.mobile_and_tablet("Check"),
+                        rx.desktop_only(LanguageState.check_conversation),
+                        rx.mobile_and_tablet(LanguageState.check),
                         color_scheme="yellow",
                         type="button",
                         _hover=rx.cond(
@@ -327,22 +325,19 @@ def check_conversation_button() -> rx.Component:
                     ),
                 ),
                 rx.alert_dialog.content(
-                    rx.alert_dialog.title("Check Conversation"),
-                    rx.alert_dialog.description(
-                        "Are you done with the exercise and want "
-                        + "to check your conversation?"
-                    ),
+                    rx.alert_dialog.title(LanguageState.check_conversation),
+                    rx.alert_dialog.description(LanguageState.check_conversation_info),
                     rx.hstack(
                         rx.alert_dialog.cancel(
                             rx.button(
-                                "No",
+                                rx.text(LanguageState.cancel),
                                 color_scheme="red",
                                 _hover={"cursor": "pointer"},
                             ),
                         ),
                         rx.alert_dialog.action(
                             rx.button(
-                                "Yes",
+                                LanguageState.confirm,
                                 color_scheme="iris",
                                 on_click=ChatState.check_conversation,
                                 _hover={"cursor": "pointer"},
@@ -371,11 +366,11 @@ def submitted_status() -> rx.Component:
                 ),
             ),
             rx.hover_card.content(
-                rx.text("View your submitted conversation"),
+                rx.text(LanguageState.view_your_submission),
             ),
         ),
         rx.text(
-            "Last submit: " + ChatState.submit_time_stamp,
+            LanguageState.last_submit + ChatState.submit_time_stamp,
             color_scheme="green",
         ),
         rx.icon(
@@ -397,7 +392,7 @@ def not_submitted_status() -> rx.Component:
             color=rx.color_mode_cond(light="black", dark="white"),
             size=20,
         ),
-        rx.text("Not submitted yet"),
+        rx.text(LanguageState.not_submitted_yet),
         spacing="1",
         align="center",
     )
@@ -410,5 +405,8 @@ def show_exercise_status() -> rx.Component:
     return rx.cond(
         ChatState.conversation_is_submitted,
         submitted_status(),
-        not_submitted_status(),
+        rx.cond(
+            ~ChatState.is_overdue,
+            not_submitted_status(),
+        ),
     )

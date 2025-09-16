@@ -8,6 +8,7 @@ from aitutor.pages.chat.state import ChatState
 from aitutor.pages.navbar import with_navbar
 from aitutor.auth.protection import page_require_role_at_least
 from aitutor.pages.chat.components import show_messages, chat_form, show_exercise_status
+from aitutor.language_state import LanguageState
 
 
 @with_navbar(routes.EXERCISES)
@@ -26,7 +27,7 @@ def chat_page() -> rx.Component:
                             _hover={"cursor": "pointer"},
                         ),
                         rx.heading(
-                            "Exercise: " + ChatState.exercise_title,
+                            ChatState.exercise_title,
                             size="5",
                         ),
                         align="center",
@@ -42,8 +43,7 @@ def chat_page() -> rx.Component:
                 rx.cond(
                     ChatState.is_overdue,
                     rx.callout(
-                        "This chat can no longer be submitted. "
-                        "The deadline has passed.",
+                        LanguageState.cannot_submit_anymore_info,
                         icon="info",
                         width="100%",
                         color_scheme="orange",
@@ -57,7 +57,7 @@ def chat_page() -> rx.Component:
                     ),
                 ),
                 chat_form(),
-                spacing="5",
+                spacing="3",
                 justify="start",
                 min_height="82vh",
                 max_height="82vh",

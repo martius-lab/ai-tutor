@@ -47,6 +47,7 @@ class ExercisesState(SessionState):
         Fetch exercises from database
         """
 
+        self.global_load()
         with rx.session() as session:
             stmt = (
                 select(Exercise, ExerciseResult)
@@ -96,7 +97,7 @@ class ExercisesState(SessionState):
                 deadline = exercise.deadline.replace(tzinfo=ZoneInfo(TIME_ZONE))
                 time_left = deadline - datetime.now(ZoneInfo(TIME_ZONE))
                 if time_left.total_seconds() <= 0:
-                    self.time_left_strings[exercise.id] = "deadline has passed"  # type: ignore
+                    self.time_left_strings[exercise.id] = ""  # type: ignore
                 else:
                     days = time_left.days
                     hours, remainder = divmod(time_left.seconds, 3600)
@@ -111,7 +112,7 @@ class ExercisesState(SessionState):
                     "%d.%m.%Y, %H:%M"
                 )
             else:
-                self.deadline_strings[exercise.id] = "No deadline"  # type: ignore
+                self.deadline_strings[exercise.id] = ""  # type: ignore
 
     def on_logout(self):
         """Clears the state when the user logs out."""
