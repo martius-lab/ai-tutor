@@ -8,6 +8,7 @@ from aitutor import routes
 from aitutor.pages.navbar import with_navbar
 from aitutor.auth.protection import page_require_role_at_least
 from aitutor.pages.chat.components import message_box
+from aitutor.language_state import LanguageState
 
 
 @with_navbar(routes.SUBMISSIONS)
@@ -26,10 +27,22 @@ def finished_view_teacher_page() -> rx.Component:
                         ),
                         _hover={"cursor": "pointer"},
                     ),
-                    rx.heading(
-                        f"Submitted by {FinishedViewTeacherState.username} "
-                        f"for exercise: {FinishedViewTeacherState.exercise_title}",
-                        size="5",
+                    rx.heading(LanguageState.submitted_chat_teacher, size="5"),
+                    align="center",
+                ),
+                rx.hstack(
+                    rx.icon("book", size=18),
+                    rx.text(LanguageState.exercise + ":", weight="bold"),
+                    rx.text(
+                        FinishedViewTeacherState.exercise_title,
+                    ),
+                    align="center",
+                ),
+                rx.hstack(
+                    rx.icon("user-round", size=18),
+                    rx.text(LanguageState.user + ":", weight="bold"),
+                    rx.text(
+                        FinishedViewTeacherState.username,
                     ),
                     align="center",
                 ),
@@ -41,7 +54,7 @@ def finished_view_teacher_page() -> rx.Component:
                     overflow="auto",
                     width="100%",
                 ),
-                spacing="5",
+                spacing="3",
                 justify="start",
                 min_height="82vh",
                 max_height="82vh",

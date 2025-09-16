@@ -5,6 +5,7 @@ import reflex as rx
 from aitutor.models import Exercise, ExerciseResult
 from aitutor.pages.exercises.state import ExercisesState, ExerciseWithResult
 from aitutor.utilities.helper_functions import truncate_text_reflex_var
+from aitutor.language_state import LanguageState
 
 
 def render_exercise_card(exercise_with_res: ExerciseWithResult) -> rx.Component:
@@ -16,34 +17,33 @@ def render_exercise_card(exercise_with_res: ExerciseWithResult) -> rx.Component:
         rx.card(  # create a card for each exercise
             rx.hstack(
                 rx.vstack(
-                    rx.heading(exercise.title, size="6"),  # display title
-                    rx.hstack(
-                        rx.text("Description:", weight="bold", size="2"),
-                        rx.text(
-                            truncate_text_reflex_var(
-                                exercise.description, max_length=150
-                            ),
-                            color="gray",
-                            size="2",
-                        ),
-                        align_items="center",
-                        align="center",
+                    rx.heading(exercise.title, size="6"),
+                    rx.text(
+                        truncate_text_reflex_var(exercise.description, max_length=150),
+                        size="2",
                     ),
-                    rx.hstack(
-                        rx.text("Deadline:", weight="bold", size="2"),
-                        rx.text(
-                            ExercisesState.deadline_strings[exercise.id],  # type: ignore
-                            color="gray",
-                            size="2",
+                    rx.cond(
+                        exercise.deadline,
+                        rx.hstack(
+                            rx.icon("calendar-clock", size=20),
+                            rx.text(LanguageState.deadline, weight="bold", size="2"),
+                            rx.text(
+                                ExercisesState.deadline_strings[exercise.id],  # type: ignore
+                                size="2",
+                            ),
                         ),
                     ),
                     rx.cond(
                         exercise.deadline,
                         rx.hstack(
-                            rx.text("Time left:", weight="bold", size="2"),
+                            rx.icon("hourglass", size=20),
+                            rx.text(LanguageState.time_left, weight="bold", size="2"),
                             rx.text(
-                                ExercisesState.time_left_strings[exercise.id],  # type: ignore
-                                color="gray",
+                                rx.cond(
+                                    ExercisesState.time_left_strings[exercise.id],  # type: ignore
+                                    ExercisesState.time_left_strings[exercise.id],  # type: ignore
+                                    LanguageState.deadline_has_passed,
+                                ),
                                 size="2",
                             ),
                             align="center",
@@ -52,7 +52,7 @@ def render_exercise_card(exercise_with_res: ExerciseWithResult) -> rx.Component:
                     rx.cond(  # display tags if they exist
                         exercise.tags.length() > 0,  # type: ignore
                         rx.hstack(
-                            rx.text("Tags:", weight="bold", size="2"),
+                            rx.icon("tag", size=20),
                             rx.hstack(
                                 rx.foreach(
                                     exercise.tags,
@@ -71,9 +71,10 @@ def render_exercise_card(exercise_with_res: ExerciseWithResult) -> rx.Component:
                             rx.icon(
                                 "circle-check",
                                 color="green",
+                                size=20,
                             ),
                             rx.text(
-                                "Last submit: "
+                                LanguageState.last_submit
                                 + ExercisesState.submit_time_stamps[exercise.id],
                                 color_scheme="green",
                                 size="2",

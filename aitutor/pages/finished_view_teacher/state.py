@@ -25,6 +25,7 @@ class FinishedViewTeacherState(SessionState):
     def on_load(self):
         """Loads the finished exercise and user info."""
 
+        self.global_load()
         with rx.session() as session:
             stmt = (
                 select(
