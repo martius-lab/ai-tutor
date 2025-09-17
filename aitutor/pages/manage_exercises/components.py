@@ -183,6 +183,7 @@ def exercise_table():
                 max_height="66vh",
             ),
             edit_exercise_dialog(),
+            add_exercise_dialog(),
         ),
     )
 
@@ -218,15 +219,19 @@ def hide_exercise_button(exercise: Exercise):
 
 def add_exercise_button() -> rx.Component:
     """Button for adding new exercises."""
+    return rx.button(
+        rx.icon("file-plus", size=26),
+        rx.text(LanguageState.add_exercise, size="4"),
+        size="3",
+        _hover={"cursor": "pointer"},
+        on_click=ManageExercisesState.open_add_dialog,
+        type="button",
+    )
+
+
+def add_exercise_dialog() -> rx.Component:
+    """Dialog for adding new exercises."""
     return rx.dialog.root(
-        rx.button(
-            rx.icon("file-plus", size=26),
-            rx.text(LanguageState.add_exercise, size="4"),
-            size="3",
-            _hover={"cursor": "pointer"},
-            on_click=ManageExercisesState.open_add_dialog,
-            type="button",
-        ),
         rx.dialog.content(
             rx.hstack(
                 rx.badge(
