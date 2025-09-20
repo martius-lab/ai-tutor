@@ -154,7 +154,7 @@ class LanguageState(SessionState):
     def open_exercises_submitted(self) -> str:
         """Open exercises submitted string"""
         return self.translate(
-            de="offene Übungen abgegeben", en="open exercises submitted"
+            de="offenen Übungen abgegeben", en="open exercises submitted"
         )
 
     @rx.var
