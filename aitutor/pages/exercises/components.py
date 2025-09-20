@@ -106,23 +106,57 @@ def render_exercise_card(exercise_with_res: ExerciseWithResult) -> rx.Component:
     )
 
 
+def exercises_seperator(title) -> rx.Component:
+    """Render a separator with a title"""
+    return rx.hstack(
+        rx.divider(),
+        rx.text(title, size="3", align="center"),
+        rx.divider(),
+        width="100%",
+        align="center",
+        spacing="4",
+    )
+
+
 def render_exercises() -> rx.Component:
     """Render the list of exercises"""
-    return rx.cond(
-        ExercisesState.exercises_with_result.length() > 0,  # type: ignore
-        rx.vstack(
-            rx.foreach(
-                ExercisesState.exercises_with_result,
-                render_exercise_card,
+    return rx.vstack(
+        rx.cond(
+            ExercisesState.open_deadline_ex.length() > 0,  # type: ignore
+            rx.vstack(
+                exercises_seperator(LanguageState.open_deadline),
+                rx.foreach(
+                    ExercisesState.open_deadline_ex,
+                    render_exercise_card,
+                ),
+                spacing="4",
+                width="100%",
             ),
-            spacing="4",
-            width="100%",
         ),
-        rx.text(  # if no exercises exist
-            "There exist no exercises yet.",
-            color="gray",
-            size="4",
-            text_align="center",
-            width="100%",
+        rx.cond(
+            ExercisesState.no_deadline_ex.length() > 0,  # type: ignore
+            rx.vstack(
+                exercises_seperator(LanguageState.no_deadline),
+                rx.foreach(
+                    ExercisesState.no_deadline_ex,
+                    render_exercise_card,
+                ),
+                spacing="4",
+                width="100%",
+            ),
         ),
+        rx.cond(
+            ExercisesState.closed_deadline_ex.length() > 0,  # type: ignore
+            rx.vstack(
+                exercises_seperator(LanguageState.closed_deadline),
+                rx.foreach(
+                    ExercisesState.closed_deadline_ex,
+                    render_exercise_card,
+                ),
+                spacing="4",
+                width="100%",
+            ),
+        ),
+        spacing="4",
+        width="100%",
     )
