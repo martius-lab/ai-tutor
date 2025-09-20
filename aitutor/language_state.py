@@ -197,6 +197,21 @@ class LanguageState(SessionState):
         """Deadline has passed string"""
         return self.translate(de="Frist ist abgelaufen", en="deadline has passed")
 
+    @rx.var
+    def open_deadline(self) -> str:
+        """Open deadline string"""
+        return self.translate(de="Offene Frist", en="Open Deadline")
+
+    @rx.var
+    def no_deadline(self) -> str:
+        """No deadline string"""
+        return self.translate(de="Keine Frist", en="No Deadline")
+
+    @rx.var
+    def closed_deadline(self) -> str:
+        """Closed deadline string"""
+        return self.translate(de="Frist abgelaufen", en="Closed Deadline")
+
     # Chat Page Strings ----------------------------------------------------------------
     @rx.var
     def view_your_submission(self) -> str:
