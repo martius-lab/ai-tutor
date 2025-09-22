@@ -212,6 +212,14 @@ class LanguageState(SessionState):
         """Closed deadline string"""
         return self.translate(de="Frist abgelaufen", en="Closed Deadline")
 
+    @rx.var
+    def no_exercises_available(self) -> str:
+        """No exercises available string"""
+        return self.translate(
+            de="Keine Übungen verfügbar",
+            en="No exercises available",
+        )
+
     # Chat Page Strings ----------------------------------------------------------------
     @rx.var
     def view_your_submission(self) -> str:

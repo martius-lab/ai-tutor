@@ -157,6 +157,13 @@ def render_exercises() -> rx.Component:
                 width="100%",
             ),
         ),
+        rx.cond(
+            ExercisesState.exercises_with_result.length() == 0,  # type: ignore
+            rx.callout(
+                LanguageState.no_exercises_available, icon="info", color_scheme="gray"
+            ),
+        ),
+        align="center",
         spacing="4",
         width="100%",
     )
