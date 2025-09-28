@@ -8,7 +8,7 @@ import reflex_local_auth
 from reflex_local_auth.pages.components import MIN_WIDTH
 import aitutor.routes as routes
 
-from aitutor.auth.state import MyRegisterState
+from aitutor.auth.state import MyRegisterState, MyLoginState
 from aitutor.language_state import LanguageState
 
 
@@ -37,6 +37,38 @@ def input(name, placeholder, **props) -> rx.Component:
     )
 
 
+def password_input(name, placeholder, state, **props) -> rx.Component:
+    """
+    Render a 100% width password input with a placeholder. It also has
+    a toggle button to show the password.
+    """
+    return rx.hstack(
+        rx.input(
+            placeholder=placeholder,
+            id=name,
+            name=name,
+            type=rx.cond(state.password_visible, "text", "password"),
+            width="100%",
+            **props,
+        ),
+        rx.cond(
+            state.password_visible,
+            rx.icon(
+                "eye",
+                on_click=state.toggle_password_visibility,
+                _hover={"cursor": "pointer"},
+            ),
+            rx.icon(
+                "eye-off",
+                on_click=state.toggle_password_visibility,
+                _hover={"cursor": "pointer"},
+            ),
+        ),
+        align="center",
+        width="100%",
+    )
+
+
 def my_login_form() -> rx.Component:
     """Render the login form."""
     return rx.form(
@@ -50,10 +82,10 @@ def my_login_form() -> rx.Component:
                 required=True,
             ),
             rx.text(LanguageState.password),
-            input(
+            password_input(
                 "password",
                 placeholder=LanguageState.password,
-                type="password",
+                state=MyLoginState,
                 required=True,
             ),
             rx.button(LanguageState.log_in, width="100%", _hover={"cursor": "pointer"}),
@@ -120,19 +152,19 @@ def my_register_form() -> rx.Component:
                 on_change=MyRegisterState.set_email,
             ),
             rx.text(LanguageState.password),
-            input(
+            password_input(
                 "password",
                 placeholder=LanguageState.password,
-                type="password",
+                state=MyRegisterState,
                 required=True,
                 value=MyRegisterState.password,
                 on_change=MyRegisterState.set_password,
             ),
             rx.text(LanguageState.confirm_password),
-            input(
+            password_input(
                 "confirm_password",
                 placeholder=LanguageState.confirm_password,
-                type="password",
+                state=MyRegisterState,
                 required=True,
                 value=MyRegisterState.confirm_password,
                 on_change=MyRegisterState.set_confirm_password,

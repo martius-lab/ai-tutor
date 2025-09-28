@@ -132,12 +132,15 @@ class MyRegisterState(reflex_local_auth.RegistrationState):
     password: str = ""
     confirm_password: str = ""
 
+    password_visible: bool = False
+
     @rx.event
     def on_load(self):
         """function that gets called when the register page loads"""
         self.clear_state_vars()
         self.error_message = ""
         self.success = False
+        self.password_visible = False
 
     @rx.event
     def set_username(self, value: str):
@@ -158,6 +161,14 @@ class MyRegisterState(reflex_local_auth.RegistrationState):
     def set_confirm_password(self, value: str):
         """Set the confirm password."""
         self.confirm_password = value
+
+    @rx.event
+    def toggle_password_visibility(self):
+        """
+        Toggle the visibility of the password.
+        !! This function must have the same name in both LoginState and RegisterState !!
+        """
+        self.password_visible = not self.password_visible
 
     def clear_state_vars(self):
         """Clear the state variables."""
@@ -199,7 +210,18 @@ class MyLoginState(reflex_local_auth.LoginState):
     and integrates with local authentication and user role management.
     """
 
+    password_visible: bool = False
+
     @rx.event
     def on_load(self):
         """function that gets called when the login page loads"""
         self.error_message = ""
+        self.password_visible = False
+
+    @rx.event
+    def toggle_password_visibility(self):
+        """
+        Toggle the visibility of the password.
+        !! This function must have the same name in both LoginState and RegisterState !!
+        """
+        self.password_visible = not self.password_visible
