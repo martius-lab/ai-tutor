@@ -10,6 +10,7 @@ from aitutor import pages
 from aitutor.auth.pages import custom_login_page, custom_register_page
 from aitutor.config import get_config
 from aitutor.utilities.create_default_users import create_default_users
+from aitutor.auth.state import MyRegisterState, MyLoginState
 import aitutor.routes as routes
 
 # info: add dynamic routes first
@@ -53,12 +54,12 @@ app.add_page(
 app.add_page(
     custom_login_page,
     route=routes.LOGIN,
-    title="Login",
+    on_load=MyLoginState.on_load,
 )
 app.add_page(
     custom_register_page,
     route=routes.REGISTER,
-    title="Register",
+    on_load=MyRegisterState.on_load,
 )
 app.add_page(pages.not_found_page, route=routes.NOT_FOUND)
 

@@ -127,8 +127,48 @@ class MyRegisterState(reflex_local_auth.RegistrationState):
     and integrates with local authentication and user role management.
     """
 
+    username: str = ""
+    email: str = ""
+    password: str = ""
+    confirm_password: str = ""
+
+    @rx.event
+    def on_load(self):
+        """function that gets called when the register page loads"""
+        self.clear_state_vars()
+        self.error_message = ""
+        self.success = False
+
+    @rx.event
+    def set_username(self, value: str):
+        """Set the username."""
+        self.username = value
+
+    @rx.event
+    def set_email(self, value: str):
+        """Set the email."""
+        self.email = value
+
+    @rx.event
+    def set_password(self, value: str):
+        """Set the password."""
+        self.password = value
+
+    @rx.event
+    def set_confirm_password(self, value: str):
+        """Set the confirm password."""
+        self.confirm_password = value
+
+    def clear_state_vars(self):
+        """Clear the state variables."""
+        self.username = ""
+        self.email = ""
+        self.password = ""
+        self.confirm_password = ""
+
     # This event handler must be named something besides `handle_registration`!!!
-    def handle_registration_email(self, form_data):
+    @rx.event
+    def handle_custom_registration(self, form_data):
         """
         Handles the registration process for a user using their email.
 
@@ -140,6 +180,7 @@ class MyRegisterState(reflex_local_auth.RegistrationState):
         """
         registration_result = self.handle_registration(form_data)
         if self.new_user_id >= 0:
+            self.clear_state_vars()
             with rx.session() as session:
                 session.add(
                     UserInfo(
@@ -150,3 +191,15 @@ class MyRegisterState(reflex_local_auth.RegistrationState):
                 )
                 session.commit()
         return registration_result
+
+
+class MyLoginState(reflex_local_auth.LoginState):
+    """
+    A custom login state class that handles user login
+    and integrates with local authentication and user role management.
+    """
+
+    @rx.event
+    def on_load(self):
+        """function that gets called when the login page loads"""
+        self.error_message = ""
