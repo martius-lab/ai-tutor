@@ -1,29 +1,16 @@
-"""
-The forms and components for user authentication,
-including registration and error handling.
-"""
+"""Components for the login and for the registration page."""
 
 import reflex as rx
 import reflex_local_auth
 from reflex_local_auth.pages.components import MIN_WIDTH
+
 import aitutor.routes as routes
-
-from aitutor.auth.state import MyRegisterState, MyLoginState, ShowPasswordMixin
+from aitutor.pages.login_and_registration.state import (
+    ShowPasswordMixin,
+    MyLoginState,
+    MyRegisterState,
+)
 from aitutor.language_state import LanguageState
-
-
-def login_error() -> rx.Component:
-    """Render the login error message."""
-    return rx.cond(
-        reflex_local_auth.LoginState.error_message != "",
-        rx.callout(
-            reflex_local_auth.LoginState.error_message,
-            icon="triangle_alert",
-            color_scheme="red",
-            role="alert",
-            width="100%",
-        ),
-    )
 
 
 def input(name, placeholder, **props) -> rx.Component:
@@ -71,6 +58,23 @@ def password_input(
     )
 
 
+# login --------------------------------------------------------------------------------
+
+
+def login_error() -> rx.Component:
+    """Render the login error message."""
+    return rx.cond(
+        reflex_local_auth.LoginState.error_message != "",
+        rx.callout(
+            reflex_local_auth.LoginState.error_message,
+            icon="triangle_alert",
+            color_scheme="red",
+            role="alert",
+            width="100%",
+        ),
+    )
+
+
 def my_login_form() -> rx.Component:
     """Render the login form."""
     return rx.form(
@@ -101,6 +105,9 @@ def my_login_form() -> rx.Component:
     )
 
 
+# register -----------------------------------------------------------------------------
+
+
 def register_error() -> rx.Component:
     """Render the registration error message."""
     return rx.cond(
@@ -115,7 +122,7 @@ def register_error() -> rx.Component:
     )
 
 
-def success_message() -> rx.Component:
+def register_success() -> rx.Component:
     """Render the successful registration message."""
     return rx.cond(
         MyRegisterState.success,
@@ -135,7 +142,7 @@ def my_register_form() -> rx.Component:
         rx.vstack(
             rx.heading(LanguageState.register_heading, size="7"),
             register_error(),
-            success_message(),
+            register_success(),
             rx.text(LanguageState.username),
             input(
                 "username",
