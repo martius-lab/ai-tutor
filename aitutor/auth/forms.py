@@ -8,7 +8,7 @@ import reflex_local_auth
 from reflex_local_auth.pages.components import MIN_WIDTH
 import aitutor.routes as routes
 
-from aitutor.auth.state import MyRegisterState, MyLoginState
+from aitutor.auth.state import MyRegisterState, MyLoginState, ShowPasswordMixin
 from aitutor.language_state import LanguageState
 
 
@@ -37,7 +37,9 @@ def input(name, placeholder, **props) -> rx.Component:
     )
 
 
-def password_input(name, placeholder, state, **props) -> rx.Component:
+def password_input(
+    name, placeholder, state: type[ShowPasswordMixin], **props
+) -> rx.Component:
     """
     Render a 100% width password input with a placeholder. It also has
     a toggle button to show the password.

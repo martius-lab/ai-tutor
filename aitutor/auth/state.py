@@ -121,7 +121,18 @@ class SessionState(reflex_local_auth.LocalAuthState):
         return self.authenticated_user_info.user_id
 
 
-class MyRegisterState(reflex_local_auth.RegistrationState):
+class ShowPasswordMixin(rx.State, mixin=True):
+    """Mixin to add show password functionality to the login and register page."""
+
+    password_visible: bool = False
+
+    @rx.event
+    def toggle_password_visibility(self):
+        """Toggle the visibility of the password."""
+        self.password_visible = not self.password_visible
+
+
+class MyRegisterState(ShowPasswordMixin, reflex_local_auth.RegistrationState):
     """
     A custom registration state class that handles user registration
     and integrates with local authentication and user role management.
@@ -132,6 +143,7 @@ class MyRegisterState(reflex_local_auth.RegistrationState):
     password: str = ""
     confirm_password: str = ""
 
+    # overrides the variable in the ShowPasswordMixin
     password_visible: bool = False
 
     @rx.event
@@ -161,14 +173,6 @@ class MyRegisterState(reflex_local_auth.RegistrationState):
     def set_confirm_password(self, value: str):
         """Set the confirm password."""
         self.confirm_password = value
-
-    @rx.event
-    def toggle_password_visibility(self):
-        """
-        Toggle the visibility of the password.
-        !! This function must have the same name in both LoginState and RegisterState !!
-        """
-        self.password_visible = not self.password_visible
 
     def clear_state_vars(self):
         """Clear the state variables."""
@@ -204,12 +208,13 @@ class MyRegisterState(reflex_local_auth.RegistrationState):
         return registration_result
 
 
-class MyLoginState(reflex_local_auth.LoginState):
+class MyLoginState(ShowPasswordMixin, reflex_local_auth.LoginState):
     """
     A custom login state class that handles user login
     and integrates with local authentication and user role management.
     """
 
+    # overrides the variable in the ShowPasswordMixin
     password_visible: bool = False
 
     @rx.event
@@ -217,11 +222,3 @@ class MyLoginState(reflex_local_auth.LoginState):
         """function that gets called when the login page loads"""
         self.error_message = ""
         self.password_visible = False
-
-    @rx.event
-    def toggle_password_visibility(self):
-        """
-        Toggle the visibility of the password.
-        !! This function must have the same name in both LoginState and RegisterState !!
-        """
-        self.password_visible = not self.password_visible
