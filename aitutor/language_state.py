@@ -109,7 +109,7 @@ class LanguageState(SessionState):
         """The string for the 'Dashboard' heading."""
         return self.translate(de="Übersicht", en="Dashboard")
 
-    @rx.var
+    @rx.var(initial_value="")
     def welcome_back(self) -> str:
         """Welcome back string"""
         username = self.authenticated_user.username
