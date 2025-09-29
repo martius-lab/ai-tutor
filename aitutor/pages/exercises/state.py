@@ -20,9 +20,9 @@ class ExercisesState(SessionState):
     """State for managing exercises."""
 
     exercises_with_result: list[ExerciseWithResult] = []
-    open_deadline_ex: list[ExerciseWithResult] = []
-    no_deadline_ex: list[ExerciseWithResult] = []
-    closed_deadline_ex: list[ExerciseWithResult] = []
+    open_deadline_exercises: list[ExerciseWithResult] = []
+    no_deadline_exercises: list[ExerciseWithResult] = []
+    closed_deadline_exercises: list[ExerciseWithResult] = []
     deadline_strings: dict[int, str] = {}  # (exercise_id, deadline_string)
     time_left_strings: dict[int, str] = {}  # (exercise_id, time_left_string)
 
@@ -89,17 +89,17 @@ class ExercisesState(SessionState):
                 ]
 
             # fill open, closed and no deadline lists
-            self.open_deadline_ex = []
-            self.no_deadline_ex = []
-            self.closed_deadline_ex = []
+            self.open_deadline_exercises = []
+            self.no_deadline_exercises = []
+            self.closed_deadline_exercises = []
             for ex_wth_res in self.exercises_with_result:
                 exercise = ex_wth_res[0]
                 if exercise.deadline_exceeded:
-                    self.closed_deadline_ex.append(ex_wth_res)
+                    self.closed_deadline_exercises.append(ex_wth_res)
                 elif exercise.deadline is None:
-                    self.no_deadline_ex.append(ex_wth_res)
+                    self.no_deadline_exercises.append(ex_wth_res)
                 else:
-                    self.open_deadline_ex.append(ex_wth_res)
+                    self.open_deadline_exercises.append(ex_wth_res)
 
             self.update_time_left_strings()
             self.generate_deadline_strings()
@@ -132,8 +132,8 @@ class ExercisesState(SessionState):
     def on_logout(self):
         """Clears the state when the user logs out."""
         self.exercises_with_result = []
-        self.open_deadline_ex = []
-        self.no_deadline_ex = []
-        self.closed_deadline_ex = []
+        self.open_deadline_exercises = []
+        self.no_deadline_exercises = []
+        self.closed_deadline_exercises = []
         self.deadline_strings = {}
         self.time_left_strings = {}
