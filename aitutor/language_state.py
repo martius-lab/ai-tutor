@@ -599,3 +599,11 @@ class LanguageState(SessionState):
     def confirm_password(self) -> str:
         """Confirm password string"""
         return self.translate(de="Passwort bestätigen", en="Confirm Password")
+
+    @rx.var
+    def successful_registration(self) -> str:
+        """Successful registration string"""
+        return self.translate(
+            de="Registrierung erfolgreich! Sie können sich jetzt anmelden.",
+            en="Registration successful! You can now log in.",
+        )
