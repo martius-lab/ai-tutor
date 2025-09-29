@@ -122,11 +122,11 @@ def render_exercises() -> rx.Component:
     """Render the list of exercises"""
     return rx.vstack(
         rx.cond(
-            ExercisesState.open_deadline_ex.length() > 0,  # type: ignore
+            ExercisesState.open_deadline_exercises.length() > 0,  # type: ignore
             rx.vstack(
                 exercises_seperator(LanguageState.open_deadline),
                 rx.foreach(
-                    ExercisesState.open_deadline_ex,
+                    ExercisesState.open_deadline_exercises,
                     render_exercise_card,
                 ),
                 spacing="4",
@@ -134,11 +134,11 @@ def render_exercises() -> rx.Component:
             ),
         ),
         rx.cond(
-            ExercisesState.no_deadline_ex.length() > 0,  # type: ignore
+            ExercisesState.no_deadline_exercises.length() > 0,  # type: ignore
             rx.vstack(
                 exercises_seperator(LanguageState.no_deadline),
                 rx.foreach(
-                    ExercisesState.no_deadline_ex,
+                    ExercisesState.no_deadline_exercises,
                     render_exercise_card,
                 ),
                 spacing="4",
@@ -146,11 +146,11 @@ def render_exercises() -> rx.Component:
             ),
         ),
         rx.cond(
-            ExercisesState.closed_deadline_ex.length() > 0,  # type: ignore
+            ExercisesState.closed_deadline_exercises.length() > 0,  # type: ignore
             rx.vstack(
                 exercises_seperator(LanguageState.closed_deadline),
                 rx.foreach(
-                    ExercisesState.closed_deadline_ex,
+                    ExercisesState.closed_deadline_exercises,
                     render_exercise_card,
                 ),
                 spacing="4",
