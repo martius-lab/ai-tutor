@@ -75,7 +75,7 @@ def login_error() -> rx.Component:
     )
 
 
-def my_login_form() -> rx.Component:
+def login_form() -> rx.Component:
     """Render the login form."""
     return rx.form(
         rx.vstack(
@@ -136,7 +136,7 @@ def register_success() -> rx.Component:
     )
 
 
-def my_register_form() -> rx.Component:
+def register_form() -> rx.Component:
     """Render the registration form."""
     return rx.form(
         rx.vstack(
