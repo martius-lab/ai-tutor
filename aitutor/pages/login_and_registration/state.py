@@ -22,9 +22,6 @@ class MyLoginState(ShowPasswordMixin, reflex_local_auth.LoginState):
     A custom login state class that handles user login.
     """
 
-    # overrides the variable in the ShowPasswordMixin
-    password_visible: bool = False
-
     @rx.event
     def on_load(self):
         """function that gets called when the login page loads"""
@@ -41,9 +38,6 @@ class MyRegisterState(ShowPasswordMixin, reflex_local_auth.RegistrationState):
     email: str = ""
     password: str = ""
     confirm_password: str = ""
-
-    # overrides the variable in the ShowPasswordMixin
-    password_visible: bool = False
 
     @rx.event
     def on_load(self):
