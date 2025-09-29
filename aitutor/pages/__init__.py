@@ -7,6 +7,10 @@ from aitutor.pages.not_found.page import not_found_page
 from aitutor.pages.navbar import navbar
 from aitutor.pages.submissions.page import submissions_page
 from aitutor.pages.finished_view_teacher.page import finished_view_teacher_page
+from aitutor.pages.login_and_registration.page import (
+    custom_login_page,
+    custom_register_page,
+)
 
 from aitutor.pages.chat.state import ChatState
 from aitutor.pages.exercises.state import ExercisesState
@@ -15,6 +19,7 @@ from aitutor.pages.home.state import HomeState
 from aitutor.pages.finished_view_teacher.state import FinishedViewTeacherState
 from aitutor.pages.manage_exercises.state import ManageExercisesState
 from aitutor.pages.submissions.state import SubmissionsState
+from aitutor.pages.login_and_registration.state import MyLoginState, MyRegisterState
 
 __all__ = [
     # pages
@@ -27,6 +32,8 @@ __all__ = [
     "finished_view_page",
     "submissions_page",
     "finished_view_teacher_page",
+    "custom_login_page",
+    "custom_register_page",
     # states
     "ChatState",
     "HomeState",
@@ -35,4 +42,6 @@ __all__ = [
     "FinishedViewTeacherState",
     "ManageExercisesState",
     "SubmissionsState",
+    "MyLoginState",
+    "MyRegisterState",
 ]

@@ -1,6 +1,5 @@
 """
-The state and event handlers for user registration,
-including integration with local authentication and user role management.
+The state for managing user sessions.
 """
 
 import reflex as rx
@@ -119,34 +118,3 @@ class SessionState(reflex_local_auth.LocalAuthState):
         if self.authenticated_user_info is None:
             return None
         return self.authenticated_user_info.user_id
-
-
-class MyRegisterState(reflex_local_auth.RegistrationState):
-    """
-    A custom registration state class that handles user registration
-    and integrates with local authentication and user role management.
-    """
-
-    # This event handler must be named something besides `handle_registration`!!!
-    def handle_registration_email(self, form_data):
-        """
-        Handles the registration process for a user using their email.
-
-        Args:
-            form_data (dict): A dictionary containing the user's registration data.
-
-        Returns:
-            Any: The result of the registration process.
-        """
-        registration_result = self.handle_registration(form_data)
-        if self.new_user_id >= 0:
-            with rx.session() as session:
-                session.add(
-                    UserInfo(
-                        email=form_data["email"],
-                        role=UserRole.STUDENT,
-                        user_id=self.new_user_id,
-                    )
-                )
-                session.commit()
-        return registration_result
