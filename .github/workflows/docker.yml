@@ -1,0 +1,14 @@
+name: Tests
+
+# Run on pull requests and when merging to main branch
+on:
+  pull_request:
+
+jobs:
+  docker-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: docker compose build
+        run: COMPOSE_BAKE=true docker compose build
