@@ -7,7 +7,6 @@
 # to publicly accessible domain where app will be hosted
 services:
   app:
-    image: local/ai-tutor-app
     environment:
       DB_URL: sqlite:///data/reflex.db
     build:
@@ -33,6 +32,8 @@ services:
     build:
       context: .
       dockerfile: Caddy.Dockerfile
+      additional_contexts:
+        app_image: "service:app"
     volumes:
       - caddy-data:/data/caddy
       - caddy-config:/config/caddy

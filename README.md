@@ -118,7 +118,7 @@ repo](https://github.com/reflex-dev/reflex/tree/main/docker-example/production-c
 
 To test locally, simply run (from the projects root directory)
 ```
-docker compose build
+COMPOSE_BAKE=true docker compose build
 ```
 to build images using the current state of the code and run with
 ```
@@ -155,7 +155,7 @@ To deploy on a server
 - Add `DOMAIN=your-domain.com` to `.env`
 - Build the images
   ```
-  docker compose build
+  COMPOSE_BAKE=true docker compose build
   ```
 - Run in production mode:
   ```
