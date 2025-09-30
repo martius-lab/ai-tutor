@@ -110,7 +110,7 @@ def exercises_seperator(title) -> rx.Component:
     """Render a separator with a title"""
     return rx.hstack(
         rx.divider(),
-        rx.text(title, size="3", align="center"),
+        rx.heading(title, size="5", align="center", white_space="nowrap"),
         rx.divider(),
         width="100%",
         align="center",
