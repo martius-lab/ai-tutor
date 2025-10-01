@@ -154,7 +154,7 @@ class LanguageState(SessionState):
     def open_exercises_submitted(self) -> str:
         """Open exercises submitted string"""
         return self.translate(
-            de="offene Übungen abgegeben", en="open exercises submitted"
+            de="offenen Übungen abgegeben", en="open exercises submitted"
         )
 
     @rx.var
@@ -196,6 +196,29 @@ class LanguageState(SessionState):
     def deadline_has_passed(self) -> str:
         """Deadline has passed string"""
         return self.translate(de="Frist ist abgelaufen", en="deadline has passed")
+
+    @rx.var
+    def open_deadline(self) -> str:
+        """Open deadline string"""
+        return self.translate(de="Offene Frist", en="Open Deadline")
+
+    @rx.var
+    def no_deadline(self) -> str:
+        """No deadline string"""
+        return self.translate(de="Keine Frist", en="No Deadline")
+
+    @rx.var
+    def closed_deadline(self) -> str:
+        """Closed deadline string"""
+        return self.translate(de="Frist abgelaufen", en="Closed Deadline")
+
+    @rx.var
+    def no_exercises_available(self) -> str:
+        """No exercises available string"""
+        return self.translate(
+            de="Keine Übungen verfügbar",
+            en="No exercises available",
+        )
 
     # Chat Page Strings ----------------------------------------------------------------
     @rx.var

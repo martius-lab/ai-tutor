@@ -1,7 +1,7 @@
 """State for the exercises page."""
 
 import reflex as rx
-from sqlmodel import and_, select
+from sqlmodel import and_, select, func
 from sqlalchemy.orm import selectinload
 from typing import Optional
 from datetime import datetime
@@ -20,6 +20,9 @@ class ExercisesState(SessionState):
     """State for managing exercises."""
 
     exercises_with_result: list[ExerciseWithResult] = []
+    open_deadline_exercises: list[ExerciseWithResult] = []
+    no_deadline_exercises: list[ExerciseWithResult] = []
+    closed_deadline_exercises: list[ExerciseWithResult] = []
     deadline_strings: dict[int, str] = {}  # (exercise_id, deadline_string)
     time_left_strings: dict[int, str] = {}  # (exercise_id, time_left_string)
 
@@ -63,12 +66,15 @@ class ExercisesState(SessionState):
                     isouter=True,
                 )
             )
+
+            # Don't load hidden exercises for students
             assert self.user_role is not None, "User role not set.  This is a bug."
             if self.user_role < UserRole.TEACHER:
                 stmt = stmt.where(Exercise.is_hidden == False)  # noqa: E712
 
+            # fill self.exercises_with_result
             exercises_with_result = session.exec(
-                stmt.order_by(Exercise.id.desc())  # type: ignore
+                stmt.order_by(func.lower(Exercise.title))
             ).all()
             self.exercises_with_result = [(x[0], x[1]) for x in exercises_with_result]
 
@@ -85,6 +91,41 @@ class ExercisesState(SessionState):
                     for ex_res in self.exercises_with_result
                     if not ex_res[0].is_hidden
                 ]
+
+            # fill open, closed and no deadline lists
+            self.open_deadline_exercises = []
+            self.no_deadline_exercises = []
+            self.closed_deadline_exercises = []
+            for ex_wth_res in self.exercises_with_result:
+                exercise = ex_wth_res[0]
+                if exercise.deadline_exceeded:
+                    self.closed_deadline_exercises.append(ex_wth_res)
+                elif exercise.deadline is None:
+                    self.no_deadline_exercises.append(ex_wth_res)
+                else:
+                    self.open_deadline_exercises.append(ex_wth_res)
+
+            # sort open_deadline_exercises by deadline ascending
+            self.open_deadline_exercises.sort(
+                key=lambda ex_wth_res: ex_wth_res[0].deadline
+                if ex_wth_res[0].deadline is not None
+                else datetime.max
+            )
+
+            # sort closed_deadline_exercises by deadline descending
+            self.closed_deadline_exercises.sort(
+                key=lambda ex_wth_res: ex_wth_res[0].deadline
+                if ex_wth_res[0].deadline is not None
+                else datetime.min,
+                reverse=True,
+            )
+
+            # sort no_deadline_exercises by submitted vs not submitted
+            self.no_deadline_exercises.sort(
+                key=lambda ex_wth_res: ex_wth_res[1].submit_time_stamp is not None
+                if ex_wth_res[1] is not None
+                else False,
+            )
 
             self.update_time_left_strings()
             self.generate_deadline_strings()
@@ -117,5 +158,8 @@ class ExercisesState(SessionState):
     def on_logout(self):
         """Clears the state when the user logs out."""
         self.exercises_with_result = []
+        self.open_deadline_exercises = []
+        self.no_deadline_exercises = []
+        self.closed_deadline_exercises = []
         self.deadline_strings = {}
         self.time_left_strings = {}

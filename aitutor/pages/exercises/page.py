@@ -28,6 +28,7 @@ def exercises_page() -> rx.Component:
             spacing="5",
             justify="center",
             align="center",
+            width="100%",
         ),
         margin_top="2em",
         margin_bottom="2em",
