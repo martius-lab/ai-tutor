@@ -1,6 +1,6 @@
 # AI Tutor for learning lecture content 
 
-AITandem is a web-based platform that supports professors and universities in providing students with automated and AI-supported exercises. The system uses artificial intelligence for assessment and provides personalized feedback for students.
+AITutor is a web-based platform that supports professors and universities in providing students with automated and AI-supported exercises. The system uses artificial intelligence for assessment and provides personalized feedback for students.
 
 ## 2. System overview
 
@@ -34,7 +34,7 @@ as long as uv is called from the projects root directory.
 Clone the repository:
 
     git clone <URL-of-repository>
-    cd aitandem
+    cd aitutor
 
 Initialize database:
 
@@ -44,11 +44,7 @@ Create local environment file `.env`:
 
 ```bash
 OPENAI_API_KEY=<your key>
-ADMIN_EMAIL=admin@mail.de
-ADMIN_PW=very-strong-password
 ```
-The admin email and password are used to auto-create an admin account for easy testing
-during development.
 
 
 ### Start the application:
@@ -61,8 +57,7 @@ during development.
 
     uv add <package-name>
 
-This will add the dependency to `pyproject.toml`, update the `uv.lock` file and install
-the package to the project's virtual environment.
+This will add the dependency to `pyproject.toml`, update the `uv.lock` file and install the package to the project's virtual environment.
 
 
 ### Migrate database after modifications:
@@ -81,14 +76,14 @@ Database URL: By default sqlite:///reflex.db
 
 App name: “AITutor”
 
-### 4.2 Customization of the AI modules
+### 4.2 Privacy Notice
+The privacy notice used on the website can be found in `aitutor/pages/legal_infos/datenschutz.md`. If you need to change it, you can edit this file.
+A short version of this privacy notice is displayed on the register page. It can be modified in `aitutor/pages/legal_infos/datenschutz_short.md`
 
-The AI components for grading exercises can be added or changed in separate modules.
-
-### 4.3 further configurations
+### 4.3 Further configurations
 You need to add a "config.toml" file to the root directory of the project. 
-This file should contain information about defaultusers and prompts.
-For more information about the config file, please refer to the [documentation](docs/configfile.md).
+This file should contain information about defaultusers, prompts and other configurations.
+For more information about the config file, please refer to the [configfile documentation](docs/configfile.md).
 
 ## 5 Database management
 
@@ -96,8 +91,8 @@ The system uses Alembic to manage schema changes.
 
 Create new migration:
 
-reflex db makemigrations
-refelx db migrate 
+    reflex db makemigrations
+    refelx db migrate 
 
 ## 6. Tests
 
@@ -105,7 +100,7 @@ To ensure that the system works properly, tests are set up with pytest.
 
 Execute tests:
 
-pytest
+    pytest
 
 
 ## Run with Docker

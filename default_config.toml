@@ -29,6 +29,8 @@ lecture_information_text = """
 
 course_name = "Example Lecture XY"
 
+impressum_text = "This is the impressum text."
+
 [[default_users]]
 role = "admin"
 name = "admin"

@@ -176,6 +176,16 @@ class LanguageState(SessionState):
             de="Keine bevorstehenden Fristen", en="No upcoming deadlines"
         )
 
+    @rx.var
+    def impressum(self) -> str:
+        """Impressum string"""
+        return self.translate(de="Impressum", en="Impressum")
+
+    @rx.var
+    def privacy_notice(self) -> str:
+        """Datenschutzerklärung string"""
+        return self.translate(de="Datenschutzerklärung", en="Privacy Notice")
+
     # Exercise Page Strings ------------------------------------------------------------
     @rx.var
     def deadline(self) -> str:

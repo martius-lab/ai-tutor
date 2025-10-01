@@ -1,0 +1,2 @@
+- Abgegebene chats können von Tutoren gesehen werden
+- Alle chats werden an die openai api gesendet
