@@ -15,6 +15,9 @@ SUBMISSIONS = "/submissions"
 # needs to be /finished_view_teacher/[exercise_id]/[url_user_id]
 FINISHED_VIEW_TEACHER = "/finished_view_teacher"
 
+IMPRESSUM = "/impressum"
+PRIVACY_NOTICE = "/privacy_notice"
+
 # we use the routes from reflex_local_auth to be
 # able to use functions like Loginstate.redir
 LOGIN = reflex_local_auth.routes.LOGIN_ROUTE

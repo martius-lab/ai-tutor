@@ -6,6 +6,7 @@ from aitutor.pages.home.state import HomeState
 from aitutor.routes import LOGIN, REGISTER
 from aitutor.config import get_config
 from aitutor.language_state import LanguageState
+from aitutor import routes
 
 
 def dashboard_card():
@@ -141,5 +142,19 @@ def info_accordion():
                 collapsible=True,
                 variant="outline",
             ),
+        ),
+    )
+
+
+def legal_info_links():
+    """Render the links for Impressum and privacy notice"""
+    return rx.hstack(
+        rx.link(
+            LanguageState.impressum,
+            href=routes.IMPRESSUM,
+        ),
+        rx.link(
+            LanguageState.privacy_notice,
+            href=routes.PRIVACY_NOTICE,
         ),
     )

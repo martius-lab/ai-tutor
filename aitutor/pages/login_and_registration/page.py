@@ -22,7 +22,9 @@ def custom_login_page() -> rx.Component:
             LoginState.is_hydrated,
             rx.card(login_form()),
         ),
-        min_height="85vh",
+        margin_top="2em",
+        margin_bottom="2em",
+        width="90%",
     )
 
 
@@ -37,5 +39,7 @@ def custom_register_page() -> rx.Component:
             RegistrationState.is_hydrated,
             rx.card(register_form()),
         ),
-        min_height="85vh",
+        margin_top="2em",
+        margin_bottom="2em",
+        width="90%",
     )
