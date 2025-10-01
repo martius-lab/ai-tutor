@@ -77,7 +77,7 @@ Database URL: By default sqlite:///reflex.db
 App name: “AITutor”
 
 ### 4.2 Privacy Notice
-To add a privacy notice text to the website, add a `datenschutz.md` file in the root folder. The content of this file will be displayed on the website in markdown format.
+The privacy notice used on the website can be found in `aitutor/pages/legal_infos/datenschutz.md`. If you need to change it, you can edit this file.
 
 ### 4.3 Further configurations
 You need to add a "config.toml" file to the root directory of the project. 
