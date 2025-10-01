@@ -14,11 +14,11 @@ def role_to_text(role: UserRole):
     """Convert a UserRole to string in a way that works for reflex."""
     return rx.cond(
         role == UserRole.ADMIN,
-        "Admin",
+        UserRole.ADMIN.name,
         rx.cond(
             role == UserRole.TEACHER,
-            "Teacher",
-            rx.cond(role == UserRole.STUDENT, "Student", "Unknown"),
+            UserRole.TEACHER.name,
+            rx.cond(role == UserRole.STUDENT, UserRole.STUDENT.name, "Unknown"),
         ),
     )
 
@@ -30,7 +30,13 @@ def user_table_row(user: tuple[LocalUser, UserInfo]) -> rx.Component:
         rx.table.cell(user[0].username),
         rx.table.cell(user[1].email),
         rx.table.cell(role_to_text(user[1].role)),
-        rx.table.cell(rx.cond(user[0].enabled, rx.icon("check"), rx.icon("close"))),
+        rx.table.cell(
+            rx.cond(
+                user[0].enabled,
+                rx.icon("square-check"),
+                rx.icon("square-x", color="red"),
+            )
+        ),
         rx.table.cell(
             rx.hstack(
                 rx.button(
@@ -49,10 +55,23 @@ def user_table_row(user: tuple[LocalUser, UserInfo]) -> rx.Component:
     )
 
 
+def form_label(text: str) -> rx.Component:
+    """Create a form label."""
+    return rx.text(
+        text,
+        size="3",
+        weight="medium",
+        text_align="left",
+        width="100%",
+        padding_top="1.5em",
+        padding_bottom="0.5em",
+    )
+
+
 def edit_user_dialog() -> rx.Component:
     """Dialog for editing users."""
     return rx.cond(
-        ManageUsersState.edited_user != None,
+        ManageUsersState.edited_user != None,  # noqa: E711
         rx.dialog.root(
             rx.dialog.content(
                 rx.hstack(
@@ -83,14 +102,7 @@ def edit_user_dialog() -> rx.Component:
                 ),
                 rx.form(
                     (
-                        rx.text(
-                            "Username",
-                            size="3",
-                            weight="medium",
-                            text_align="left",
-                            width="100%",
-                            padding_bottom="0.5em",
-                        ),
+                        form_label("Username"),
                         rx.input(
                             default_value=ManageUsersState.edited_user[0].username,
                             size="3",
@@ -98,15 +110,7 @@ def edit_user_dialog() -> rx.Component:
                             type="text",
                             name="username",
                         ),
-                        rx.text(
-                            "Email",
-                            size="3",
-                            weight="medium",
-                            text_align="left",
-                            width="100%",
-                            padding_top="1.5em",
-                            padding_bottom="0.5em",
-                        ),
+                        form_label("Email"),
                         rx.input(
                             default_value=ManageUsersState.edited_user[1].email,
                             size="3",
@@ -114,21 +118,32 @@ def edit_user_dialog() -> rx.Component:
                             type="text",
                             name="email",
                         ),
-                        rx.text(
-                            "New password",
-                            size="3",
-                            weight="medium",
-                            text_align="left",
-                            width="100%",
-                            padding_top="1.5em",
-                            padding_bottom="0.5em",
-                        ),
+                        form_label("New password"),
                         rx.input(
                             placeholder="Leave empty to keep current password",
                             size="3",
                             width="100%",
                             type="password",
                             name="new_password",
+                        ),
+                        form_label("Role"),
+                        rx.select(
+                            (
+                                UserRole.ADMIN.name,
+                                UserRole.TEACHER.name,
+                                UserRole.STUDENT.name,
+                            ),
+                            default_value=role_to_text(
+                                ManageUsersState.edited_user[1].role
+                            ),
+                            size="3",
+                            width="100%",
+                            name="role",
+                        ),
+                        form_label("Enabled"),
+                        rx.checkbox(
+                            name="enabled",
+                            default_checked=ManageUsersState.edited_user[0].enabled,
                         ),
                         # buttons
                         rx.hstack(
@@ -150,8 +165,6 @@ def edit_user_dialog() -> rx.Component:
                         ),
                     ),
                     on_submit=ManageUsersState.update_user,
-                    reset_on_submit=False,
-                    enter_key_submit=False,
                 ),
             ),
             open=ManageUsersState.edit_dialog_is_open,
