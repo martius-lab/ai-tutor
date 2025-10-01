@@ -60,6 +60,13 @@ The lecture title also gets displayed. You can set it in the variable `course_na
 course_name = "Example Lecture XY"
 ```
 
+## Impressum
+On the Impressum page, this text will be displayed in markdown format.
+It has to contain information for who is responsible for the contents of the webiste.
+```toml
+impressum_text = "This is the impressum text."
+```
+
 ## default_users
 
 You can define a number of default users, that are automatically created.  This is
