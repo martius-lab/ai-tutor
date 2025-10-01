@@ -60,6 +60,8 @@ app.add_page(
     on_load=pages.MyRegisterState.on_load,
 )
 app.add_page(pages.not_found_page, route=routes.NOT_FOUND)
+app.add_page(pages.impressum_page, route=routes.IMPRESSUM)
+app.add_page(pages.privacy_notice_page, route=routes.PRIVACY_NOTICE)
 
 
 async def initialize():
