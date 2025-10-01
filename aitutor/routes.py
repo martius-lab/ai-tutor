@@ -8,6 +8,7 @@ HOME = "/"
 CHAT = "/chat"  # needs to be /chat/[exercise_id] to work
 EXERCISES = "/exercises"
 MANAGE_EXERCISES = "/manage_exercises"
+MANAGE_USERS = "/users"
 NOT_FOUND = "/404"
 FINISHED_VIEW = "/finished_view"  # needs to be /finished_view/[exercise_id] to work
 SUBMISSIONS = "/submissions"
