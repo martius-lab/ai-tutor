@@ -1,2 +1,2 @@
-- submitted chats can be seen by the teacher
-- all chats are sent to the openai api
+- Abgegebene chats können von Tutoren gesehen werden
+- Alle chats werden an die openai api gesendet
