@@ -4,7 +4,7 @@ import reflex as rx
 import sqlalchemy
 from typing import override
 from reflex_local_auth.user import LocalUser
-from sqlmodel import select, and_
+from sqlmodel import select, and_, func
 from dataclasses import dataclass
 from sqlalchemy.orm import selectinload
 
@@ -67,7 +67,7 @@ class SubmissionsState(FilterMixin, SessionState):
                     & (ExerciseResult.userinfo_id == LocalUser.id),  # type: ignore
                 )
                 .options(selectinload(Exercise.tags))  # type: ignore
-                .order_by(Exercise.title, LocalUser.username)
+                .order_by(func.lower(Exercise.title), LocalUser.username)
             )
 
             # filter with search values
