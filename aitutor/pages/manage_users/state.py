@@ -31,7 +31,7 @@ class ManageUsersState(SessionState):
         """Load the users from the database."""
         with rx.session() as session:
             query = select(LocalUser, UserInfo).join(UserInfo)
-            self.users = list(session.exec(query).all())
+            self.users = [(lu, ui) for lu, ui in session.exec(query).all()]
 
     @rx.event
     def close_edit_dialog(self):
@@ -49,9 +49,9 @@ class ManageUsersState(SessionState):
                 .join(UserInfo)
                 .where(LocalUser.id == user_id)
             )
-            self.edited_user = session.exec(query).one_or_none()
+            row = session.exec(query).one_or_none()
 
-        if not self.edited_user:
+        if not row:
             return rx.toast.error(
                 "Fatal error: User not found",
                 duration=5000,
@@ -59,12 +59,13 @@ class ManageUsersState(SessionState):
                 invert=True,
             )
 
+        # need to convert to proper tuple to avoid some weird type errors...
+        self.edited_user = (row[0], row[1])
         self.edit_dialog_is_open = True
 
     @rx.event
     def update_user(self, form_data):
         """Save changes to a user from the edit form."""
-        print(form_data)
         assert self.edited_user is not None
         with rx.session() as session:
             query = (
