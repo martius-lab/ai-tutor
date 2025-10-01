@@ -68,25 +68,3 @@ def get_config() -> AiTutorConfig:
     # Type of _config is actually some OmegaConf object, but it should have the same
     # fields as AiTutorConfig, so list that as return type for better auto-completion.
     return _config  # type: ignore[return-value]
-
-
-_privacy_notice = None
-
-
-def load_privacy_notice():
-    """Load the privacy notice text from datenschutz.md."""
-    global _privacy_notice
-    try:
-        with open("datenschutz.md", "r", encoding="utf-8") as f:
-            _privacy_notice = f.read()
-    except FileNotFoundError:
-        print("Warning: datenschutz.md not found. Using empty privacy notice.")
-        _privacy_notice = ""
-
-
-def get_privacy_notice() -> str:
-    """Get the privacy notice text from datenschutz.md."""
-    if _privacy_notice is None:
-        load_privacy_notice()
-    assert _privacy_notice is not None
-    return _privacy_notice

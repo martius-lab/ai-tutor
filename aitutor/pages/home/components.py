@@ -146,7 +146,7 @@ def info_accordion():
     )
 
 
-def legal_infos():
+def legal_info_links():
     """Render the links for Impressum and privacy notice"""
     return rx.hstack(
         rx.link(
