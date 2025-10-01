@@ -38,6 +38,7 @@ class AiTutorConfig:
     general_information_text: str
     lecture_information_text: str
     course_name: str
+    impressum_text: str
     default_users: list[ConfigDefaultUser]
     exercise_prompts: list[ConfigExercisePrompt]
 

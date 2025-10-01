@@ -3,6 +3,7 @@
 import reflex as rx
 from aitutor.pages.navbar import with_navbar
 from aitutor.language_state import LanguageState
+from aitutor.config import get_config
 
 
 @with_navbar("")
@@ -12,7 +13,7 @@ def impressum_page() -> rx.Component:
         rx.vstack(
             rx.heading(LanguageState.impressum),
             rx.markdown(
-                "Test impressum text \n this will be replaced with the real text \n ",
+                get_config().impressum_text,
                 align="left",
             ),
             align="center",
