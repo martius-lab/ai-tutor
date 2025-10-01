@@ -2,6 +2,7 @@
 
 import reflex as rx
 from sqlmodel import select
+from reflex_local_auth.auth_session import LocalAuthSession
 
 from aitutor.auth.protection import state_require_role_at_least
 from aitutor.auth.state import SessionState
@@ -86,6 +87,16 @@ class ManageUsersState(SessionState):
             # of having a boolean true/false value, they add it with value "on" in the
             # form_data if it is checked, and do not add it at all if it is not checked.
             local_user.enabled = form_data.get("enabled") == "on"
+
+            # if user gets disabled, also end any open sessions they may still have
+            if not local_user.enabled:
+                user_sessions = session.exec(
+                    select(LocalAuthSession).where(
+                        LocalAuthSession.user_id == local_user.id
+                    )
+                ).all()
+                for us in user_sessions:
+                    session.delete(us)
 
             session.commit()
 
