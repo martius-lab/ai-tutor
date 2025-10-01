@@ -40,6 +40,7 @@ teacher_links = [
 ]
 admin_links = [
     (LanguageState.manage_exercises_link, routes.MANAGE_EXERCISES, "pencil-line"),
+    ("Manage Users", routes.MANAGE_USERS, "users"),
 ]
 
 
