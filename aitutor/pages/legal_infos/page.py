@@ -3,7 +3,7 @@
 import reflex as rx
 from aitutor.pages.navbar import with_navbar
 from aitutor.language_state import LanguageState
-from aitutor.config import get_config
+from aitutor.config import get_config, get_privacy_notice
 
 
 @with_navbar("")
@@ -30,7 +30,7 @@ def privacy_notice_page() -> rx.Component:
         rx.vstack(
             rx.heading(LanguageState.privacy_notice),
             rx.markdown(
-                "Test privacy notice text \n this will be replaced with the real text",
+                get_privacy_notice(),
                 align="left",
             ),
             align="center",
