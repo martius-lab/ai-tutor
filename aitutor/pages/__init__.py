@@ -11,6 +11,7 @@ from aitutor.pages.login_and_registration.page import (
     custom_login_page,
     custom_register_page,
 )
+from aitutor.pages.legal_infos.page import impressum_page, privacy_notice_page
 
 from aitutor.pages.chat.state import ChatState
 from aitutor.pages.exercises.state import ExercisesState
@@ -34,6 +35,8 @@ __all__ = [
     "finished_view_teacher_page",
     "custom_login_page",
     "custom_register_page",
+    "impressum_page",
+    "privacy_notice_page",
     # states
     "ChatState",
     "HomeState",

@@ -4,7 +4,7 @@ import reflex as rx
 
 from aitutor import routes
 from aitutor.pages.navbar import with_navbar
-from aitutor.pages.home.components import dashboard_card, info_accordion
+from aitutor.pages.home.components import dashboard_card, info_accordion, legal_infos
 
 
 @with_navbar(routes.HOME)
@@ -16,6 +16,7 @@ def home_page() -> rx.Component:
             # Dashboard Card
             dashboard_card(),
             info_accordion(),
+            legal_infos(),
             width="100%",
             align="center",
             justify="center",
