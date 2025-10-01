@@ -78,6 +78,7 @@ App name: “AITutor”
 
 ### 4.2 Privacy Notice
 The privacy notice used on the website can be found in `aitutor/pages/legal_infos/datenschutz.md`. If you need to change it, you can edit this file.
+A short version of this privacy notice is displayed on the register page. It can be modified in `aitutor/pages/legal_infos/datenschutz_short.md`
 
 ### 4.3 Further configurations
 You need to add a "config.toml" file to the root directory of the project. 

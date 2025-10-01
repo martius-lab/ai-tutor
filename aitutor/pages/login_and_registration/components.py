@@ -11,6 +11,7 @@ from aitutor.pages.login_and_registration.state import (
     MyRegisterState,
 )
 from aitutor.language_state import LanguageState
+from aitutor.pages.legal_infos.loader_functions import get_privacy_notice_short
 
 
 def input(name, placeholder, **props) -> rx.Component:
@@ -177,6 +178,21 @@ def register_form() -> rx.Component:
                 required=True,
                 value=MyRegisterState.confirm_password,
                 on_change=MyRegisterState.set_confirm_password,
+            ),
+            rx.callout(
+                rx.hstack(
+                    rx.icon("info"),
+                    rx.markdown(
+                        get_privacy_notice_short(),
+                        margin_top="0",
+                        margin_bottom="0",
+                        align="left",
+                    ),
+                    align="center",
+                ),
+                color_scheme="blue",
+                role="alert",
+                width="100%",
             ),
             rx.button(
                 LanguageState.register,

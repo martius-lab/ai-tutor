@@ -1,0 +1,2 @@
+- submitted chats can be seen by the teacher
+- all chats are sent to the openai api
