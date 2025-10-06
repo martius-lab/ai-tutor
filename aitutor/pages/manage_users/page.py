@@ -21,6 +21,36 @@ def role_to_text(role: UserRole):
         "Unknown",
     )
 
+def delete_user_button(user: LocalUser) -> rx.Component:
+    """Button to delete a user with a confirmation dialog."""
+    return rx.alert_dialog.root(
+        rx.alert_dialog.trigger(
+            rx.button(
+                rx.flex(rx.icon("trash", size=15), LS.delete, gap="0.5em"),
+                color_scheme="red",
+            ),
+        ),
+        rx.alert_dialog.content(
+            rx.alert_dialog.title(LS.delete_user + f" '{user.username}'"),
+            rx.alert_dialog.description(LS.delete_user_description),
+            rx.hstack(
+                rx.alert_dialog.cancel(
+                    rx.button(
+                        rx.text(LS.cancel),
+                        _hover={"cursor": "pointer"},
+                    ),
+                ),
+                rx.alert_dialog.action(
+                    rx.button(
+                        LS.delete,
+                        color_scheme="red",
+                        on_click=ManageUsersState.delete_user(user.id),
+                    ),
+                ),
+                margin_top="1em",
+            ),
+        ),
+    )
 
 def user_table_row(user: tuple[LocalUser, UserInfo]) -> rx.Component:
     """Create a single row of the users table."""
@@ -43,11 +73,7 @@ def user_table_row(user: tuple[LocalUser, UserInfo]) -> rx.Component:
                     color_scheme="blue",
                     on_click=ManageUsersState.open_edit_dialog(user[0].id),
                 ),
-                rx.button(
-                    rx.flex(rx.icon("trash", size=15), LS.delete, gap="0.5em"),
-                    color_scheme="red",
-                    disabled=True,  # TODO implement delete user functionality
-                ),
+                delete_user_button(user[0]),
                 spacing="2",
             ),
         ),
@@ -166,6 +192,9 @@ def edit_user_dialog() -> rx.Component:
             open=ManageUsersState.edit_dialog_is_open,
         ),
     )
+
+
+
 
 
 def users_table() -> rx.Component:
