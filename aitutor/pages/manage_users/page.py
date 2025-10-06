@@ -39,12 +39,12 @@ def user_table_row(user: tuple[LocalUser, UserInfo]) -> rx.Component:
         rx.table.cell(
             rx.hstack(
                 rx.button(
-                    LS.edit,
+                    rx.flex(rx.icon("pen", size=15), LS.edit, gap="0.5em"),
                     color_scheme="blue",
                     on_click=ManageUsersState.open_edit_dialog(user[0].id),
                 ),
                 rx.button(
-                    LS.delete,
+                    rx.flex(rx.icon("trash", size=15), LS.delete, gap="0.5em"),
                     color_scheme="red",
                     disabled=True,  # TODO implement delete user functionality
                 ),
