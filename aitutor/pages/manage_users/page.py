@@ -13,14 +13,12 @@ from aitutor.auth.protection import page_require_role_at_least
 
 def role_to_text(role: UserRole):
     """Convert a UserRole to string in a way that works for reflex."""
-    return rx.cond(
-        role == UserRole.ADMIN,
-        UserRole.ADMIN.name,
-        rx.cond(
-            role == UserRole.TEACHER,
-            UserRole.TEACHER.name,
-            rx.cond(role == UserRole.STUDENT, UserRole.STUDENT.name, "Unknown"),
-        ),
+    return rx.match(
+        role,
+        (UserRole.ADMIN, UserRole.ADMIN.name),
+        (UserRole.TEACHER, UserRole.TEACHER.name),
+        (UserRole.STUDENT, UserRole.STUDENT.name),
+        "Unknown",
     )
 
 
