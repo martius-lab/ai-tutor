@@ -21,6 +21,7 @@ def role_to_text(role: UserRole):
         "Unknown",
     )
 
+
 def delete_user_button(user: LocalUser) -> rx.Component:
     """Button to delete a user with a confirmation dialog."""
     return rx.alert_dialog.root(
@@ -44,13 +45,14 @@ def delete_user_button(user: LocalUser) -> rx.Component:
                     rx.button(
                         LS.delete,
                         color_scheme="red",
-                        on_click=ManageUsersState.delete_user(user.id),
+                        on_click=ManageUsersState.delete_user(user.id),  # type: ignore
                     ),
                 ),
                 margin_top="1em",
             ),
         ),
     )
+
 
 def user_table_row(user: tuple[LocalUser, UserInfo]) -> rx.Component:
     """Create a single row of the users table."""
@@ -71,7 +73,7 @@ def user_table_row(user: tuple[LocalUser, UserInfo]) -> rx.Component:
                 rx.button(
                     rx.flex(rx.icon("pen", size=15), LS.edit, gap="0.5em"),
                     color_scheme="blue",
-                    on_click=ManageUsersState.open_edit_dialog(user[0].id),
+                    on_click=ManageUsersState.open_edit_dialog(user[0].id),  # type: ignore
                 ),
                 delete_user_button(user[0]),
                 spacing="2",
@@ -95,9 +97,9 @@ def form_label(text: str | rx.vars.StringVar[str]) -> rx.Component:
 
 def edit_user_dialog() -> rx.Component:
     """Dialog for editing users."""
-    return rx.cond(
-        ManageUsersState.edited_user != None,  # noqa: E711
-        rx.dialog.root(
+
+    def _helper(local_user: LocalUser, user_info: UserInfo) -> rx.Component:
+        return rx.dialog.root(
             rx.dialog.content(
                 rx.hstack(
                     rx.badge(
@@ -126,7 +128,7 @@ def edit_user_dialog() -> rx.Component:
                     (
                         form_label(LS.username),
                         rx.input(
-                            default_value=ManageUsersState.edited_user[0].username,
+                            default_value=local_user.username,
                             size="3",
                             width="100%",
                             type="text",
@@ -134,7 +136,7 @@ def edit_user_dialog() -> rx.Component:
                         ),
                         form_label(LS.email),
                         rx.input(
-                            default_value=ManageUsersState.edited_user[1].email,
+                            default_value=user_info.email,
                             size="3",
                             width="100%",
                             type="text",
@@ -155,9 +157,7 @@ def edit_user_dialog() -> rx.Component:
                                 UserRole.TEACHER.name,
                                 UserRole.STUDENT.name,
                             ),
-                            default_value=role_to_text(
-                                ManageUsersState.edited_user[1].role
-                            ),
+                            default_value=role_to_text(user_info.role),  # type: ignore
                             size="3",
                             width="100%",
                             name="role",
@@ -165,7 +165,7 @@ def edit_user_dialog() -> rx.Component:
                         form_label(LS.enabled),
                         rx.checkbox(
                             name="enabled",
-                            default_checked=ManageUsersState.edited_user[0].enabled,
+                            default_checked=local_user.enabled,
                         ),
                         # buttons
                         rx.hstack(
@@ -190,11 +190,15 @@ def edit_user_dialog() -> rx.Component:
                 ),
             ),
             open=ManageUsersState.edit_dialog_is_open,
+        )
+
+    return rx.cond(
+        ManageUsersState.edited_user != None,  # noqa: E711
+        _helper(
+            ManageUsersState.edited_user[0],  # type: ignore
+            ManageUsersState.edited_user[1],  # type: ignore
         ),
     )
-
-
-
 
 
 def users_table() -> rx.Component:
