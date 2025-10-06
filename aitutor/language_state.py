@@ -1,3 +1,4 @@
+# ruff: noqa D102
 """
 State that returns all strings in the current language.
 Every var function checks for the current language and returns the appropriate string.
@@ -607,3 +608,47 @@ class LanguageState(SessionState):
             de="Registrierung erfolgreich! Sie können sich jetzt anmelden.",
             en="Registration successful! You can now log in.",
         )
+
+
+    @rx.var
+    def manage_users(self) -> str:
+        return self.translate(de="Benutzerverwaltung", en="Manage Users")
+
+    @rx.var
+    def edit_user(self) -> str:
+        return self.translate(de="Benutzer bearbeiten", en="Edit User")
+
+    @rx.var
+    def id(self) -> str:
+        return self.translate(de="ID", en="ID")
+
+    @rx.var
+    def role(self) -> str:
+        return self.translate(de="Rolle", en="Role")
+
+    @rx.var
+    def enabled(self) -> str:
+        return self.translate(de="Aktiviert", en="Enabled")
+
+    @rx.var
+    def new_password(self) -> str:
+        return self.translate(de="Neues Passwort", en="New Password")
+
+    @rx.var
+    def new_password_placeholder(self) -> str:
+        return self.translate(
+            de="Leer lassen, um Passwort nicht zu ändern.",
+            en="Leave empty to keep current password",
+        )
+
+    @rx.var
+    def save(self) -> str:
+        return self.translate(de="Speichern", en="Save")
+
+    @rx.var
+    def edit(self) -> str:
+        return self.translate(de="Bearbeiten", en="Edit")
+
+    @rx.var
+    def delete(self) -> str:
+        return self.translate(de="Löschen", en="Delete")
