@@ -31,6 +31,7 @@ def delete_user_button(user: LocalUser) -> rx.Component:
             rx.alert_dialog.title(LS.delete_user + f" '{user.username}'"),
             rx.alert_dialog.description(LS.delete_user_description),
             rx.hstack(
+                rx.spacer(),
                 rx.alert_dialog.cancel(
                     rx.button(
                         rx.text(LS.cancel),
