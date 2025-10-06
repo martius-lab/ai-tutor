@@ -26,6 +26,8 @@ class ManageUsersState(SessionState):
     def on_logout(self):
         """Clears the state when the user logs out."""
         self.users = []
+        self.edited_user = None
+        self.edit_dialog_is_open = False
 
     def load_users(self):
         """Load the users from the database."""
