@@ -4,6 +4,7 @@ import reflex as rx
 
 
 from aitutor import routes
+from aitutor.language_state import LanguageState as LS
 from aitutor.models import LocalUser, UserInfo, UserRole
 from aitutor.pages.manage_users.state import ManageUsersState
 from aitutor.pages.navbar import with_navbar
@@ -40,12 +41,12 @@ def user_table_row(user: tuple[LocalUser, UserInfo]) -> rx.Component:
         rx.table.cell(
             rx.hstack(
                 rx.button(
-                    "Edit",
+                    LS.edit,
                     color_scheme="blue",
                     on_click=ManageUsersState.open_edit_dialog(user[0].id),
                 ),
                 rx.button(
-                    "Delete",
+                    LS.delete,
                     color_scheme="red",
                     disabled=True,  # TODO implement delete user functionality
                 ),
@@ -55,7 +56,7 @@ def user_table_row(user: tuple[LocalUser, UserInfo]) -> rx.Component:
     )
 
 
-def form_label(text: str) -> rx.Component:
+def form_label(text: str | rx.vars.StringVar[str]) -> rx.Component:
     """Create a form label."""
     return rx.text(
         text,
@@ -76,18 +77,15 @@ def edit_user_dialog() -> rx.Component:
             rx.dialog.content(
                 rx.hstack(
                     rx.badge(
-                        rx.icon(tag="wrench", size=34),
+                        rx.icon(tag="pen", size=34),
                         color_scheme="orange",
                         radius="full",
                     ),
                     rx.vstack(
                         rx.dialog.title(
-                            "Edit User",
+                            LS.edit_user,
                             weight="bold",
                             margin="0",
-                        ),
-                        rx.dialog.description(
-                            "Really what should be written here?",
                         ),
                         spacing="1",
                         height="100%",
@@ -102,7 +100,7 @@ def edit_user_dialog() -> rx.Component:
                 ),
                 rx.form(
                     (
-                        form_label("Username"),
+                        form_label(LS.username),
                         rx.input(
                             default_value=ManageUsersState.edited_user[0].username,
                             size="3",
@@ -110,7 +108,7 @@ def edit_user_dialog() -> rx.Component:
                             type="text",
                             name="username",
                         ),
-                        form_label("Email"),
+                        form_label(LS.email),
                         rx.input(
                             default_value=ManageUsersState.edited_user[1].email,
                             size="3",
@@ -118,15 +116,15 @@ def edit_user_dialog() -> rx.Component:
                             type="text",
                             name="email",
                         ),
-                        form_label("New password"),
+                        form_label(LS.new_password),
                         rx.input(
-                            placeholder="Leave empty to keep current password",
+                            placeholder=LS.new_password_placeholder,
                             size="3",
                             width="100%",
                             type="password",
                             name="new_password",
                         ),
-                        form_label("Role"),
+                        form_label(LS.role),
                         rx.select(
                             (
                                 UserRole.ADMIN.name,
@@ -140,7 +138,7 @@ def edit_user_dialog() -> rx.Component:
                             width="100%",
                             name="role",
                         ),
-                        form_label("Enabled"),
+                        form_label(LS.enabled),
                         rx.checkbox(
                             name="enabled",
                             default_checked=ManageUsersState.edited_user[0].enabled,
@@ -148,13 +146,13 @@ def edit_user_dialog() -> rx.Component:
                         # buttons
                         rx.hstack(
                             rx.button(
-                                "Cancel",
+                                LS.cancel,
                                 color_scheme="gray",
                                 type="button",
                                 on_click=ManageUsersState.close_edit_dialog(),
                             ),
                             rx.button(
-                                "Save",
+                                LS.save,
                                 color_scheme="blue",
                                 type="submit",
                             ),
@@ -179,13 +177,12 @@ def users_table() -> rx.Component:
         rx.table.root(
             rx.table.header(
                 rx.table.row(
-                    # TODO language
-                    rx.table.column_header_cell("ID"),
-                    rx.table.column_header_cell("Username"),
-                    rx.table.column_header_cell("Email"),
-                    rx.table.column_header_cell("Role"),
-                    rx.table.column_header_cell("Enabled"),
-                    rx.table.column_header_cell("Action"),
+                    rx.table.column_header_cell(LS.id),
+                    rx.table.column_header_cell(LS.username),
+                    rx.table.column_header_cell(LS.email),
+                    rx.table.column_header_cell(LS.role),
+                    rx.table.column_header_cell(LS.enabled),
+                    rx.table.column_header_cell(""),
                 ),
             ),
             # dynamically render each new entry
