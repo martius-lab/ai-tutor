@@ -609,7 +609,6 @@ class LanguageState(SessionState):
             en="Registration successful! You can now log in.",
         )
 
-
     @rx.var
     def manage_users(self) -> str:
         return self.translate(de="Benutzerverwaltung", en="Manage Users")
@@ -652,3 +651,14 @@ class LanguageState(SessionState):
     @rx.var
     def delete(self) -> str:
         return self.translate(de="Löschen", en="Delete")
+
+    @rx.var
+    def delete_user(self) -> str:
+        return self.translate(de="Benutzer löschen:", en="Delete user:")
+
+    @rx.var
+    def delete_user_description(self) -> str:
+        return self.translate(
+            de="Alle Übungen und Abgaben dieses Benutzers werden ebenfalls gelöscht. Dies kann nicht rückgängig gemacht werden!",
+            en="All exercises and submissions of this user will also be deleted.  This cannot be undone!",
+        )

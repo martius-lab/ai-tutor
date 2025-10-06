@@ -104,3 +104,56 @@ class ManageUsersState(SessionState):
         # reload users to update the table
         self.load_users()
         self.close_edit_dialog()
+
+    @rx.event
+    def delete_user(self, user_id: int):
+        """Delete a user from the database."""
+        with rx.session() as session:
+            query = (
+                select(LocalUser, UserInfo)
+                .join(UserInfo)
+                .where(LocalUser.id == user_id)
+            )
+            row = session.exec(query).one_or_none()
+
+            if row:
+                local_user, user_info = row
+
+                # NOTE: The deletions below could be reduced to a single delete of
+                # LocalUser if delete cascades where set up properly.  However, since
+                # LocalUser and LocalAuthSession are defined in the reflex_local_auth,
+                # we don't have direct influence on it.
+
+                session.delete(local_user)
+                # delete does not cascade from LocalUser to UserInfo, so we need to do
+                # this explicilty
+                session.delete(user_info)
+
+                # and also delete any open sessions the user may still have (doesn't
+                # cascade either...)
+                user_sessions = session.exec(
+                    select(LocalAuthSession).where(
+                        LocalAuthSession.user_id == local_user.id
+                    )
+                ).all()
+                for us in user_sessions:
+                    session.delete(us)
+
+                session.commit()
+            else:
+                return rx.toast.error(
+                    "Fatal error: User not found",
+                    duration=5000,
+                    position="bottom-center",
+                    invert=True,
+                )
+
+        # reload the table
+        self.load_users()
+
+        return rx.toast.success(
+            f"Deleted user {local_user.username}.",
+            duration=5000,
+            position="bottom-center",
+            invert=True,
+        )
