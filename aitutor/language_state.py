@@ -609,6 +609,7 @@ class LanguageState(SessionState):
             en="Registration successful! You can now log in.",
         )
 
+    # Manage Users Page Strings --------------------------------------------------------
     @rx.var
     def manage_users(self) -> str:
         return self.translate(de="Benutzerverwaltung", en="Manage Users")
