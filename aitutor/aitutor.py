@@ -44,6 +44,11 @@ app.add_page(
     on_load=pages.ManageExercisesState.on_load,
 )
 app.add_page(
+    pages.manage_users_page,
+    route=routes.MANAGE_USERS,
+    on_load=pages.ManageUsersState.on_load,
+)
+app.add_page(
     pages.exercises_page,
     route=routes.EXERCISES,
     on_load=pages.ExercisesState.on_load,
