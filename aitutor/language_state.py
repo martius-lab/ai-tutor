@@ -1,3 +1,4 @@
+# ruff: noqa D102
 """
 State that returns all strings in the current language.
 Every var function checks for the current language and returns the appropriate string.
@@ -48,6 +49,16 @@ class LanguageState(SessionState):
     def register(self) -> str:
         """Register string"""
         return self.translate(de="Registrieren", en="Register")
+
+    @rx.var
+    def username(self) -> str:
+        """Username string"""
+        return self.translate(de="Benutzername", en="Username")
+
+    @rx.var
+    def email(self) -> str:
+        """Email string"""
+        return self.translate(de="E-Mail", en="Email")
 
     # Search Bar Strings ---------------------------------------------------------------
     @rx.var
@@ -609,11 +620,6 @@ class LanguageState(SessionState):
         )
 
     @rx.var
-    def username(self) -> str:
-        """Username string"""
-        return self.translate(de="Benutzername", en="Username")
-
-    @rx.var
     def password(self) -> str:
         """Password string"""
         return self.translate(de="Passwort", en="Password")
@@ -622,11 +628,6 @@ class LanguageState(SessionState):
     def register_heading(self) -> str:
         """Register heading string"""
         return self.translate(de="Erstellen Sie ein Konto", en="Create an account")
-
-    @rx.var
-    def email(self) -> str:
-        """Email string"""
-        return self.translate(de="E-Mail", en="Email")
 
     @rx.var
     def confirm_password(self) -> str:
@@ -639,4 +640,81 @@ class LanguageState(SessionState):
         return self.translate(
             de="Registrierung erfolgreich! Sie können sich jetzt anmelden.",
             en="Registration successful! You can now log in.",
+        )
+
+    # Manage Users Page Strings --------------------------------------------------------
+    @rx.var
+    def manage_users(self) -> str:
+        return self.translate(de="Benutzerverwaltung", en="Manage Users")
+
+    @rx.var
+    def edit_user(self) -> str:
+        return self.translate(de="Benutzer bearbeiten", en="Edit User")
+
+    @rx.var
+    def id(self) -> str:
+        return self.translate(de="ID", en="ID")
+
+    @rx.var
+    def role(self) -> str:
+        return self.translate(de="Rolle", en="Role")
+
+    @rx.var
+    def enabled(self) -> str:
+        return self.translate(de="Aktiviert", en="Enabled")
+
+    @rx.var
+    def new_password(self) -> str:
+        return self.translate(de="Neues Passwort", en="New Password")
+
+    @rx.var
+    def new_password_placeholder(self) -> str:
+        return self.translate(
+            de="Leer lassen, um Passwort nicht zu ändern.",
+            en="Leave empty to keep current password",
+        )
+
+    @rx.var
+    def save(self) -> str:
+        return self.translate(de="Speichern", en="Save")
+
+    @rx.var
+    def edit(self) -> str:
+        return self.translate(de="Bearbeiten", en="Edit")
+
+    @rx.var
+    def delete(self) -> str:
+        return self.translate(de="Löschen", en="Delete")
+
+    @rx.var
+    def delete_user(self) -> str:
+        return self.translate(de="Benutzer löschen:", en="Delete user:")
+
+    @rx.var
+    def delete_user_description(self) -> str:
+        return self.translate(
+            de="Alle Übungen und Abgaben dieses Benutzers werden ebenfalls gelöscht. Dies kann nicht rückgängig gemacht werden!",
+            en="All exercises and submissions of this user will also be deleted.  This cannot be undone!",
+        )
+
+
+class BackendTranslations:
+    """Translations for use in the backend (where LanguageState is not available)."""
+
+    # ManageUsersState --------------------------------------------------------
+
+    @staticmethod
+    def error_user_not_found(language: Language) -> str:
+        return translate(
+            language,
+            de="Fehler: Benutzer existiert nicht.",
+            en="Error: User not found",
+        )
+
+    @staticmethod
+    def deleted_user(language: Language, username: str) -> str:
+        return translate(
+            language,
+            de=f"Benutzer '{username}' wurde gelöscht.",
+            en=f"User '{username}' has been deleted.",
         )
