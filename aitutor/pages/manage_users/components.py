@@ -5,6 +5,7 @@ import reflex as rx
 from aitutor.language_state import LanguageState as LS
 from aitutor.models import LocalUser, UserInfo, UserRole
 from aitutor.pages.manage_users.state import ManageUsersState
+from aitutor.pages.login_and_registration.components import password_input
 
 
 def role_to_text(role: UserRole):
@@ -138,12 +139,11 @@ def edit_user_dialog() -> rx.Component:
                             name="email",
                         ),
                         form_label(LS.new_password),
-                        rx.input(
-                            placeholder=LS.new_password_placeholder,
-                            size="3",
-                            width="100%",
-                            type="password",
+                        password_input(
                             name="new_password",
+                            size="3",
+                            placeholder=LS.new_password_placeholder,
+                            state=ManageUsersState,
                         ),
                         form_label(LS.role),
                         rx.select(

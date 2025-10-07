@@ -7,9 +7,10 @@ from reflex_local_auth.auth_session import LocalAuthSession
 from aitutor.auth.protection import state_require_role_at_least
 from aitutor.auth.state import SessionState
 from aitutor.models import LocalUser, UserInfo, UserRole
+from aitutor.pages.login_and_registration.state import ShowPasswordMixin
 
 
-class ManageUsersState(SessionState):
+class ManageUsersState(SessionState, ShowPasswordMixin):
     """State for managing user accounts."""
 
     users: list[tuple[LocalUser, UserInfo]] = []
