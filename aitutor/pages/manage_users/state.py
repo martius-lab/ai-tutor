@@ -23,12 +23,6 @@ class ManageUsersState(SessionState):
         self.global_load()
         self.load_users()
 
-    def on_logout(self):
-        """Clears the state when the user logs out."""
-        self.users = []
-        self.edited_user = None
-        self.edit_dialog_is_open = False
-
     def load_users(self):
         """Load the users from the database."""
         with rx.session() as session:
@@ -159,3 +153,9 @@ class ManageUsersState(SessionState):
             position="bottom-center",
             invert=True,
         )
+
+    def on_logout(self):
+        """Clears the state when the user logs out."""
+        self.users = []
+        self.edited_user = None
+        self.edit_dialog_is_open = False
