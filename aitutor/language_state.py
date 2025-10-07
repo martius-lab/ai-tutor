@@ -50,6 +50,16 @@ class LanguageState(SessionState):
         """Register string"""
         return self.translate(de="Registrieren", en="Register")
 
+    @rx.var
+    def username(self) -> str:
+        """Username string"""
+        return self.translate(de="Benutzername", en="Username")
+
+    @rx.var
+    def email(self) -> str:
+        """Email string"""
+        return self.translate(de="E-Mail", en="Email")
+
     # Search Bar Strings ---------------------------------------------------------------
     @rx.var
     def search_placeholder(self) -> str:
@@ -577,11 +587,6 @@ class LanguageState(SessionState):
         )
 
     @rx.var
-    def username(self) -> str:
-        """Username string"""
-        return self.translate(de="Benutzername", en="Username")
-
-    @rx.var
     def password(self) -> str:
         """Password string"""
         return self.translate(de="Passwort", en="Password")
@@ -590,11 +595,6 @@ class LanguageState(SessionState):
     def register_heading(self) -> str:
         """Register heading string"""
         return self.translate(de="Erstellen Sie ein Konto", en="Create an account")
-
-    @rx.var
-    def email(self) -> str:
-        """Email string"""
-        return self.translate(de="E-Mail", en="Email")
 
     @rx.var
     def confirm_password(self) -> str:
