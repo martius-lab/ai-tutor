@@ -8,6 +8,7 @@ from aitutor.auth.protection import state_require_role_at_least
 from aitutor.auth.state import SessionState
 from aitutor.models import LocalUser, UserInfo, UserRole
 from aitutor.pages.login_and_registration.state import ShowPasswordMixin
+from aitutor.language_state import BackendTranslations as BT
 
 
 class ManageUsersState(SessionState, ShowPasswordMixin):
@@ -50,7 +51,7 @@ class ManageUsersState(SessionState, ShowPasswordMixin):
 
         if not row:
             return rx.toast.error(
-                "Fatal error: User not found",
+                BT.error_user_not_found(self.language),
                 duration=5000,
                 position="bottom-center",
                 invert=True,
@@ -139,7 +140,7 @@ class ManageUsersState(SessionState, ShowPasswordMixin):
                 session.commit()
             else:
                 return rx.toast.error(
-                    "Fatal error: User not found",
+                    BT.error_user_not_found(self.language),
                     duration=5000,
                     position="bottom-center",
                     invert=True,
@@ -149,7 +150,7 @@ class ManageUsersState(SessionState, ShowPasswordMixin):
         self.load_users()
 
         return rx.toast.success(
-            f"Deleted user {local_user.username}.",
+            BT.deleted_user(self.language, local_user.username),
             duration=5000,
             position="bottom-center",
             invert=True,

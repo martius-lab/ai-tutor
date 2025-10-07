@@ -663,3 +663,25 @@ class LanguageState(SessionState):
             de="Alle Übungen und Abgaben dieses Benutzers werden ebenfalls gelöscht. Dies kann nicht rückgängig gemacht werden!",
             en="All exercises and submissions of this user will also be deleted.  This cannot be undone!",
         )
+
+
+class BackendTranslations:
+    """Translations for use in the backend (where LanguageState is not available)."""
+
+    # ManageUsersState --------------------------------------------------------
+
+    @staticmethod
+    def error_user_not_found(language: Language) -> str:
+        return translate(
+            language,
+            de="Fehler: Benutzer existiert nicht.",
+            en="Error: User not found",
+        )
+
+    @staticmethod
+    def deleted_user(language: Language, username: str) -> str:
+        return translate(
+            language,
+            de=f"Benutzer '{username}' wurde gelöscht.",
+            en=f"User '{username}' has been deleted.",
+        )
