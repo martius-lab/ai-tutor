@@ -104,21 +104,15 @@ def edit_user_dialog() -> rx.Component:
                         color_scheme="orange",
                         radius="full",
                     ),
-                    rx.vstack(
-                        rx.dialog.title(
-                            LS.edit_user,
-                            weight="bold",
-                            margin="0",
-                        ),
-                        spacing="1",
-                        height="100%",
-                        align_items="start",
-                        justify_content="start",
+                    rx.dialog.title(
+                        LS.edit_user,
+                        weight="bold",
+                        margin="0",
                     ),
                     height="100%",
                     spacing="4",
                     margin_bottom="1.5em",
-                    align_items="start",
+                    align="center",
                     width="100%",
                 ),
                 rx.form(
