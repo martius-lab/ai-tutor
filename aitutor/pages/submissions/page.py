@@ -1,4 +1,4 @@
-"""Page for the teacher to see submissions."""
+"""Page for the tutor/admin to see submissions."""
 
 import reflex as rx
 

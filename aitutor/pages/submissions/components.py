@@ -67,7 +67,7 @@ def show_table_row(table_row: TableRow) -> rx.Component:
                     size="2",
                     color_scheme="iris",
                     on_click=rx.redirect(
-                        f"{routes.FINISHED_VIEW_TEACHER}/{table_row.exercise_id}/{table_row.user_id}"
+                        f"{routes.FINISHED_VIEW_TUTOR}/{table_row.exercise_id}/{table_row.user_id}"
                     ),
                     _hover={"cursor": "pointer"},
                 ),

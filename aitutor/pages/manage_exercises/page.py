@@ -1,4 +1,4 @@
-"""Page for the teacher to add new exercises."""
+"""Page add/edit exercises."""
 
 import reflex as rx
 
