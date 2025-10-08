@@ -15,7 +15,7 @@ from aitutor.utilities.filtering_components import FilterMixin
 from aitutor.config import get_config
 from aitutor.auth.protection import state_require_role_at_least
 import aitutor.global_vars as gv
-from aitutor.language_state import translate
+from aitutor.language_state import BackendTranslations as BT
 
 
 class DialogMode(Enum):
@@ -241,11 +241,7 @@ class ManageExercisesState(FilterMixin, SessionState):
             self.add_exercise_dialog_is_open = False
 
         return rx.toast.success(
-            translate(
-                self.language,
-                de="Übung erfolgreich hinzugefügt",
-                en="Exercise added successfully",
-            ),
+            BT.exercise_added(self.language),
             duration=2500,
             position="bottom-center",
             invert=True,
@@ -343,11 +339,7 @@ class ManageExercisesState(FilterMixin, SessionState):
             self.add_tag_dialog_is_open = False
 
             return rx.toast.success(
-                translate(
-                    self.language,
-                    de="Tag wurde hinzugefügt und kann jetzt ausgewählt werden.",
-                    en="Tag has been added and can now be selected.",
-                ),
+                BT.tag_was_added(self.language),
                 duration=2500,
                 position="bottom-center",
                 invert=True,
@@ -395,11 +387,7 @@ class ManageExercisesState(FilterMixin, SessionState):
         self.selected_tags = []
 
         return rx.toast.success(
-            translate(
-                self.language,
-                de="Änderungen erfolgreich gespeichert.",
-                en="Exercise updated successfully.",
-            ),
+            BT.changes_saved(self.language),
             duration=2500,
             position="bottom-center",
             invert=True,
@@ -432,11 +420,7 @@ class ManageExercisesState(FilterMixin, SessionState):
             self.load_tags()
 
             return rx.toast.success(
-                translate(
-                    self.language,
-                    de="Tag erfolgreich gelöscht",
-                    en="Tag deleted successfully",
-                ),
+                BT.tag_deleted(self.language),
                 duration=2500,
                 position="bottom-center",
                 invert=True,
@@ -464,11 +448,7 @@ class ManageExercisesState(FilterMixin, SessionState):
         self.load_exercises()
 
         return rx.toast.success(
-            translate(
-                self.language,
-                de="Übung erfolgreich gelöscht",
-                en="Exercise deleted successfully",
-            ),
+            BT.exercise_deleted(self.language),
             duration=2500,
             position="bottom-center",
             invert=True,
