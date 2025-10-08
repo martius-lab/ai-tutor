@@ -24,7 +24,9 @@ def delete_user_button(user: LocalUser) -> rx.Component:
     return rx.alert_dialog.root(
         rx.alert_dialog.trigger(
             rx.button(
-                rx.flex(rx.icon("trash", size=15), LS.delete, gap="0.5em"),
+                rx.flex(
+                    rx.icon("trash", size=15), LS.delete, gap="0.5em", align="center"
+                ),
                 color_scheme="red",
                 _hover={"cursor": "pointer"},
             ),
@@ -72,7 +74,9 @@ def user_table_row(user: tuple[LocalUser, UserInfo]) -> rx.Component:
         rx.table.cell(
             rx.hstack(
                 rx.button(
-                    rx.flex(rx.icon("pen", size=15), LS.edit, gap="0.5em"),
+                    rx.flex(
+                        rx.icon("pen", size=15), LS.edit, gap="0.5em", align="center"
+                    ),
                     color_scheme="blue",
                     on_click=ManageUsersState.open_edit_dialog(user[0].id),  # type: ignore
                     _hover={"cursor": "pointer"},
