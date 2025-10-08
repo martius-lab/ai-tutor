@@ -149,16 +149,24 @@ def edit_user_dialog() -> rx.Component:
                             state=ManageUsersState,
                         ),
                         form_label(LS.role),
-                        rx.select(
-                            (
-                                UserRole.ADMIN.name,
-                                UserRole.TUTOR.name,
-                                UserRole.STUDENT.name,
+                        rx.hstack(
+                            rx.select(
+                                (
+                                    UserRole.ADMIN.name,
+                                    UserRole.TUTOR.name,
+                                    UserRole.STUDENT.name,
+                                ),
+                                default_value=role_to_text(user_info.role),  # type: ignore
+                                size="3",
+                                name="role",
                             ),
-                            default_value=role_to_text(user_info.role),  # type: ignore
-                            size="3",
-                            width="100%",
-                            name="role",
+                            rx.dialog.root(
+                                rx.dialog.trigger(
+                                    rx.icon("info"), _hover={"cursor": "pointer"}
+                                ),
+                                rx.dialog.content(rx.markdown(LS.roles_description)),
+                            ),
+                            align="center",
                         ),
                         form_label(LS.enabled),
                         rx.checkbox(
