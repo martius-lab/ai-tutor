@@ -8,6 +8,8 @@ This class has all strings used in the frontend code. Strings that are used in t
 backend code (e.g. error/success messages) are in the corresponding state class.
 """
 
+import textwrap
+
 import reflex as rx
 
 from aitutor.auth.state import SessionState, Language
@@ -708,6 +710,21 @@ class LanguageState(SessionState):
         return self.translate(
             de="Alle Übungen und Abgaben dieses Benutzers werden ebenfalls gelöscht. Dies kann nicht rückgängig gemacht werden!",
             en="All exercises and submissions of this user will also be deleted.  This cannot be undone!",
+        )
+
+    @rx.var
+    def roles_description(self) -> str:
+        return self.translate(
+            de=textwrap.dedent("""
+                - STUDENT: Kann Übungen ansehen und bearbeiten.
+                - TUTOR: Kann zusätzlich Abgaben aller Nutzer einsehen.
+                - ADMIN: Kann alles (Übungen anlegen, Benutzer verwalten...).
+            """),
+            en=textwrap.dedent("""
+                - STUDENT: Can view and work on exercises.
+                - TUTOR: Can also view submissions by all users.
+                - ADMIN: Can do everything (create exercises, manage users...).
+            """),
         )
 
 
