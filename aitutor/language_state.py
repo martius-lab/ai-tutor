@@ -781,6 +781,6 @@ class BackendTranslations:
     def successful_submit_description(language: Language) -> str:
         return translate(
             language,
-            de="Ihr Chat wurde erfolgreich abgegeben.",
-            en="Your chat was submitted successfully.",
+            de="Die Aufgabe wurde erfolgreich abgegeben.",
+            en="The exercise was submitted successfully.",
         )
