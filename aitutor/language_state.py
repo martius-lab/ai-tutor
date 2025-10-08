@@ -758,3 +758,16 @@ class BackendTranslations:
             de="Übung erfolgreich gelöscht",
             en="Exercise deleted successfully",
         )
+
+    # FinishedViewState ----------------------------------------------------------------
+    @staticmethod
+    def submission_deleted_title(language: Language) -> str:
+        return translate(language, de="Abgabe gelöscht", en="Submission Deleted")
+
+    @staticmethod
+    def submission_deleted_description(language: Language) -> str:
+        return translate(
+            language,
+            de="Ihre Abgabe wurde erfolgreich gelöscht.",
+            en="Your submission has been deleted successfully.",
+        )
