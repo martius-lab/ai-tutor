@@ -147,14 +147,6 @@ class ChatState(SessionState):
         """Sets the user input value."""
         self.user_input = value
 
-    @rx.var
-    def finished_view_url(self) -> str:
-        """
-        The exercise_id is used to identify the current exercise.
-        It is set by the route parameter in the URL.
-        """
-        return f"{routes.FINISHED_VIEW}/{self.exercise_id}"
-
     @rx.event
     @state_require_role_at_least(UserRole.STUDENT)
     def on_load(self):
@@ -205,6 +197,28 @@ class ChatState(SessionState):
                 self.check_passed = False
                 self.conversation_is_submitted = False
         yield
+
+    def on_logout(self):
+        """Clears the state when the user logs out."""
+        self.messages = []
+        self.current_exercise = None
+        self.exercise_title = "No Exercise Selected"
+        self.system_message_gpt = ""
+        self.waiting_for_response = False
+        self.check_passed = False
+        self.conversation_is_submitted = False
+        self.submit_time_stamp = ""
+        self.user_input = ""
+        self.last_user_message_index = -1
+        self.is_overdue = False
+
+    @rx.var
+    def finished_view_url(self) -> str:
+        """
+        The exercise_id is used to identify the current exercise.
+        It is set by the route parameter in the URL.
+        """
+        return f"{routes.FINISHED_VIEW}/{self.exercise_id}"
 
     @rx.event
     def edit_last_message(self):
@@ -535,17 +549,3 @@ class ChatState(SessionState):
                 check_passed=check_passed,
             )
         )
-
-    def on_logout(self):
-        """Clears the state when the user logs out."""
-        self.messages = []
-        self.current_exercise = None
-        self.exercise_title = "No Exercise Selected"
-        self.system_message_gpt = ""
-        self.waiting_for_response = False
-        self.check_passed = False
-        self.conversation_is_submitted = False
-        self.submit_time_stamp = ""
-        self.user_input = ""
-        self.last_user_message_index = -1
-        self.is_overdue = False

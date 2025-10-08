@@ -17,40 +17,6 @@ class HomeState(SessionState):
 
     exercises_with_result: list[tuple[Exercise, Optional[ExerciseResult]]] = []
 
-    @rx.var
-    def completed_exercises_num(self) -> int:
-        """Number of completed exercises."""
-        return sum(
-            1
-            for _, result in self.exercises_with_result
-            if result and result.finished_conversation
-        )
-
-    @rx.var
-    def progress_value(self) -> int:
-        """Progress value for the progress bar."""
-        total = len(self.exercises_with_result)
-        return int((self.completed_exercises_num / total) * 100) if total > 0 else 100
-
-    @rx.var
-    def next_deadline_task(self) -> str:
-        """Next task with deadline."""
-        time_now = datetime.now(ZoneInfo(TIME_ZONE))
-
-        tasks = [
-            (ex.title, ex.deadline.replace(tzinfo=ZoneInfo(TIME_ZONE)))
-            for ex, res in self.exercises_with_result
-            if ex.deadline
-            and ex.deadline.replace(tzinfo=ZoneInfo(TIME_ZONE)) > time_now
-            and not (res and res.finished_conversation)  # not submitted
-        ]
-
-        if not tasks:
-            return ""
-
-        title, deadline = min(tasks, key=lambda t: t[1])
-        return f"{title} – {deadline.strftime('%d.%m.%Y, %H:%M')}"
-
     @rx.event
     @state_require_role_at_least(UserRole.STUDENT)
     def on_load(self):
@@ -90,3 +56,37 @@ class HomeState(SessionState):
     def on_logout(self):
         """Clears the state when the user logs out."""
         self.exercises_with_result = []
+
+    @rx.var
+    def completed_exercises_num(self) -> int:
+        """Number of completed exercises."""
+        return sum(
+            1
+            for _, result in self.exercises_with_result
+            if result and result.finished_conversation
+        )
+
+    @rx.var
+    def progress_value(self) -> int:
+        """Progress value for the progress bar."""
+        total = len(self.exercises_with_result)
+        return int((self.completed_exercises_num / total) * 100) if total > 0 else 100
+
+    @rx.var
+    def next_deadline_task(self) -> str:
+        """Next task with deadline."""
+        time_now = datetime.now(ZoneInfo(TIME_ZONE))
+
+        tasks = [
+            (ex.title, ex.deadline.replace(tzinfo=ZoneInfo(TIME_ZONE)))
+            for ex, res in self.exercises_with_result
+            if ex.deadline
+            and ex.deadline.replace(tzinfo=ZoneInfo(TIME_ZONE)) > time_now
+            and not (res and res.finished_conversation)  # not submitted
+        ]
+
+        if not tasks:
+            return ""
+
+        title, deadline = min(tasks, key=lambda t: t[1])
+        return f"{title} – {deadline.strftime('%d.%m.%Y, %H:%M')}"
