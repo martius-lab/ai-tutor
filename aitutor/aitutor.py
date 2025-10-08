@@ -14,9 +14,9 @@ import aitutor.routes as routes
 # info: add dynamic routes first
 app = rx.App()
 app.add_page(
-    pages.finished_view_teacher_page,
-    route=routes.FINISHED_VIEW_TEACHER + "/[exercise_id]/[url_user_id]",
-    on_load=pages.FinishedViewTeacherState.on_load,
+    pages.finished_view_tutor_page,
+    route=routes.FINISHED_VIEW_TUTOR + "/[exercise_id]/[url_user_id]",
+    on_load=pages.FinishedViewTutorState.on_load,
 )
 app.add_page(
     pages.chat_page,
