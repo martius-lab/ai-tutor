@@ -15,7 +15,7 @@ from aitutor.auth.state import SessionState
 from aitutor.config import get_config
 from aitutor.auth.protection import state_require_role_at_least
 from aitutor.global_vars import TIME_FORMAT, TIME_ZONE
-from aitutor.language_state import translate
+from aitutor.language_state import BackendTranslations as BT
 
 
 class Role(Enum):
@@ -412,17 +412,9 @@ class ChatState(SessionState):
         """
         show success message if check is passed.
         """
-        # get the info message in the correct language
-        title_string = translate(self.language, de="Abgabe", en="Submit")
-        description_string = translate(
-            self.language,
-            de="Ihr Chat wurde erfolgreich abgegeben.",
-            en="Your chat was submitted successfully.",
-        )
-
         return rx.toast.success(
-            title=title_string,
-            description=description_string,
+            title=BT.successful_submit_title(self.language),
+            description=BT.successful_submit_description(self.language),
             duration=2500,
             position="bottom-center",
             invert=True,
