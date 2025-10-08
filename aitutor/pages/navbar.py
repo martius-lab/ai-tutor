@@ -50,7 +50,7 @@ def get_links():
         has_role_at_least(UserRole.ADMIN),
         general_links + teacher_links + admin_links,
         rx.cond(
-            has_role_at_least(UserRole.TEACHER),
+            has_role_at_least(UserRole.TUTOR),
             general_links + teacher_links,
             general_links,
         ),
@@ -75,7 +75,7 @@ def get_user_icon():
                 userrole == UserRole.ADMIN,
                 "user-round-cog",
                 rx.cond(
-                    userrole == UserRole.TEACHER,
+                    userrole == UserRole.TUTOR,
                     "user-round-search",
                     "user-round",
                 ),

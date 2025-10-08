@@ -15,7 +15,7 @@ from aitutor.utilities.filtering_components import search_bar, search_badges
 
 
 @with_navbar(routes.SUBMISSIONS)
-@page_require_role_at_least(UserRole.TEACHER)
+@page_require_role_at_least(UserRole.TUTOR)
 def submissions_page() -> rx.Component:
     """Manage exercises page."""
     return rx.center(
