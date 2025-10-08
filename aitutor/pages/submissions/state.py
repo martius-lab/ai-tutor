@@ -47,6 +47,12 @@ class SubmissionsState(FilterMixin, SessionState):
         self.global_load()
         self.load_submissions()
 
+    def on_logout(self):
+        """Clears the state when the user logs out."""
+        self.table_rows = []
+        self.search_values = []  # from FilterMixin
+        self.only_with_submission = False
+
     @override
     @rx.event
     def load_filtered_data(self):
@@ -119,9 +125,3 @@ class SubmissionsState(FilterMixin, SessionState):
         """Toggles the only with submission filter."""
         self.only_with_submission = not self.only_with_submission
         self.load_submissions()
-
-    def on_logout(self):
-        """Clears the state when the user logs out."""
-        self.table_rows = []
-        self.search_values = []  # from FilterMixin
-        self.only_with_submission = False

@@ -26,23 +26,6 @@ class ExercisesState(SessionState):
     deadline_strings: dict[int, str] = {}  # (exercise_id, deadline_string)
     time_left_strings: dict[int, str] = {}  # (exercise_id, time_left_string)
 
-    @rx.var
-    def submit_time_stamps(self) -> dict[int, str]:
-        """
-        Dictionary to store submit time stamps for exercises.
-        Key: Exercise ID, Value: Submit Time as string.
-        """
-        return {
-            exercise_with_res[0].id: (
-                exercise_with_res[1].submit_time_stamp.strftime(TIME_FORMAT)
-                if exercise_with_res[1] is not None
-                and exercise_with_res[1].submit_time_stamp is not None
-                else ""
-            )
-            for exercise_with_res in self.exercises_with_result
-            if exercise_with_res[0].id is not None
-        }
-
     @rx.event
     @state_require_role_at_least(UserRole.STUDENT)
     def on_load(self):
@@ -130,6 +113,32 @@ class ExercisesState(SessionState):
             self.update_time_left_strings()
             self.generate_deadline_strings()
 
+    def on_logout(self):
+        """Clears the state when the user logs out."""
+        self.exercises_with_result = []
+        self.open_deadline_exercises = []
+        self.no_deadline_exercises = []
+        self.closed_deadline_exercises = []
+        self.deadline_strings = {}
+        self.time_left_strings = {}
+
+    @rx.var
+    def submit_time_stamps(self) -> dict[int, str]:
+        """
+        Dictionary to store submit time stamps for exercises.
+        Key: Exercise ID, Value: Submit Time as string.
+        """
+        return {
+            exercise_with_res[0].id: (
+                exercise_with_res[1].submit_time_stamp.strftime(TIME_FORMAT)
+                if exercise_with_res[1] is not None
+                and exercise_with_res[1].submit_time_stamp is not None
+                else ""
+            )
+            for exercise_with_res in self.exercises_with_result
+            if exercise_with_res[0].id is not None
+        }
+
     @rx.event
     def update_time_left_strings(self):
         """get the datetime time left for every exercise"""
@@ -154,12 +163,3 @@ class ExercisesState(SessionState):
                 )
             else:
                 self.deadline_strings[exercise.id] = ""  # type: ignore
-
-    def on_logout(self):
-        """Clears the state when the user logs out."""
-        self.exercises_with_result = []
-        self.open_deadline_exercises = []
-        self.no_deadline_exercises = []
-        self.closed_deadline_exercises = []
-        self.deadline_strings = {}
-        self.time_left_strings = {}

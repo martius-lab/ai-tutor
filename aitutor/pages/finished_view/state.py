@@ -19,11 +19,6 @@ class FinishedViewState(SessionState):
     current_exercise: Optional[Exercise] = None
     exercise_title: str = "No Exercise Selected"
 
-    @rx.var
-    def chat_url(self) -> str:
-        """Returns the URL for the chat page."""
-        return f"{routes.CHAT}/{self.exercise_id}"
-
     @rx.event
     @state_require_role_at_least(UserRole.STUDENT)
     def on_load(self):
@@ -53,6 +48,17 @@ class FinishedViewState(SessionState):
                 self.exercise_title = exercise.title
                 self.messages = []
                 self.set_messages_from_conversation(finished_conversation)
+
+    def on_logout(self):
+        """Clears the state when the user logs out."""
+        self.messages = []
+        self.current_exercise = None
+        self.exercise_title = "No Exercise Selected"
+
+    @rx.var
+    def chat_url(self) -> str:
+        """Returns the URL for the chat page."""
+        return f"{routes.CHAT}/{self.exercise_id}"
 
     @rx.event
     def delete_submisssion(self):
@@ -106,9 +112,3 @@ class FinishedViewState(SessionState):
                         check_passed=msg.get("check_passed", False),
                     )
                 )
-
-    def on_logout(self):
-        """Clears the state when the user logs out."""
-        self.messages = []
-        self.current_exercise = None
-        self.exercise_title = "No Exercise Selected"

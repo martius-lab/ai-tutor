@@ -76,14 +76,29 @@ class ManageExercisesState(FilterMixin, SessionState):
     exercise_is_started: dict[int, bool] = {}
 
     @rx.event
+    def set_add_tag_dialog_is_open(self, is_open: bool):
+        """Set the add tag dialog is open flag."""
+        self.add_tag_dialog_is_open = is_open
+
+    @rx.event
+    def set_current_tag(self, tag: str):
+        """Set the current tag."""
+        self.current_tag = tag
+
+    @rx.event
     def set_lesson_context(self, context: str):
         """Set the lesson context."""
         self.lesson_context = context
 
     @rx.event
-    def set_use_deadline(self, use: bool):
-        """Set the use_deadline flag."""
-        self.use_deadline = use
+    def set_current_prompt_name(self, prompt_name: str):
+        """Set the current prompt name."""
+        self.current_prompt_name = prompt_name
+
+    @rx.event
+    def set_current_hidden_state(self, hidden: bool):
+        """Set the current hidden state."""
+        self.current_hidden_state = hidden
 
     @rx.event
     def set_current_deadline(self, deadline: str):
@@ -96,14 +111,9 @@ class ManageExercisesState(FilterMixin, SessionState):
         self.current_days_to_complete = days
 
     @rx.event
-    def set_current_hidden_state(self, hidden: bool):
-        """Set the current hidden state."""
-        self.current_hidden_state = hidden
-
-    @rx.event
-    def set_add_tag_dialog_is_open(self, is_open: bool):
-        """Set the add tag dialog is open flag."""
-        self.add_tag_dialog_is_open = is_open
+    def set_use_deadline(self, use: bool):
+        """Set the use_deadline flag."""
+        self.use_deadline = use
 
     @rx.event
     @state_require_role_at_least(UserRole.ADMIN)
@@ -116,10 +126,25 @@ class ManageExercisesState(FilterMixin, SessionState):
         self.prompt_names = list(self.prompts.keys())
         self.load_exercises()
 
-    @rx.event
-    def set_current_prompt_name(self, prompt_name: str):
-        """Set the current prompt name."""
-        self.current_prompt_name = prompt_name
+    def on_logout(self):
+        """Clears the state when the user logs out."""
+        self.exercises = []
+        self.tag_list = []
+        self.tag_names = []
+        self.search_values = []  # from FilterMixin
+        self.current_tag = ""
+        self.current_exercise = Exercise()
+        self.selected_tags = []
+        self.lesson_context = ""
+        self.lesson_file_name = ""
+        self.current_prompt_name = ""
+        self.prompts = {}
+        self.prompt_names = []
+        self.extracting_lesson_material = False
+        self.current_hidden_state = False
+        self.current_deadline = ""
+        self.current_days_to_complete = ""
+        self.use_deadline = True
 
     @rx.event
     async def extract_lesson_material(self, files: list[rx.UploadFile]):
@@ -148,11 +173,6 @@ class ManageExercisesState(FilterMixin, SessionState):
             self.lesson_file_name = file.name or "<unnamed file>"
         self.extracting_lesson_material = False
         yield
-
-    @rx.event
-    def set_current_tag(self, tag: str):
-        """Set the current tag."""
-        self.current_tag = tag
 
     @rx.event
     def add_selected_tag(self):
@@ -516,23 +536,3 @@ class ManageExercisesState(FilterMixin, SessionState):
                     None,
                 )
         return None, deadline, days_to_complete
-
-    def on_logout(self):
-        """Clears the state when the user logs out."""
-        self.exercises = []
-        self.tag_list = []
-        self.tag_names = []
-        self.search_values = []  # from FilterMixin
-        self.current_tag = ""
-        self.current_exercise = Exercise()
-        self.selected_tags = []
-        self.lesson_context = ""
-        self.lesson_file_name = ""
-        self.current_prompt_name = ""
-        self.prompts = {}
-        self.prompt_names = []
-        self.extracting_lesson_material = False
-        self.current_hidden_state = False
-        self.current_deadline = ""
-        self.current_days_to_complete = ""
-        self.use_deadline = True
