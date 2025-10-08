@@ -180,6 +180,14 @@ def register_form() -> rx.Component:
                 value=MyRegisterState.confirm_password,
                 on_change=MyRegisterState.set_confirm_password,
             ),
+            rx.text(LanguageState.registration_code),
+            input(
+                "registration_code",
+                placeholder=LanguageState.registration_code_placeholder,
+                required=True,
+                value=MyRegisterState.registration_code,
+                on_change=MyRegisterState.set_registration_code,
+            ),
             rx.cond(
                 privacy_notice,
                 rx.callout(

@@ -642,6 +642,19 @@ class LanguageState(SessionState):
             en="Registration successful! You can now log in.",
         )
 
+    @rx.var
+    def registration_code(self) -> str:
+        """Registration Code string"""
+        return self.translate(de="Registrierungscode", en="Registration code")
+
+    @rx.var
+    def registration_code_placeholder(self) -> str:
+        """Registration code placeholder string"""
+        return self.translate(
+            de="Sie bekommen diesen Code von Ihrem Lehrer",
+            en="You get this code from your teacher",
+        )
+
     # Manage Users Page Strings --------------------------------------------------------
     @rx.var
     def manage_users(self) -> str:
