@@ -51,6 +51,13 @@ class FinishedViewTeacherState(SessionState):
             self.messages = []
             self.set_messages_from_conversation(finished_conversation)
 
+    def on_logout(self):
+        """Clears the state when the user logs out."""
+        self.messages = []
+        self.current_exercise = None
+        self.username = ""
+        self.exercise_title = "No Exercise Selected"
+
     def set_messages_from_conversation(self, finished_conversation):
         """Loads chat messages from a finished conversation into the state variable."""
         for msg in finished_conversation:
@@ -62,10 +69,3 @@ class FinishedViewTeacherState(SessionState):
                         check_passed=msg.get("check_passed", False),
                     )
                 )
-
-    def on_logout(self):
-        """Clears the state when the user logs out."""
-        self.messages = []
-        self.current_exercise = None
-        self.username = ""
-        self.exercise_title = "No Exercise Selected"

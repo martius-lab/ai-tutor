@@ -40,14 +40,6 @@ class MyRegisterState(ShowPasswordMixin, reflex_local_auth.RegistrationState):
     confirm_password: str = ""
 
     @rx.event
-    def on_load(self):
-        """function that gets called when the register page loads"""
-        self.clear_state_vars()
-        self.error_message = ""
-        self.success = False
-        self.password_visible = False
-
-    @rx.event
     def set_username(self, value: str):
         """Set the username."""
         self.username = value
@@ -66,6 +58,21 @@ class MyRegisterState(ShowPasswordMixin, reflex_local_auth.RegistrationState):
     def set_confirm_password(self, value: str):
         """Set the confirm password."""
         self.confirm_password = value
+
+    @rx.event
+    def on_load(self):
+        """function that gets called when the register page loads"""
+        self.clear_state_vars()
+        self.error_message = ""
+        self.success = False
+        self.password_visible = False
+
+    def clear_state_vars(self):
+        """Clear the state variables."""
+        self.username = ""
+        self.email = ""
+        self.password = ""
+        self.confirm_password = ""
 
     # This event handler must be named something besides `handle_registration`!!!
     @rx.event
@@ -92,10 +99,3 @@ class MyRegisterState(ShowPasswordMixin, reflex_local_auth.RegistrationState):
                 )
                 session.commit()
         return registration_result
-
-    def clear_state_vars(self):
-        """Clear the state variables."""
-        self.username = ""
-        self.email = ""
-        self.password = ""
-        self.confirm_password = ""
