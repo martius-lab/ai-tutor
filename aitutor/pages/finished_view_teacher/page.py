@@ -12,7 +12,7 @@ from aitutor.language_state import LanguageState
 
 
 @with_navbar(routes.SUBMISSIONS)
-@page_require_role_at_least(UserRole.TEACHER)
+@page_require_role_at_least(UserRole.TUTOR)
 def finished_view_teacher_page() -> rx.Component:
     """Renders the web page."""
     return rx.container(

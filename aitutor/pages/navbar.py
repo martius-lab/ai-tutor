@@ -35,7 +35,7 @@ general_links = [
     (LanguageState.home_link, routes.HOME, "house"),
     (LanguageState.exercises_link, routes.EXERCISES, "book"),
 ]
-teacher_links = [
+tutor_links = [
     (LanguageState.submissions_link, routes.SUBMISSIONS, "search-check"),
 ]
 admin_links = [
@@ -48,10 +48,10 @@ def get_links():
     """Returns the list of navigation links for the current user role."""
     return rx.cond(
         has_role_at_least(UserRole.ADMIN),
-        general_links + teacher_links + admin_links,
+        general_links + tutor_links + admin_links,
         rx.cond(
-            has_role_at_least(UserRole.TEACHER),
-            general_links + teacher_links,
+            has_role_at_least(UserRole.TUTOR),
+            general_links + tutor_links,
             general_links,
         ),
     )
@@ -75,7 +75,7 @@ def get_user_icon():
                 userrole == UserRole.ADMIN,
                 "user-round-cog",
                 rx.cond(
-                    userrole == UserRole.TEACHER,
+                    userrole == UserRole.TUTOR,
                     "user-round-search",
                     "user-round",
                 ),
