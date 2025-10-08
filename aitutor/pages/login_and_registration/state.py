@@ -2,6 +2,7 @@
 
 import reflex as rx
 import reflex_local_auth
+import re
 
 from aitutor.models import UserInfo, UserRole
 from aitutor.config import get_config
@@ -94,6 +95,14 @@ class MyRegisterState(ShowPasswordMixin, reflex_local_auth.RegistrationState):
         Returns:
             Any: The result of the registration process.
         """
+        # check for allowed user name
+        if not re.match(r"^[a-zA-Z0-9._-]+$", form_data["username"]):
+            self.error_message = (
+                "Username can only contain letters, numbers and '. _ -'"
+            )
+            self.username = ""
+            return
+
         # check for the correct registration code
         registration_code = get_config().registration_code
         if form_data["registration_code"] != registration_code:
