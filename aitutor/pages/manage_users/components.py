@@ -60,7 +60,6 @@ def delete_user_button(user: LocalUser) -> rx.Component:
 def user_table_row(user: tuple[LocalUser, UserInfo]) -> rx.Component:
     """Create a single row of the users table."""
     return rx.table.row(
-        rx.table.cell(user[0].id),
         rx.table.cell(user[0].username),
         rx.table.cell(user[1].email),
         rx.table.cell(role_to_text(user[1].role)),
@@ -209,7 +208,6 @@ def users_table() -> rx.Component:
         rx.table.root(
             rx.table.header(
                 rx.table.row(
-                    rx.table.column_header_cell(LS.id),
                     rx.table.column_header_cell(LS.username),
                     rx.table.column_header_cell(LS.email),
                     rx.table.column_header_cell(LS.role),
