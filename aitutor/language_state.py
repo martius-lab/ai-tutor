@@ -771,3 +771,16 @@ class BackendTranslations:
             de="Ihre Abgabe wurde erfolgreich gelöscht.",
             en="Your submission has been deleted successfully.",
         )
+
+    # ChatState ------------------------------------------------------------------------
+    @staticmethod
+    def successful_submit_title(language: Language) -> str:
+        return translate(language, de="Abgabe", en="Submit")
+
+    @staticmethod
+    def successful_submit_description(language: Language) -> str:
+        return translate(
+            language,
+            de="Ihr Chat wurde erfolgreich abgegeben.",
+            en="Your chat was submitted successfully.",
+        )
