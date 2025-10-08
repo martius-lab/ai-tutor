@@ -4,6 +4,7 @@ import reflex as rx
 import reflex_local_auth
 
 from aitutor.models import UserInfo, UserRole
+from aitutor.config import get_config
 
 
 class ShowPasswordMixin(rx.State, mixin=True):
@@ -38,6 +39,7 @@ class MyRegisterState(ShowPasswordMixin, reflex_local_auth.RegistrationState):
     email: str = ""
     password: str = ""
     confirm_password: str = ""
+    registration_code: str = ""
 
     @rx.event
     def set_username(self, value: str):
@@ -60,6 +62,11 @@ class MyRegisterState(ShowPasswordMixin, reflex_local_auth.RegistrationState):
         self.confirm_password = value
 
     @rx.event
+    def set_registration_code(self, value: str):
+        """Set the registration code."""
+        self.registration_code = value
+
+    @rx.event
     def on_load(self):
         """function that gets called when the register page loads"""
         self.clear_state_vars()
@@ -73,6 +80,7 @@ class MyRegisterState(ShowPasswordMixin, reflex_local_auth.RegistrationState):
         self.email = ""
         self.password = ""
         self.confirm_password = ""
+        self.registration_code = ""
 
     # This event handler must be named something besides `handle_registration`!!!
     @rx.event
@@ -86,6 +94,13 @@ class MyRegisterState(ShowPasswordMixin, reflex_local_auth.RegistrationState):
         Returns:
             Any: The result of the registration process.
         """
+        # check for the correct registration code
+        registration_code = get_config().registration_code
+        if form_data["registration_code"] != registration_code:
+            self.error_message = "The registration code is wrong."
+            self.registration_code = ""
+            return
+
         registration_result = self.handle_registration(form_data)
         if self.new_user_id >= 0:
             self.clear_state_vars()

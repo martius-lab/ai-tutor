@@ -67,6 +67,13 @@ It has to contain information for who is responsible for the contents of the web
 impressum_text = "This is the impressum text."
 ```
 
+## Registration Code
+To prevent random people from registering an account and burning the api tokens, you have to define a registration code. New users must type in this code when registering their account.
+```toml
+registration_code = "exampleCode1234"
+```
+
+
 ## default_users
 
 You can define a number of default users, that are automatically created.  This is
