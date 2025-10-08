@@ -701,8 +701,7 @@ class LanguageState(SessionState):
 class BackendTranslations:
     """Translations for use in the backend (where LanguageState is not available)."""
 
-    # ManageUsersState --------------------------------------------------------
-
+    # ManageUsersState -----------------------------------------------------------------
     @staticmethod
     def error_user_not_found(language: Language) -> str:
         return translate(
@@ -717,4 +716,71 @@ class BackendTranslations:
             language,
             de=f"Benutzer '{username}' wurde gelöscht.",
             en=f"User '{username}' has been deleted.",
+        )
+
+    # ManageExercisesState -------------------------------------------------------------
+    @staticmethod
+    def exercise_added(language: Language) -> str:
+        return translate(
+            language,
+            de="Übung erfolgreich hinzugefügt",
+            en="Exercise added successfully",
+        )
+
+    @staticmethod
+    def tag_was_added(language: Language) -> str:
+        return translate(
+            language,
+            de="Tag wurde hinzugefügt und kann jetzt ausgewählt werden.",
+            en="Tag has been added and can now be selected.",
+        )
+
+    @staticmethod
+    def changes_saved(language: Language) -> str:
+        return translate(
+            language,
+            de="Änderungen erfolgreich gespeichert.",
+            en="Exercise updated successfully.",
+        )
+
+    @staticmethod
+    def tag_deleted(language: Language) -> str:
+        return translate(
+            language,
+            de="Tag erfolgreich gelöscht",
+            en="Tag deleted successfully",
+        )
+
+    @staticmethod
+    def exercise_deleted(language: Language) -> str:
+        return translate(
+            language,
+            de="Übung erfolgreich gelöscht",
+            en="Exercise deleted successfully",
+        )
+
+    # FinishedViewState ----------------------------------------------------------------
+    @staticmethod
+    def submission_deleted_title(language: Language) -> str:
+        return translate(language, de="Abgabe gelöscht", en="Submission Deleted")
+
+    @staticmethod
+    def submission_deleted_description(language: Language) -> str:
+        return translate(
+            language,
+            de="Ihre Abgabe wurde erfolgreich gelöscht.",
+            en="Your submission has been deleted successfully.",
+        )
+
+    # ChatState ------------------------------------------------------------------------
+    @staticmethod
+    def successful_submit_title(language: Language) -> str:
+        return translate(language, de="Abgabe", en="Submit")
+
+    @staticmethod
+    def successful_submit_description(language: Language) -> str:
+        return translate(
+            language,
+            de="Die Aufgabe wurde erfolgreich abgegeben.",
+            en="The exercise was submitted successfully.",
         )
