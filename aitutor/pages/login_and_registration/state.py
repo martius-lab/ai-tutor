@@ -96,8 +96,10 @@ class MyRegisterState(ShowPasswordMixin, reflex_local_auth.RegistrationState):
             Any: The result of the registration process.
         """
         # check for allowed user name
-        if not re.match(r"^[a-zA-Z._-]+$", form_data["username"]):
-            self.error_message = "Username can only contain letters and '. _ -'"
+        if not re.match(r"^[a-zA-Z0-9._-]+$", form_data["username"]):
+            self.error_message = (
+                "Username can only contain letters, numbers and '. _ -'"
+            )
             self.username = ""
             return
 
