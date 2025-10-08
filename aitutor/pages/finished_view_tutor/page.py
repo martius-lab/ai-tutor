@@ -1,9 +1,9 @@
-"""Displays the submitted chat messages for the teacher"""
+"""Displays the submitted chat messages for the tutor"""
 
 import reflex as rx
 
 from aitutor.models import UserRole
-from aitutor.pages.finished_view_teacher.state import FinishedViewTeacherState
+from aitutor.pages.finished_view_tutor.state import FinishedViewTutorState
 from aitutor import routes
 from aitutor.pages.navbar import with_navbar
 from aitutor.auth.protection import page_require_role_at_least
@@ -13,7 +13,7 @@ from aitutor.language_state import LanguageState
 
 @with_navbar(routes.SUBMISSIONS)
 @page_require_role_at_least(UserRole.TUTOR)
-def finished_view_teacher_page() -> rx.Component:
+def finished_view_tutor_page() -> rx.Component:
     """Renders the web page."""
     return rx.container(
         rx.box(
@@ -27,14 +27,14 @@ def finished_view_teacher_page() -> rx.Component:
                         ),
                         _hover={"cursor": "pointer"},
                     ),
-                    rx.heading(LanguageState.submitted_chat_teacher, size="5"),
+                    rx.heading(LanguageState.submitted_chat_tutor, size="5"),
                     align="center",
                 ),
                 rx.hstack(
                     rx.icon("book", size=18),
                     rx.text(LanguageState.exercise + ":", weight="bold"),
                     rx.text(
-                        FinishedViewTeacherState.exercise_title,
+                        FinishedViewTutorState.exercise_title,
                     ),
                     align="center",
                 ),
@@ -42,13 +42,13 @@ def finished_view_teacher_page() -> rx.Component:
                     rx.icon("user-round", size=18),
                     rx.text(LanguageState.user + ":", weight="bold"),
                     rx.text(
-                        FinishedViewTeacherState.username,
+                        FinishedViewTutorState.username,
                     ),
                     align="center",
                 ),
                 rx.box(
                     rx.foreach(
-                        FinishedViewTeacherState.messages,
+                        FinishedViewTutorState.messages,
                         message_box,
                     ),
                     overflow="auto",

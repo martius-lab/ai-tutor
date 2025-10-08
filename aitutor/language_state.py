@@ -412,9 +412,9 @@ class LanguageState(SessionState):
             en="No submission",
         )
 
-    # Finished View Teacher Page Strings -----------------------------------------------
+    # Finished View Tutor Page Strings -----------------------------------------------
     @rx.var
-    def submitted_chat_teacher(self) -> str:
+    def submitted_chat_tutor(self) -> str:
         """Submitted chat string"""
         return self.translate(de="Abgegebener Chat", en="Submitted chat")
 
