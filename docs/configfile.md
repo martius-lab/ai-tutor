@@ -9,7 +9,7 @@ button is pressed.
 check_conversation_prompt = """
 Check if the answers of the student answered the exercise correctly.
 If the student did not answer correctly, respond with what the errors are but do not give the solution.
-If the student answered correctly, you can write on sentence that the student answered correctly and the task is finished.
+If the student answered correctly, you can write one sentence that the student answered correctly and the task is finished.
 """
 ```
 
@@ -98,6 +98,7 @@ email = "student@mail.de"
 Here you can define the prompts that the admin can choose from when creating a new
 exercise. you have access to the `{title}`, `{description}` and `{lesson_context}` variables to
 use in your prompts.
+The first prompt you define will be the default prompt ("prompt 1" in the example below). This prompt will be selected if the admin does not specifically select another one when creating an exercise.
 
 Here is an example of how to define the prompts:
 ```toml
