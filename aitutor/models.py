@@ -25,7 +25,7 @@ class UserRole(IntEnum):
     """
 
     STUDENT = 1
-    TEACHER = 2
+    TUTOR = 2
     ADMIN = 3
 
 

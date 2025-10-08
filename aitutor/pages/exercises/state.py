@@ -52,7 +52,7 @@ class ExercisesState(SessionState):
 
             # Don't load hidden exercises for students
             assert self.user_role is not None, "User role not set.  This is a bug."
-            if self.user_role < UserRole.TEACHER:
+            if self.user_role < UserRole.TUTOR:
                 stmt = stmt.where(Exercise.is_hidden == False)  # noqa: E712
 
             # fill self.exercises_with_result
@@ -68,7 +68,7 @@ class ExercisesState(SessionState):
 
             # if the user is a student, remove not started exercises
             assert self.user_role is not None, "User role not set.  This is a bug."
-            if self.user_role < UserRole.TEACHER:
+            if self.user_role < UserRole.TUTOR:
                 self.exercises_with_result = [
                     ex_res
                     for ex_res in self.exercises_with_result

@@ -40,10 +40,10 @@ password = "1234"
 email = "admin@mail.de"
 
 [[default_users]]
-role = "teacher"
-name = "teacher"
+role = "tutor"
+name = "tutor"
 password = "1234"
-email = "teacher@mail.de"
+email = "tutor@mail.de"
 
 [[default_users]]
 role = "student"
