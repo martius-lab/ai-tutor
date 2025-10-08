@@ -3,6 +3,7 @@
 import reflex as rx
 from sqlmodel import select
 from reflex_local_auth.auth_session import LocalAuthSession
+from sqlmodel import case, cast
 
 from aitutor.auth.protection import state_require_role_at_least
 from aitutor.auth.state import SessionState
@@ -27,8 +28,21 @@ class ManageUsersState(SessionState, ShowPasswordMixin):
 
     def load_users(self):
         """Load the users from the database."""
+        # Define role order for sorting (based on definition order in the database enum,
+        # which hopefully always matches that of UserRole).
+        # Based on https://stackoverflow.com/a/23618085/2095383
+        role_order_whens = {
+            cast(role.name, UserInfo.role.type): role.value  # type: ignore
+            for role in UserRole
+        }
+        role_sort_logic = case(role_order_whens, value=UserInfo.role)
+
         with rx.session() as session:
-            query = select(LocalUser, UserInfo).join(UserInfo)
+            query = (
+                select(LocalUser, UserInfo)
+                .join(UserInfo)
+                .order_by(role_sort_logic.desc(), LocalUser.username)
+            )
             self.users = [(lu, ui) for lu, ui in session.exec(query).all()]
 
     @rx.event
