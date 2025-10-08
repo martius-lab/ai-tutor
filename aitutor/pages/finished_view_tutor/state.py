@@ -12,7 +12,7 @@ from aitutor.pages.chat.state import ChatMessage, Role
 from aitutor.auth.protection import state_require_role_at_least
 
 
-class FinishedViewTeacherState(SessionState):
+class FinishedViewTutorState(SessionState):
     """The State for the finished view."""
 
     messages: list[ChatMessage] = []
