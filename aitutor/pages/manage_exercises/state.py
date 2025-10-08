@@ -482,6 +482,7 @@ class ManageExercisesState(FilterMixin, SessionState):
     def open_add_dialog(self):
         """Open the add/edit dialog."""
         self.reset_exercise_form()
+        self.current_prompt_name = self.prompt_names[0] if self.prompt_names else ""
         self.add_exercise_dialog_is_open = True
 
     @rx.event
