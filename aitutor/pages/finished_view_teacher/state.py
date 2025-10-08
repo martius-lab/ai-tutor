@@ -21,7 +21,7 @@ class FinishedViewTeacherState(SessionState):
     exercise_title: str = "No Exercise Selected"
 
     @rx.event
-    @state_require_role_at_least(UserRole.TEACHER)
+    @state_require_role_at_least(UserRole.TUTOR)
     def on_load(self):
         """Loads the finished exercise and user info."""
 

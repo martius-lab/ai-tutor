@@ -13,7 +13,7 @@ def role_to_text(role: UserRole):
     return rx.match(
         role,
         (UserRole.ADMIN, UserRole.ADMIN.name),
-        (UserRole.TEACHER, UserRole.TEACHER.name),
+        (UserRole.TUTOR, UserRole.TUTOR.name),
         (UserRole.STUDENT, UserRole.STUDENT.name),
         "Unknown",
     )
@@ -152,7 +152,7 @@ def edit_user_dialog() -> rx.Component:
                         rx.select(
                             (
                                 UserRole.ADMIN.name,
-                                UserRole.TEACHER.name,
+                                UserRole.TUTOR.name,
                                 UserRole.STUDENT.name,
                             ),
                             default_value=role_to_text(user_info.role),  # type: ignore

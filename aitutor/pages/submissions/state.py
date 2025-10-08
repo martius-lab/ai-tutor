@@ -41,7 +41,7 @@ class SubmissionsState(FilterMixin, SessionState):
     ]
 
     @rx.event
-    @state_require_role_at_least(UserRole.TEACHER)
+    @state_require_role_at_least(UserRole.TUTOR)
     def on_load(self):
         """gets executed when the page loads."""
         self.global_load()
