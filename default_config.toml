@@ -1,12 +1,33 @@
-check_conversation_prompt = """
-Check if the answers of the student answered the exercise correctly.
-If the student did not answer correctly, respond with what the errors are but do not give the solution.
-If the student answered correctly, you can write one sentence that the student answered correctly and the task is finished.
-"""
+# This is a configuration template for AI-Tutor.
+#
+# Copy this file to `config.toml` and enter appropriate values for all fields
+# that are marked with "TODO" (mostly at the top of the file but don't miss the
+# initial admin account further down).
+# Other fields may of course be adjusted as well, if you don't like the
+# defaults.
+
+# TODO
+course_name = "<Enter name of the lecture here>"
+# TODO
+registration_code = "<Enter some code which users need to know to register>"
 
 response_ai_model = "gpt-4.1-mini"
-
 check_ai_model = "gpt-4.1"
+
+# TODO
+impressum_text = """
+<Enter name of responsible person and other stuff for the impressum>
+"""
+
+# You can use markdown here
+# TODO
+lecture_information_text = """
+# Lecture: Example Lecture XY
+
+- Lecturer: Prof. Dr. Max Mustermann
+- Contact: max.mustermann@uni-tuebingen.de
+- Content: This lecture is intended to provide an understanding of basic methods and concepts of XY.
+"""
 
 how_to_use_text = """
 I am your AI tutor and I want to help you understand the content of the lecture. Here's how it works:
@@ -16,55 +37,54 @@ I am your AI tutor and I want to help you understand the content of the lecture.
 
 I’m looking forward to working with you!
 """
+
 general_information_text = """
 - The AI tutor should only be used for working on the tasks.
-- Tutors and professors can view chats that have been submitted.
-"""
-lecture_information_text = """
-# Lecture: Example Lecture XY
-- Lecturer: Prof. Dr. Max Mustermann
-- Contact: max.mustermann@uni-tuebingen.de
-- Content: This lecture is intended to provide an understanding of basic methods and concepts of XY.
+- Tutors and professors can view conversations that have been submitted.
 """
 
-course_name = "Example Lecture XY"
 
-impressum_text = "This is the impressum text."
+check_conversation_prompt = """
+Check if the answers of the student answered the exercise correctly.
+If the student did not answer correctly, respond with what the errors are but do not give the solution.
+If the student answered correctly, you can write one sentence that the student answered correctly and the task is finished.
+"""
 
-registration_code = "exampleCode1234"
 
+# TODO
 [[default_users]]
 role = "admin"
 name = "admin"
-password = "1234"
-email = "admin@mail.de"
+password = "initial-password-to-be-changed-immediately"
+email = "admin@example.com"
 
-[[default_users]]
-role = "tutor"
-name = "tutor"
-password = "1234"
-email = "tutor@mail.de"
+#[[default_users]]
+#role = "tutor"
+#name = "tutor"
+#password = "1234"
+#email = "tutor@example.com"
 
-[[default_users]]
-role = "student"
-name = "student"
-password = "1234"
-email = "student@mail.de"
+#[[default_users]]
+#role = "student"
+#name = "student"
+#password = "1234"
+#email = "student@example.com"
+
 
 [[exercise_prompts]]
-name = "learningAssistantPrompt"
+name = "Helpful Learner"
 prompt = """
-You will act as a learning assistant. The university student is given this exercise-title: "{title}"
-and this exercise: "{description}"
-This is the lesson context uploaded by the teacher as a theoretical basis for this exercise: 
-
+You will act as a learning assistant. 
+Using the inverted teaching methods, a university student is given the task to explain "{title}" with description "{description}"
+This is the lesson context uploaded by the teacher as a basis for this exercise:
 --------------------------
 {lesson_context}
 --------------------------
-
-The user is a student who has to complete the exercise.
-The student will answer the exercise in a conversation with you.
-If the student answered the task "{description}" incorrectly, you can give him a hint to help him find the solution but do **not** tell him the solution.
-If the student answered the task "{description}" correctly, you will tell him that he is correct and the task is finished.
-Do not engage in any other topics than the exercise at hand. If the student asks anything unrelated, tell him that you are only here to help with the exercise.
+The user is a student who should explain the matter to you in a conversation. 
+You pretend to be a learner trying to understand {description}. 
+The student will complete the exercise in a conversation with you. If the initial explaination is very short and incomplete ask very briefly about more details. 
+Otherwise write what is not yet clear. 
+If the student answered the task "{description}" incorrectly, you can give them a hint to help them find the solution but do NOT tell them the solution.
+If the student explained the task "{description}" overall correctly, you will tell them that they are correct and the task is finished. Keep you communication concise.
+Do not engage in any other topics than the exercise at hand. If the student asks anything unrelated, tell them that you are only here to help with the exercise.
 """
