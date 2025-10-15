@@ -8,7 +8,7 @@ from sqlmodel import select, and_, func
 from dataclasses import dataclass
 from sqlalchemy.orm import selectinload
 
-from aitutor.models import ExerciseResult, Exercise, UserRole, Tag
+from aitutor.models import ExerciseResult, Exercise, UserInfo, UserRole, Tag
 from aitutor.auth.state import SessionState
 from aitutor.utilities.filtering_components import FilterMixin
 from aitutor.auth.protection import state_require_role_at_least
@@ -64,13 +64,14 @@ class SubmissionsState(FilterMixin, SessionState):
         with rx.session() as session:
             # statement to load all submissions
             stmt = (
-                select(LocalUser, Exercise, ExerciseResult)
+                select(LocalUser, UserInfo, Exercise, ExerciseResult)
                 .select_from(LocalUser)
+                .join(UserInfo)
                 .join(Exercise, sqlalchemy.sql.true())  # cartesian product
                 .outerjoin(
                     ExerciseResult,
                     (ExerciseResult.exercise_id == Exercise.id)
-                    & (ExerciseResult.userinfo_id == LocalUser.id),  # type: ignore
+                    & (ExerciseResult.userinfo_id == UserInfo.id),  # type: ignore
                 )
                 .options(selectinload(Exercise.tags))  # type: ignore
                 .order_by(func.lower(Exercise.title), LocalUser.username)
@@ -117,7 +118,7 @@ class SubmissionsState(FilterMixin, SessionState):
                     exercise_tags=[tag.name for tag in exercise.tags],
                     has_submitted=bool(result and result.finished_conversation),
                 )
-                for user, exercise, result in session.exec(stmt).all()
+                for user, _, exercise, result in session.exec(stmt).all()
             ]
 
     @rx.event
