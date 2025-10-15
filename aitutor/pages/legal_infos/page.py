@@ -1,9 +1,10 @@
 """The pages for impressum and privacy notice."""
 
 import reflex as rx
+
+from aitutor import ConfigState
 from aitutor.pages.navbar import with_navbar
 from aitutor.language_state import LanguageState
-from aitutor.config import get_config
 from aitutor.pages.legal_infos.loader_functions import get_privacy_notice
 
 
@@ -14,7 +15,7 @@ def impressum_page() -> rx.Component:
         rx.vstack(
             rx.heading(LanguageState.impressum),
             rx.markdown(
-                get_config().impressum_text,
+                ConfigState.impressum_text,
                 align="left",
             ),
             align="center",

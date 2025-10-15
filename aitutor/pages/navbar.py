@@ -4,11 +4,11 @@ This module defines the navbar components for the Reflex application.
 
 import reflex as rx
 
+from aitutor import ConfigState
 from aitutor.auth.state import SessionState
 from aitutor.models import UserRole
 import aitutor.routes as routes
 from aitutor.auth.protection import has_role_at_least
-from aitutor.config import get_config
 from aitutor.language_state import LanguageState
 
 
@@ -249,7 +249,6 @@ def navbar(route_to_highlight: str) -> rx.Component:
     Returns:
         rx.Component: A Reflex box component containing the navigation bar.
     """
-    config = get_config()
     links = get_links()
     return rx.box(
         rx.desktop_only(
@@ -267,7 +266,7 @@ def navbar(route_to_highlight: str) -> rx.Component:
                     align_items="center",
                 ),
                 rx.vstack(
-                    rx.text(config.course_name, weight="bold"),
+                    rx.text(ConfigState.course_name, weight="bold"),
                     rx.hstack(
                         rx.foreach(
                             links,
@@ -312,7 +311,7 @@ def navbar(route_to_highlight: str) -> rx.Component:
                         rx.menu.content(
                             rx.box(
                                 rx.text(
-                                    config.course_name,
+                                    ConfigState.course_name,
                                     color_scheme="gray",
                                     weight="bold",
                                 ),

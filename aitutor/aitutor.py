@@ -4,8 +4,10 @@ This module contains the main app definition for Reflex.
 """
 
 import sys
-import reflex as rx
 import decouple
+
+import reflex as rx
+
 from aitutor import pages
 from aitutor.config import get_config
 from aitutor.utilities.create_default_users import create_default_users
