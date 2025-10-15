@@ -25,7 +25,8 @@ class FinishedViewState(SessionState):
         """Loads the finished exercise and conversation."""
 
         self.global_load()
-        if self.user_id:
+        userinfo = self.authenticated_user_info
+        if userinfo:
             with rx.session() as session:
                 stmt = (
                     select(
@@ -35,7 +36,7 @@ class FinishedViewState(SessionState):
                     .join(ExerciseResult)
                     .where(
                         Exercise.id == int(self.exercise_id),
-                        ExerciseResult.userinfo_id == self.user_id,
+                        ExerciseResult.userinfo_id == userinfo.id,
                     )
                 )
                 result = session.exec(stmt).one_or_none()
@@ -63,13 +64,13 @@ class FinishedViewState(SessionState):
     @rx.event
     def delete_submisssion(self):
         """Deletes the submission for the current exercise."""
-        userinfo_id: Optional[int] = self.user_id
-        if self.current_exercise and userinfo_id:
+        userinfo = self.authenticated_user_info
+        if self.current_exercise and userinfo:
             with rx.session() as session:
                 exercise_result = session.exec(
                     ExerciseResult.select().where(
                         ExerciseResult.exercise_id == self.current_exercise.id,
-                        ExerciseResult.userinfo_id == userinfo_id,
+                        ExerciseResult.userinfo_id == userinfo.id,
                     )
                 ).one_or_none()
 

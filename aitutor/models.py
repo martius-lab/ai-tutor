@@ -151,7 +151,7 @@ class ExerciseResult(rx.Model, table=True):
         return (
             f"<ExerciseResult(exercise_title={self.exercise.title}, "
             f"exercise_id={self.exercise_id}, "
-            f"user_id={self.userinfo_id})>"
+            f"userinfo_id={self.userinfo_id})>"
         )
 
 
