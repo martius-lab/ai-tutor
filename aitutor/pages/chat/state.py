@@ -142,6 +142,8 @@ class ChatState(SessionState):
     last_user_message_index: int = -1
     is_overdue: bool = False
 
+    _userinfo_id: int = -1
+
     @rx.event
     def set_user_input(self, value: str):
         """Sets the user input value."""
@@ -157,6 +159,12 @@ class ChatState(SessionState):
 
         self.global_load()
         self.waiting_for_response = False
+
+        userinfo = self.authenticated_user_info
+        # should be guaranteed by the decorator but assert for type checkers
+        assert userinfo is not None and userinfo.id is not None
+        self._userinfo_id = userinfo.id
+
         with rx.session() as session:
             exercise = session.exec(
                 Exercise.select().where(Exercise.id == int(self.exercise_id))
@@ -164,7 +172,7 @@ class ChatState(SessionState):
             exercise_result = session.exec(
                 ExerciseResult.select().where(
                     ExerciseResult.exercise_id == int(self.exercise_id),
-                    ExerciseResult.userinfo_id == self.user_id,
+                    ExerciseResult.userinfo_id == self._userinfo_id,
                 )
             ).one_or_none()
             if exercise:
@@ -211,6 +219,7 @@ class ChatState(SessionState):
         self.user_input = ""
         self.last_user_message_index = -1
         self.is_overdue = False
+        self._userinfo_id = -1
 
     @rx.var
     def finished_view_url(self) -> str:
@@ -245,13 +254,12 @@ class ChatState(SessionState):
     def reset_conversation(self):
         """Resets conversation for current exercise."""
         # delete conversation from database
-        userinfo_id: Optional[int] = self.user_id
-        if self.current_exercise and userinfo_id:
+        if self.current_exercise:
             with rx.session() as session:
                 exercise_result = session.exec(
                     ExerciseResult.select().where(
                         ExerciseResult.exercise_id == self.current_exercise.id,
-                        ExerciseResult.userinfo_id == userinfo_id,
+                        ExerciseResult.userinfo_id == self._userinfo_id,
                     )
                 ).one_or_none()
 
@@ -367,13 +375,12 @@ class ChatState(SessionState):
         """
         if self.check_passed:
             conversation = self.get_messages_dict_gpt()
-            userinfo_id: Optional[int] = self.user_id
-            if self.current_exercise and userinfo_id:
+            if self.current_exercise:
                 with rx.session() as session:
                     exercise_result = session.exec(
                         ExerciseResult.select().where(
                             ExerciseResult.exercise_id == self.current_exercise.id,
-                            ExerciseResult.userinfo_id == userinfo_id,
+                            ExerciseResult.userinfo_id == self._userinfo_id,
                         )
                     ).one_or_none()
 
@@ -424,13 +431,12 @@ class ChatState(SessionState):
         """
         Saves the conversation to the database.
         """
-        userinfo_id: Optional[int] = self.user_id
-        if self.current_exercise and userinfo_id:
+        if self.current_exercise:
             with rx.session() as session:
                 exercise_result = session.exec(
                     ExerciseResult.select().where(
                         ExerciseResult.exercise_id == self.current_exercise.id,
-                        ExerciseResult.userinfo_id == userinfo_id,
+                        ExerciseResult.userinfo_id == self._userinfo_id,
                     )
                 ).one_or_none()
 
@@ -442,7 +448,7 @@ class ChatState(SessionState):
                         )
                     exercise_result = ExerciseResult(
                         exercise_id=self.current_exercise.id,
-                        userinfo_id=userinfo_id,
+                        userinfo_id=self._userinfo_id,
                         conversation_text=conversation,
                         check_passed=self.check_passed,
                     )
@@ -484,13 +490,12 @@ class ChatState(SessionState):
         """
         Loads existing conversation from database.
         """
-        userinfo_id: Optional[int] = self.user_id
-        if self.current_exercise and userinfo_id:
+        if self.current_exercise:
             with rx.session() as session:
                 exercise_result = session.exec(
                     ExerciseResult.select().where(
                         ExerciseResult.exercise_id == self.current_exercise.id,
-                        ExerciseResult.userinfo_id == userinfo_id,
+                        ExerciseResult.userinfo_id == self._userinfo_id,
                     )
                 ).one_or_none()
 
