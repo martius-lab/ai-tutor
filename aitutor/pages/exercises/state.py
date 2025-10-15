@@ -32,8 +32,9 @@ class ExercisesState(SessionState):
         """
         Fetch exercises from database
         """
-
         self.global_load()
+
+        assert self.authenticated_user_info is not None
         with rx.session() as session:
             stmt = (
                 select(Exercise, ExerciseResult)
@@ -44,7 +45,7 @@ class ExercisesState(SessionState):
                     ExerciseResult,
                     and_(
                         Exercise.id == ExerciseResult.exercise_id,
-                        ExerciseResult.userinfo_id == self.authenticated_user.id,
+                        ExerciseResult.userinfo_id == self.authenticated_user_info.id,
                     ),
                     isouter=True,
                 )
