@@ -23,6 +23,7 @@ class HomeState(SessionState):
         """Load exercises when the home page is loaded."""
         self.global_load()
 
+        assert self.authenticated_user_info is not None
         with rx.session() as session:
             stmt = (
                 select(Exercise, ExerciseResult)
@@ -30,7 +31,7 @@ class HomeState(SessionState):
                     ExerciseResult,
                     and_(
                         Exercise.id == ExerciseResult.exercise_id,
-                        ExerciseResult.userinfo_id == self.authenticated_user.id,
+                        ExerciseResult.userinfo_id == self.authenticated_user_info.id,
                     ),
                     isouter=True,
                 )
