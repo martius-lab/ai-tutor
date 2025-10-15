@@ -106,15 +106,3 @@ class SessionState(reflex_local_auth.LocalAuthState):
         if self.authenticated_user_info is None:
             return None
         return self.authenticated_user_info.role
-
-    @rx.var(cache=True, initial_value=None)
-    def user_id(self) -> int | None:
-        """
-        Retrieves the ID of the authenticated user.
-
-        Returns:
-            int: The ID of the authenticated user.
-        """
-        if self.authenticated_user_info is None:
-            return None
-        return self.authenticated_user_info.user_id
