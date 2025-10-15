@@ -2,9 +2,9 @@
 
 import reflex as rx
 
+from aitutor import ConfigState
 from aitutor.pages.home.state import HomeState
 from aitutor.routes import LOGIN, REGISTER
-from aitutor.config import get_config
 from aitutor.language_state import LanguageState
 from aitutor import routes
 
@@ -110,32 +110,31 @@ def dashboard_card():
 
 def info_accordion():
     """Render the info accordion"""
-    config = get_config()
     return (
         rx.cond(
-            (config.how_to_use_text != "")
-            | (config.general_information_text != "")
-            | (config.lecture_information_text != ""),
+            (ConfigState.how_to_use_text != "")
+            | (ConfigState.general_information_text != "")
+            | (ConfigState.lecture_information_text != ""),
             rx.accordion.root(
                 rx.cond(
-                    config.how_to_use_text != "",
+                    ConfigState.how_to_use_text != "",
                     rx.accordion.item(
                         header=LanguageState.how_to_use_aitutor,
-                        content=rx.markdown(config.how_to_use_text),
+                        content=rx.markdown(ConfigState.how_to_use_text),
                     ),
                 ),
                 rx.cond(
-                    config.general_information_text != "",
+                    ConfigState.general_information_text != "",
                     rx.accordion.item(
                         header=LanguageState.general_info,
-                        content=rx.markdown(config.general_information_text),
+                        content=rx.markdown(ConfigState.general_information_text),
                     ),
                 ),
                 rx.cond(
-                    config.lecture_information_text != "",
+                    ConfigState.lecture_information_text != "",
                     rx.accordion.item(
                         header=LanguageState.lecture_info,
-                        content=rx.markdown(config.lecture_information_text),
+                        content=rx.markdown(ConfigState.lecture_information_text),
                     ),
                 ),
                 width="100%",
