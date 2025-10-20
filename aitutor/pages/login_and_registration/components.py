@@ -97,7 +97,7 @@ def login_form() -> rx.Component:
             ),
             rx.button(LanguageState.log_in, width="100%", _hover={"cursor": "pointer"}),
             rx.center(
-                rx.link(LanguageState.register, on_click=rx.redirect(routes.REGISTER)),
+                rx.link(LanguageState.register, href=routes.REGISTER),
                 width="100%",
             ),
             min_width=MIN_WIDTH,
@@ -212,10 +212,7 @@ def register_form() -> rx.Component:
                 _hover={"cursor": "pointer"},
             ),
             rx.center(
-                rx.link(
-                    LanguageState.log_in,
-                    on_click=lambda: rx.redirect(routes.LOGIN),
-                ),
+                rx.link(LanguageState.log_in, href=routes.LOGIN),
                 width="100%",
             ),
             min_width=MIN_WIDTH,
