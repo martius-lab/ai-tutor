@@ -120,10 +120,7 @@ def profile_menu() -> rx.Component:
             SessionState.is_authenticated,
             rx.menu.content(
                 rx.hstack(
-                    rx.icon(
-                        "circle-user-round",
-                        size=15,
-                    ),
+                    rx.icon("circle-user-round", size=15),
                     rx.text(
                         {SessionState.authenticated_user.username},
                         size="2",
@@ -137,10 +134,7 @@ def profile_menu() -> rx.Component:
                 rx.separator(),
                 rx.menu.item(
                     rx.hstack(
-                        rx.icon(
-                            "languages",
-                            size=15,
-                        ),
+                        rx.icon("languages", size=15),
                         rx.text(
                             LanguageState.language_string,
                             size="2",
@@ -156,10 +150,23 @@ def profile_menu() -> rx.Component:
                 ),
                 rx.menu.item(
                     rx.hstack(
-                        rx.icon(
-                            "log-out",
-                            size=15,
+                        rx.icon("user-round-cog", size=15),
+                        rx.text(
+                            LanguageState.settings,
+                            size="2",
+                            margin_bottom="6px",
+                            margin_top="6px",
                         ),
+                        align="center",
+                        justify="center",
+                        spacing="1",
+                    ),
+                    on_click=rx.redirect(routes.USER_SETTINGS),
+                    _hover={"cursor": "pointer"},
+                ),
+                rx.menu.item(
+                    rx.hstack(
+                        rx.icon("log-out", size=15),
                         rx.text(
                             LanguageState.log_out,
                             size="2",
