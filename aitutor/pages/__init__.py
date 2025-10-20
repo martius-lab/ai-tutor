@@ -13,6 +13,7 @@ from aitutor.pages.login_and_registration.page import (
     custom_register_page,
 )
 from aitutor.pages.legal_infos.page import impressum_page, privacy_notice_page
+from aitutor.pages.user_settings import user_settings_page
 
 from aitutor.pages.chat.state import ChatState
 from aitutor.pages.exercises.state import ExercisesState

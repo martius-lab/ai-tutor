@@ -62,6 +62,11 @@ class LanguageState(SessionState):
         """Email string"""
         return self.translate(de="E-Mail", en="Email")
 
+    @rx.var
+    def settings(self) -> str:
+        """Settings string"""
+        return self.translate(de="Einstellungen", en="Settings")
+
     # Search Bar Strings ---------------------------------------------------------------
     @rx.var
     def search_placeholder(self) -> str:
@@ -464,11 +469,6 @@ class LanguageState(SessionState):
     def editing_period(self) -> str:
         """Editing period string"""
         return self.translate(de="Bearbeitungszeitraum", en="Editing period")
-
-    @rx.var
-    def settings(self) -> str:
-        """Settings string"""
-        return self.translate(de="Einstellungen", en="Settings")
 
     @rx.var
     def add_exercise(self) -> str:
