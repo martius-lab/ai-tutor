@@ -55,6 +55,11 @@ app.add_page(
     route=routes.EXERCISES,
     on_load=pages.ExercisesState.on_load,
 )
+app.add_page(
+    pages.user_settings_page,
+    route=routes.USER_SETTINGS,
+)
+
 # reflex_local_auth pages
 app.add_page(
     pages.custom_login_page,

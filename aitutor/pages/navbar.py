@@ -106,6 +106,27 @@ def profile_menu() -> rx.Component:
     Returns:
         rx.Component: A Reflex menu component with login/registration/logout options.
     """
+
+    def menu_item(
+        label: str | rx.vars.StringVar[str], icon: str, on_click
+    ) -> rx.Component:
+        return rx.menu.item(
+            rx.hstack(
+                rx.icon(icon, size=15),
+                rx.text(
+                    label,
+                    size="2",
+                    margin_bottom="6px",
+                    margin_top="6px",
+                ),
+                align="center",
+                justify="center",
+                spacing="1",
+            ),
+            on_click=on_click,
+            _hover={"cursor": "pointer"},
+        )
+
     return rx.menu.root(
         rx.menu.trigger(
             rx.icon_button(
@@ -120,10 +141,7 @@ def profile_menu() -> rx.Component:
             SessionState.is_authenticated,
             rx.menu.content(
                 rx.hstack(
-                    rx.icon(
-                        "circle-user-round",
-                        size=15,
-                    ),
+                    rx.icon("circle-user-round", size=15),
                     rx.text(
                         {SessionState.authenticated_user.username},
                         size="2",
@@ -135,102 +153,37 @@ def profile_menu() -> rx.Component:
                     spacing="1",
                 ),
                 rx.separator(),
-                rx.menu.item(
-                    rx.hstack(
-                        rx.icon(
-                            "languages",
-                            size=15,
-                        ),
-                        rx.text(
-                            LanguageState.language_string,
-                            size="2",
-                            margin_bottom="6px",
-                            margin_top="6px",
-                        ),
-                        align="center",
-                        justify="center",
-                        spacing="1",
-                    ),
+                menu_item(
+                    LanguageState.language_string,
+                    icon="languages",
                     on_click=SessionState.toggle_language,
-                    _hover={"cursor": "pointer"},
                 ),
-                rx.menu.item(
-                    rx.hstack(
-                        rx.icon(
-                            "log-out",
-                            size=15,
-                        ),
-                        rx.text(
-                            LanguageState.log_out,
-                            size="2",
-                            margin_bottom="6px",
-                            margin_top="6px",
-                        ),
-                        align="center",
-                        justify="center",
-                        spacing="1",
-                    ),
-                    on_click=SessionState.perform_logout(),  # type: ignore
-                    _hover={"cursor": "pointer"},
+                menu_item(
+                    LanguageState.user_settings,
+                    icon="cog",
+                    on_click=rx.redirect(routes.USER_SETTINGS),
+                ),
+                menu_item(
+                    LanguageState.log_out,
+                    icon="log-out",
+                    on_click=SessionState.perform_logout,
                 ),
             ),
             rx.menu.content(
-                rx.menu.item(
-                    rx.hstack(
-                        rx.icon(
-                            "languages",
-                            size=15,
-                        ),
-                        rx.text(
-                            LanguageState.language_string,
-                            size="2",
-                            margin_bottom="6px",
-                            margin_top="6px",
-                        ),
-                        align="center",
-                        justify="center",
-                        spacing="1",
-                    ),
+                menu_item(
+                    LanguageState.language_string,
+                    icon="languages",
                     on_click=SessionState.toggle_language,
-                    _hover={"cursor": "pointer"},
                 ),
-                rx.menu.item(
-                    rx.hstack(
-                        rx.icon(
-                            "log-in",
-                            size=15,
-                        ),
-                        rx.text(
-                            LanguageState.log_in,
-                            size="2",
-                            margin_bottom="6px",
-                            margin_top="6px",
-                        ),
-                        align="center",
-                        justify="center",
-                        spacing="1",
-                    ),
+                menu_item(
+                    LanguageState.log_in,
+                    icon="log-in",
                     on_click=lambda: rx.redirect(routes.LOGIN),
-                    _hover={"cursor": "pointer"},
                 ),
-                rx.menu.item(
-                    rx.hstack(
-                        rx.icon(
-                            "notepad-text",
-                            size=15,
-                        ),
-                        rx.text(
-                            LanguageState.register,
-                            size="2",
-                            margin_bottom="6px",
-                            margin_top="6px",
-                        ),
-                        align="center",
-                        justify="center",
-                        spacing="1",
-                    ),
+                menu_item(
+                    LanguageState.register,
+                    icon="notepad-text",
                     on_click=lambda: rx.redirect(routes.REGISTER),
-                    _hover={"cursor": "pointer"},
                 ),
             ),
         ),
