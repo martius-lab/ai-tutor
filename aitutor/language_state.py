@@ -62,6 +62,11 @@ class LanguageState(SessionState):
         """Email string"""
         return self.translate(de="E-Mail", en="Email")
 
+    @rx.var
+    def settings(self) -> str:
+        """Settings string"""
+        return self.translate(de="Einstellungen", en="Settings")
+
     # Search Bar Strings ---------------------------------------------------------------
     @rx.var
     def search_placeholder(self) -> str:
@@ -466,11 +471,6 @@ class LanguageState(SessionState):
         return self.translate(de="Bearbeitungszeitraum", en="Editing period")
 
     @rx.var
-    def settings(self) -> str:
-        """Settings string"""
-        return self.translate(de="Einstellungen", en="Settings")
-
-    @rx.var
     def add_exercise(self) -> str:
         """Add exercise string"""
         return self.translate(de="Neue Übung", en="Add exercise")
@@ -727,6 +727,20 @@ class LanguageState(SessionState):
             """),
         )
 
+    # user settings --------------------------------------------------------------------
+
+    @rx.var
+    def user_settings(self) -> str:
+        return self.translate(de="Benutzereinstellungen", en="User Settings")
+
+    @rx.var
+    def change_password(self) -> str:
+        return self.translate(de="Passwort ändern", en="Change Password")
+
+    @rx.var
+    def current_password(self) -> str:
+        return self.translate(de="Aktuelles Passwort", en="Current Password")
+
 
 class BackendTranslations:
     """Translations for use in the backend (where LanguageState is not available)."""
@@ -813,4 +827,30 @@ class BackendTranslations:
             language,
             de="Die Aufgabe wurde erfolgreich abgegeben.",
             en="The exercise was submitted successfully.",
+        )
+
+    # UserSettingsState ----------------------------------------------------------------
+
+    @staticmethod
+    def change_password_message_success(language: Language) -> str:
+        return translate(
+            language,
+            de="Passwort geändert.",
+            en="Password Changed.",
+        )
+
+    @staticmethod
+    def change_password_message_current_does_not_match(language: Language) -> str:
+        return translate(
+            language,
+            de="Aktuelles Passwort ist falsch.",
+            en="Current password is wrong.",
+        )
+
+    @staticmethod
+    def change_password_message_confirmed_does_not_match(language: Language) -> str:
+        return translate(
+            language,
+            de="'Neues' und 'bestätigtes' Passwort stimmen nicht überein.",
+            en="'New' and 'Confirmed' password do not match.",
         )
