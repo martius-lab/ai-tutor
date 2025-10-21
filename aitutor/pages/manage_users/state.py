@@ -8,11 +8,10 @@ from sqlmodel import case, cast
 from aitutor.auth.protection import state_require_role_at_least
 from aitutor.auth.state import SessionState
 from aitutor.models import LocalUser, UserInfo, UserRole
-from aitutor.pages.login_and_registration.state import ShowPasswordMixin
 from aitutor.language_state import BackendTranslations as BT
 
 
-class ManageUsersState(SessionState, ShowPasswordMixin):
+class ManageUsersState(SessionState):
     """State for managing user accounts."""
 
     users: list[tuple[LocalUser, UserInfo]] = []
