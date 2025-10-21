@@ -159,8 +159,8 @@ def profile_menu() -> rx.Component:
                     on_click=SessionState.toggle_language,
                 ),
                 menu_item(
-                    LanguageState.settings,
-                    icon="user-round-cog",
+                    LanguageState.user_settings,
+                    icon="cog",
                     on_click=rx.redirect(routes.USER_SETTINGS),
                 ),
                 menu_item(
