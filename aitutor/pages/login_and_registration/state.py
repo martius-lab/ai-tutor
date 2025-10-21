@@ -1,25 +1,15 @@
 """State for the login and for the registration page."""
 
+import re
+
 import reflex as rx
 import reflex_local_auth
-import re
 
 from aitutor.models import UserInfo, UserRole
 from aitutor.config import get_config
 
 
-class ShowPasswordMixin(rx.State, mixin=True):
-    """Mixin to add show password functionality to the login and register page."""
-
-    password_visible: bool = False
-
-    @rx.event
-    def toggle_password_visibility(self):
-        """Toggle the visibility of the password."""
-        self.password_visible = not self.password_visible
-
-
-class MyLoginState(ShowPasswordMixin, reflex_local_auth.LoginState):
+class MyLoginState(reflex_local_auth.LoginState):
     """
     A custom login state class that handles user login.
     """
@@ -28,10 +18,9 @@ class MyLoginState(ShowPasswordMixin, reflex_local_auth.LoginState):
     def on_load(self):
         """function that gets called when the login page loads"""
         self.error_message = ""
-        self.password_visible = False
 
 
-class MyRegisterState(ShowPasswordMixin, reflex_local_auth.RegistrationState):
+class MyRegisterState(reflex_local_auth.RegistrationState):
     """
     A custom registration state class that handles user registration.
     """
@@ -73,7 +62,6 @@ class MyRegisterState(ShowPasswordMixin, reflex_local_auth.RegistrationState):
         self.clear_state_vars()
         self.error_message = ""
         self.success = False
-        self.password_visible = False
 
     def clear_state_vars(self):
         """Clear the state variables."""
