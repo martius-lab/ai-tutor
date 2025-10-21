@@ -78,12 +78,13 @@ def change_password_card() -> rx.Component:
     )
 
 
-@with_navbar(routes.EXERCISES)
+@with_navbar("")
 @page_require_role_at_least(UserRole.STUDENT)
 def user_settings_page() -> rx.Component:
     """Page where the user can change their settings."""
     return rx.center(
         rx.vstack(
+            rx.heading(LS.user_settings),
             change_password_card(),
             width="100%",
             align="center",

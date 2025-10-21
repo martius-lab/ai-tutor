@@ -730,6 +730,10 @@ class LanguageState(SessionState):
     # user settings --------------------------------------------------------------------
 
     @rx.var
+    def user_settings(self) -> str:
+        return self.translate(de="Benutzereinstellungen", en="User Settings")
+
+    @rx.var
     def change_password(self) -> str:
         return self.translate(de="Passwort ändern", en="Change Password")
 
