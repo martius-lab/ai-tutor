@@ -70,7 +70,10 @@ def change_password_card() -> rx.Component:
                 reset_on_submit=True,
             ),
         ),
-        width="100%",
+        # card with is 40em unless the screen is smaller than this, in which case the
+        # max_width of 100% applies
+        width="40em",
+        max_width="100%",
         padding="4",
     )
 
