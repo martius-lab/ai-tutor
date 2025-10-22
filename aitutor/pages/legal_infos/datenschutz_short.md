@@ -1,2 +1,4 @@
-- Abgegebene chats können von Tutoren gesehen werden
-- Alle chats werden an die openai api gesendet
+- Abgegebene Übungen können von Tutoren eingesehen werden.
+- Alle Eingaben bei den Übungen werden von OpenAI verarbeitet (siehe auch
+  [Datenschutz](/privacy_notice)).
+- Geben Sie bei den Übungen entsprechend bitte keine persönlichen Daten ein.
