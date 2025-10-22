@@ -4,12 +4,8 @@ import reflex as rx
 import reflex_local_auth
 from reflex_local_auth.pages.components import MIN_WIDTH
 
-import aitutor.routes as routes
-from aitutor.pages.login_and_registration.state import (
-    ShowPasswordMixin,
-    MyLoginState,
-    MyRegisterState,
-)
+from aitutor import components, routes
+from aitutor.pages.login_and_registration.state import MyRegisterState
 from aitutor.language_state import LanguageState
 from aitutor.pages.legal_infos.loader_functions import get_privacy_notice_short
 
@@ -25,38 +21,9 @@ def input(name, placeholder, **props) -> rx.Component:
     )
 
 
-def password_input(
-    name, placeholder, state: type[ShowPasswordMixin], **props
-) -> rx.Component:
-    """
-    Render a 100% width password input with a placeholder. It also has
-    a toggle button to show the password.
-    """
-    return rx.hstack(
-        rx.input(
-            placeholder=placeholder,
-            id=name,
-            name=name,
-            type=rx.cond(state.password_visible, "text", "password"),
-            width="100%",
-            **props,
-        ),
-        rx.cond(
-            state.password_visible,
-            rx.icon(
-                "eye",
-                on_click=state.toggle_password_visibility,
-                _hover={"cursor": "pointer"},
-            ),
-            rx.icon(
-                "eye-off",
-                on_click=state.toggle_password_visibility,
-                _hover={"cursor": "pointer"},
-            ),
-        ),
-        align="center",
-        width="100%",
-    )
+def password_input(name, **props) -> rx.Component:
+    """Wrapper around components.password_input with width set to 100%."""
+    return components.password_input(id=name, name=name, width="100%", **props)
 
 
 # login --------------------------------------------------------------------------------
@@ -92,7 +59,6 @@ def login_form() -> rx.Component:
             password_input(
                 "password",
                 placeholder=LanguageState.password,
-                state=MyLoginState,
                 required=True,
             ),
             rx.button(LanguageState.log_in, width="100%", _hover={"cursor": "pointer"}),
@@ -166,7 +132,6 @@ def register_form() -> rx.Component:
             password_input(
                 "password",
                 placeholder=LanguageState.password,
-                state=MyRegisterState,
                 required=True,
                 value=MyRegisterState.password,
                 on_change=MyRegisterState.set_password,
@@ -175,7 +140,6 @@ def register_form() -> rx.Component:
             password_input(
                 "confirm_password",
                 placeholder=LanguageState.confirm_password,
-                state=MyRegisterState,
                 required=True,
                 value=MyRegisterState.confirm_password,
                 on_change=MyRegisterState.set_confirm_password,
