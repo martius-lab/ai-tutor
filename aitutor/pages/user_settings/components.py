@@ -2,8 +2,8 @@
 
 import reflex as rx
 
+from aitutor.components import password_input
 from aitutor.language_state import LanguageState as LS
-from aitutor.pages.login_and_registration.components import password_input
 from aitutor.pages.user_settings.state import UserSettingsState
 
 
@@ -36,24 +36,27 @@ def change_password_card() -> rx.Component:
                     # -------
                     rx.text(LS.current_password),
                     password_input(
-                        "current_password",
+                        name="current_password",
                         placeholder=LS.current_password,
                         state=UserSettingsState,
                         required=True,
+                        width="100%",
                     ),
                     rx.text(LS.new_password),
                     password_input(
-                        "new_password",
+                        name="new_password",
                         placeholder=LS.new_password,
                         state=UserSettingsState,
                         required=True,
+                        width="100%",
                     ),
                     rx.text(LS.confirm_password),
                     password_input(
-                        "confirm_new_password",
+                        name="confirm_new_password",
                         placeholder=LS.confirm_password,
                         state=UserSettingsState,
                         required=True,
+                        width="100%",
                     ),
                     rx.button(
                         LS.save,
