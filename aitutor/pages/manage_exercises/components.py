@@ -102,6 +102,15 @@ def delete_exercise_button(exercise: Exercise):
 def show_exercise(exercise: Exercise):
     """Show exercises on page in a table row."""
     return rx.table.row(
+        rx.table.cell(
+            rx.checkbox(
+                checked=ManageExercisesState.exercise_is_checked[exercise.id],  # type: ignore
+                on_change=lambda checked: ManageExercisesState.set_exercise_is_checked(
+                    exercise.id, checked
+                ),
+                _hover={"cursor": "pointer"},
+            )
+        ),
         rx.table.cell(exercise.title, max_width="175px"),
         rx.table.cell(
             truncate_text_reflex_var(exercise.description, max_length=150),
@@ -165,6 +174,13 @@ def exercise_table():
             rx.table.root(
                 rx.table.header(
                     rx.table.row(
+                        rx.table.column_header_cell(
+                            rx.checkbox(
+                                # TODO: implement select all functionality
+                                checked=False,
+                                _hover={"cursor": "pointer"},
+                            ),
+                        ),
                         header_cell(LanguageState.exercise, "book"),
                         header_cell(LanguageState.description, "book-open-text"),
                         header_cell(LanguageState.tags, "tag"),
@@ -620,6 +636,7 @@ def add_edit_exercise_form(mode: DialogMode) -> Sequence[rx.Component]:
             rx.checkbox(
                 checked=ManageExercisesState.current_hidden_state,
                 on_change=ManageExercisesState.set_current_hidden_state,
+                _hover={"cursor": "pointer"},
             ),
             align="center",
             padding_top="1.5em",
@@ -635,6 +652,7 @@ def add_edit_exercise_form(mode: DialogMode) -> Sequence[rx.Component]:
             rx.checkbox(
                 checked=ManageExercisesState.use_deadline,
                 on_change=ManageExercisesState.set_use_deadline,
+                _hover={"cursor": "pointer"},
             ),
             align="center",
             padding_top="1.5em",
