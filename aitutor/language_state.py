@@ -402,14 +402,6 @@ class LanguageState(SessionState):
         return self.translate(de="Abgabe", en="Submission")
 
     @rx.var
-    def only_with_submission(self) -> str:
-        """Only with submission string"""
-        return self.translate(
-            de="Nur mit Abgabe",
-            en="Only with submission",
-        )
-
-    @rx.var
     def no_submission(self) -> str:
         """No submission string"""
         return self.translate(
