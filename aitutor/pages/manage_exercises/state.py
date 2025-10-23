@@ -74,6 +74,8 @@ class ManageExercisesState(FilterMixin, SessionState):
     editing_periods: dict[int, str] = {}
     #: dictionary to store which exercises are started. Key is exercise id.
     exercise_is_started: dict[int, bool] = {}
+    #: dictionary to store which exercises are checked. Key is exercise id.
+    exercise_is_checked: dict[int, bool] = {}
 
     @rx.event
     def set_add_tag_dialog_is_open(self, is_open: bool):
@@ -116,6 +118,11 @@ class ManageExercisesState(FilterMixin, SessionState):
         self.use_deadline = use
 
     @rx.event
+    def set_exercise_is_checked(self, exercise_id: int | None, is_checked: bool):
+        """Set the exercise is checked flag."""
+        self.exercise_is_checked[exercise_id] = is_checked  # type: ignore
+
+    @rx.event
     @state_require_role_at_least(UserRole.ADMIN)
     def on_load(self):
         """Initialize the state"""
@@ -145,6 +152,9 @@ class ManageExercisesState(FilterMixin, SessionState):
         self.current_deadline = ""
         self.current_days_to_complete = ""
         self.use_deadline = True
+        self.editing_periods = {}
+        self.exercise_is_started = {}
+        self.exercise_is_checked = {}
 
     @rx.event
     async def extract_lesson_material(self, files: list[rx.UploadFile]):
@@ -284,10 +294,15 @@ class ManageExercisesState(FilterMixin, SessionState):
             self.exercises = list(
                 session.exec(query_exercises.order_by(Exercise.id.desc())).all()  # type: ignore
             )
-            # update editing periods and exercise_is_started
+
+            # update dictionarys
             for exercise in self.exercises:
+                # update editing periods and exercise_is_started
                 self.editing_periods[exercise.id] = exercise.editing_period  # type: ignore
                 self.exercise_is_started[exercise.id] = exercise.is_started  # type: ignore
+
+                # reset checked states
+                self.exercise_is_checked[exercise.id] = False  # type: ignore
 
     @rx.event
     def load_tags(self):
