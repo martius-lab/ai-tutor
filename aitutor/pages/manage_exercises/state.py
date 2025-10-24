@@ -295,7 +295,7 @@ class ManageExercisesState(FilterMixin, SessionState):
                 session.exec(query_exercises.order_by(Exercise.id.desc())).all()  # type: ignore
             )
 
-            # update dictionarys
+            # update dictionarys (every exercise must have an entry in the dicts)
             for exercise in self.exercises:
                 # update editing periods and exercise_is_started
                 self.editing_periods[exercise.id] = exercise.editing_period  # type: ignore

@@ -138,15 +138,11 @@ def show_exercise(exercise: Exercise):
             ManageExercisesState.editing_periods[exercise.id]  # type: ignore
         ),
         rx.table.cell(
-            rx.center(
-                rx.hstack(
-                    hide_exercise_button(exercise),
-                    edit_exercise_button(exercise),
-                    delete_exercise_button(exercise),
-                    spacing="5",
-                    align="center",
-                ),
-                padding_left="1em",
+            rx.hstack(
+                hide_exercise_button(exercise),
+                edit_exercise_button(exercise),
+                delete_exercise_button(exercise),
+                spacing="5",
             ),
         ),
         style={"_hover": {"bg": rx.color("gray", 3)}},
