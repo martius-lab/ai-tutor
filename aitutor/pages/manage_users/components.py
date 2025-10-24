@@ -172,7 +172,6 @@ def edit_user_dialog() -> rx.Component:
                         rx.checkbox(
                             name="enabled",
                             default_checked=local_user.enabled,
-                            _hover={"cursor": "pointer"},
                         ),
                         # buttons
                         rx.hstack(

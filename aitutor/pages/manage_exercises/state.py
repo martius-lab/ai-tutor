@@ -66,6 +66,8 @@ class ManageExercisesState(FilterMixin, SessionState):
     current_days_to_complete: str = ""
     #: flag to control if the exercise should have a deadline
     use_deadline: bool = True
+    #: flag to control if all exercises are checked
+    all_exercises_checked: bool = False
 
     # These dictionarys are needed because reflex does not accept propertys like
     # exercise.is_started or exercise.editing_period in the components.
@@ -118,9 +120,20 @@ class ManageExercisesState(FilterMixin, SessionState):
         self.use_deadline = use
 
     @rx.event
+    def set_all_exercises_checked(self, is_checked: bool):
+        """Set the all exercises checked flag."""
+        self.all_exercises_checked = is_checked
+        for exercise in self.exercises:
+            self.exercise_is_checked[exercise.id] = is_checked  # type: ignore
+
+    @rx.event
     def set_exercise_is_checked(self, exercise_id: int | None, is_checked: bool):
         """Set the exercise is checked flag."""
         self.exercise_is_checked[exercise_id] = is_checked  # type: ignore
+
+        # set all_exercises_checked to False if any exercise is unchecked
+        if not is_checked:
+            self.all_exercises_checked = False
 
     @rx.event
     @state_require_role_at_least(UserRole.ADMIN)
@@ -152,6 +165,7 @@ class ManageExercisesState(FilterMixin, SessionState):
         self.current_deadline = ""
         self.current_days_to_complete = ""
         self.use_deadline = True
+        self.all_exercises_checked = False
         self.editing_periods = {}
         self.exercise_is_started = {}
         self.exercise_is_checked = {}
@@ -303,6 +317,8 @@ class ManageExercisesState(FilterMixin, SessionState):
 
                 # reset checked states
                 self.exercise_is_checked[exercise.id] = False  # type: ignore
+
+            self.all_exercises_checked = False
 
     @rx.event
     def load_tags(self):
