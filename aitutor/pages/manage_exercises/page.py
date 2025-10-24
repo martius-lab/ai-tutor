@@ -10,6 +10,7 @@ from aitutor.auth.protection import page_require_role_at_least
 from aitutor.pages.manage_exercises.components import (
     exercise_table,
     add_exercise_button,
+    delete_selected_exercises_button,
 )
 from aitutor.utilities.filtering_components import search_bar, search_badges
 
@@ -41,6 +42,15 @@ def manage_exercises_page() -> rx.Component:
                 search_bar(ManageExercisesState),
             ),
             search_badges(ManageExercisesState),
+            rx.cond(
+                ManageExercisesState.something_is_selected,
+                rx.hstack(
+                    delete_selected_exercises_button(),
+                    align="start",
+                    width="100%",
+                    wrap="wrap",
+                ),
+            ),
             exercise_table(),
             spacing="3",
             align="center",
