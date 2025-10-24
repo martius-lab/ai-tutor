@@ -131,9 +131,11 @@ class ManageExercisesState(FilterMixin, SessionState):
         """Set the exercise_is_selected flag."""
         self.exercise_is_selected[exercise_id] = is_selected  # type: ignore
 
-        # set all_exercises_selected to False if any exercise is unselected
+        # update all_exercises_selected accordingly
         if not is_selected:
             self.all_exercises_selected = False
+        if all(self.exercise_is_selected.values()):
+            self.all_exercises_selected = True
 
     @rx.event
     @state_require_role_at_least(UserRole.ADMIN)
