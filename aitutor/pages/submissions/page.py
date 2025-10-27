@@ -6,10 +6,7 @@ from aitutor import routes
 from aitutor.models import UserRole
 from aitutor.pages.navbar import with_navbar
 from aitutor.auth.protection import page_require_role_at_least
-from aitutor.pages.submissions.components import (
-    submissions_table,
-    only_with_submissions,
-)
+from aitutor.pages.submissions.components import submissions_table
 from aitutor.pages.submissions.state import SubmissionsState
 from aitutor.utilities.filtering_components import search_bar, search_badges
 
@@ -21,7 +18,6 @@ def submissions_page() -> rx.Component:
     return rx.center(
         rx.vstack(
             search_bar(SubmissionsState),
-            only_with_submissions(),
             search_badges(SubmissionsState),
             submissions_table(),
             align="center",

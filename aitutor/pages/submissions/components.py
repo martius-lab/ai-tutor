@@ -104,13 +104,3 @@ def submissions_table():
             max_height="60vh",
         ),
     )
-
-
-def only_with_submissions() -> rx.Component:
-    """Checkbox to filter only submissions."""
-    return rx.checkbox(
-        LanguageState.only_with_submission,
-        checked=SubmissionsState.only_with_submission,
-        on_change=SubmissionsState.toggle_only_with_submission,
-        color_scheme="blue",
-    )
