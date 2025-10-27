@@ -31,7 +31,6 @@ class SubmissionsState(FilterMixin, SessionState):
     """State for the submissions page."""
 
     table_rows: list[TableRow]
-    only_with_submission: bool = False
 
     # valid search keys. overrides the var from FilterMixin
     search_keys: list[str] = [
@@ -51,7 +50,6 @@ class SubmissionsState(FilterMixin, SessionState):
         """Clears the state when the user logs out."""
         self.table_rows = []
         self.search_values = []  # from FilterMixin
-        self.only_with_submission = False
 
     @override
     @rx.event
@@ -76,6 +74,10 @@ class SubmissionsState(FilterMixin, SessionState):
                 .options(selectinload(Exercise.tags))  # type: ignore
                 .order_by(func.lower(Exercise.title), LocalUser.username)
             )
+
+            # filter only with submissions
+            # (comment out to test if everything is loaded correctly)
+            stmt = stmt.where(ExerciseResult.submit_time_stamp != None)  # noqa: E711
 
             # filter with search values
             if self.search_values:
@@ -104,10 +106,6 @@ class SubmissionsState(FilterMixin, SessionState):
                             )
                 stmt = stmt.where(and_(*search_conditions))
 
-            # filter with only with submission
-            if self.only_with_submission:
-                stmt = stmt.where(ExerciseResult.submit_time_stamp != None)  # noqa: E711
-
             # get submissions from db
             self.table_rows = [
                 TableRow(
@@ -120,9 +118,3 @@ class SubmissionsState(FilterMixin, SessionState):
                 )
                 for user, _, exercise, result in session.exec(stmt).all()
             ]
-
-    @rx.event
-    def toggle_only_with_submission(self):
-        """Toggles the only with submission filter."""
-        self.only_with_submission = not self.only_with_submission
-        self.load_submissions()
