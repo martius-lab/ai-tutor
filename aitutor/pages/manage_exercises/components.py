@@ -230,9 +230,8 @@ def hide_exercise_button(exercise: Exercise):
 def add_exercise_button() -> rx.Component:
     """Button for adding new exercises."""
     return rx.button(
-        rx.icon("file-plus", size=26),
-        rx.text(LanguageState.add_exercise, size="4"),
-        size="3",
+        rx.icon("file-plus"),
+        rx.text(LanguageState.add_exercise, size="3"),
         _hover={"cursor": "pointer"},
         on_click=ManageExercisesState.open_add_dialog,
         type="button",
@@ -245,7 +244,7 @@ def delete_selected_exercises_button() -> rx.Component:
         rx.alert_dialog.trigger(
             rx.button(
                 rx.icon("trash"),
-                rx.text(LanguageState.delete_selected),
+                rx.text(LanguageState.delete_selected, size="3"),
                 color_scheme="red",
                 _hover={"cursor": "pointer"},
                 type="button",
