@@ -343,6 +343,12 @@ class ManageExercisesState(FilterMixin, SessionState):
                 # reset selected states
                 self.exercise_is_selected[exercise.id] = False  # type: ignore
 
+            # remove exercises from 'exercise_is_selected' that are not in
+            # self.exercises anymore
+            for exercise_id in list(self.exercise_is_selected.keys()):
+                if exercise_id not in [e.id for e in self.exercises]:
+                    self.exercise_is_selected.pop(exercise_id, None)
+
             self.all_exercises_selected = False
 
     @rx.event
