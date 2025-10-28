@@ -186,7 +186,7 @@ class ManageExercisesState(FilterMixin, SessionState):
             if is_selected
         ]
         for exercise_id in ids_to_delete:
-            self.exercise_is_selected[exercise_id] = False
+            self.exercise_is_selected.pop(exercise_id, None)
             self.delete_exercise(exercise_id)
 
         self.all_exercises_selected = False
