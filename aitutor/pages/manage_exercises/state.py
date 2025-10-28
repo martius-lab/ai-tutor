@@ -66,8 +66,6 @@ class ManageExercisesState(FilterMixin, SessionState):
     current_days_to_complete: str = ""
     #: flag to control if the exercise should have a deadline
     use_deadline: bool = True
-    #: flag to control if all exercises are selected
-    all_exercises_selected: bool = False
 
     # These dictionarys are needed because reflex does not accept propertys like
     # exercise.is_started or exercise.editing_period in the components.
@@ -121,8 +119,7 @@ class ManageExercisesState(FilterMixin, SessionState):
 
     @rx.event
     def set_all_exercises_selected(self, is_selected: bool):
-        """Set the all_exercises_selected flag."""
-        self.all_exercises_selected = is_selected
+        """Set all exercises as selected or unselected."""
         for exercise in self.exercises:
             self.exercise_is_selected[exercise.id] = is_selected  # type: ignore
 
@@ -131,8 +128,10 @@ class ManageExercisesState(FilterMixin, SessionState):
         """Set the exercise_is_selected flag."""
         self.exercise_is_selected[exercise_id] = is_selected  # type: ignore
 
-        # update all_exercises_selected accordingly
-        self.all_exercises_selected = all(self.exercise_is_selected.values())
+    @rx.var
+    def all_exercises_selected(self) -> bool:
+        """Return True if all exercises are selected."""
+        return all(self.exercise_is_selected.values())
 
     @rx.event
     @state_require_role_at_least(UserRole.ADMIN)
@@ -164,7 +163,6 @@ class ManageExercisesState(FilterMixin, SessionState):
         self.current_deadline = ""
         self.current_days_to_complete = ""
         self.use_deadline = True
-        self.all_exercises_selected = False
         self.editing_periods = {}
         self.exercise_is_started = {}
         self.exercise_is_selected = {}
@@ -185,8 +183,6 @@ class ManageExercisesState(FilterMixin, SessionState):
         for exercise_id in ids_to_delete:
             self.exercise_is_selected.pop(exercise_id, None)
             self.delete_exercise(exercise_id)
-
-        self.all_exercises_selected = False
 
         yield rx.toast.success(
             BT.selected_exercises_deleted(self.language),
@@ -348,8 +344,6 @@ class ManageExercisesState(FilterMixin, SessionState):
             for exercise_id in list(self.exercise_is_selected.keys()):
                 if exercise_id not in [e.id for e in self.exercises]:
                     self.exercise_is_selected.pop(exercise_id, None)
-
-            self.all_exercises_selected = False
 
     @rx.event
     def load_tags(self):
