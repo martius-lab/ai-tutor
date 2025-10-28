@@ -80,14 +80,13 @@ def delete_exercise_button(exercise: Exercise):
                     rx.alert_dialog.cancel(
                         rx.button(
                             rx.text(LanguageState.cancel),
-                            color_scheme="red",
                             _hover={"cursor": "pointer"},
                         ),
                     ),
                     rx.alert_dialog.action(
                         rx.button(
-                            LanguageState.confirm,
-                            color_scheme="iris",
+                            LanguageState.delete,
+                            color_scheme="red",
                             on_click=ManageExercisesState.delete_exercise(exercise.id),  # type: ignore
                             _hover={"cursor": "pointer"},
                         ),
@@ -258,14 +257,13 @@ def delete_selected_exercises_button() -> rx.Component:
                 rx.alert_dialog.cancel(
                     rx.button(
                         rx.text(LanguageState.cancel),
-                        color_scheme="red",
                         _hover={"cursor": "pointer"},
                     ),
                 ),
                 rx.alert_dialog.action(
                     rx.button(
-                        LanguageState.confirm,
-                        color_scheme="iris",
+                        LanguageState.delete,
+                        color_scheme="red",
                         on_click=ManageExercisesState.delete_selected_exercises,
                         _hover={"cursor": "pointer"},
                     ),

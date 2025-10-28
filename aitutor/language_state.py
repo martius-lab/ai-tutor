@@ -67,6 +67,11 @@ class LanguageState(SessionState):
         """Settings string"""
         return self.translate(de="Einstellungen", en="Settings")
 
+    @rx.var
+    def delete(self) -> str:
+        """Delete string"""
+        return self.translate(de="Löschen", en="Delete")
+
     # Search Bar Strings ---------------------------------------------------------------
     @rx.var
     def search_placeholder(self) -> str:
@@ -717,10 +722,6 @@ class LanguageState(SessionState):
     @rx.var
     def edit(self) -> str:
         return self.translate(de="Bearbeiten", en="Edit")
-
-    @rx.var
-    def delete(self) -> str:
-        return self.translate(de="Löschen", en="Delete")
 
     @rx.var
     def delete_user(self) -> str:
