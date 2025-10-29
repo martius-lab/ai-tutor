@@ -50,15 +50,6 @@ def manage_exercises_page() -> rx.Component:
             ),
             search_bar(ManageExercisesState),
             search_badges(ManageExercisesState),
-            # rx.cond(
-            #     ManageExercisesState.something_is_selected,
-            #     rx.hstack(
-            #         delete_selected_exercises_button(),
-            #         align="start",
-            #         width="100%",
-            #         wrap="wrap",
-            #     ),
-            # ),
             exercise_table(),
             spacing="3",
             align="center",
