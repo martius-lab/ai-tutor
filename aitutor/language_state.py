@@ -67,6 +67,11 @@ class LanguageState(SessionState):
         """Settings string"""
         return self.translate(de="Einstellungen", en="Settings")
 
+    @rx.var
+    def delete(self) -> str:
+        """Delete string"""
+        return self.translate(de="Löschen", en="Delete")
+
     # Search Bar Strings ---------------------------------------------------------------
     @rx.var
     def search_placeholder(self) -> str:
@@ -440,8 +445,12 @@ class LanguageState(SessionState):
     def delete_exercise_info(self) -> str:
         """Delete exercise info string"""
         return self.translate(
-            de="Möchten Sie diese Übung wirklich löschen?",
-            en="Are you sure you want to delete this exercise?",
+            de="Möchten Sie diese Übung wirklich löschen? "
+            "Alle Abgaben für diese Übung werden auch gelöscht. "
+            "Das kann nicht rückgängig gemacht werden.",
+            en="Are you sure you want to delete this exercise? "
+            "All submissions for this exercise will be deleted too. "
+            "This cannot be undone.",
         )
 
     @rx.var
@@ -605,6 +614,23 @@ class LanguageState(SessionState):
         """Update task string"""
         return self.translate(de="Änderungen speichern", en="Update exercise")
 
+    @rx.var
+    def delete_selected(self) -> str:
+        """Delete selected string"""
+        return self.translate(de="Ausgewählte löschen", en="Delete selected")
+
+    @rx.var
+    def delete_selected_info(self) -> str:
+        """Confirmation message for 'delete selected'"""
+        return self.translate(
+            de="Sind sie sicher, dass sie alle markierten Aufgaben löschen wollen? "
+            "Alle Abgaben für diese Aufgaben werden auch gelöscht. "
+            "Das kann nicht rückgängig gemacht werden.",
+            en="Are you sure you want to delete all selected exercises? "
+            "All submissions for these exercises will be deleted too. "
+            "This cannot be undone.",
+        )
+
     # Login and Registration Page Strings ----------------------------------------------
     @rx.var
     def login_heading(self) -> str:
@@ -688,10 +714,6 @@ class LanguageState(SessionState):
     @rx.var
     def edit(self) -> str:
         return self.translate(de="Bearbeiten", en="Edit")
-
-    @rx.var
-    def delete(self) -> str:
-        return self.translate(de="Löschen", en="Delete")
 
     @rx.var
     def delete_user(self) -> str:
@@ -793,6 +815,14 @@ class BackendTranslations:
             language,
             de="Übung erfolgreich gelöscht",
             en="Exercise deleted successfully",
+        )
+
+    @staticmethod
+    def selected_exercises_deleted(language: Language) -> str:
+        return translate(
+            language,
+            de="Ausgewählte Übungen erfolgreich gelöscht",
+            en="Selected exercises deleted successfully",
         )
 
     # FinishedViewState ----------------------------------------------------------------
