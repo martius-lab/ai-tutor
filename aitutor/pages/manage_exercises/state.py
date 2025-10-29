@@ -128,11 +128,6 @@ class ManageExercisesState(FilterMixin, SessionState):
         """Set the exercise_is_selected flag."""
         self.exercise_is_selected[exercise_id] = is_selected  # type: ignore
 
-    @rx.var
-    def all_exercises_selected(self) -> bool:
-        """Return True if all exercises are selected."""
-        return all(self.exercise_is_selected.values())
-
     @rx.event
     @state_require_role_at_least(UserRole.ADMIN)
     def on_load(self):
@@ -166,6 +161,11 @@ class ManageExercisesState(FilterMixin, SessionState):
         self.editing_periods = {}
         self.exercise_is_started = {}
         self.exercise_is_selected = {}
+
+    @rx.var
+    def all_exercises_selected(self) -> bool:
+        """Return True if all exercises are selected."""
+        return all(self.exercise_is_selected.values())
 
     @rx.var
     def something_is_selected(self) -> bool:
@@ -330,19 +330,17 @@ class ManageExercisesState(FilterMixin, SessionState):
             )
 
             # update dictionarys (every exercise must have an entry in the dicts)
+            self.editing_periods = {}
+            self.exercise_is_started = {}
             for exercise in self.exercises:
                 # update editing periods and exercise_is_started
                 self.editing_periods[exercise.id] = exercise.editing_period  # type: ignore
                 self.exercise_is_started[exercise.id] = exercise.is_started  # type: ignore
 
-                # reset selected states
-                self.exercise_is_selected[exercise.id] = False  # type: ignore
-
-            # remove exercises from 'exercise_is_selected' that are not in
-            # self.exercises anymore
-            for exercise_id in list(self.exercise_is_selected.keys()):
-                if exercise_id not in [e.id for e in self.exercises]:
-                    self.exercise_is_selected.pop(exercise_id, None)
+            # fill exercise_is_selected with currently loaded exercises & set to False
+            self.exercise_is_selected = {
+                e.id: False for e in self.exercises if e.id is not None
+            }
 
     @rx.event
     def load_tags(self):
