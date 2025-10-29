@@ -329,18 +329,16 @@ class ManageExercisesState(FilterMixin, SessionState):
                 session.exec(query_exercises.order_by(Exercise.id.desc())).all()  # type: ignore
             )
 
-            # update dictionarys (every exercise must have an entry in the dicts)
-            self.editing_periods = {}
-            self.exercise_is_started = {}
-            for exercise in self.exercises:
-                # update editing periods and exercise_is_started
-                self.editing_periods[exercise.id] = exercise.editing_period  # type: ignore
-                self.exercise_is_started[exercise.id] = exercise.is_started  # type: ignore
-
-            # fill exercise_is_selected with currently loaded exercises & set to False
-            self.exercise_is_selected = {
-                e.id: False for e in self.exercises if e.id is not None
-            }
+        # fill dictionarys with correct values for the currently loaded exercises
+        self.editing_periods = {
+            e.id: e.editing_period for e in self.exercises if e.id is not None
+        }
+        self.exercise_is_started = {
+            e.id: e.is_started for e in self.exercises if e.id is not None
+        }
+        self.exercise_is_selected = {
+            e.id: False for e in self.exercises if e.id is not None
+        }
 
     @rx.event
     def load_tags(self):
