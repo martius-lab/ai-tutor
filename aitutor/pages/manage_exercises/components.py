@@ -80,14 +80,13 @@ def delete_exercise_button(exercise: Exercise):
                     rx.alert_dialog.cancel(
                         rx.button(
                             rx.text(LanguageState.cancel),
-                            color_scheme="red",
                             _hover={"cursor": "pointer"},
                         ),
                     ),
                     rx.alert_dialog.action(
                         rx.button(
-                            LanguageState.confirm,
-                            color_scheme="iris",
+                            LanguageState.delete,
+                            color_scheme="red",
                             on_click=ManageExercisesState.delete_exercise(exercise.id),  # type: ignore
                             _hover={"cursor": "pointer"},
                         ),
@@ -102,6 +101,14 @@ def delete_exercise_button(exercise: Exercise):
 def show_exercise(exercise: Exercise):
     """Show exercises on page in a table row."""
     return rx.table.row(
+        rx.table.cell(
+            rx.checkbox(
+                checked=ManageExercisesState.exercise_is_selected[exercise.id],  # type: ignore
+                on_change=lambda checked: ManageExercisesState.set_exercise_is_selected(
+                    exercise.id, checked
+                ),
+            )
+        ),
         rx.table.cell(exercise.title, max_width="175px"),
         rx.table.cell(
             truncate_text_reflex_var(exercise.description, max_length=150),
@@ -129,15 +136,11 @@ def show_exercise(exercise: Exercise):
             ManageExercisesState.editing_periods[exercise.id]  # type: ignore
         ),
         rx.table.cell(
-            rx.center(
-                rx.hstack(
-                    hide_exercise_button(exercise),
-                    edit_exercise_button(exercise),
-                    delete_exercise_button(exercise),
-                    spacing="5",
-                    align="center",
-                ),
-                padding_left="1em",
+            rx.hstack(
+                hide_exercise_button(exercise),
+                edit_exercise_button(exercise),
+                delete_exercise_button(exercise),
+                spacing="5",
             ),
         ),
         style={"_hover": {"bg": rx.color("gray", 3)}},
@@ -165,6 +168,12 @@ def exercise_table():
             rx.table.root(
                 rx.table.header(
                     rx.table.row(
+                        rx.table.column_header_cell(
+                            rx.checkbox(
+                                checked=ManageExercisesState.all_exercises_selected,
+                                on_change=ManageExercisesState.set_all_exercises_selected,
+                            ),
+                        ),
                         header_cell(LanguageState.exercise, "book"),
                         header_cell(LanguageState.description, "book-open-text"),
                         header_cell(LanguageState.tags, "tag"),
@@ -220,12 +229,48 @@ def hide_exercise_button(exercise: Exercise):
 def add_exercise_button() -> rx.Component:
     """Button for adding new exercises."""
     return rx.button(
-        rx.icon("file-plus", size=26),
-        rx.text(LanguageState.add_exercise, size="4"),
-        size="3",
+        rx.icon("file-plus"),
+        rx.text(LanguageState.add_exercise, size="3"),
         _hover={"cursor": "pointer"},
         on_click=ManageExercisesState.open_add_dialog,
         type="button",
+    )
+
+
+def delete_selected_exercises_button() -> rx.Component:
+    """Button to delete all selected exercises."""
+    return rx.alert_dialog.root(
+        rx.alert_dialog.trigger(
+            rx.button(
+                rx.icon("trash"),
+                rx.text(LanguageState.delete_selected, size="3"),
+                color_scheme="red",
+                _hover={"cursor": "pointer"},
+                type="button",
+                radius="large",
+            )
+        ),
+        rx.alert_dialog.content(
+            rx.alert_dialog.title(LanguageState.delete_selected),
+            rx.alert_dialog.description(LanguageState.delete_selected_info),
+            rx.hstack(
+                rx.alert_dialog.cancel(
+                    rx.button(
+                        rx.text(LanguageState.cancel),
+                        _hover={"cursor": "pointer"},
+                    ),
+                ),
+                rx.alert_dialog.action(
+                    rx.button(
+                        LanguageState.delete,
+                        color_scheme="red",
+                        on_click=ManageExercisesState.delete_selected_exercises,
+                        _hover={"cursor": "pointer"},
+                    ),
+                ),
+                margin_top="1em",
+            ),
+        ),
     )
 
 

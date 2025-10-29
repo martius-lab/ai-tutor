@@ -74,6 +74,8 @@ class ManageExercisesState(FilterMixin, SessionState):
     editing_periods: dict[int, str] = {}
     #: dictionary to store which exercises are started. Key is exercise id.
     exercise_is_started: dict[int, bool] = {}
+    #: dictionary to store which exercises are selected. Key is exercise id.
+    exercise_is_selected: dict[int, bool] = {}
 
     @rx.event
     def set_add_tag_dialog_is_open(self, is_open: bool):
@@ -116,6 +118,17 @@ class ManageExercisesState(FilterMixin, SessionState):
         self.use_deadline = use
 
     @rx.event
+    def set_all_exercises_selected(self, is_selected: bool):
+        """Set all exercises as selected or unselected."""
+        for exercise in self.exercises:
+            self.exercise_is_selected[exercise.id] = is_selected  # type: ignore
+
+    @rx.event
+    def set_exercise_is_selected(self, exercise_id: int | None, is_selected: bool):
+        """Set the exercise_is_selected flag."""
+        self.exercise_is_selected[exercise_id] = is_selected  # type: ignore
+
+    @rx.event
     @state_require_role_at_least(UserRole.ADMIN)
     def on_load(self):
         """Initialize the state"""
@@ -145,6 +158,37 @@ class ManageExercisesState(FilterMixin, SessionState):
         self.current_deadline = ""
         self.current_days_to_complete = ""
         self.use_deadline = True
+        self.editing_periods = {}
+        self.exercise_is_started = {}
+        self.exercise_is_selected = {}
+
+    @rx.var
+    def all_exercises_selected(self) -> bool:
+        """Return True if all exercises are selected."""
+        return all(self.exercise_is_selected.values())
+
+    @rx.var
+    def something_is_selected(self) -> bool:
+        """Return True if at least one exercise is selected."""
+        return any(self.exercise_is_selected.values())
+
+    @rx.event
+    def delete_selected_exercises(self):
+        """Delete all selected exercises."""
+        ids_to_delete = [
+            exercise_id
+            for exercise_id, is_selected in self.exercise_is_selected.items()
+            if is_selected
+        ]
+        for exercise_id in ids_to_delete:
+            self.delete_exercise(exercise_id)
+
+        yield rx.toast.success(
+            BT.selected_exercises_deleted(self.language),
+            duration=2500,
+            position="bottom-center",
+            invert=True,
+        )
 
     @rx.event
     async def extract_lesson_material(self, files: list[rx.UploadFile]):
@@ -284,10 +328,17 @@ class ManageExercisesState(FilterMixin, SessionState):
             self.exercises = list(
                 session.exec(query_exercises.order_by(Exercise.id.desc())).all()  # type: ignore
             )
-            # update editing periods and exercise_is_started
-            for exercise in self.exercises:
-                self.editing_periods[exercise.id] = exercise.editing_period  # type: ignore
-                self.exercise_is_started[exercise.id] = exercise.is_started  # type: ignore
+
+        # fill dictionarys with correct values for the currently loaded exercises
+        self.editing_periods = {
+            e.id: e.editing_period for e in self.exercises if e.id is not None
+        }
+        self.exercise_is_started = {
+            e.id: e.is_started for e in self.exercises if e.id is not None
+        }
+        self.exercise_is_selected = {
+            e.id: False for e in self.exercises if e.id is not None
+        }
 
     @rx.event
     def load_tags(self):
