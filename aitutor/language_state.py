@@ -474,7 +474,7 @@ class LanguageState(SessionState):
     @rx.var
     def add_exercise(self) -> str:
         """Add exercise string"""
-        return self.translate(de="Neue Übung", en="Add exercise")
+        return self.translate(de="Übung hinzufügen", en="Add exercise")
 
     @rx.var
     def add_exercise_description(self) -> str:
@@ -615,11 +615,6 @@ class LanguageState(SessionState):
         return self.translate(de="Änderungen speichern", en="Update exercise")
 
     @rx.var
-    def delete_selected(self) -> str:
-        """Delete selected string"""
-        return self.translate(de="Ausgewählte löschen", en="Delete selected")
-
-    @rx.var
     def delete_selected_info(self) -> str:
         """Confirmation message for 'delete selected'"""
         return self.translate(
@@ -630,6 +625,10 @@ class LanguageState(SessionState):
             "All submissions for these exercises will be deleted too. "
             "This cannot be undone.",
         )
+
+    @rx.var
+    def export(self) -> str:
+        return self.translate(de="Exportieren", en="Export")
 
     # Login and Registration Page Strings ----------------------------------------------
     @rx.var

@@ -11,6 +11,7 @@ from aitutor.pages.manage_exercises.components import (
     exercise_table,
     add_exercise_button,
     delete_selected_exercises_button,
+    export_selected_exercises_button,
 )
 from aitutor.utilities.filtering_components import search_bar, search_badges
 
@@ -22,30 +23,37 @@ def manage_exercises_page() -> rx.Component:
     return rx.center(
         rx.vstack(
             rx.desktop_only(
-                rx.hstack(
-                    rx.cond(
-                        ManageExercisesState.something_is_selected,
-                        delete_selected_exercises_button(),
+                rx.cond(
+                    ManageExercisesState.something_is_selected,
+                    rx.hstack(
+                        rx.hstack(
+                            delete_selected_exercises_button(),
+                            export_selected_exercises_button(),
+                        ),
+                        add_exercise_button(),
+                        align="center",
+                        justify="between",
+                        width="100%",
                     ),
-                    add_exercise_button(),
-                    align="center",
-                    justify="end",
-                    width="100%",
-                    name="top_bar_stack",
+                    rx.hstack(
+                        add_exercise_button(),
+                        align="center",
+                        justify="end",
+                        width="100%",
+                    ),
                 ),
                 width="100%",
             ),
             rx.mobile_and_tablet(
-                rx.vstack(
-                    add_exercise_button(),
-                    rx.cond(
-                        ManageExercisesState.something_is_selected,
+                add_exercise_button(),
+            ),
+            rx.mobile_and_tablet(
+                rx.cond(
+                    ManageExercisesState.something_is_selected,
+                    rx.hstack(
                         delete_selected_exercises_button(),
+                        export_selected_exercises_button(),
                     ),
-                    align="center",
-                    justify="center",
-                    width="100%",
-                    spacing="3",
                 )
             ),
             search_bar(ManageExercisesState),
