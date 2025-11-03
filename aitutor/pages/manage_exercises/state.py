@@ -207,6 +207,8 @@ class ManageExercisesState(FilterMixin, SessionState):
                     "description": ex.description,
                     "lesson_context": ex.lesson_context,
                     "prompt_name": ex.prompt_name,
+                    "prompt_template": self.prompts.get(ex.prompt_name, ""),
+                    "is_hidden": ex.is_hidden,
                     "deadline": ex.deadline.isoformat() if ex.deadline else None,
                     "days_to_complete": ex.days_to_complete,
                     "tags": [tag.name for tag in ex.tags],
