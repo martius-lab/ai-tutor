@@ -3,6 +3,7 @@
 import reflex as rx
 import pdfplumber
 import io
+import json
 from typing import override
 from enum import Enum
 from sqlmodel import select, and_, or_
@@ -188,6 +189,34 @@ class ManageExercisesState(FilterMixin, SessionState):
             duration=2500,
             position="bottom-center",
             invert=True,
+        )
+
+    @rx.event
+    def export_selected_exercises(self):
+        """Export all selected exercises as JSON string."""
+        exercises_to_export = [
+            exercise
+            for exercise in self.exercises
+            if self.exercise_is_selected[exercise.id]  # type: ignore
+        ]
+        exercises_dicts = []
+        for ex in exercises_to_export:
+            exercises_dicts.append(
+                {
+                    "title": ex.title,
+                    "description": ex.description,
+                    "lesson_context": ex.lesson_context,
+                    "deadline": ex.deadline.isoformat() if ex.deadline else None,
+                    "days_to_complete": ex.days_to_complete,
+                    "tags": [tag.name for tag in ex.tags],
+                }
+            )
+
+        json_data = json.dumps(exercises_dicts, indent=4)
+        timestamp = datetime.today().date().isoformat()
+
+        return rx.download(
+            data=json_data, filename=f"aitutor-exercises-{timestamp}.json"
         )
 
     @rx.event

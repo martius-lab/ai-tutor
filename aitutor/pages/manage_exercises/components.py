@@ -243,7 +243,7 @@ def delete_selected_exercises_button() -> rx.Component:
         rx.alert_dialog.trigger(
             rx.button(
                 rx.icon("trash"),
-                rx.text(LanguageState.delete_selected, size="3"),
+                rx.text(LanguageState.delete, size="3"),
                 color_scheme="red",
                 _hover={"cursor": "pointer"},
                 type="button",
@@ -251,7 +251,7 @@ def delete_selected_exercises_button() -> rx.Component:
             )
         ),
         rx.alert_dialog.content(
-            rx.alert_dialog.title(LanguageState.delete_selected),
+            rx.alert_dialog.title(LanguageState.delete),
             rx.alert_dialog.description(LanguageState.delete_selected_info),
             rx.hstack(
                 rx.alert_dialog.cancel(
@@ -271,6 +271,17 @@ def delete_selected_exercises_button() -> rx.Component:
                 margin_top="1em",
             ),
         ),
+    )
+
+
+def export_selected_exercises_button() -> rx.Component:
+    """Button to export all selected exercises."""
+    return rx.button(
+        rx.icon("file-down"),
+        rx.text(LanguageState.export, size="3"),
+        _hover={"cursor": "pointer"},
+        on_click=ManageExercisesState.export_selected_exercises,
+        type="button",
     )
 
 
