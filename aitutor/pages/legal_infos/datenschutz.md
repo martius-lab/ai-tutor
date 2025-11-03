@@ -1,25 +1,45 @@
-# Beispiel Datenschutzerklärung
-
 ## 1. Verantwortlicher
-**[Name des Betreibers]**  
-[Adresse]  
-[E-Mail]
+Siehe [Impressum](/impressum).
+
 
 ## 2. Erhebung und Verarbeitung von Daten
-Beim Nutzen unserer Chatfunktion werden Daten wie eingegebene Texte, IP-Adresse, Browsertyp, Gerätedaten und Nutzungszeiten verarbeitet. Diese Daten dienen der Bereitstellung des Dienstes und der Verbesserung der Funktionalität.
+
+Beim Nutzen des AI-Tutors werden folgende Daten auf einem Server der Universität
+Tübingen gespeichert:
+- Allgemeine Nutzerdaten: Username, E-Mail-Adresse, Passwort (verschlüsselt), Zeitpunkt
+  des letzten Logins
+- Beim Bearbeiten der Übungen: Der gesamte Konversationsverlauf (also alle Eingaben des
+  Nutzers sowie die Antworten des Chatbots).  Bei Abgabe einer Übung außerdem der
+  Zeitpunkt der Abgabe.
+
+Darüber hinaus werden die Eingaben des Nutzers bei der Bearbeitung der Übungen an OpenAI
+übermittelt (siehe Abschnitt 3).
+
+Die Nutzerdaten sowie der Konversationsverlauf der abgegebenen Übungen können von
+Tutoren, Dozenten und Administratoren eingesehen werden.
+
 
 ## 3. Nutzung externer Dienste
-Unsere Chatfunktion nutzt die API von OpenAI (ChatGPT). Eingaben werden an OpenAI übermittelt und dort verarbeitet. Bitte beachten Sie die Datenschutzbestimmungen von OpenAI:  
-[https://openai.com/policies/privacy-policy](https://openai.com/policies/privacy-policy)
+Unsere Chatfunktion nutzt die API von OpenAI (ChatGPT). Nutzer-Eingaben bei den Übungen
+werden an OpenAI übermittelt und dort basierend auf dem ["Data processing
+addendum"](https://openai.com/policies/data-processing-addendum/) verarbeitet.
+
+Es werden lediglich die vom Nutzer bei den Übungen eingegebenen Texte and OpenAI
+übermittelt und keine weiteren Nutzerbezogenen Daten (z.B. Name o.ä.).
+
 
 ## 4. Speicherung
-Ihre Daten werden nur solange gespeichert, wie es für die Erbringung des Dienstes oder gesetzlich erforderlich ist. Texteingaben können zur Qualitätsverbesserung anonymisiert gespeichert werden.
+Samtliche Nutzerdaten, die auf dem Server der Universität Tübingen gespeichert sind,
+werden spätestens 30 Tage nach Ende des jeweiligen Semesters gelöscht.
+
+Daten die an OpenAI übermittelt wurden unterliegen den im "Data processing addendum"
+beschriebenen Regeln (siehe Abschnitt 3).
+
 
 ## 5. Rechtsgrundlage
-Die Verarbeitung erfolgt auf Grundlage von Art. 6 Abs. 1 lit. b DSGVO (Vertragserfüllung) und Art. 6 Abs. 1 lit. f DSGVO (berechtigtes Interesse).
+Die Verarbeitung erfolgt auf Grundlage von Art. 6 Abs. 1 lit. b DSGVO
+(Vertragserfüllung) und Art. 6 Abs. 1 lit. f DSGVO (berechtigtes Interesse).
 
 ## 6. Ihre Rechte
-Sie haben das Recht auf Auskunft, Berichtigung, Löschung, Einschränkung der Verarbeitung sowie Datenübertragbarkeit. Sie können der Verarbeitung jederzeit widersprechen.
-
-## 7. Kontakt
-Bei Fragen zum Datenschutz kontaktieren Sie uns unter: [E-Mail-Adresse]
+Sie haben das Recht auf Auskunft, Berichtigung, Löschung, Einschränkung der Verarbeitung
+sowie Datenübertragbarkeit. Sie können der Verarbeitung jederzeit widersprechen.
