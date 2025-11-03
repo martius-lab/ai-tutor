@@ -194,13 +194,10 @@ class ManageExercisesState(FilterMixin, SessionState):
     @rx.event
     def export_selected_exercises(self):
         """Export all selected exercises as JSON string."""
-        ids_to_export = [
-            exercise_id
-            for exercise_id, is_selected in self.exercise_is_selected.items()
-            if is_selected
-        ]
         exercises_to_export = [
-            exercise for exercise in self.exercises if exercise.id in ids_to_export
+            exercise
+            for exercise in self.exercises
+            if self.exercise_is_selected[exercise.id]  # type: ignore
         ]
         exercises_dicts = []
         for ex in exercises_to_export:
@@ -216,7 +213,7 @@ class ManageExercisesState(FilterMixin, SessionState):
             )
 
         json_data = json.dumps(exercises_dicts, indent=4)
-        timestamp = datetime.now().strftime("%d.%m.%Y")
+        timestamp = datetime.now().strftime("%Y-%m-%d")
 
         return rx.download(
             data=json_data, filename=f"aitutor-exercises-{timestamp}.json"
