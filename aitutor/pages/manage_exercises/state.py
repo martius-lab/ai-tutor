@@ -213,7 +213,7 @@ class ManageExercisesState(FilterMixin, SessionState):
             )
 
         json_data = json.dumps(exercises_dicts, indent=4)
-        timestamp = datetime.now().strftime("%Y-%m-%d")
+        timestamp = datetime.today().date().isoformat()
 
         return rx.download(
             data=json_data, filename=f"aitutor-exercises-{timestamp}.json"
