@@ -207,13 +207,16 @@ class ManageExercisesState(FilterMixin, SessionState):
                     "description": ex.description,
                     "lesson_context": ex.lesson_context,
                     "prompt_name": ex.prompt_name,
+                    "is_hidden": ex.is_hidden,
                     "deadline": ex.deadline.isoformat() if ex.deadline else None,
                     "days_to_complete": ex.days_to_complete,
                     "tags": [tag.name for tag in ex.tags],
                 }
             )
 
-        json_data = json.dumps(exercises_dicts, indent=4)
+        json_data = json.dumps(
+            {"prompt_templates": self.prompts, "exercises": exercises_dicts}, indent=4
+        )
         timestamp = datetime.today().date().isoformat()
 
         return rx.download(
