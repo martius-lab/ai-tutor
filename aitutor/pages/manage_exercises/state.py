@@ -164,6 +164,11 @@ class ManageExercisesState(FilterMixin, SessionState):
         self.exercise_is_selected = {}
 
     @rx.var
+    def selected_exercises_num(self) -> str:
+        """Return the number of selected exercises."""
+        return str(sum(self.exercise_is_selected.values()))
+
+    @rx.var
     def all_exercises_selected(self) -> bool:
         """Return True if all exercises are selected."""
         return all(self.exercise_is_selected.values())
