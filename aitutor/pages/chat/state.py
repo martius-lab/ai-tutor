@@ -32,7 +32,7 @@ class Role(Enum):
     CHECK_RESULT = "check_result"
 
 
-class ChatMessage(rx.Base):
+class ChatMessage(BaseModel):
     """
     Class to make handling ChatMessages easier and help differentiate between authors of
     chat messages.
