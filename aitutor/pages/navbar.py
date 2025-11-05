@@ -41,6 +41,7 @@ tutor_links = [
 admin_links = [
     (LanguageState.manage_exercises_link, routes.MANAGE_EXERCISES, "pencil-line"),
     (LanguageState.manage_users, routes.MANAGE_USERS, "users"),
+    (LanguageState.configuration, routes.CONFIGURATION, "file-sliders"),
 ]
 
 
@@ -229,6 +230,7 @@ def navbar(route_to_highlight: str) -> rx.Component:
                         ),
                         spacing="5",
                         align="center",
+                        wrap="wrap",
                     ),
                     align="center",
                 ),
