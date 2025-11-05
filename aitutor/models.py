@@ -136,7 +136,8 @@ class ExerciseResult(rx.Model, table=True):
     submit_time_stamp: Optional[datetime] = Field(
         sa_column=Column(
             type_=DateTime(timezone=True),
-        )
+        ),
+        default=None,
     )
 
     # database relationships
