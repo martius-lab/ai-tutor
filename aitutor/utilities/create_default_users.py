@@ -24,10 +24,9 @@ def create_user_if_not_exists(role: UserRole, name: str, password: str, email: s
         if existing_user:
             return
 
-        new_user = LocalUser()
-        new_user.username = name
-        new_user.password_hash = LocalUser.hash_password(password)
-        new_user.enabled = True
+        new_user = LocalUser(
+            username=name, password_hash=LocalUser.hash_password(password), enabled=True
+        )
         session.add(new_user)
         session.commit()
         session.refresh(new_user)
