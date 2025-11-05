@@ -16,7 +16,7 @@ dependencies = [
     { name = "pyparsing" },
     { name = "pytest" },
     { name = "python-decouple" },
-    { name = "reflex" },
+    { name = "reflex", extra = ["db"] },
     { name = "reflex-local-auth" },
     { name = "variconf", extra = ["toml"] },
 ]
@@ -45,7 +45,7 @@ requires-dist = [
     { name = "pyparsing", specifier = ">=3.2.3" },
     { name = "pytest" },
     { name = "python-decouple" },
-    { name = "reflex" },
+    { name = "reflex", extras = ["db"] },
     { name = "reflex-local-auth", specifier = ">=0.4.0" },
     { name = "variconf", extras = ["toml"], specifier = ">=1.0.1" },
 ]
@@ -1327,6 +1327,13 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/45/ab/9ff818d0b455a796946f3420661ae0a01a4e3dbba5ba07f746356aba6f68/reflex-0.8.18.tar.gz", hash = "sha256:9a82bbe470fd6837d8c98ab008244d29bd02d2f1cc2d03df9e65bff7daafd9bb", size = 613480, upload-time = "2025-11-03T23:30:41.611Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/b8/a1/9ed71a2c195ed11256ed25da06a8397ed23fa081c45ebb92f3b9bfab6dde/reflex-0.8.18-py3-none-any.whl", hash = "sha256:8c6b68959f797a37b53d5096f291b13b5670513ac120bbfd86bfec07fc57e855", size = 906460, upload-time = "2025-11-03T23:30:39.347Z" },
+]
+
+[package.optional-dependencies]
+db = [
+    { name = "alembic" },
+    { name = "pydantic" },
+    { name = "sqlmodel" },
 ]
 
 [[package]]
