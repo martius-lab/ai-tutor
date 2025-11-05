@@ -758,6 +758,80 @@ class LanguageState(SessionState):
     def configuration(self) -> str:
         return self.translate(de="Konfiguration", en="Configuration")
 
+    @rx.var
+    def course_name(self) -> str:
+        return self.translate(de="Kursname", en="Course Name")
+
+    @rx.var
+    def course_name_placeholder(self) -> str:
+        return self.translate(de="Beispiel Vorlesung XY", en="Example Lecture XY")
+
+    @rx.var
+    def registration_code_placeholder_config(self) -> str:
+        return self.translate(
+            de="Code, den Studenten zur Registrierung verwenden",
+            en="Code that students use to register",
+        )
+
+    @rx.var
+    def response_ai_model(self) -> str:
+        return self.translate(de="Antwort KI-Modell", en="Response AI Model")
+
+    @rx.var
+    def check_ai_model(self) -> str:
+        return self.translate(de="Überprüfungs-KI-Modell", en="Check AI Model")
+
+    @rx.var
+    def check_conversation_prompt(self) -> str:
+        return self.translate(
+            de="Konversations-Überprüfungs-Prompt", en="Check Conversation Prompt"
+        )
+
+    @rx.var
+    def check_conversation_prompt_placeholder(self) -> str:
+        return self.translate(
+            de="Prompt, der verwendet wird, um die Antworten der "
+            "Studenten zu überprüfen",
+            en="Prompt used to check students' answers",
+        )
+
+    @rx.var
+    def how_to_use_text(self) -> str:
+        return self.translate(
+            de="How To Use Information",
+            en="How To Use Information",
+        )
+
+    @rx.var
+    def general_info_text(self) -> str:
+        return self.translate(
+            de="Allgemeine Informationen",
+            en="General Information",
+        )
+
+    @rx.var
+    def lecture_info_text(self) -> str:
+        return self.translate(
+            de="Informationen zur Vorlesung",
+            en="Lecture Information",
+        )
+
+    @rx.var
+    def info_text_placeholder(self) -> str:
+        return self.translate(
+            de="Wird auf der Startseite angezeigt",
+            en="Shown on the home page",
+        )
+
+    @rx.var
+    def impressum_placeholder(self) -> str:
+        return self.translate(
+            de="Informationen für user wer für die Inhalte der Seite verantwortlich "
+            "ist (im Markdown Format)",
+            en="Information for users about who is responsible for the content of "
+            "the site (in markdown format)",
+        )
+
 
 class BackendTranslations:
     """Translations for use in the backend (where LanguageState is not available)."""
