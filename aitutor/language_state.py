@@ -741,7 +741,6 @@ class LanguageState(SessionState):
         )
 
     # user settings --------------------------------------------------------------------
-
     @rx.var
     def user_settings(self) -> str:
         return self.translate(de="Benutzereinstellungen", en="User Settings")
@@ -753,6 +752,11 @@ class LanguageState(SessionState):
     @rx.var
     def current_password(self) -> str:
         return self.translate(de="Aktuelles Passwort", en="Current Password")
+
+    # configuration page ---------------------------------------------------------------
+    @rx.var
+    def configuration(self) -> str:
+        return self.translate(de="Konfiguration", en="Configuration")
 
 
 class BackendTranslations:
