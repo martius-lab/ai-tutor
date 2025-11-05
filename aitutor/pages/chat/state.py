@@ -7,7 +7,7 @@ from openai import AsyncOpenAI, OpenAI
 from pydantic import BaseModel
 from datetime import datetime
 from zoneinfo import ZoneInfo
-from enum import Enum
+from enum import StrEnum
 
 import aitutor.routes as routes
 from aitutor.models import Exercise, ExerciseResult, UserRole
@@ -18,7 +18,7 @@ from aitutor.global_vars import TIME_FORMAT, TIME_ZONE
 from aitutor.language_state import BackendTranslations as BT
 
 
-class Role(Enum):
+class Role(StrEnum):
     """
     Enum to represent the role of a message in the conversation.
     """
