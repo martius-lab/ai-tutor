@@ -2,7 +2,7 @@
 
 from enum import IntEnum, StrEnum
 import reflex as rx
-from sqlmodel import Field, Column, JSON, Relationship, DateTime
+from sqlmodel import CheckConstraint, Field, Column, JSON, Relationship, DateTime
 from typing import Any, Dict, Optional, List
 from reflex_local_auth.user import LocalUser
 from datetime import datetime, timedelta
@@ -171,3 +171,26 @@ class UserInfo(rx.Model, table=True):
         back_populates="user", cascade_delete=True
     )
     local_user: "LocalUser" = Relationship()
+
+
+class Config(rx.Model, table=True):
+    """
+    Table for storing global configuration settings.
+    """
+
+    # make sure there is only one row in the table
+    __table_args__ = (CheckConstraint("id = 1", name="only_one_row"),)
+
+    id: Optional[int] = Field(default=1, primary_key=True)
+    check_conversation_prompt: str
+    response_ai_model: str
+    check_ai_model: str
+    how_to_use_text: str
+    general_information_text: str
+    lecture_information_text: str
+    course_name: str
+    impressum_text: str
+    registration_code: str
+
+    def __repr__(self):
+        return f"<Config(id={self.id}, course_name='{self.course_name}')>"
