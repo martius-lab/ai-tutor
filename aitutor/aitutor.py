@@ -110,7 +110,7 @@ def initialize():
             session.commit()
             print("Configuration row added to the database.")
         else:
-            print("Configuration row already exists in the database.")
+            print("Configuration row exists in the database.")
 
     # load config here, so we fail immediately if there is any issue with it
     try:
