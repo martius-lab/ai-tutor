@@ -107,3 +107,30 @@ def get_config_db_model() -> Config:
         if _config is None:
             raise ValueError("Configuration not found in the database.")
         return _config
+    
+
+def initialize_config_db():
+    """ensure there is a config row in the database."""
+    with rx.session() as session:
+        config_row = session.exec(
+            sqlmodel.select(Config).where(Config.id == 1)
+        ).one_or_none()
+        if not config_row:
+            config_file = get_config_file()
+            config = Config(
+                id=1,
+                check_conversation_prompt=config_file.check_conversation_prompt,
+                response_ai_model=config_file.response_ai_model,
+                check_ai_model=config_file.check_ai_model,
+                how_to_use_text=config_file.how_to_use_text,
+                general_information_text=config_file.general_information_text,
+                lecture_information_text=config_file.lecture_information_text,
+                course_name=config_file.course_name,
+                impressum_text=config_file.impressum_text,
+                registration_code=config_file.registration_code,
+            )
+            session.add(config)
+            session.commit()
+            print("Configuration row added to the database.")
+        else:
+            print("Configuration row exists in the database.")
