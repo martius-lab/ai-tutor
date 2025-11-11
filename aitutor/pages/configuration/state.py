@@ -9,6 +9,13 @@ from aitutor.models import UserRole
 class ConfigurationState(SessionState):
     """The State for the configuration page."""
 
+    config_dialog_open: bool = False
+
+    @rx.event
+    def set_config_dialog_open(self, is_open: bool):
+        """Sets whether the config dialog is open."""
+        self.config_dialog_open = is_open
+
     @rx.event
     @state_require_role_at_least(UserRole.TUTOR)
     def on_load(self):
@@ -17,3 +24,4 @@ class ConfigurationState(SessionState):
 
     def on_logout(self):
         """Clears the state when the user logs out."""
+        self.config_dialog_open = False
