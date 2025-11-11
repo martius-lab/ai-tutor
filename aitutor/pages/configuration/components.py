@@ -199,7 +199,9 @@ def config_form() -> rx.Component:
                     ConfigurationState.save_config_to_db(),
                     ConfigurationState.set_config_dialog_open(False),
                 ],
-            )
+            ),
+            width="40em",
+            max_width="90vw",
         ),
         open=ConfigurationState.config_dialog_open,
     )
