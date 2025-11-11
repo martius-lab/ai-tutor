@@ -182,16 +182,24 @@ def config_form() -> rx.Component:
                     rx.button(
                         LS.cancel,
                         color_scheme="red",
-                        _hover={"cursor": "pointer"},
                         type="button",
                         on_click=ConfigurationState.on_load(),
                         disabled=~ConfigurationState.unsaved_changes,  # type: ignore
+                        _hover=rx.cond(
+                            ConfigurationState.unsaved_changes,
+                            {"cursor": "pointer"},
+                            {"cursor": "not-allowed"},
+                        ),
                     ),
                     rx.button(
                         LS.save,
-                        _hover={"cursor": "pointer"},
                         type="submit",
                         disabled=~ConfigurationState.unsaved_changes,  # type: ignore
+                        _hover=rx.cond(
+                            ConfigurationState.unsaved_changes,
+                            {"cursor": "pointer"},
+                            {"cursor": "not-allowed"},
+                        ),
                     ),
                     justify="end",
                     width="100%",
