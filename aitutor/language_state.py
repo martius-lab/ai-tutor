@@ -845,18 +845,22 @@ class LanguageState(SessionState):
     def info_texts_info(self) -> str:
         return self.translate(
             de="Diese Informationen werden auf der Startseite angezeigt. Wenn sie "
-            "dieses Feld leer lassen, dann wird dieser Info Abschnitt nicht angezeigt.",
+            "dieses Feld leer lassen, dann wird dieser Info Abschnitt nicht angezeigt. "
+            "Der Text wird im Markdown-Format dargestellt.",
             en="These informations are shown on the home page. If you leave this "
-            "field empty, this info section will not be displayed.",
+            "field empty, this info section will not be displayed. "
+            "The text is rendered in markdown format.",
         )
 
     @rx.var
     def impressum_info(self) -> str:
         return self.translate(
             de="Das Impressum soll die gesetzlich vorgeschriebenen Informationen über "
-            "den Verantwortlichen der Webseite enthalten.",
+            "den Verantwortlichen der Webseite enthalten. "
+            "Der Text wird im Markdown-Format dargestellt.",
             en="The impressum should contain the legally required information about "
-            "the person responsible for the website.",
+            "the person responsible for the website. "
+            "The text is rendered in markdown format.",
         )
 
 
