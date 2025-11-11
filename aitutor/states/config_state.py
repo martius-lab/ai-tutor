@@ -18,6 +18,10 @@ class ConfigState(rx.State):
     # would be annoying to have to inject the on_load everywhere) but might not be
     # optimal in terms of performance?
 
+    # TODO: These variables don't update when the config changes in the database. The
+    # user first has to close and reopen the page to see the updated config values.
+    # If this is fixed, you also need to change the config_saved success message.
+
     @rx.var(cache=True, initial_value="")
     def how_to_use_text(self) -> str:
         return get_config().how_to_use_text
