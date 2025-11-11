@@ -4,7 +4,6 @@ from dataclasses import dataclass
 
 import variconf
 
-
 DEFAULT_CONFIG_FILE_PATH = "./default_config.toml"
 CONFIG_FILE_PATH = "./config.toml"
 

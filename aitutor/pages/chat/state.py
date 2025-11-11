@@ -1,21 +1,22 @@
 """The state of the chat page."""
 
-import reflex as rx
-import decouple
+from datetime import datetime
+from enum import StrEnum
 from typing import Optional, cast
+from zoneinfo import ZoneInfo
+
+import decouple
+import reflex as rx
 from openai import AsyncOpenAI, OpenAI
 from pydantic import BaseModel
-from datetime import datetime
-from zoneinfo import ZoneInfo
-from enum import StrEnum
 
 import aitutor.routes as routes
-from aitutor.models import Exercise, ExerciseResult, UserRole
+from aitutor.auth.protection import state_require_role_at_least
 from aitutor.auth.state import SessionState
 from aitutor.config import get_config
-from aitutor.auth.protection import state_require_role_at_least
 from aitutor.global_vars import TIME_FORMAT, TIME_ZONE
 from aitutor.language_state import BackendTranslations as BT
+from aitutor.models import Exercise, ExerciseResult, UserRole
 
 
 class Role(StrEnum):

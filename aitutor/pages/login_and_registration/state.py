@@ -5,8 +5,8 @@ import re
 import reflex as rx
 import reflex_local_auth
 
-from aitutor.models import UserInfo, UserRole
 from aitutor.config import get_config
+from aitutor.models import UserInfo, UserRole
 
 
 class MyLoginState(reflex_local_auth.LoginState):

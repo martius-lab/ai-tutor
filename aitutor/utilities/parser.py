@@ -1,12 +1,12 @@
 """The parser for the search of tables"""
 
 from pyparsing import (
+    ParserElement,
     Word,
     alphanums,
     dblQuotedString,
-    removeQuotes,
     oneOf,
-    ParserElement,
+    removeQuotes,
 )
 
 

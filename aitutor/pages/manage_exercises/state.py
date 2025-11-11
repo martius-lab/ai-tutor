@@ -1,22 +1,23 @@
 """The state for the manage exercises page."""
 
-import reflex as rx
-import pdfplumber
 import io
 import json
-from typing import override
-from enum import Enum
-from sqlmodel import select, and_, or_
-from sqlalchemy.orm import selectinload
 from datetime import datetime
+from enum import Enum
+from typing import override
 
-from aitutor.models import Exercise, Tag, UserRole
-from aitutor.auth.state import SessionState
-from aitutor.utilities.filtering_components import FilterMixin
-from aitutor.config import get_config
-from aitutor.auth.protection import state_require_role_at_least
+import pdfplumber
+import reflex as rx
+from sqlalchemy.orm import selectinload
+from sqlmodel import and_, or_, select
+
 import aitutor.global_vars as gv
+from aitutor.auth.protection import state_require_role_at_least
+from aitutor.auth.state import SessionState
+from aitutor.config import get_config
 from aitutor.language_state import BackendTranslations as BT
+from aitutor.models import Exercise, Tag, UserRole
+from aitutor.utilities.filtering_components import FilterMixin
 
 
 class DialogMode(Enum):
