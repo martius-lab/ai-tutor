@@ -1,21 +1,23 @@
 """The state of the chat page."""
 
-import reflex as rx
-import decouple
+from datetime import datetime
+from enum import StrEnum
 from typing import Optional, cast
+from zoneinfo import ZoneInfo
+
+import decouple
+import reflex as rx
 from openai import AsyncOpenAI, OpenAI
 from pydantic import BaseModel
-from datetime import datetime
-from zoneinfo import ZoneInfo
-from enum import StrEnum
+from sqlmodel import select
 
 import aitutor.routes as routes
-from aitutor.models import Exercise, ExerciseResult, UserRole
+from aitutor.auth.protection import state_require_role_at_least
 from aitutor.auth.state import SessionState
 from aitutor.config import get_config
-from aitutor.auth.protection import state_require_role_at_least
 from aitutor.global_vars import TIME_FORMAT, TIME_ZONE
 from aitutor.language_state import BackendTranslations as BT
+from aitutor.models import Exercise, ExerciseResult, UserRole
 
 
 class Role(StrEnum):
@@ -167,10 +169,10 @@ class ChatState(SessionState):
 
         with rx.session() as session:
             exercise = session.exec(
-                Exercise.select().where(Exercise.id == int(self.exercise_id))
+                select(Exercise).where(Exercise.id == int(self.exercise_id))
             ).one_or_none()
             exercise_result = session.exec(
-                ExerciseResult.select().where(
+                select(ExerciseResult).where(
                     ExerciseResult.exercise_id == int(self.exercise_id),
                     ExerciseResult.userinfo_id == self._userinfo_id,
                 )
@@ -257,7 +259,7 @@ class ChatState(SessionState):
         if self.current_exercise:
             with rx.session() as session:
                 exercise_result = session.exec(
-                    ExerciseResult.select().where(
+                    select(ExerciseResult).where(
                         ExerciseResult.exercise_id == self.current_exercise.id,
                         ExerciseResult.userinfo_id == self._userinfo_id,
                     )
@@ -378,7 +380,7 @@ class ChatState(SessionState):
             if self.current_exercise:
                 with rx.session() as session:
                     exercise_result = session.exec(
-                        ExerciseResult.select().where(
+                        select(ExerciseResult).where(
                             ExerciseResult.exercise_id == self.current_exercise.id,
                             ExerciseResult.userinfo_id == self._userinfo_id,
                         )
@@ -434,7 +436,7 @@ class ChatState(SessionState):
         if self.current_exercise:
             with rx.session() as session:
                 exercise_result = session.exec(
-                    ExerciseResult.select().where(
+                    select(ExerciseResult).where(
                         ExerciseResult.exercise_id == self.current_exercise.id,
                         ExerciseResult.userinfo_id == self._userinfo_id,
                     )
@@ -493,7 +495,7 @@ class ChatState(SessionState):
         if self.current_exercise:
             with rx.session() as session:
                 exercise_result = session.exec(
-                    ExerciseResult.select().where(
+                    select(ExerciseResult).where(
                         ExerciseResult.exercise_id == self.current_exercise.id,
                         ExerciseResult.userinfo_id == self._userinfo_id,
                     )

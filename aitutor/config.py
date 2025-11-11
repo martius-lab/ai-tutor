@@ -1,12 +1,12 @@
 """Configuration management of the application."""
 
-import variconf
-import reflex as rx
-import sqlmodel
 from dataclasses import dataclass
 
-from aitutor.models import Config
+import reflex as rx
+import sqlmodel
+import variconf
 
+from aitutor.models import Config
 
 DEFAULT_CONFIG_FILE_PATH = "./default_config.toml"
 CONFIG_FILE_PATH = "./config.toml"

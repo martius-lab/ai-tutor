@@ -1,6 +1,7 @@
 """Components for the configuration page."""
 
 import reflex as rx
+
 from aitutor.language_state import LanguageState as LS
 from aitutor.pages.configuration.state import ConfigurationState
 

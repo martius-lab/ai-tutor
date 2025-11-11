@@ -6,11 +6,11 @@ and creates one with default credentials if necessary.
 """
 
 import reflex as rx
-from sqlmodel import select
 from reflex_local_auth.user import LocalUser
+from sqlmodel import select
 
-from aitutor.models import UserInfo, UserRole
 from aitutor.config import get_config
+from aitutor.models import UserInfo, UserRole
 
 
 def create_user_if_not_exists(role: UserRole, name: str, password: str, email: str):

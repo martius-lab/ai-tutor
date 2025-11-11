@@ -2,12 +2,11 @@
 
 import reflex as rx
 
-
 from aitutor import routes
-from aitutor.models import UserRole
-from aitutor.pages.navbar import with_navbar
 from aitutor.auth.protection import page_require_role_at_least
+from aitutor.models import UserRole
 from aitutor.pages.configuration.components import config_form
+from aitutor.pages.navbar import with_navbar
 
 
 @with_navbar(routes.CONFIGURATION)
