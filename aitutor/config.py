@@ -3,7 +3,6 @@
 from dataclasses import dataclass
 
 import reflex as rx
-import sqlmodel
 import variconf
 
 from aitutor.models import Config
