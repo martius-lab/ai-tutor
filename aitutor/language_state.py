@@ -918,3 +918,15 @@ class BackendTranslations:
             de="'Neues' und 'bestätigtes' Passwort stimmen nicht überein.",
             en="'New' and 'Confirmed' password do not match.",
         )
+
+    # ConfigurationState ---------------------------------------------------------------
+
+    @staticmethod
+    def config_saved(language: Language) -> str:
+        return translate(
+            language,
+            de="Konfiguration erfolgreich gespeichert. (Änderungen werden erst "
+            "beim neu öffnen der Seite angezeigt)",
+            en="Configuration saved successfully. (Changes will only be visible "
+            "when reopening the page)",
+        )

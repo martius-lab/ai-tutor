@@ -5,6 +5,7 @@ from aitutor.auth.state import SessionState
 from aitutor.auth.protection import state_require_role_at_least
 from aitutor.models import UserRole, Config
 from aitutor.config import get_config_db_model
+from aitutor.language_state import BackendTranslations as BT
 
 empty_config: Config = Config(
     id=None,
@@ -71,3 +72,10 @@ class ConfigurationState(SessionState):
                 db_config.registration_code = self.current_config.registration_code
                 session.add(db_config)
                 session.commit()
+
+        yield rx.toast.success(
+            description=BT.config_saved(self.language),
+            duration=5000,
+            position="bottom-center",
+            invert=True,
+        )
