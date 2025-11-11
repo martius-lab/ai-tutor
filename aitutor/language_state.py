@@ -759,6 +759,14 @@ class LanguageState(SessionState):
         return self.translate(de="Konfiguration", en="Configuration")
 
     @rx.var
+    def registration_code_info(self) -> str:
+        return self.translate(
+            de="Der Registrierungscode, den Studenten bei der Registrierung "
+            "eingeben müssen.",
+            en="The registration code that students have to enter during registration.",
+        )
+
+    @rx.var
     def course_name(self) -> str:
         return self.translate(de="Kursname", en="Course Name")
 
@@ -767,13 +775,42 @@ class LanguageState(SessionState):
         return self.translate(de="Antwort KI-Modell", en="Response AI Model")
 
     @rx.var
+    def response_ai_model_info(self) -> str:
+        return self.translate(
+            de="Das KI-Modell, welches im Chat antwortet. Für Infos zu verfügbaren "
+            "Modellen, bitte bei [openai](https://platform.openai.com/docs/models) "
+            "nachschauen.",
+            en="The AI model that responds in the chat. For info on available "
+            "models, please refer to [openai](https://platform.openai.com/docs/models).",
+        )
+
+    @rx.var
     def check_ai_model(self) -> str:
         return self.translate(de="Überprüfungs-KI-Modell", en="Check AI Model")
+
+    @rx.var
+    def check_ai_model_info(self) -> str:
+        return self.translate(
+            de="Das KI-Modell, welches die Konversation überprüft. Für Infos zu "
+            "verfügbaren Modellen, bitte bei "
+            "[openai](https://platform.openai.com/docs/models) nachschauen.",
+            en="The AI model that checks the conversation. For info on available "
+            "models, please refer to "
+            "[openai](https://platform.openai.com/docs/models).",
+        )
 
     @rx.var
     def check_conversation_prompt(self) -> str:
         return self.translate(
             de="Konversations-Überprüfungs-Prompt", en="Check Conversation Prompt"
+        )
+
+    @rx.var
+    def check_conversation_prompt_info(self) -> str:
+        return self.translate(
+            de="Der Prompt, der verwendet wird, um die Konversation auf Korrektheit zu "
+            "überprüfen.",
+            en="The prompt used to check the conversation for correctness.",
         )
 
     @rx.var
@@ -795,6 +832,24 @@ class LanguageState(SessionState):
         return self.translate(
             de="Informationen zur Vorlesung",
             en="Lecture Information",
+        )
+
+    @rx.var
+    def info_texts_info(self) -> str:
+        return self.translate(
+            de="Diese Informationen werden auf der Startseite angezeigt. Wenn sie "
+            "dieses Feld leer lassen, dann wird dieser Info Abschnitt nicht angezeigt.",
+            en="These informations are shown on the home page. If you leave this "
+            "field empty, this info section will not be displayed.",
+        )
+
+    @rx.var
+    def impressum_info(self) -> str:
+        return self.translate(
+            de="Das Impressum soll die gesetzlich vorgeschriebenen Informationen über "
+            "den Verantwortlichen der Webseite enthalten.",
+            en="The impressum should contain the legally required information about "
+            "the person responsible for the website.",
         )
 
 
