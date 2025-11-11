@@ -25,18 +25,19 @@ empty_config: Config = Config(
 class ConfigurationState(SessionState):
     """The State for the configuration page."""
 
-    config_dialog_open: bool = False
+    unsaved_changes: bool = False
     current_config: Config = empty_config
+
+    @rx.event
+    def set_unsaved_changes(self, unsaved: bool):
+        """Sets the unsaved changes flag."""
+        self.unsaved_changes = unsaved
 
     @rx.event
     def set_config_value(self, name: str, value: str):
         """Sets a configuration value in the current config."""
         setattr(self.current_config, name, value)
-
-    @rx.event
-    def set_config_dialog_open(self, is_open: bool):
-        """Sets whether the config dialog is open."""
-        self.config_dialog_open = is_open
+        self.unsaved_changes = True
 
     @rx.event
     @state_require_role_at_least(UserRole.TUTOR)
@@ -44,10 +45,11 @@ class ConfigurationState(SessionState):
         """Initialization for the page."""
         self.global_load()
         self.current_config = get_config_db_model()
+        self.unsaved_changes = False
 
     def on_logout(self):
         """Clears the state when the user logs out."""
-        self.config_dialog_open = False
+        self.unsaved_changes = False
         self.current_config = empty_config
 
     @rx.event
@@ -73,6 +75,8 @@ class ConfigurationState(SessionState):
                 db_config.registration_code = self.current_config.registration_code
                 session.add(db_config)
                 session.commit()
+
+        self.unsaved_changes = False
 
         yield rx.toast.success(
             description=BT.config_saved(self.language),

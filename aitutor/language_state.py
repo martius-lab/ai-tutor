@@ -759,6 +759,13 @@ class LanguageState(SessionState):
         return self.translate(de="Konfiguration", en="Configuration")
 
     @rx.var
+    def unsaved_changes_info(self) -> str:
+        return self.translate(
+            de="Sie haben ungespeicherte Änderungen.",
+            en="You have unsaved changes.",
+        )
+
+    @rx.var
     def registration_code_info(self) -> str:
         return self.translate(
             de="Der Registrierungscode, den Studenten bei der Registrierung "
