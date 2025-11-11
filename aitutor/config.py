@@ -50,7 +50,7 @@ class AiTutorConfig:
 _config_from_file = None
 
 
-def load_config_file():
+def load_config_from_file():
     """Load configuration from file."""
     global _config_from_file
     wconf = variconf.WConf(AiTutorConfig)
@@ -65,10 +65,10 @@ def load_config_file():
     _config_from_file = wconf.get()
 
 
-def get_config_file() -> AiTutorConfig:
+def get_config_from_file() -> AiTutorConfig:
     """Get the content of the configuration file."""
     if _config_from_file is None:
-        load_config_file()
+        load_config_from_file()
     # Type of _config_from_file is actually some OmegaConf object, but it should have
     # the same fields as AiTutorConfig, so list that as return type for better
     # auto-completion.
@@ -93,8 +93,8 @@ def get_config() -> AiTutorConfig:
             course_name=_config.course_name,
             impressum_text=_config.impressum_text,
             registration_code=_config.registration_code,
-            default_users=get_config_file().default_users,
-            exercise_prompts=get_config_file().exercise_prompts,
+            default_users=get_config_from_file().default_users,
+            exercise_prompts=get_config_from_file().exercise_prompts,
         )
 
 
@@ -107,7 +107,7 @@ def get_config_db_model() -> Config:
         if _config is None:
             raise ValueError("Configuration not found in the database.")
         return _config
-    
+
 
 def initialize_config_db():
     """ensure there is a config row in the database."""
@@ -116,7 +116,7 @@ def initialize_config_db():
             sqlmodel.select(Config).where(Config.id == 1)
         ).one_or_none()
         if not config_row:
-            config_file = get_config_file()
+            config_file = get_config_from_file()
             config = Config(
                 id=1,
                 check_conversation_prompt=config_file.check_conversation_prompt,
