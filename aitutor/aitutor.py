@@ -7,12 +7,10 @@ import sys
 
 import decouple
 import reflex as rx
-import sqlmodel
 
 import aitutor.routes as routes
 from aitutor import pages
-from aitutor.config import get_config, get_config_file
-from aitutor.models import Config
+from aitutor.config import get_config, initialize_config_db
 from aitutor.utilities.create_default_users import create_default_users
 
 # info: add dynamic routes first
@@ -89,28 +87,7 @@ def initialize():
     print("Executing initialization tasks:")
 
     # ensure there is a config row in the database
-    with rx.session() as session:
-        config_row = session.exec(
-            sqlmodel.select(Config).where(Config.id == 1)
-        ).one_or_none()
-        if not config_row:
-            config = Config(
-                id=1,
-                check_conversation_prompt=get_config_file().check_conversation_prompt,
-                response_ai_model=get_config_file().response_ai_model,
-                check_ai_model=get_config_file().check_ai_model,
-                how_to_use_text=get_config_file().how_to_use_text,
-                general_information_text=get_config_file().general_information_text,
-                lecture_information_text=get_config_file().lecture_information_text,
-                course_name=get_config_file().course_name,
-                impressum_text=get_config_file().impressum_text,
-                registration_code=get_config_file().registration_code,
-            )
-            session.add(config)
-            session.commit()
-            print("Configuration row added to the database.")
-        else:
-            print("Configuration row exists in the database.")
+    initialize_config_db()
 
     # load config here, so we fail immediately if there is any issue with it
     try:
@@ -135,7 +112,11 @@ def initialize():
 
     create_default_users()
 
-    print("Initialization tasks completed.")
+    print(
+        "\033[92m" +
+        "Initialization tasks completed."
+        + "\033[0m"
+        )
 
 
 app.register_lifespan_task(initialize)
