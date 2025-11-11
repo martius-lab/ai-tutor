@@ -5,13 +5,11 @@ from aitutor.language_state import LanguageState as LS
 from aitutor.pages.configuration.state import ConfigurationState
 
 
-def input(
-    *, name: str, heading: rx.Var[str], placeholder: str | rx.Var[str], value: str
-) -> rx.Component:
+def input(*, name: str, heading: rx.Var[str], value: str, on_change) -> rx.Component:
     """Returns an input field with a heading."""
     return rx.vstack(
         rx.text(heading, weight="medium"),
-        rx.input(placeholder=placeholder, name=name, value=value, width="100%"),
+        rx.input(name=name, value=value, width="100%", on_change=on_change),
         width="40em",
         max_width="100%",
         padding="4",
@@ -19,12 +17,19 @@ def input(
 
 
 def text_area(
-    *, name: str, heading: rx.Var[str], placeholder: str | rx.Var[str], value: str
+    *, name: str, heading: rx.Var[str], value: str, on_change
 ) -> rx.Component:
     """Returns a text area with a heading."""
     return rx.vstack(
         rx.text(heading, weight="medium"),
-        rx.text_area(placeholder=placeholder, name=name, value=value, width="100%"),
+        rx.text_area(
+            name=name,
+            value=value,
+            width="100%",
+            resize="vertical",
+            rows="4",
+            on_change=on_change,
+        ),
         width="40em",
         max_width="100%",
         padding="4",
@@ -47,56 +52,74 @@ def config_form() -> rx.Component:
                     input(
                         name="course_name",
                         heading=LS.course_name,
-                        placeholder=LS.course_name_placeholder,
-                        value="",
+                        value=ConfigurationState.current_config.course_name,
+                        on_change=lambda value: ConfigurationState.set_config_value(
+                            "course_name", value
+                        ),
                     ),
                     input(
                         name="registration_code",
                         heading=LS.registration_code,
-                        placeholder=LS.registration_code_placeholder_config,
-                        value="",
+                        value=ConfigurationState.current_config.registration_code,
+                        on_change=lambda value: ConfigurationState.set_config_value(
+                            "registration_code", value
+                        ),
                     ),
                     input(
                         name="response_ai_model",
                         heading=LS.response_ai_model,
-                        placeholder="e.g. gpt-4.1-mini",
-                        value="",
+                        value=ConfigurationState.current_config.response_ai_model,
+                        on_change=lambda value: ConfigurationState.set_config_value(
+                            "response_ai_model", value
+                        ),
                     ),
                     input(
                         name="check_ai_model",
                         heading=LS.check_ai_model,
-                        placeholder="e.g. gpt-4.1",
-                        value="",
+                        value=ConfigurationState.current_config.check_ai_model,
+                        on_change=lambda value: ConfigurationState.set_config_value(
+                            "check_ai_model", value
+                        ),
                     ),
                     text_area(
                         name="check_conversation_prompt",
                         heading=LS.check_conversation_prompt,
-                        placeholder=LS.check_conversation_prompt_placeholder,
-                        value="",
+                        value=ConfigurationState.current_config.check_conversation_prompt,
+                        on_change=lambda value: ConfigurationState.set_config_value(
+                            "check_conversation_prompt", value
+                        ),
                     ),
                     text_area(
                         name="how_to_use_text",
                         heading=LS.how_to_use_text,
-                        placeholder=LS.info_text_placeholder,
-                        value="",
+                        value=ConfigurationState.current_config.how_to_use_text,
+                        on_change=lambda value: ConfigurationState.set_config_value(
+                            "how_to_use_text", value
+                        ),
                     ),
                     text_area(
                         name="general_info_text",
                         heading=LS.general_info_text,
-                        placeholder=LS.info_text_placeholder,
-                        value="",
+                        value=ConfigurationState.current_config.general_information_text,
+                        on_change=lambda value: ConfigurationState.set_config_value(
+                            "general_information_text", value
+                        ),
                     ),
                     text_area(
                         name="lecture_info_text",
                         heading=LS.lecture_info_text,
-                        placeholder=LS.info_text_placeholder,
-                        value="",
+                        value=ConfigurationState.current_config.lecture_information_text,
+                        on_change=lambda value: ConfigurationState.set_config_value(
+                            "lecture_information_text", value
+                        ),
                     ),
                     text_area(
                         name="impressum",
                         heading=LS.impressum,
-                        placeholder=LS.impressum_placeholder,
-                        value="",
+                        value=ConfigurationState.current_config.impressum_text,
+                        on_change=lambda value: ConfigurationState.set_config_value(
+                            "impressum_text", value
+                        ),
                     ),
                     rx.hstack(
                         rx.button(
@@ -108,12 +131,17 @@ def config_form() -> rx.Component:
                         rx.button(
                             LS.save,
                             _hover={"cursor": "pointer"},
+                            type="submit",
                         ),
                         justify="end",
                         width="100%",
                     ),
                     spacing="3",
-                )
+                ),
+                on_submit=[
+                    ConfigurationState.save_config_to_db(),
+                    ConfigurationState.set_config_dialog_open(False),
+                ],
             )
         ),
         open=ConfigurationState.config_dialog_open,

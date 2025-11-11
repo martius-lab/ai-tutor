@@ -96,3 +96,14 @@ def get_config() -> AiTutorConfig:
             default_users=get_config_file().default_users,
             exercise_prompts=get_config_file().exercise_prompts,
         )
+
+
+def get_config_db_model() -> Config:
+    """Get the configuration as a database model instance."""
+    with rx.session() as session:
+        _config = session.exec(
+            sqlmodel.select(Config).where(Config.id == 1)
+        ).one_or_none()
+        if _config is None:
+            raise ValueError("Configuration not found in the database.")
+        return _config

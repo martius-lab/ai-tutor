@@ -3,13 +3,33 @@
 import reflex as rx
 from aitutor.auth.state import SessionState
 from aitutor.auth.protection import state_require_role_at_least
-from aitutor.models import UserRole
+from aitutor.models import UserRole, Config
+from aitutor.config import get_config_db_model
+
+empty_config: Config = Config(
+    id=None,
+    check_conversation_prompt="failed to load!",
+    response_ai_model="failed to load!",
+    check_ai_model="failed to load!",
+    how_to_use_text="failed to load!",
+    general_information_text="failed to load!",
+    lecture_information_text="failed to load!",
+    course_name="failed to load!",
+    impressum_text="failed to load!",
+    registration_code="failed to load!",
+)
 
 
 class ConfigurationState(SessionState):
     """The State for the configuration page."""
 
     config_dialog_open: bool = False
+    current_config: Config = empty_config
+
+    @rx.event
+    def set_config_value(self, name: str, value: str):
+        """Sets a configuration value in the current config."""
+        setattr(self.current_config, name, value)
 
     @rx.event
     def set_config_dialog_open(self, is_open: bool):
@@ -21,7 +41,33 @@ class ConfigurationState(SessionState):
     def on_load(self):
         """Initialization for the page."""
         self.global_load()
+        self.current_config = get_config_db_model()
 
     def on_logout(self):
         """Clears the state when the user logs out."""
         self.config_dialog_open = False
+        self.current_config = empty_config
+
+    @rx.event
+    def save_config_to_db(self):
+        """Saves the current configuration to the database."""
+        with rx.session() as session:
+            db_config = session.get(Config, 1)
+            if db_config:
+                db_config.check_conversation_prompt = (
+                    self.current_config.check_conversation_prompt
+                )
+                db_config.response_ai_model = self.current_config.response_ai_model
+                db_config.check_ai_model = self.current_config.check_ai_model
+                db_config.how_to_use_text = self.current_config.how_to_use_text
+                db_config.general_information_text = (
+                    self.current_config.general_information_text
+                )
+                db_config.lecture_information_text = (
+                    self.current_config.lecture_information_text
+                )
+                db_config.course_name = self.current_config.course_name
+                db_config.impressum_text = self.current_config.impressum_text
+                db_config.registration_code = self.current_config.registration_code
+                session.add(db_config)
+                session.commit()
