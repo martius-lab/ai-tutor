@@ -4,11 +4,11 @@ from typing import Sequence
 
 import reflex as rx
 
-from aitutor.models import Exercise
-from aitutor.pages.manage_exercises.state import ManageExercisesState, DialogMode
-from aitutor.utilities.helper_functions import truncate_text_reflex_var
 from aitutor.global_vars import TIME_ZONE
 from aitutor.language_state import LanguageState
+from aitutor.models import Exercise
+from aitutor.pages.manage_exercises.state import DialogMode, ManageExercisesState
+from aitutor.utilities.helper_functions import truncate_text_reflex_var
 
 
 def new_tag_dialog():

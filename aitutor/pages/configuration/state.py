@@ -1,11 +1,12 @@
 """The state for the configuration page."""
 
 import reflex as rx
-from aitutor.auth.state import SessionState
+
 from aitutor.auth.protection import state_require_role_at_least
-from aitutor.models import UserRole, Config
+from aitutor.auth.state import SessionState
 from aitutor.config import get_config_db_model
 from aitutor.language_state import BackendTranslations as BT
+from aitutor.models import Config, UserRole
 
 empty_config: Config = Config(
     id=None,

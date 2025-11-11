@@ -3,17 +3,17 @@
 import reflex as rx
 
 from aitutor import routes
-from aitutor.models import UserRole
-from aitutor.pages.manage_exercises.state import ManageExercisesState
-from aitutor.pages.navbar import with_navbar
 from aitutor.auth.protection import page_require_role_at_least
+from aitutor.models import UserRole
 from aitutor.pages.manage_exercises.components import (
-    exercise_table,
     add_exercise_button,
     delete_selected_exercises_button,
+    exercise_table,
     export_selected_exercises_button,
 )
-from aitutor.utilities.filtering_components import search_bar, search_badges
+from aitutor.pages.manage_exercises.state import ManageExercisesState
+from aitutor.pages.navbar import with_navbar
+from aitutor.utilities.filtering_components import search_badges, search_bar
 
 
 @with_navbar(routes.MANAGE_EXERCISES)
