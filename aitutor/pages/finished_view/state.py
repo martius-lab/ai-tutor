@@ -69,7 +69,7 @@ class FinishedViewState(SessionState):
         if self.current_exercise and userinfo:
             with rx.session() as session:
                 exercise_result = session.exec(
-                    ExerciseResult.select().where(
+                    select(ExerciseResult).where(
                         ExerciseResult.exercise_id == self.current_exercise.id,
                         ExerciseResult.userinfo_id == userinfo.id,
                     )
