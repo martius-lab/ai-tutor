@@ -2,10 +2,10 @@
 
 import reflex as rx
 
+from aitutor.components import password_input
 from aitutor.language_state import LanguageState as LS
 from aitutor.models import LocalUser, UserInfo, UserRole
 from aitutor.pages.manage_users.state import ManageUsersState
-from aitutor.components import password_input
 
 
 def role_to_text(role: UserRole):

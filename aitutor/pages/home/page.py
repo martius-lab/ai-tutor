@@ -3,12 +3,12 @@
 import reflex as rx
 
 from aitutor import routes
-from aitutor.pages.navbar import with_navbar
 from aitutor.pages.home.components import (
     dashboard_card,
     info_accordion,
     legal_info_links,
 )
+from aitutor.pages.navbar import with_navbar
 
 
 @with_navbar(routes.HOME)

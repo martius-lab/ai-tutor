@@ -2,11 +2,10 @@
 
 import reflex as rx
 
-from aitutor import ConfigState
+from aitutor import ConfigState, routes
+from aitutor.language_state import LanguageState
 from aitutor.pages.home.state import HomeState
 from aitutor.routes import LOGIN, REGISTER
-from aitutor.language_state import LanguageState
-from aitutor import routes
 
 
 def dashboard_card():

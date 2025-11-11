@@ -1,12 +1,14 @@
 """Module defining database models."""
 
-from enum import IntEnum, StrEnum
-import reflex as rx
-from sqlmodel import Field, Column, JSON, Relationship, DateTime
-from typing import Any, Dict, Optional, List
-from reflex_local_auth.user import LocalUser
 from datetime import datetime, timedelta
+from enum import IntEnum, StrEnum
+from typing import Any, Dict, List, Optional
 from zoneinfo import ZoneInfo
+
+import reflex as rx
+from reflex_local_auth.user import LocalUser
+from sqlmodel import JSON, Column, DateTime, Field, Relationship
+
 from aitutor.global_vars import TIME_ZONE
 
 

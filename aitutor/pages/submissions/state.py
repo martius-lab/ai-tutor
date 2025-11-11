@@ -1,18 +1,19 @@
 """The state for the submissions page."""
 
+from dataclasses import dataclass
+from typing import override
+
 import reflex as rx
 import sqlalchemy
-from typing import override
 from reflex_local_auth.user import LocalUser
-from sqlmodel import select, and_, func
-from dataclasses import dataclass
 from sqlalchemy.orm import selectinload
+from sqlmodel import and_, func, select
 
-from aitutor.models import ExerciseResult, Exercise, UserInfo, UserRole, Tag
-from aitutor.auth.state import SessionState
-from aitutor.utilities.filtering_components import FilterMixin
-from aitutor.auth.protection import state_require_role_at_least
 import aitutor.global_vars as gv
+from aitutor.auth.protection import state_require_role_at_least
+from aitutor.auth.state import SessionState
+from aitutor.models import Exercise, ExerciseResult, Tag, UserInfo, UserRole
+from aitutor.utilities.filtering_components import FilterMixin
 
 
 @dataclass

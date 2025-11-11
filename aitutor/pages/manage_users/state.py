@@ -1,14 +1,13 @@
 """State for the manage users page."""
 
 import reflex as rx
-from sqlmodel import select
 from reflex_local_auth.auth_session import LocalAuthSession
-from sqlmodel import case, cast
+from sqlmodel import case, cast, select
 
 from aitutor.auth.protection import state_require_role_at_least
 from aitutor.auth.state import SessionState
-from aitutor.models import LocalUser, UserInfo, UserRole
 from aitutor.language_state import BackendTranslations as BT
+from aitutor.models import LocalUser, UserInfo, UserRole
 
 
 class ManageUsersState(SessionState):

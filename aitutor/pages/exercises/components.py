@@ -2,10 +2,10 @@
 
 import reflex as rx
 
+from aitutor.language_state import LanguageState
 from aitutor.models import Exercise, ExerciseResult
 from aitutor.pages.exercises.state import ExercisesState, ExerciseWithResult
 from aitutor.utilities.helper_functions import truncate_text_reflex_var
-from aitutor.language_state import LanguageState
 
 
 def render_exercise_card(exercise_with_res: ExerciseWithResult) -> rx.Component:
