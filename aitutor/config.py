@@ -78,9 +78,7 @@ def get_config_from_file() -> AiTutorConfig:
 def get_config() -> AiTutorConfig:
     """Get the configuration from the database."""
     with rx.session() as session:
-        _config = session.exec(
-            sqlmodel.select(Config).where(Config.id == 1)
-        ).one_or_none()
+        _config = session.get(Config, 1)
         if _config is None:
             raise ValueError("Configuration not found in the database.")
         return AiTutorConfig(
@@ -101,9 +99,7 @@ def get_config() -> AiTutorConfig:
 def get_config_db_model() -> Config:
     """Get the configuration as a database model instance."""
     with rx.session() as session:
-        _config = session.exec(
-            sqlmodel.select(Config).where(Config.id == 1)
-        ).one_or_none()
+        _config = session.get(Config, 1)
         if _config is None:
             raise ValueError("Configuration not found in the database.")
         return _config
@@ -112,9 +108,7 @@ def get_config_db_model() -> Config:
 def initialize_config_db():
     """ensure there is a config row in the database."""
     with rx.session() as session:
-        config_row = session.exec(
-            sqlmodel.select(Config).where(Config.id == 1)
-        ).one_or_none()
+        config_row = session.get(Config, 1)
         if not config_row:
             config_file = get_config_from_file()
             config = Config(
