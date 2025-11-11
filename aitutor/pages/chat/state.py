@@ -9,6 +9,7 @@ import decouple
 import reflex as rx
 from openai import AsyncOpenAI, OpenAI
 from pydantic import BaseModel
+from sqlmodel import select
 
 import aitutor.routes as routes
 from aitutor.auth.protection import state_require_role_at_least
@@ -168,10 +169,10 @@ class ChatState(SessionState):
 
         with rx.session() as session:
             exercise = session.exec(
-                Exercise.select().where(Exercise.id == int(self.exercise_id))
+                select(Exercise).where(Exercise.id == int(self.exercise_id))
             ).one_or_none()
             exercise_result = session.exec(
-                ExerciseResult.select().where(
+                select(ExerciseResult).where(
                     ExerciseResult.exercise_id == int(self.exercise_id),
                     ExerciseResult.userinfo_id == self._userinfo_id,
                 )
@@ -258,7 +259,7 @@ class ChatState(SessionState):
         if self.current_exercise:
             with rx.session() as session:
                 exercise_result = session.exec(
-                    ExerciseResult.select().where(
+                    select(ExerciseResult).where(
                         ExerciseResult.exercise_id == self.current_exercise.id,
                         ExerciseResult.userinfo_id == self._userinfo_id,
                     )
@@ -379,7 +380,7 @@ class ChatState(SessionState):
             if self.current_exercise:
                 with rx.session() as session:
                     exercise_result = session.exec(
-                        ExerciseResult.select().where(
+                        select(ExerciseResult).where(
                             ExerciseResult.exercise_id == self.current_exercise.id,
                             ExerciseResult.userinfo_id == self._userinfo_id,
                         )
@@ -435,7 +436,7 @@ class ChatState(SessionState):
         if self.current_exercise:
             with rx.session() as session:
                 exercise_result = session.exec(
-                    ExerciseResult.select().where(
+                    select(ExerciseResult).where(
                         ExerciseResult.exercise_id == self.current_exercise.id,
                         ExerciseResult.userinfo_id == self._userinfo_id,
                     )
@@ -494,7 +495,7 @@ class ChatState(SessionState):
         if self.current_exercise:
             with rx.session() as session:
                 exercise_result = session.exec(
-                    ExerciseResult.select().where(
+                    select(ExerciseResult).where(
                         ExerciseResult.exercise_id == self.current_exercise.id,
                         ExerciseResult.userinfo_id == self._userinfo_id,
                     )

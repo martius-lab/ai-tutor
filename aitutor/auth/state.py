@@ -6,7 +6,7 @@ from typing import Optional
 
 import reflex as rx
 import reflex_local_auth
-import sqlmodel
+from sqlmodel import select
 
 import aitutor.routes as routes
 from aitutor import pages
@@ -29,7 +29,7 @@ class SessionState(reflex_local_auth.LocalAuthState):
         with rx.session() as session:
             # set the language based on the authenticated user's language
             user_info = session.exec(
-                UserInfo.select().where(UserInfo.user_id == self.authenticated_user.id)
+                select(UserInfo).where(UserInfo.user_id == self.authenticated_user.id)
             ).one_or_none()
             if user_info:
                 self.language = user_info.language
@@ -39,7 +39,7 @@ class SessionState(reflex_local_auth.LocalAuthState):
         """Toggle the language between English and German."""
         with rx.session() as session:
             user_info = session.exec(
-                UserInfo.select().where(UserInfo.user_id == self.authenticated_user.id)
+                select(UserInfo).where(UserInfo.user_id == self.authenticated_user.id)
             ).one_or_none()
             match self.language:
                 case Language.EN:
@@ -68,9 +68,7 @@ class SessionState(reflex_local_auth.LocalAuthState):
             return None
         with rx.session() as session:
             return session.exec(
-                sqlmodel.select(UserInfo).where(
-                    UserInfo.user_id == self.authenticated_user.id
-                ),
+                select(UserInfo).where(UserInfo.user_id == self.authenticated_user.id),
             ).one_or_none()
 
     async def perform_logout(self):
