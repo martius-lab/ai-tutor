@@ -5,9 +5,9 @@ import reflex_local_auth
 from reflex_local_auth.pages.components import MIN_WIDTH
 
 from aitutor import components, routes
-from aitutor.pages.login_and_registration.state import MyRegisterState
 from aitutor.language_state import LanguageState
 from aitutor.pages.legal_infos.loader_functions import get_privacy_notice_short
+from aitutor.pages.login_and_registration.state import MyRegisterState
 
 
 def input(name, placeholder, **props) -> rx.Component:
