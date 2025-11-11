@@ -1,15 +1,16 @@
 """The state for the finished view page."""
 
-import reflex as rx
 from typing import Optional
 
-import aitutor.routes as routes
-from aitutor.models import Exercise, ExerciseResult, UserRole
-from aitutor.auth.state import SessionState
-from aitutor.pages.chat.state import ChatMessage, Role
+import reflex as rx
 from sqlmodel import select
+
+import aitutor.routes as routes
 from aitutor.auth.protection import state_require_role_at_least
+from aitutor.auth.state import SessionState
 from aitutor.language_state import BackendTranslations as BT
+from aitutor.models import Exercise, ExerciseResult, UserRole
+from aitutor.pages.chat.state import ChatMessage, Role
 
 
 class FinishedViewState(SessionState):

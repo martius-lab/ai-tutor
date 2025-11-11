@@ -1,12 +1,13 @@
 """Components that are used in the frontend for filtering tables"""
 
-import reflex as rx
-from abc import abstractmethod
 import contextlib
+from abc import abstractmethod
 
-from aitutor.global_vars import SEARCH_USER_KEY, SEARCH_EXERCISE_KEY, SEARCH_TAG_KEY
-from aitutor.utilities.parser import parse_query_keys
+import reflex as rx
+
+from aitutor.global_vars import SEARCH_EXERCISE_KEY, SEARCH_TAG_KEY, SEARCH_USER_KEY
 from aitutor.language_state import LanguageState
+from aitutor.utilities.parser import parse_query_keys
 
 
 class FilterMixin(rx.State, mixin=True):

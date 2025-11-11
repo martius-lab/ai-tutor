@@ -2,14 +2,14 @@
 
 import reflex as rx
 
-from aitutor.models import UserRole
-from aitutor.pages.finished_view.state import FinishedViewState
-from aitutor.pages.navbar import with_navbar
+from aitutor import routes
 from aitutor.auth.protection import page_require_role_at_least
+from aitutor.language_state import LanguageState
+from aitutor.models import UserRole
 from aitutor.pages.chat.components import message_box
 from aitutor.pages.finished_view.components import delete_submission_button
-from aitutor import routes
-from aitutor.language_state import LanguageState
+from aitutor.pages.finished_view.state import FinishedViewState
+from aitutor.pages.navbar import with_navbar
 
 
 @with_navbar(routes.EXERCISES)

@@ -4,14 +4,14 @@ This module contains the main app definition for Reflex.
 """
 
 import sys
-import decouple
 
+import decouple
 import reflex as rx
 
+import aitutor.routes as routes
 from aitutor import pages
 from aitutor.config import get_config
 from aitutor.utilities.create_default_users import create_default_users
-import aitutor.routes as routes
 
 # info: add dynamic routes first
 app = rx.App()

@@ -2,14 +2,14 @@
 
 import reflex as rx
 
-from aitutor.pages.submissions.state import SubmissionsState, TableRow
 from aitutor import routes
 from aitutor.global_vars import (
-    SEARCH_USER_KEY,
     SEARCH_EXERCISE_KEY,
     SEARCH_TAG_KEY,
+    SEARCH_USER_KEY,
 )
 from aitutor.language_state import LanguageState
+from aitutor.pages.submissions.state import SubmissionsState, TableRow
 
 
 def header_cell(text, icon: str):

@@ -2,14 +2,15 @@
 The state for managing user sessions.
 """
 
+from typing import Optional
+
 import reflex as rx
 import reflex_local_auth
 import sqlmodel
-from aitutor.models import UserInfo, UserRole, Language
-from typing import Optional
 
 import aitutor.routes as routes
 from aitutor import pages
+from aitutor.models import Language, UserInfo, UserRole
 
 
 class SessionState(reflex_local_auth.LocalAuthState):

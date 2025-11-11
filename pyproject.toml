@@ -51,6 +51,7 @@ lint.select = [
     "F",
     "B",  # bugbear
     "D100", "D101", "D102", "D103",  # Complain about missing docstrings
+    "I",
 ]
 extend-exclude = ["alembic"]
 

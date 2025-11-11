@@ -1,6 +1,7 @@
 """404 - Page Not Found component for the application."""
 
 import reflex as rx
+
 from aitutor.routes import HOME
 
 

@@ -2,12 +2,11 @@
 
 import reflex as rx
 
-
 from aitutor import routes
-from aitutor.models import UserRole
-from aitutor.pages.navbar import with_navbar
 from aitutor.auth.protection import page_require_role_at_least
-from aitutor.pages.manage_users.components import users_table, edit_user_dialog
+from aitutor.models import UserRole
+from aitutor.pages.manage_users.components import edit_user_dialog, users_table
+from aitutor.pages.navbar import with_navbar
 
 
 @with_navbar(routes.MANAGE_USERS)
