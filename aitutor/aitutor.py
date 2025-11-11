@@ -112,11 +112,7 @@ def initialize():
 
     create_default_users()
 
-    print(
-        "\033[92m" +
-        "Initialization tasks completed."
-        + "\033[0m"
-        )
+    print("\033[92m" + "Initialization tasks completed." + "\033[0m")
 
 
 app.register_lifespan_task(initialize)
