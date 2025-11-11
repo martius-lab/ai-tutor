@@ -5,9 +5,8 @@ from enum import IntEnum, StrEnum
 from typing import Any, Dict, List, Optional
 from zoneinfo import ZoneInfo
 
-import reflex as rx
 from reflex_local_auth.user import LocalUser
-from sqlmodel import JSON, Column, DateTime, Field, Relationship
+from sqlmodel import JSON, Column, DateTime, Field, Relationship, SQLModel
 
 from aitutor.global_vars import TIME_ZONE
 
@@ -31,7 +30,7 @@ class UserRole(IntEnum):
     ADMIN = 3
 
 
-class ExerciseTagLink(rx.Model, table=True):
+class ExerciseTagLink(SQLModel, table=True):
     """
     Link table for many-to-many relationship between Exercise and Tag.
     """
@@ -45,7 +44,7 @@ class ExerciseTagLink(rx.Model, table=True):
     )
 
 
-class Tag(rx.Model, table=True):
+class Tag(SQLModel, table=True):
     """Tag model for storing allowed tags."""
 
     id: Optional[int] = Field(default=None, primary_key=True)
@@ -60,7 +59,7 @@ class Tag(rx.Model, table=True):
         return f"<Tag(name='{self.name}')>"
 
 
-class Exercise(rx.Model, table=True):
+class Exercise(SQLModel, table=True):
     """Exercise model for storing exercises."""
 
     id: Optional[int] = Field(default=None, primary_key=True)
@@ -124,7 +123,7 @@ class Exercise(rx.Model, table=True):
         return f"<Exercise(id={self.id}, title='{self.title}')>"
 
 
-class ExerciseResult(rx.Model, table=True):
+class ExerciseResult(SQLModel, table=True):
     """
     ExerciseResult model for storing conversation and result of an exercise and a user.
     """
@@ -158,11 +157,12 @@ class ExerciseResult(rx.Model, table=True):
         )
 
 
-class UserInfo(rx.Model, table=True):
+class UserInfo(SQLModel, table=True):
     """
     Adds more attributes to a user than just name and password.
     """
 
+    id: Optional[int] = Field(default=None, primary_key=True)
     user_id: int = Field(foreign_key="localuser.id", ondelete="CASCADE")
     email: str
     role: UserRole
