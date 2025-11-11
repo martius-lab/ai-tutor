@@ -126,6 +126,7 @@ def config_form() -> rx.Component:
                             LS.cancel,
                             color_scheme="red",
                             _hover={"cursor": "pointer"},
+                            type="button",
                             on_click=ConfigurationState.set_config_dialog_open(False),
                         ),
                         rx.button(
