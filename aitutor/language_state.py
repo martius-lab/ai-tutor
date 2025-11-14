@@ -782,13 +782,33 @@ class LanguageState(SessionState):
         return self.translate(de="Antwort KI-Modell", en="Response AI Model")
 
     @rx.var
+    def openai_api_model_info(self) -> str:
+        return self.translate(
+            de="""
+Für Infos zu verfügbaren Modellen, bitte bei \
+[openai](https://platform.openai.com/docs/models) nachschauen.  \n\
+Der Modellname muss genau richtig eingegeben werden. Der korrekte Name \
+lässt sich im Abschnitt `Snapshots` des jeweiligen Modells finden.  \n\
+Beispiel: `gpt-4.1-mini`.  \n\
+Bitte nach Änderung des Modells den Chat auf Funktionalität testen.
+""",
+            en="""
+For info on available models, please refer to \
+[openai](https://platform.openai.com/docs/models).  \n\
+The model name must be entered exactly correctly. The correct name \
+can be found in the `Snapshots` section of the respective model.  \n\
+Example: `gpt-4.1-mini`.  \n\
+Please test the chat for functionality after changing the model.
+""",
+        )
+
+    @rx.var
     def response_ai_model_info(self) -> str:
         return self.translate(
-            de="Das KI-Modell, welches im Chat antwortet. Für Infos zu verfügbaren "
-            "Modellen, bitte bei [openai](https://platform.openai.com/docs/models) "
-            "nachschauen.",
-            en="The AI model that responds in the chat. For info on available "
-            "models, please refer to [openai](https://platform.openai.com/docs/models).",
+            de=f"Das KI-Modell, welches im Chat antwortet.  \n\
+            {self.openai_api_model_info}",
+            en=f"The AI model that responds in the chat.  \n\
+                {self.openai_api_model_info}",
         )
 
     @rx.var
@@ -798,12 +818,10 @@ class LanguageState(SessionState):
     @rx.var
     def check_ai_model_info(self) -> str:
         return self.translate(
-            de="Das KI-Modell, welches die Konversation überprüft. Für Infos zu "
-            "verfügbaren Modellen, bitte bei "
-            "[openai](https://platform.openai.com/docs/models) nachschauen.",
-            en="The AI model that checks the conversation. For info on available "
-            "models, please refer to "
-            "[openai](https://platform.openai.com/docs/models).",
+            de=f"Das KI-Modell, welches die Konversation überprüft.  \n\
+                {self.openai_api_model_info}",
+            en=f"The AI model that checks the conversation.  \n\
+                {self.openai_api_model_info}",
         )
 
     @rx.var
