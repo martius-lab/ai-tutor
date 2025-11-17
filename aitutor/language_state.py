@@ -1009,8 +1009,6 @@ class BackendTranslations:
     def config_saved(language: Language) -> str:
         return translate(
             language,
-            de="Konfiguration erfolgreich gespeichert. (Änderungen werden erst "
-            "beim neu öffnen der Seite angezeigt)",
-            en="Configuration saved successfully. (Changes will only be visible "
-            "when reopening the page)",
+            de="Konfiguration erfolgreich gespeichert.",
+            en="Configuration saved successfully.",
         )

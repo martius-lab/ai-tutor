@@ -6,6 +6,7 @@ import reflex as rx
 
 from aitutor.language_state import LanguageState as LS
 from aitutor.pages.configuration.state import ConfigurationState
+from aitutor.states.config_state import ConfigStringsState
 
 
 def input(
@@ -206,7 +207,10 @@ def config_form() -> rx.Component:
                 ),
                 spacing="3",
             ),
-            on_submit=ConfigurationState.save_config_to_db(),
+            on_submit=[
+                ConfigurationState.save_config_to_db(),
+                ConfigStringsState.refresh_config_strings(),
+            ],
             width="40em",
             max_width="90vw",
         ),
