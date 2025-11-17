@@ -881,6 +881,13 @@ Please test the chat for functionality after changing the model.
             "The text is rendered in markdown format.",
         )
 
+    @rx.var
+    def discard_changes(self) -> str:
+        return self.translate(
+            de="Änderungen verwerfen",
+            en="Discard changes",
+        )
+
 
 class BackendTranslations:
     """Translations for use in the backend (where LanguageState is not available)."""
