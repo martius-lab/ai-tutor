@@ -245,7 +245,6 @@ def delete_selected_exercises_button() -> rx.Component:
     )
 
 
-
 def export_selected_exercises_button() -> rx.Component:
     """Button to export all selected exercises."""
     return rx.button(

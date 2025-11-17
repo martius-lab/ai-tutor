@@ -2,10 +2,9 @@
 
 import reflex as rx
 
-from aitutor.components.dialogs import confirm
+from aitutor.components.dialogs import confirm, destructive_confirm
 from aitutor.language_state import LanguageState
 from aitutor.pages.chat.state import ChatMessage, ChatState, Role
-from aitutor.components import destructive_confirm
 
 
 def message_box(chat_message: ChatMessage) -> rx.Component:
@@ -137,7 +136,6 @@ def chat_form() -> rx.Component:
     )
 
 
-
 def edit_last_message_button() -> rx.Component:
     """
     Render the button to delete the last message.
@@ -173,7 +171,6 @@ def edit_last_message_button() -> rx.Component:
     )
 
 
-
 def send_message_button() -> rx.Component:
     """
     Render the button to send a message.
@@ -192,18 +189,19 @@ def send_message_button() -> rx.Component:
 
 
 def reset_conversation_button() -> rx.Component:
+    """Render a button that resets the current conversation with confirmation."""
     return destructive_confirm(
         trigger=rx.button(
             rx.desktop_only(LanguageState.reset_conversation),
             rx.mobile_and_tablet(LanguageState.reset_string),
             color_scheme="iris",
             _hover=rx.cond(
-                ChatState.messages.length() < 2, # type: ignore
+                ChatState.messages.length() < 2,  # type: ignore
                 {"cursor": "not-allowed"},
                 {"cursor": "pointer"},
             ),
             disabled=rx.cond(
-                ChatState.messages.length() < 2, # type: ignore
+                ChatState.messages.length() < 2,  # type: ignore
                 True,
                 False,
             ),
@@ -289,7 +287,6 @@ def check_conversation_button() -> rx.Component:
             ),
         ),
     )
-
 
 
 def submitted_status() -> rx.Component:
