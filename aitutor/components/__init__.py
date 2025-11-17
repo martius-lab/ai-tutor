@@ -1,6 +1,7 @@
 """Collection of components that are used on multiple pages."""
 
 import reflex as rx
+from .dialogs import confirm_dialog, confirm, destructive_confirm
 
 
 class PasswordInput(rx.ComponentState):
