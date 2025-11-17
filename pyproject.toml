@@ -13,7 +13,7 @@ authors = [
 
 requires-python = ">=3.13"
 dependencies = [
-    "reflex",
+    "reflex[db]",
     "pytest",
     "passlib",
     "python-decouple",
@@ -51,6 +51,7 @@ lint.select = [
     "F",
     "B",  # bugbear
     "D100", "D101", "D102", "D103",  # Complain about missing docstrings
+    "I",
 ]
 extend-exclude = ["alembic"]
 

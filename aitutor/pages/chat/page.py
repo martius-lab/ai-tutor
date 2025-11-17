@@ -3,12 +3,12 @@
 import reflex as rx
 
 import aitutor.routes as routes
+from aitutor.auth.protection import page_require_role_at_least
+from aitutor.language_state import LanguageState
 from aitutor.models import UserRole
+from aitutor.pages.chat.components import chat_form, show_exercise_status, show_messages
 from aitutor.pages.chat.state import ChatState
 from aitutor.pages.navbar import with_navbar
-from aitutor.auth.protection import page_require_role_at_least
-from aitutor.pages.chat.components import show_messages, chat_form, show_exercise_status
-from aitutor.language_state import LanguageState
 
 
 @with_navbar(routes.EXERCISES)

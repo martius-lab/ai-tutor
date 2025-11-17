@@ -3,9 +3,9 @@
 import reflex as rx
 
 from aitutor import ConfigState
-from aitutor.pages.navbar import with_navbar
 from aitutor.language_state import LanguageState
 from aitutor.pages.legal_infos.loader_functions import get_privacy_notice
+from aitutor.pages.navbar import with_navbar
 
 
 @with_navbar("")
