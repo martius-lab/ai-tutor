@@ -9,7 +9,7 @@ def confirm_dialog(
     trigger: rx.Component,
     destructive: bool = False,
 ) -> rx.Component:
-    """Wiederverwendbarer Confirm Dialog."""
+    """refactoring alert_dialog with destructive and non-destructive versions"""
 
     confirm_color = "red" if destructive else "iris"
     cancel_color = "iris" if destructive else "red"
@@ -21,13 +21,17 @@ def confirm_dialog(
             rx.alert_dialog.description(description),
             rx.hstack(
                 rx.alert_dialog.cancel(
-                    rx.button(cancel_text, color_scheme=cancel_color)
+                    rx.button(rx.text(cancel_text), 
+                              color_scheme=cancel_color,
+                              _hover={"cursor": "pointer"},
+                                )
                 ),
                 rx.alert_dialog.action(
                     rx.button(
-                        confirm_text,
+                        rx.text(confirm_text),
                         color_scheme=confirm_color,
                         on_click=on_confirm,
+                        _hover={"cursor": "pointer"},
                     )
                 ),
                 margin_top="1em",

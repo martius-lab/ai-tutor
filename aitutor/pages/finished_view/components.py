@@ -19,7 +19,7 @@ def delete_submission_button() -> rx.Component:
         on_confirm=FinishedViewState.delete_submisssion,
         trigger=rx.button(
             LanguageState.delete_submission,
-            color_scheme="orange",
+            color_scheme="iris",
             _hover={"cursor": "pointer"},
         ),
     )

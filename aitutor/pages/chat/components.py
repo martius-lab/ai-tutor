@@ -2,6 +2,7 @@
 
 import reflex as rx
 
+from aitutor.components.dialogs import confirm
 from aitutor.language_state import LanguageState
 from aitutor.pages.chat.state import ChatMessage, ChatState, Role
 from aitutor.components import destructive_confirm
@@ -156,7 +157,7 @@ def edit_last_message_button() -> rx.Component:
                 align="center",
                 justify="center",
             ),
-            color_scheme="yellow",
+            color_scheme="iris",
             _hover=rx.cond(
                 ChatState.waiting_for_response,
                 {"cursor": "not-allowed"},
@@ -195,7 +196,7 @@ def reset_conversation_button() -> rx.Component:
         trigger=rx.button(
             rx.desktop_only(LanguageState.reset_conversation),
             rx.mobile_and_tablet(LanguageState.reset_string),
-            color_scheme="pink",
+            color_scheme="iris",
             _hover=rx.cond(
                 ChatState.messages.length() < 2, # type: ignore
                 {"cursor": "not-allowed"},
@@ -263,50 +264,32 @@ def check_conversation_button() -> rx.Component:
                 _hover={"cursor": "not-allowed"},
                 disabled=True,
             ),
-            rx.alert_dialog.root(
-                rx.alert_dialog.trigger(
-                    rx.button(
-                        rx.desktop_only(LanguageState.check_conversation),
-                        rx.mobile_and_tablet(LanguageState.check),
-                        color_scheme="yellow",
-                        type="button",
-                        _hover=rx.cond(
-                            ChatState.messages.length() < 2,  # type: ignore
-                            {"cursor": "not-allowed"},
-                            {"cursor": "pointer"},
-                        ),
-                        disabled=rx.cond(
-                            ChatState.messages.length() < 2,  # type: ignore
-                            True,
-                            False,
-                        ),
+            confirm(
+                title=LanguageState.check_conversation,
+                description=LanguageState.check_conversation_info,
+                confirm_text=LanguageState.confirm,
+                cancel_text=LanguageState.cancel,
+                on_confirm=ChatState.check_conversation,
+                trigger=rx.button(
+                    rx.desktop_only(LanguageState.check_conversation),
+                    rx.mobile_and_tablet(LanguageState.check),
+                    color_scheme="yellow",
+                    type="button",
+                    _hover=rx.cond(
+                        ChatState.messages.length() < 2,  # type: ignore
+                        {"cursor": "not-allowed"},
+                        {"cursor": "pointer"},
                     ),
-                ),
-                rx.alert_dialog.content(
-                    rx.alert_dialog.title(LanguageState.check_conversation),
-                    rx.alert_dialog.description(LanguageState.check_conversation_info),
-                    rx.hstack(
-                        rx.alert_dialog.cancel(
-                            rx.button(
-                                rx.text(LanguageState.cancel),
-                                color_scheme="red",
-                                _hover={"cursor": "pointer"},
-                            ),
-                        ),
-                        rx.alert_dialog.action(
-                            rx.button(
-                                LanguageState.confirm,
-                                color_scheme="iris",
-                                on_click=ChatState.check_conversation,
-                                _hover={"cursor": "pointer"},
-                            ),
-                        ),
-                        margin_top="1em",
+                    disabled=rx.cond(
+                        ChatState.messages.length() < 2,  # type: ignore
+                        True,
+                        False,
                     ),
                 ),
             ),
         ),
     )
+
 
 
 def submitted_status() -> rx.Component:
