@@ -156,7 +156,7 @@ def edit_last_message_button() -> rx.Component:
                 align="center",
                 justify="center",
             ),
-            color_scheme="iris",
+            color_scheme="yellow",
             _hover=rx.cond(
                 ChatState.waiting_for_response,
                 {"cursor": "not-allowed"},
