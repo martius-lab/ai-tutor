@@ -181,7 +181,7 @@ def config_form() -> rx.Component:
                 ),
                 rx.hstack(
                     rx.button(
-                        LS.cancel,
+                        LS.discard_changes,
                         color_scheme="red",
                         type="button",
                         on_click=ConfigurationState.on_load(),
