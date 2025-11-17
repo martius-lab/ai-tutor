@@ -1,4 +1,13 @@
+"""Dialog components for confirmation and destructive action dialogs.
+
+This module provides reusable dialog components:
+- confirm_dialog: customizable alert dialog with confirm/cancel actions
+- confirm: non-destructive confirmation dialog
+- destructive_confirm: destructive action confirmation dialog
+"""
+
 import reflex as rx
+
 
 def confirm_dialog(
     title: str,
@@ -21,10 +30,11 @@ def confirm_dialog(
             rx.alert_dialog.description(description),
             rx.hstack(
                 rx.alert_dialog.cancel(
-                    rx.button(rx.text(cancel_text), 
-                              color_scheme=cancel_color,
-                              _hover={"cursor": "pointer"},
-                                )
+                    rx.button(
+                        rx.text(cancel_text),
+                        color_scheme=cancel_color,
+                        _hover={"cursor": "pointer"},
+                    )
                 ),
                 rx.alert_dialog.action(
                     rx.button(
@@ -41,8 +51,34 @@ def confirm_dialog(
 
 
 def confirm(**props):
+    """Create a non-destructive confirmation dialog.
+
+    Parameters
+    ----------
+    **props
+        Properties to pass to confirm_dialog, including title, description,
+        confirm_text, cancel_text, on_confirm, and trigger.
+
+    Returns
+    -------
+    rx.Component
+        A confirmation dialog component.
+    """
     return confirm_dialog(**props, destructive=False)
 
 
 def destructive_confirm(**props):
+    """Create a destructive action confirmation dialog.
+
+    Parameters
+    ----------
+    **props
+        Properties to pass to confirm_dialog, including title, description,
+        confirm_text, cancel_text, on_confirm, and trigger.
+
+    Returns
+    -------
+    rx.Component
+        A destructive confirmation dialog component.
+    """
     return confirm_dialog(**props, destructive=True)

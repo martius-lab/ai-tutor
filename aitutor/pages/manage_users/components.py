@@ -42,7 +42,6 @@ def delete_user_button(user: LocalUser) -> rx.Component:
     )
 
 
-
 def user_table_row(user: tuple[LocalUser, UserInfo]) -> rx.Component:
     """Create a single row of the users table."""
     return rx.table.row(

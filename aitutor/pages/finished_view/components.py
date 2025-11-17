@@ -1,8 +1,8 @@
 """Components for the Finished View page."""
 
 import reflex as rx
-from aitutor.components import destructive_confirm
 
+from aitutor.components.dialogs import destructive_confirm
 from aitutor.language_state import LanguageState
 from aitutor.pages.finished_view.state import FinishedViewState
 
