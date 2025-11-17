@@ -1,17 +1,17 @@
 """State for the exercises page."""
 
-import reflex as rx
-from sqlmodel import and_, select, func
-from sqlalchemy.orm import selectinload
-from typing import Optional
 from datetime import datetime
+from typing import Optional
 from zoneinfo import ZoneInfo
 
-from aitutor.models import Exercise, ExerciseResult, UserRole
+import reflex as rx
+from sqlalchemy.orm import selectinload
+from sqlmodel import and_, func, select
+
+from aitutor.auth.protection import state_require_role_at_least
 from aitutor.auth.state import SessionState
 from aitutor.global_vars import TIME_FORMAT, TIME_ZONE
-from aitutor.auth.protection import state_require_role_at_least
-
+from aitutor.models import Exercise, ExerciseResult, UserRole
 
 ExerciseWithResult = tuple[Exercise, Optional[ExerciseResult]]
 

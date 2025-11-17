@@ -1,15 +1,16 @@
 """The state for the home page."""
 
-import reflex as rx
-from sqlmodel import select, and_, or_
-from typing import Optional
 from datetime import datetime
+from typing import Optional
 from zoneinfo import ZoneInfo
 
-from aitutor.auth.state import SessionState
-from aitutor.models import Exercise, UserRole, ExerciseResult
+import reflex as rx
+from sqlmodel import and_, or_, select
+
 from aitutor.auth.protection import state_require_role_at_least
+from aitutor.auth.state import SessionState
 from aitutor.global_vars import TIME_ZONE
+from aitutor.models import Exercise, ExerciseResult, UserRole
 
 
 class HomeState(SessionState):
