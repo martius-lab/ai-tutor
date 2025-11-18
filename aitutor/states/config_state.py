@@ -6,7 +6,7 @@ import reflex as rx
 from aitutor.config import get_config
 
 
-class ConfigStringsState(rx.State):
+class DisplayConfigState(rx.State):
     """
     This state provides configuration strings used in the frontend as rx.vars.
     !!Do NOT include sensible data here that is only used in the backend

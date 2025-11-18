@@ -1,1 +1,1 @@
-from aitutor.states.config_state import ConfigStringsState as ConfigStringsState
+from aitutor.states.config_state import DisplayConfigState as DisplayConfigState
