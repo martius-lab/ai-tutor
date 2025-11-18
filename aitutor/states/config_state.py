@@ -20,27 +20,27 @@ class ConfigStringsState(rx.State):
 
     @rx.var(cache=True, initial_value="")
     def how_to_use_text(self) -> str:
-        trigger = self.trigger_var
+        self.trigger_var
         return get_config().how_to_use_text
 
     @rx.var(cache=True, initial_value="")
     def general_information_text(self) -> str:
-        trigger = self.trigger_var
+        self.trigger_var
         return get_config().general_information_text
 
     @rx.var(cache=True, initial_value="")
     def lecture_information_text(self) -> str:
-        trigger = self.trigger_var
+        self.trigger_var
         return get_config().lecture_information_text
 
     @rx.var(cache=True, initial_value="")
     def course_name(self) -> str:
-        trigger = self.trigger_var
+        self.trigger_var
         return get_config().course_name
 
     @rx.var(cache=True, initial_value="")
     def impressum_text(self) -> str:
-        trigger = self.trigger_var
+        self.trigger_var
         return get_config().impressum_text
 
     @rx.event
