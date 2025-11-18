@@ -1,6 +1,7 @@
 """The UI components for the chat page."""
 
 import reflex as rx
+from typing import Type
 
 from aitutor.language_state import LanguageState
 from aitutor.pages.chat.state import ChatMessage, ChatState, Role
@@ -120,15 +121,16 @@ def chat_form() -> rx.Component:
                 text_area_with_key_submit(False),
                 width="100%",
             ),
-            rx.hstack(
-                rx.hstack(
-                    reset_conversation_button(),
-                    check_conversation_button(),
-                ),
-                send_message_button(),
-                width="100%",
-                justify="between",
-            ),
+rx.hstack(
+    rx.hstack(
+        reset_conversation_button(),
+        check_conversation_button(),
+        report_conversation_button(chat_state=ChatState, lang_state=LanguageState),
+    ),
+    send_message_button(),
+    width="100%",
+    justify="between",
+),
         ),
         on_submit=ChatState.send_message,
         reset_on_submit=True,
@@ -410,3 +412,45 @@ def show_exercise_status() -> rx.Component:
             not_submitted_status(),
         ),
     )
+
+def report_conversation_button(chat_state: Type[ChatState], lang_state: Type[LanguageState]) -> rx.Component:
+    """
+    Render the button to report a conversation.
+    """
+    return rx.alert_dialog.root(
+        rx.alert_dialog.trigger(
+            rx.button(
+                rx.desktop_only(lang_state.report_conversation),
+                rx.mobile_and_tablet(lang_state.report),
+                color_scheme="red",
+                type="button",
+                _hover={"cursor": "pointer"},
+            )
+        ),
+        rx.alert_dialog.content(
+            rx.alert_dialog.title(lang_state.report_conversation),
+            rx.alert_dialog.description(
+                rx.text_area(
+                    placeholder=lang_state.report_placeholder,
+                    value=chat_state.report_text,
+                    on_change=lambda value: chat_state.set_report_text(value),
+                    width="100%",
+                    rows="4",  # as string works in Reflex
+                )
+            ),
+            rx.hstack(
+                rx.alert_dialog.cancel(
+                    rx.button(lang_state.cancel, color_scheme="red")
+                ),
+                rx.alert_dialog.action(
+                    rx.button(
+                        lang_state.submit_report,
+                        color_scheme="red",
+                        on_click=chat_state.submit_report,
+                    )
+                ),
+                margin_top="1em",
+            ),
+        ),
+    )
+

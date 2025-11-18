@@ -148,6 +148,7 @@ class ExerciseResult(SQLModel, table=True):
     # ORM relationships
     exercise: "Exercise" = Relationship(back_populates="submissions")
     user: "UserInfo" = Relationship(back_populates="exercise_results")
+    reports: list["Report"] = Relationship(back_populates="exercise_result")
 
     def __repr__(self):
         return (
@@ -173,3 +174,13 @@ class UserInfo(SQLModel, table=True):
         back_populates="user", cascade_delete=True
     )
     local_user: "LocalUser" = Relationship()
+
+
+
+class Report(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    exercise_result_id: int = Field(foreign_key="exerciseresult.id", nullable=False)
+    report_text: str
+    looked_at: bool = Field(default=False)
+
+    exercise_result: "ExerciseResult" = Relationship(back_populates="reports")

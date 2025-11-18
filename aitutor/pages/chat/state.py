@@ -17,7 +17,7 @@ from aitutor.auth.state import SessionState
 from aitutor.config import get_config
 from aitutor.global_vars import TIME_FORMAT, TIME_ZONE
 from aitutor.language_state import BackendTranslations as BT
-from aitutor.models import Exercise, ExerciseResult, UserRole
+from aitutor.models import Exercise, ExerciseResult, Report, UserRole
 
 
 class Role(StrEnum):
@@ -145,6 +145,63 @@ class ChatState(SessionState):
     is_overdue: bool = False
 
     _userinfo_id: int = -1
+    report_text: str = ""
+
+    @rx.event
+    def set_report_text(self, value: str):
+        """Set the report text."""
+        self.report_text = value
+
+    @rx.event
+    def submit_report(self):
+        """Save the report to the database."""
+        if not self.current_exercise or not self.report_text.strip():
+            return rx.toast.error(
+                title="Report Error",
+                description="Cannot submit empty report.",
+            )
+
+        with rx.session() as session:
+            if self.current_exercise.id is None:
+                raise ValueError(
+                    "Failed to save report because exercise_id is None."
+                )
+            
+            exercise_result = session.exec(
+                select(ExerciseResult).where(
+                    ExerciseResult.exercise_id == self.current_exercise.id,
+                    ExerciseResult.userinfo_id == self._userinfo_id,
+                )
+            ).one_or_none()
+
+            if not exercise_result:
+                exercise_result = ExerciseResult(
+                    exercise_id=self.current_exercise.id,
+                    userinfo_id=self._userinfo_id,
+                    conversation_text=self.get_messages_dict_gpt(),
+                )
+                session.add(exercise_result)
+                session.commit()
+                session.refresh(exercise_result)
+
+            # ✅ Fix ExerciseResult.id type error
+            if exercise_result.id is None:
+                raise ValueError("Failed to obtain exercise_result.id after commit.")
+
+            report = Report(
+                exercise_result_id=exercise_result.id,  # now guaranteed int
+                report_text=self.report_text,
+                looked_at=False,
+            )
+            session.add(report)
+            session.commit()
+
+        # clear the report text
+        self.report_text = ""
+        return rx.toast.success(
+            title="Report Submitted",
+            description="Thank you for your feedback!",
+        )
 
     @rx.event
     def set_user_input(self, value: str):
