@@ -758,6 +758,25 @@ class LanguageState(SessionState):
     @rx.var
     def reports(self) -> str:
         return self.translate(de="Melden", en="Reports")
+    
+    # Report Strings -------------------------------------------------------------------
+    @rx.var
+    def report_conversation(self) -> str:
+        return self.translate(de="Konversation melden", en="Report Conversation")
+
+    @rx.var
+    def report(self) -> str:
+        return self.translate(de="Melden", en="Report")
+
+    @rx.var
+    def report_placeholder(self) -> str:
+        return self.translate(de="Gib hier deine Meldung ein...", en="Enter your report here")
+
+    @rx.var
+    def submit_report(self) -> str:
+        return self.translate(de="Absenden", en="Submit")
+
+
 
 
 class BackendTranslations:
