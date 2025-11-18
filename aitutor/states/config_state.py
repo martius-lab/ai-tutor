@@ -8,15 +8,16 @@ from aitutor.config import get_config
 
 class DisplayConfigState(rx.State):
     """
-    This state provides configuration strings used in the frontend as rx.vars.
-    !!Do NOT include sensible data here that is only used in the backend
-    (e.g., the registration code).!!
-
-    Using computed vars here, as they do not need to be initialized via some "on_load"
-    event.  This makes it easier to use (we literally need this on every page, so
-    would be annoying to have to inject the on_load everywhere) but might not be
-    optimal in terms of performance?
+    Provides configuration strings used in the frontend.
     """
+
+    # !!Do NOT include sensible data here that is only used in the backend
+    # (e.g., the registration code).!!
+
+    # Using computed vars here, as they do not need to be initialized via some "on_load"
+    # event.  This makes it easier to use (we literally need this on every page, so
+    # would be annoying to have to inject the on_load everywhere) but might not be
+    # optimal in terms of performance?
 
     # This variable is used to trigger recomputation of the config string vars.
     # rx.vars are only recomputed when a contained state variable changes. So we add
