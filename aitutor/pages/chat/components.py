@@ -435,18 +435,23 @@ def report_conversation_button(chat_state: Type[ChatState], lang_state: Type[Lan
                     value=chat_state.report_text,
                     on_change=lambda value: chat_state.set_report_text(value),
                     width="100%",
-                    rows="4",  # as string works in Reflex
+                    rows="4", 
                 )
             ),
             rx.hstack(
                 rx.alert_dialog.cancel(
-                    rx.button(lang_state.cancel, color_scheme="red")
+                    rx.button(
+                        rx.text(lang_state.cancel),
+                        color_scheme="red",
+                        _hover={"cursor": "pointer"},
+                    ),
                 ),
                 rx.alert_dialog.action(
                     rx.button(
                         lang_state.submit_report,
-                        color_scheme="red",
+                        color_scheme="iris",
                         on_click=chat_state.submit_report,
+                        _hover={"cursor": "pointer"},
                     )
                 ),
                 margin_top="1em",
