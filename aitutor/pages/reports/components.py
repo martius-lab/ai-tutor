@@ -1,43 +1,53 @@
 """Components for the reports page."""
 
-
 import reflex as rx
-from aitutor.pages.reports.state import ReportState
+from aitutor.pages.reports.state import ReportsState
 
-def report_modal():
-    """An alert/dialog with a textarea for the report text.
-
-    Usage: include ReportState.report_modal_open as the `open` condition
-    and bind the textarea to ReportState.set_report_text, the confirm to confirm_report.
-    """
-
-    # We'll use rx.alert_dialog which is common in Reflex examples.
-    return rx.alert_dialog.root(
-        rx.alert_dialog.overlay(
-            rx.alert_dialog.content(
-                rx.alert_dialog.header(rx.text("Report conversation")),
-                rx.alert_dialog.body(
-                    rx.vstack(
-                        rx.text(
-                            "Please describe what went wrong (optional). The admin will review this conversation."
-                        ),
-                        rx.text_area(
-                            placeholder="Short description of the problem",
-                            value=ReportState.report_text,
-                            on_change=ReportState.set_report_text,
-                            min_height="120px",
-                        ),
-                        spacing="4",
-                    )
-                ),
-                rx.alert_dialog.footer(
-                    rx.button("Cancel", on_click=ReportState.close_report_modal),
-                    rx.button("Submit report", on_click=ReportState.confirm_report),
-                    spacing="3",
-                ),
-                size="4",
-            ),
-        ),
-        open=ReportState.report_modal_open,
-        is_centered=True,
+def header_cell(text: str):
+    """Create header cells for the table."""
+    return rx.table.column_header_cell(
+        rx.text(text, align="center")
     )
+
+def show_table_row(report) -> rx.Component:
+    """Render one report in a table row."""
+    return rx.table.row(
+        rx.table.cell(report.id),
+        rx.table.cell(report.exercise_result_id),
+        rx.table.cell(report.report_text),
+        rx.table.cell(
+            rx.cond(
+                report.looked_at,
+                "Yes",
+                "No"
+            )
+        ),
+        style={"_hover": {"bg": rx.color("gray", 3)}},
+        align="center",
+    )
+
+def reports_table():
+    """The main table showing all reports."""
+    return rx.table.root(
+        rx.table.header(
+            rx.table.row(
+                header_cell("ID"),
+                header_cell("Exercise Result"),
+                header_cell("Text"),
+                header_cell("Looked At"),
+            )
+        ),
+        rx.table.body(
+            rx.foreach(
+                ReportsState.reports,
+                show_table_row
+            )
+        ),
+        variant="surface",
+        size="3",
+        width="85vw",
+        overflow_y="auto",
+        max_height="60vh",
+    )
+
+
