@@ -741,7 +741,6 @@ class LanguageState(SessionState):
         )
 
     # user settings --------------------------------------------------------------------
-
     @rx.var
     def user_settings(self) -> str:
         return self.translate(de="Benutzereinstellungen", en="User Settings")
@@ -753,6 +752,141 @@ class LanguageState(SessionState):
     @rx.var
     def current_password(self) -> str:
         return self.translate(de="Aktuelles Passwort", en="Current Password")
+
+    # configuration page ---------------------------------------------------------------
+    @rx.var
+    def configuration(self) -> str:
+        return self.translate(de="Konfiguration", en="Configuration")
+
+    @rx.var
+    def unsaved_changes_info(self) -> str:
+        return self.translate(
+            de="Sie haben ungespeicherte Änderungen.",
+            en="You have unsaved changes.",
+        )
+
+    @rx.var
+    def registration_code_info(self) -> str:
+        return self.translate(
+            de="Der Registrierungscode, den Studenten bei der Registrierung "
+            "eingeben müssen.",
+            en="The registration code that students have to enter during registration.",
+        )
+
+    @rx.var
+    def course_name(self) -> str:
+        return self.translate(de="Kursname", en="Course Name")
+
+    @rx.var
+    def response_ai_model(self) -> str:
+        return self.translate(de="Antwort KI-Modell", en="Response AI Model")
+
+    @rx.var
+    def openai_api_model_info(self) -> str:
+        return self.translate(
+            de="""
+Für Infos zu verfügbaren Modellen, bitte bei \
+[openai](https://platform.openai.com/docs/models) nachschauen.  \n\
+Der Modellname muss genau richtig eingegeben werden. Der korrekte Name \
+lässt sich im Abschnitt `Snapshots` des jeweiligen Modells finden.  \n\
+Beispiel: `gpt-4.1-mini`.  \n\
+Bitte nach Änderung des Modells den Chat auf Funktionalität testen.
+""",
+            en="""
+For info on available models, please refer to \
+[openai](https://platform.openai.com/docs/models).  \n\
+The model name must be entered exactly correctly. The correct name \
+can be found in the `Snapshots` section of the respective model.  \n\
+Example: `gpt-4.1-mini`.  \n\
+Please test the chat for functionality after changing the model.
+""",
+        )
+
+    @rx.var
+    def response_ai_model_info(self) -> str:
+        return self.translate(
+            de=f"Das KI-Modell, welches im Chat antwortet.  \n\
+            {self.openai_api_model_info}",
+            en=f"The AI model that responds in the chat.  \n\
+                {self.openai_api_model_info}",
+        )
+
+    @rx.var
+    def check_ai_model(self) -> str:
+        return self.translate(de="Überprüfungs-KI-Modell", en="Check AI Model")
+
+    @rx.var
+    def check_ai_model_info(self) -> str:
+        return self.translate(
+            de=f"Das KI-Modell, welches die Konversation überprüft.  \n\
+                {self.openai_api_model_info}",
+            en=f"The AI model that checks the conversation.  \n\
+                {self.openai_api_model_info}",
+        )
+
+    @rx.var
+    def check_conversation_prompt(self) -> str:
+        return self.translate(
+            de="Konversations-Überprüfungs-Prompt", en="Check Conversation Prompt"
+        )
+
+    @rx.var
+    def check_conversation_prompt_info(self) -> str:
+        return self.translate(
+            de="Der Prompt, der verwendet wird, um die Konversation auf Korrektheit zu "
+            "überprüfen.",
+            en="The prompt used to check the conversation for correctness.",
+        )
+
+    @rx.var
+    def how_to_use_text(self) -> str:
+        return self.translate(
+            de="How To Use Information",
+            en="How To Use Information",
+        )
+
+    @rx.var
+    def general_info_text(self) -> str:
+        return self.translate(
+            de="Allgemeine Informationen",
+            en="General Information",
+        )
+
+    @rx.var
+    def lecture_info_text(self) -> str:
+        return self.translate(
+            de="Informationen zur Vorlesung",
+            en="Lecture Information",
+        )
+
+    @rx.var
+    def info_texts_info(self) -> str:
+        return self.translate(
+            de="Diese Informationen werden auf der Startseite angezeigt. Wenn sie "
+            "dieses Feld leer lassen, dann wird dieser Info Abschnitt nicht angezeigt. "
+            "Der Text wird im Markdown-Format dargestellt.",
+            en="These informations are shown on the home page. If you leave this "
+            "field empty, this info section will not be displayed. "
+            "The text is rendered in markdown format.",
+        )
+
+    @rx.var
+    def impressum_info(self) -> str:
+        return self.translate(
+            de="Das Impressum soll die gesetzlich vorgeschriebenen Informationen über "
+            "den Verantwortlichen der Webseite enthalten. "
+            "Der Text wird im Markdown-Format dargestellt.",
+            en="The impressum should contain the legally required information about "
+            "the person responsible for the website. "
+            "The text is rendered in markdown format.",
+        )
+
+    @rx.var
+    def discard_changes(self) -> str:
+        return self.translate(
+            de="Änderungen verwerfen",
+            en="Discard changes",
+        )
 
 
 class BackendTranslations:
@@ -874,4 +1008,14 @@ class BackendTranslations:
             language,
             de="'Neues' und 'bestätigtes' Passwort stimmen nicht überein.",
             en="'New' and 'Confirmed' password do not match.",
+        )
+
+    # ConfigurationState ---------------------------------------------------------------
+
+    @staticmethod
+    def config_saved(language: Language) -> str:
+        return translate(
+            language,
+            de="Konfiguration erfolgreich gespeichert.",
+            en="Configuration saved successfully.",
         )

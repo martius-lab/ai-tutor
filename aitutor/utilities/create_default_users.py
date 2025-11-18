@@ -44,6 +44,7 @@ def create_user_if_not_exists(role: UserRole, name: str, password: str, email: s
             )
         )
         session.commit()
+        print("Created default user with role:", role.name)
 
 
 def create_default_users():
