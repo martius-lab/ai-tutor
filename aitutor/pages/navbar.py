@@ -41,6 +41,7 @@ tutor_links = [
 admin_links = [
     (LanguageState.manage_exercises_link, routes.MANAGE_EXERCISES, "pencil-line"),
     (LanguageState.manage_users, routes.MANAGE_USERS, "users"),
+    (LanguageState.reports, routes.REPORTS, "file-sliders"),
 ]
 
 

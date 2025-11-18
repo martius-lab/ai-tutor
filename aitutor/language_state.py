@@ -753,6 +753,11 @@ class LanguageState(SessionState):
     @rx.var
     def current_password(self) -> str:
         return self.translate(de="Aktuelles Passwort", en="Current Password")
+    
+    # reports page ---------------------------------------------------------------
+    @rx.var
+    def reports(self) -> str:
+        return self.translate(de="Melden", en="Reports")
 
 
 class BackendTranslations:

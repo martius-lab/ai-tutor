@@ -59,6 +59,11 @@ app.add_page(
     pages.user_settings_page,
     route=routes.USER_SETTINGS,
 )
+app.add_page(
+    pages.reports_page,
+    route=routes.REPORTS,
+    on_load=pages.ReportsState.on_load,
+)
 
 # reflex_local_auth pages
 app.add_page(
