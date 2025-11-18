@@ -2,7 +2,10 @@
 
 from dataclasses import dataclass
 
+import reflex as rx
 import variconf
+
+from aitutor.models import Config
 
 DEFAULT_CONFIG_FILE_PATH = "./default_config.toml"
 CONFIG_FILE_PATH = "./config.toml"
@@ -43,12 +46,12 @@ class AiTutorConfig:
     exercise_prompts: list[ConfigExercisePrompt]
 
 
-_config = None
+_config_from_file = None
 
 
-def load_config():
+def load_config_from_file():
     """Load configuration from file."""
-    global _config
+    global _config_from_file
     wconf = variconf.WConf(AiTutorConfig)
     try:
         wconf.load_file(CONFIG_FILE_PATH)
@@ -58,13 +61,69 @@ def load_config():
         )
         wconf.load_file(DEFAULT_CONFIG_FILE_PATH)
 
-    _config = wconf.get()
+    _config_from_file = wconf.get()
+
+
+def get_config_from_file() -> AiTutorConfig:
+    """Get the content of the configuration file."""
+    if _config_from_file is None:
+        load_config_from_file()
+    # Type of _config_from_file is actually some OmegaConf object, but it should have
+    # the same fields as AiTutorConfig, so list that as return type for better
+    # auto-completion.
+    return _config_from_file  # type: ignore[return-value]
 
 
 def get_config() -> AiTutorConfig:
-    """Get the configuration object."""
-    if _config is None:
-        load_config()
-    # Type of _config is actually some OmegaConf object, but it should have the same
-    # fields as AiTutorConfig, so list that as return type for better auto-completion.
-    return _config  # type: ignore[return-value]
+    """Get the configuration from the database."""
+    with rx.session() as session:
+        _config = session.get(Config, 1)
+        if _config is None:
+            raise ValueError("Configuration not found in the database.")
+        return AiTutorConfig(
+            check_conversation_prompt=_config.check_conversation_prompt,
+            response_ai_model=_config.response_ai_model,
+            check_ai_model=_config.check_ai_model,
+            how_to_use_text=_config.how_to_use_text,
+            general_information_text=_config.general_information_text,
+            lecture_information_text=_config.lecture_information_text,
+            course_name=_config.course_name,
+            impressum_text=_config.impressum_text,
+            registration_code=_config.registration_code,
+            default_users=get_config_from_file().default_users,
+            exercise_prompts=get_config_from_file().exercise_prompts,
+        )
+
+
+def get_config_db_model() -> Config:
+    """Get the configuration as a database model instance."""
+    with rx.session() as session:
+        _config = session.get(Config, 1)
+        if _config is None:
+            raise ValueError("Configuration not found in the database.")
+        return _config
+
+
+def initialize_config_db():
+    """ensure there is a config row in the database."""
+    with rx.session() as session:
+        config_row = session.get(Config, 1)
+        if not config_row:
+            config_file = get_config_from_file()
+            config = Config(
+                id=1,
+                check_conversation_prompt=config_file.check_conversation_prompt,
+                response_ai_model=config_file.response_ai_model,
+                check_ai_model=config_file.check_ai_model,
+                how_to_use_text=config_file.how_to_use_text,
+                general_information_text=config_file.general_information_text,
+                lecture_information_text=config_file.lecture_information_text,
+                course_name=config_file.course_name,
+                impressum_text=config_file.impressum_text,
+                registration_code=config_file.registration_code,
+            )
+            session.add(config)
+            session.commit()
+            print("Configuration row added to the database.")
+        else:
+            print("Configuration row exists in the database.")

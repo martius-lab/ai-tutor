@@ -10,7 +10,7 @@ import reflex as rx
 
 import aitutor.routes as routes
 from aitutor import pages
-from aitutor.config import get_config
+from aitutor.config import get_config, initialize_config_db
 from aitutor.utilities.create_default_users import create_default_users
 
 # info: add dynamic routes first
@@ -51,6 +51,11 @@ app.add_page(
     on_load=pages.ManageUsersState.on_load,
 )
 app.add_page(
+    pages.configuration_page,
+    route=routes.CONFIGURATION,
+    on_load=pages.ManageConfigState.on_load,
+)
+app.add_page(
     pages.exercises_page,
     route=routes.EXERCISES,
     on_load=pages.ExercisesState.on_load,
@@ -76,19 +81,19 @@ app.add_page(pages.impressum_page, route=routes.IMPRESSUM)
 app.add_page(pages.privacy_notice_page, route=routes.PRIVACY_NOTICE)
 
 
-async def initialize():
+def initialize():
     """Initialization steps that are run once when the app starts."""
-    # Note that this function is run as an asynchronous lifespan task, so the
-    # application doesn't actually wait for it to be finished before starting to serve
-    # requests.  So we should be careful if we ever add any longer-running steps here.
+
+    print("Executing initialization tasks:")
+
+    # ensure there is a config row in the database
+    initialize_config_db()
 
     # load config here, so we fail immediately if there is any issue with it
     try:
         config = get_config()
-        print(
-            f"Using {config.response_ai_model} for responses "
-            + f"and {config.check_ai_model} for checks."
-        )
+        if config.course_name:
+            print("Configuration can be loaded successfully.")
     except Exception as e:
         print("\033[91m" + f"Error loading config: {e}" + "\033[0m")
         sys.exit(1)
@@ -102,8 +107,12 @@ async def initialize():
             + "\033[0m"
         )
         sys.exit(1)
+    else:
+        print("OPENAI_API_KEY found in environment variables.")
 
     create_default_users()
+
+    print("\033[92m" + "Initialization tasks completed." + "\033[0m")
 
 
 app.register_lifespan_task(initialize)
