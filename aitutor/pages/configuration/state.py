@@ -22,7 +22,7 @@ empty_config: Config = Config(
 )
 
 
-class ConfigurationState(SessionState):
+class ManageConfigState(SessionState):
     """The State for the configuration page."""
 
     unsaved_changes: bool = False

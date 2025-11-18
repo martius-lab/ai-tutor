@@ -1,7 +1,7 @@
 from aitutor.pages.chat.page import chat_page
 from aitutor.pages.chat.state import ChatState
 from aitutor.pages.configuration.page import configuration_page
-from aitutor.pages.configuration.state import ConfigurationState
+from aitutor.pages.configuration.state import ManageConfigState
 from aitutor.pages.exercises.page import exercises_page
 from aitutor.pages.exercises.state import ExercisesState
 from aitutor.pages.finished_view.page import finished_view_page
@@ -57,5 +57,5 @@ __all__ = [
     "MyLoginState",
     "MyRegisterState",
     "UserSettingsState",
-    "ConfigurationState",
+    "ManageConfigState",
 ]

@@ -2,7 +2,7 @@
 
 import reflex as rx
 
-from aitutor import ConfigStringsState, routes
+from aitutor import DisplayConfigState, routes
 from aitutor.language_state import LanguageState
 from aitutor.pages.home.state import HomeState
 from aitutor.routes import LOGIN, REGISTER
@@ -111,32 +111,32 @@ def info_accordion():
     """Render the info accordion"""
     return (
         rx.cond(
-            (ConfigStringsState.how_to_use_text != "")
-            | (ConfigStringsState.general_information_text != "")
-            | (ConfigStringsState.lecture_information_text != ""),
+            (DisplayConfigState.how_to_use_text != "")
+            | (DisplayConfigState.general_information_text != "")
+            | (DisplayConfigState.lecture_information_text != ""),
             rx.accordion.root(
                 rx.cond(
-                    ConfigStringsState.how_to_use_text != "",
+                    DisplayConfigState.how_to_use_text != "",
                     rx.accordion.item(
                         header=LanguageState.how_to_use_aitutor,
-                        content=rx.markdown(ConfigStringsState.how_to_use_text),
+                        content=rx.markdown(DisplayConfigState.how_to_use_text),
                     ),
                 ),
                 rx.cond(
-                    ConfigStringsState.general_information_text != "",
+                    DisplayConfigState.general_information_text != "",
                     rx.accordion.item(
                         header=LanguageState.general_info,
                         content=rx.markdown(
-                            ConfigStringsState.general_information_text
+                            DisplayConfigState.general_information_text
                         ),
                     ),
                 ),
                 rx.cond(
-                    ConfigStringsState.lecture_information_text != "",
+                    DisplayConfigState.lecture_information_text != "",
                     rx.accordion.item(
                         header=LanguageState.lecture_info,
                         content=rx.markdown(
-                            ConfigStringsState.lecture_information_text
+                            DisplayConfigState.lecture_information_text
                         ),
                     ),
                 ),

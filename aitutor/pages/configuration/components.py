@@ -5,8 +5,8 @@ from typing import Optional
 import reflex as rx
 
 from aitutor.language_state import LanguageState as LS
-from aitutor.pages.configuration.state import ConfigurationState
-from aitutor.states.config_state import ConfigStringsState
+from aitutor.pages.configuration.state import ManageConfigState
+from aitutor.states.config_state import DisplayConfigState
 
 
 def input(
@@ -93,16 +93,16 @@ def config_form() -> rx.Component:
                 input(
                     name="course_name",
                     heading=LS.course_name,
-                    value=ConfigurationState.current_config.course_name,
-                    on_change=lambda value: ConfigurationState.set_config_value(
+                    value=ManageConfigState.current_config.course_name,
+                    on_change=lambda value: ManageConfigState.set_config_value(
                         "course_name", value
                     ),
                 ),
                 input(
                     name="registration_code",
                     heading=LS.registration_code,
-                    value=ConfigurationState.current_config.registration_code,
-                    on_change=lambda value: ConfigurationState.set_config_value(
+                    value=ManageConfigState.current_config.registration_code,
+                    on_change=lambda value: ManageConfigState.set_config_value(
                         "registration_code", value
                     ),
                     info=info_icon(LS.registration_code_info),
@@ -110,8 +110,8 @@ def config_form() -> rx.Component:
                 input(
                     name="response_ai_model",
                     heading=LS.response_ai_model,
-                    value=ConfigurationState.current_config.response_ai_model,
-                    on_change=lambda value: ConfigurationState.set_config_value(
+                    value=ManageConfigState.current_config.response_ai_model,
+                    on_change=lambda value: ManageConfigState.set_config_value(
                         "response_ai_model", value
                     ),
                     info=info_icon(LS.response_ai_model_info),
@@ -119,8 +119,8 @@ def config_form() -> rx.Component:
                 input(
                     name="check_ai_model",
                     heading=LS.check_ai_model,
-                    value=ConfigurationState.current_config.check_ai_model,
-                    on_change=lambda value: ConfigurationState.set_config_value(
+                    value=ManageConfigState.current_config.check_ai_model,
+                    on_change=lambda value: ManageConfigState.set_config_value(
                         "check_ai_model", value
                     ),
                     info=info_icon(LS.check_ai_model_info),
@@ -128,8 +128,8 @@ def config_form() -> rx.Component:
                 text_area(
                     name="check_conversation_prompt",
                     heading=LS.check_conversation_prompt,
-                    value=ConfigurationState.current_config.check_conversation_prompt,
-                    on_change=lambda value: ConfigurationState.set_config_value(
+                    value=ManageConfigState.current_config.check_conversation_prompt,
+                    on_change=lambda value: ManageConfigState.set_config_value(
                         "check_conversation_prompt", value
                     ),
                     info=info_icon(LS.check_conversation_prompt_info),
@@ -137,8 +137,8 @@ def config_form() -> rx.Component:
                 text_area(
                     name="how_to_use_text",
                     heading=LS.how_to_use_text,
-                    value=ConfigurationState.current_config.how_to_use_text,
-                    on_change=lambda value: ConfigurationState.set_config_value(
+                    value=ManageConfigState.current_config.how_to_use_text,
+                    on_change=lambda value: ManageConfigState.set_config_value(
                         "how_to_use_text", value
                     ),
                     info=info_icon(LS.info_texts_info),
@@ -146,8 +146,8 @@ def config_form() -> rx.Component:
                 text_area(
                     name="general_info_text",
                     heading=LS.general_info_text,
-                    value=ConfigurationState.current_config.general_information_text,
-                    on_change=lambda value: ConfigurationState.set_config_value(
+                    value=ManageConfigState.current_config.general_information_text,
+                    on_change=lambda value: ManageConfigState.set_config_value(
                         "general_information_text", value
                     ),
                     info=info_icon(LS.info_texts_info),
@@ -155,8 +155,8 @@ def config_form() -> rx.Component:
                 text_area(
                     name="lecture_info_text",
                     heading=LS.lecture_info_text,
-                    value=ConfigurationState.current_config.lecture_information_text,
-                    on_change=lambda value: ConfigurationState.set_config_value(
+                    value=ManageConfigState.current_config.lecture_information_text,
+                    on_change=lambda value: ManageConfigState.set_config_value(
                         "lecture_information_text", value
                     ),
                     info=info_icon(LS.info_texts_info),
@@ -164,14 +164,14 @@ def config_form() -> rx.Component:
                 text_area(
                     name="impressum",
                     heading=LS.impressum,
-                    value=ConfigurationState.current_config.impressum_text,
-                    on_change=lambda value: ConfigurationState.set_config_value(
+                    value=ManageConfigState.current_config.impressum_text,
+                    on_change=lambda value: ManageConfigState.set_config_value(
                         "impressum_text", value
                     ),
                     info=info_icon(LS.impressum_info),
                 ),
                 rx.cond(
-                    ConfigurationState.unsaved_changes,
+                    ManageConfigState.unsaved_changes,
                     rx.callout(
                         LS.unsaved_changes_info,
                         icon="info",
@@ -184,10 +184,10 @@ def config_form() -> rx.Component:
                         LS.discard_changes,
                         color_scheme="red",
                         type="button",
-                        on_click=ConfigurationState.on_load(),
-                        disabled=~ConfigurationState.unsaved_changes,  # type: ignore
+                        on_click=ManageConfigState.on_load(),
+                        disabled=~ManageConfigState.unsaved_changes,  # type: ignore
                         _hover=rx.cond(
-                            ConfigurationState.unsaved_changes,
+                            ManageConfigState.unsaved_changes,
                             {"cursor": "pointer"},
                             {"cursor": "not-allowed"},
                         ),
@@ -195,9 +195,9 @@ def config_form() -> rx.Component:
                     rx.button(
                         LS.save,
                         type="submit",
-                        disabled=~ConfigurationState.unsaved_changes,  # type: ignore
+                        disabled=~ManageConfigState.unsaved_changes,  # type: ignore
                         _hover=rx.cond(
-                            ConfigurationState.unsaved_changes,
+                            ManageConfigState.unsaved_changes,
                             {"cursor": "pointer"},
                             {"cursor": "not-allowed"},
                         ),
@@ -208,14 +208,14 @@ def config_form() -> rx.Component:
                 spacing="3",
             ),
             on_submit=[
-                ConfigurationState.save_config_to_db(),
-                ConfigStringsState.refresh_config_strings(),
+                ManageConfigState.save_config_to_db(),
+                DisplayConfigState.refresh_config_strings(),
             ],
             width="40em",
             max_width="90vw",
         ),
         outline=rx.cond(
-            ConfigurationState.unsaved_changes,
+            ManageConfigState.unsaved_changes,
             "1px solid orange",
             "none",
         ),

@@ -2,7 +2,7 @@
 
 import reflex as rx
 
-from aitutor import ConfigStringsState
+from aitutor import DisplayConfigState
 from aitutor.language_state import LanguageState
 from aitutor.pages.legal_infos.loader_functions import get_privacy_notice
 from aitutor.pages.navbar import with_navbar
@@ -15,7 +15,7 @@ def impressum_page() -> rx.Component:
         rx.vstack(
             rx.heading(LanguageState.impressum),
             rx.markdown(
-                ConfigStringsState.impressum_text,
+                DisplayConfigState.impressum_text,
                 align="left",
             ),
             align="center",
