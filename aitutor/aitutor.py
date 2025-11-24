@@ -10,7 +10,7 @@ import reflex as rx
 
 import aitutor.routes as routes
 from aitutor import pages
-from aitutor.config import get_config, initialize_config_db
+from aitutor.config import add_configprompts_to_db, get_config, initialize_config_db
 from aitutor.utilities.create_default_users import create_default_users
 
 # info: add dynamic routes first
@@ -111,6 +111,8 @@ def initialize():
         print("OPENAI_API_KEY found in environment variables.")
 
     create_default_users()
+
+    add_configprompts_to_db()
 
     print("\033[92m" + "Initialization tasks completed." + "\033[0m")
 

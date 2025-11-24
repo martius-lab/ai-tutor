@@ -4,8 +4,9 @@ from dataclasses import dataclass
 
 import reflex as rx
 import variconf
+from sqlmodel import select
 
-from aitutor.models import Config
+from aitutor.models import Config, Prompt
 
 DEFAULT_CONFIG_FILE_PATH = "./default_config.toml"
 CONFIG_FILE_PATH = "./config.toml"
@@ -127,3 +128,21 @@ def initialize_config_db():
             print("Configuration row added to the database.")
         else:
             print("Configuration row exists in the database.")
+
+
+def add_configprompts_to_db():
+    """Add prompts from the config file to the database."""
+    with rx.session() as session:
+        existing_prompts = session.exec(select(Prompt))
+        existing_prompt_names = {prompt.name for prompt in existing_prompts}
+
+        config_file = get_config_from_file()
+        for prompt_cfg in config_file.exercise_prompts:
+            if prompt_cfg.name not in existing_prompt_names:
+                prompt = Prompt(
+                    name=prompt_cfg.name,
+                    prompt_template=prompt_cfg.prompt,
+                )
+                session.add(prompt)
+                print(f"Added prompt '{prompt_cfg.name}' to the database.")
+                session.commit()

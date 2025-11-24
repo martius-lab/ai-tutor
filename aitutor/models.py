@@ -204,3 +204,16 @@ class Config(SQLModel, table=True):
 
     def __repr__(self):
         return f"<Config(id={self.id}, course_name='{self.course_name}')>"
+
+
+class Prompt(SQLModel, table=True):
+    """
+    Table for storing prompt templates.
+    """
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    name: str = Field(unique=True, nullable=False)
+    prompt_template: str = Field(nullable=False, default="")
+
+    def __repr__(self):
+        return f"<Prompt(name='{self.name}')>"
