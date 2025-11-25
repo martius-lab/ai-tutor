@@ -1053,3 +1053,11 @@ class BackendTranslations:
             de="Konfiguration erfolgreich gespeichert.",
             en="Configuration saved successfully.",
         )
+
+    @staticmethod
+    def prompts_saved(language: Language) -> str:
+        return translate(
+            language,
+            de="Prompts erfolgreich gespeichert.",
+            en="Prompts saved successfully.",
+        )
