@@ -262,13 +262,19 @@ def prompt_management() -> rx.Component:
                         LS.cancel,
                         _hover={"cursor": "pointer"},
                         color_scheme="red",
-                        on_click=ManageConfigState.set_manage_prompt_dialog_open(False),
+                        on_click=[
+                            ManageConfigState.set_manage_prompt_dialog_open(False),
+                            ManageConfigState.load_prompts_from_db,
+                        ],
                     ),
                     rx.button(
                         LS.save,
                         _hover={"cursor": "pointer"},
                         color_scheme="green",
-                        on_click=ManageConfigState.set_manage_prompt_dialog_open(False),
+                        on_click=[
+                            ManageConfigState.set_manage_prompt_dialog_open(False),
+                            ManageConfigState.save_prompts_to_db,
+                        ],
                     ),
                     width="100%",
                     justify="end",
@@ -292,13 +298,17 @@ def prompt_card(prompt: Prompt) -> rx.Component:
                     name="prompt_name",
                     heading=LS.prompt_name,
                     value=prompt.name,
-                    on_change=[],
+                    on_change=lambda value: ManageConfigState.set_prompt_name(
+                        prompt.id, value
+                    ),
                 ),
                 text_area(
                     name="prompt_template",
                     heading=LS.prompt,
                     value=prompt.prompt_template,
-                    on_change=[],
+                    on_change=lambda value: ManageConfigState.set_prompt_template(
+                        prompt.id, value
+                    ),
                 ),
                 width="90%",
             ),

@@ -43,6 +43,22 @@ class ManageConfigState(SessionState):
         self.unsaved_changes = True
 
     @rx.event
+    def set_prompt_name(self, prompt_id: int, name: str):
+        """Sets the name of a prompt."""
+        for prompt in self.prompts:
+            if prompt.id == prompt_id:
+                prompt.name = name
+                break
+
+    @rx.event
+    def set_prompt_template(self, prompt_id: int, template: str):
+        """Sets the template of a prompt."""
+        for prompt in self.prompts:
+            if prompt.id == prompt_id:
+                prompt.prompt_template = template
+                break
+
+    @rx.event
     def set_manage_prompt_dialog_open(self, is_open: bool):
         """Sets the manage prompt dialog open state."""
         self.manage_prompt_dialog_open = is_open
@@ -91,6 +107,26 @@ class ManageConfigState(SessionState):
 
         yield rx.toast.success(
             description=BT.config_saved(self.language),
+            duration=5000,
+            position="bottom-center",
+            invert=True,
+        )
+
+    @rx.event
+    def save_prompts_to_db(self):
+        """Saves the current prompts to the database."""
+        with rx.session() as session:
+            for prompt in self.prompts:
+                # create a new instance, detached from old session
+                new_prompt = Prompt(
+                    id=prompt.id,
+                    name=prompt.name,
+                    prompt_template=prompt.prompt_template,
+                )
+                session.merge(new_prompt)  # insert/update ORM object
+            session.commit()
+        yield rx.toast.success(
+            description=BT.prompts_saved(self.language),
             duration=5000,
             position="bottom-center",
             invert=True,
