@@ -5,6 +5,7 @@ from typing import Optional
 import reflex as rx
 
 from aitutor.language_state import LanguageState as LS
+from aitutor.models import Prompt
 from aitutor.pages.configuration.state import ManageConfigState
 from aitutor.states.config_state import DisplayConfigState
 
@@ -220,4 +221,91 @@ def config_form() -> rx.Component:
             "none",
         ),
         variant="ghost",
+    )
+
+
+def prompt_management() -> rx.Component:
+    """The Button to manage prompts."""
+    return rx.dialog.root(
+        rx.dialog.trigger(
+            rx.button(
+                LS.manage_prompts,
+                _hover={"cursor": "pointer"},
+                on_click=ManageConfigState.set_manage_prompt_dialog_open(True),
+            ),
+        ),
+        rx.dialog.content(
+            rx.vstack(
+                rx.dialog.title(LS.manage_prompts),
+                rx.callout(
+                    LS.prompt_variables_info,
+                    icon="info",
+                    width="100%",
+                    color_scheme="blue",
+                ),
+                rx.foreach(
+                    ManageConfigState.prompts,
+                    lambda prompt: prompt_card(prompt),
+                ),
+                rx.button(rx.icon("plus"), LS.add_prompt, _hover={"cursor": "pointer"}),
+                rx.hstack(
+                    rx.button(
+                        LS.cancel,
+                        _hover={"cursor": "pointer"},
+                        color_scheme="red",
+                        on_click=ManageConfigState.set_manage_prompt_dialog_open(False),
+                    ),
+                    rx.button(
+                        LS.save,
+                        _hover={"cursor": "pointer"},
+                        color_scheme="green",
+                        on_click=ManageConfigState.set_manage_prompt_dialog_open(False),
+                    ),
+                    width="100%",
+                    justify="end",
+                ),
+                spacing="3",
+                align="center",
+            ),
+            width="40em",
+            max_width="90vw",
+        ),
+        open=ManageConfigState.manage_prompt_dialog_open,
+    )
+
+
+def prompt_card(prompt: Prompt) -> rx.Component:
+    """A card representing a prompt."""
+    return rx.card(
+        rx.hstack(
+            rx.vstack(
+                input(
+                    name="prompt_name",
+                    heading=LS.prompt_name,
+                    value=prompt.name,
+                    on_change=[],
+                ),
+                text_area(
+                    name="prompt_template",
+                    heading=LS.prompt,
+                    value=prompt.prompt_template,
+                    on_change=[],
+                ),
+                width="90%",
+            ),
+            rx.box(
+                rx.icon_button(
+                    rx.icon("trash"),
+                    size="2",
+                    variant="ghost",
+                    color_scheme="red",
+                    _hover={"cursor": "pointer"},
+                ),
+                width="10%",
+            ),
+            align="center",
+            spacing="4",
+        ),
+        padding="4",
+        width="100%",
     )

@@ -72,6 +72,13 @@ class LanguageState(SessionState):
         """Delete string"""
         return self.translate(de="Löschen", en="Delete")
 
+    @rx.var
+    def prompt(self) -> str:
+        return self.translate(
+            de="Prompt",
+            en="Prompt",
+        )
+
     # Search Bar Strings ---------------------------------------------------------------
     @rx.var
     def search_placeholder(self) -> str:
@@ -527,11 +534,6 @@ class LanguageState(SessionState):
         )
 
     @rx.var
-    def prompt(self) -> str:
-        """Prompt string"""
-        return self.translate(de="Prompt:", en="Prompt:")
-
-    @rx.var
     def select_prompt(self) -> str:
         """Select prompt string"""
         return self.translate(de="Prompt auswählen", en="Select prompt")
@@ -886,6 +888,38 @@ Please test the chat for functionality after changing the model.
         return self.translate(
             de="Änderungen verwerfen",
             en="Discard changes",
+        )
+
+    @rx.var
+    def manage_prompts(self) -> str:
+        return self.translate(
+            de="Prompts verwalten",
+            en="Manage Prompts",
+        )
+
+    @rx.var
+    def prompt_variables_info(self) -> str:
+        return self.translate(
+            de="Sie können in Ihrem Prompt folgende Variablen verwenden: "
+            "{title}, {description}, {lesson_context}. "
+            "Die Variablen werden in der Übungsverwaltung gesetzt.",
+            en="You can use the following variables in your prompt: "
+            "{title}, {description}, {lesson_context}. "
+            "The variables are set in the exercise management.",
+        )
+
+    @rx.var
+    def add_prompt(self) -> str:
+        return self.translate(
+            de="Prompt hinzufügen",
+            en="Add Prompt",
+        )
+
+    @rx.var
+    def prompt_name(self) -> str:
+        return self.translate(
+            de="Prompt Name",
+            en="Prompt Name",
         )
 
 

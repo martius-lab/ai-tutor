@@ -5,7 +5,7 @@ import reflex as rx
 from aitutor import routes
 from aitutor.auth.protection import page_require_role_at_least
 from aitutor.models import UserRole
-from aitutor.pages.configuration.components import config_form
+from aitutor.pages.configuration.components import config_form, prompt_management
 from aitutor.pages.navbar import with_navbar
 
 
@@ -15,6 +15,7 @@ def configuration_page() -> rx.Component:
     """Configuration page."""
     return rx.center(
         rx.vstack(
+            prompt_management(),
             config_form(),
             spacing="3",
             align="center",

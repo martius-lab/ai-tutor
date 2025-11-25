@@ -465,7 +465,7 @@ def select_prompt(mode: DialogMode) -> rx.Component:
     """The prompt selection component."""
     return (
         rx.text(
-            LanguageState.prompt,
+            LanguageState.prompt + ":",
             size="3",
             weight="medium",
             text_align="left",
