@@ -18,6 +18,9 @@ REPORTS = "/reports"
 # needs to be /finished_view_tutor/[exercise_id]/[url_user_id]
 FINISHED_VIEW_TUTOR = "/finished_view_tutor"
 
+# needs to be /report_view/[report_id]
+REPORT_VIEW = "/report_view"
+
 IMPRESSUM = "/impressum"
 PRIVACY_NOTICE = "/privacy_notice"
 
