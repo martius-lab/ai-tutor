@@ -14,6 +14,9 @@ from aitutor.pages.login_and_registration.page import (
     custom_register_page,
 )
 from aitutor.pages.reports.page import reports_page
+from aitutor.pages.reports.state import ReportsState
+from aitutor.pages.report_view.page import report_view_page
+from aitutor.pages.report_view.state import ReportViewState
 from aitutor.pages.login_and_registration.state import MyLoginState, MyRegisterState
 from aitutor.pages.manage_exercises.page import manage_exercises_page
 from aitutor.pages.manage_exercises.state import ManageExercisesState
@@ -25,7 +28,6 @@ from aitutor.pages.submissions.page import submissions_page
 from aitutor.pages.submissions.state import SubmissionsState
 from aitutor.pages.user_settings.page import user_settings_page
 from aitutor.pages.user_settings.state import UserSettingsState
-from aitutor.pages.reports.state import ReportsState
 
 __all__ = [
     # pages
@@ -45,6 +47,7 @@ __all__ = [
     "privacy_notice_page",
     "user_settings_page",
     "reports_page",
+    "report_view_page",
     # states
     "ChatState",
     "HomeState",
@@ -58,4 +61,5 @@ __all__ = [
     "MyRegisterState",
     "UserSettingsState",
     "ReportsState",
+    "ReportViewState",
 ]
