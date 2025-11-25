@@ -271,10 +271,7 @@ def prompt_management() -> rx.Component:
                         LS.save,
                         _hover={"cursor": "pointer"},
                         color_scheme="green",
-                        on_click=[
-                            ManageConfigState.set_manage_prompt_dialog_open(False),
-                            ManageConfigState.save_prompts_to_db,
-                        ],
+                        on_click=ManageConfigState.save_prompts_to_db,
                     ),
                     width="100%",
                     justify="end",

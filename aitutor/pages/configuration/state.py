@@ -112,11 +112,25 @@ class ManageConfigState(SessionState):
             invert=True,
         )
 
+    def names_are_unique(self, names: list[str]) -> bool:
+        """Check if all names in the list are unique."""
+        return len(names) == len(set(names))
+
     @rx.event
     def save_prompts_to_db(self):
         """Saves the current prompts to the database."""
+        prompts = self.prompts
+        if not self.names_are_unique([prompt.name for prompt in prompts]):
+            yield rx.toast.error(
+                description=BT.prompt_names_unique_error(self.language),
+                duration=5000,
+                position="bottom-center",
+                invert=True,
+            )
+            self.load_prompts_from_db()
+            return
         with rx.session() as session:
-            for prompt in self.prompts:
+            for prompt in prompts:
                 # create a new instance, detached from old session
                 new_prompt = Prompt(
                     id=prompt.id,
@@ -125,6 +139,7 @@ class ManageConfigState(SessionState):
                 )
                 session.merge(new_prompt)  # insert/update ORM object
             session.commit()
+        self.set_manage_prompt_dialog_open(False)
         yield rx.toast.success(
             description=BT.prompts_saved(self.language),
             duration=5000,

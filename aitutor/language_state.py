@@ -1061,3 +1061,11 @@ class BackendTranslations:
             de="Prompts erfolgreich gespeichert.",
             en="Prompts saved successfully.",
         )
+
+    @staticmethod
+    def prompt_names_unique_error(language: Language) -> str:
+        return translate(
+            language,
+            de="Fehler: Prompt Namen müssen eindeutig sein.",
+            en="Error: Prompt names must be unique.",
+        )
