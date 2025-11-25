@@ -1,12 +1,13 @@
 """The state for the configuration page."""
 
 import reflex as rx
+from sqlmodel import select
 
 from aitutor.auth.protection import state_require_role_at_least
 from aitutor.auth.state import SessionState
 from aitutor.config import get_config_db_model
 from aitutor.language_state import BackendTranslations as BT
-from aitutor.models import Config, UserRole
+from aitutor.models import Config, Prompt, UserRole
 
 empty_config: Config = Config(
     id=None,
@@ -27,6 +28,8 @@ class ManageConfigState(SessionState):
 
     unsaved_changes: bool = False
     current_config: Config = empty_config
+    prompts: list[Prompt] = []
+    manage_prompt_dialog_open: bool = False
 
     @rx.event
     def set_unsaved_changes(self, unsaved: bool):
@@ -40,17 +43,25 @@ class ManageConfigState(SessionState):
         self.unsaved_changes = True
 
     @rx.event
+    def set_manage_prompt_dialog_open(self, is_open: bool):
+        """Sets the manage prompt dialog open state."""
+        self.manage_prompt_dialog_open = is_open
+
+    @rx.event
     @state_require_role_at_least(UserRole.TUTOR)
     def on_load(self):
         """Initialization for the page."""
         self.global_load()
         self.current_config = get_config_db_model()
         self.unsaved_changes = False
+        self.load_prompts_from_db()
 
     def on_logout(self):
         """Clears the state when the user logs out."""
         self.unsaved_changes = False
         self.current_config = empty_config
+        self.prompts = []
+        self.manage_prompt_dialog_open = False
 
     @rx.event
     def save_config_to_db(self):
@@ -84,3 +95,9 @@ class ManageConfigState(SessionState):
             position="bottom-center",
             invert=True,
         )
+
+    def load_prompts_from_db(self):
+        """Loads prompts from the database."""
+        with rx.session() as session:
+            prompts = session.exec(select(Prompt).order_by(Prompt.id))  # type: ignore
+            self.prompts = list(prompts)
