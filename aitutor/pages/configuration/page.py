@@ -17,7 +17,7 @@ def configuration_page() -> rx.Component:
         rx.vstack(
             prompt_management(),
             config_form(),
-            spacing="3",
+            spacing="5",
             align="center",
             justify="center",
         ),
