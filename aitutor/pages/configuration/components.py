@@ -238,10 +238,19 @@ def prompt_management() -> rx.Component:
             rx.vstack(
                 rx.dialog.title(LS.manage_prompts),
                 rx.callout(
-                    LS.prompt_variables_info,
-                    icon="info",
-                    width="100%",
+                    rx.hstack(
+                        rx.icon("info"),
+                        rx.markdown(
+                            LS.prompt_variables_info,
+                            margin_top="0",
+                            margin_bottom="0",
+                            align="left",
+                        ),
+                        align="center",
+                    ),
                     color_scheme="blue",
+                    role="alert",
+                    width="100%",
                 ),
                 rx.foreach(
                     ManageConfigState.prompts,
