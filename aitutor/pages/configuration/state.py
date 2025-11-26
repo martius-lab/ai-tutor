@@ -30,6 +30,8 @@ class ManageConfigState(SessionState):
     current_config: Config = empty_config
     prompts: list[Prompt] = []
     manage_prompt_dialog_open: bool = False
+    replacement_prompt_name: str = ""
+    prompt_to_delete: int = -1
 
     @rx.event
     def set_unsaved_changes(self, unsaved: bool):
@@ -64,6 +66,16 @@ class ManageConfigState(SessionState):
         self.manage_prompt_dialog_open = is_open
 
     @rx.event
+    def set_replacement_prompt_name(self, prompt_name: str):
+        """Sets the replacement prompt."""
+        self.replacement_prompt_name = prompt_name
+
+    @rx.event
+    def set_prompt_to_delete(self, prompt_id: int):
+        """Sets the prompt to delete."""
+        self.prompt_to_delete = prompt_id
+
+    @rx.event
     @state_require_role_at_least(UserRole.TUTOR)
     def on_load(self):
         """Initialization for the page."""
@@ -78,6 +90,15 @@ class ManageConfigState(SessionState):
         self.current_config = empty_config
         self.prompts = []
         self.manage_prompt_dialog_open = False
+        self.replacement_prompt_name = ""
+        self.prompt_to_delete = -1
+
+    @rx.var
+    def remaining_prompt_names(self) -> list[str]:
+        """Returns the names of the prompts excluding the one to delete."""
+        return [
+            prompt.name for prompt in self.prompts if prompt.id != self.prompt_to_delete
+        ]
 
     @rx.event
     def save_config_to_db(self):
@@ -146,6 +167,19 @@ class ManageConfigState(SessionState):
             position="bottom-center",
             invert=True,
         )
+
+    @rx.event
+    def delete_prompt(self, prompt_id: int):
+        """Deletes a prompt from the database."""
+        with rx.session() as session:
+            prompt = session.get(Prompt, prompt_id)
+            if prompt:
+                session.delete(prompt)
+                session.commit()
+        self.load_prompts_from_db()
+        self.replacement_prompt_name = ""
+        self.prompt_to_delete = -1
+        # TODO: replace deleted prompt with replacement prompt in the exercises
 
     def load_prompts_from_db(self):
         """Loads prompts from the database."""

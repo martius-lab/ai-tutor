@@ -309,13 +309,68 @@ def prompt_card(prompt: Prompt) -> rx.Component:
                 ),
                 width="90%",
             ),
+            # delete button with confirmation dialog
             rx.box(
-                rx.icon_button(
-                    rx.icon("trash"),
-                    size="2",
-                    variant="ghost",
-                    color_scheme="red",
-                    _hover={"cursor": "pointer"},
+                rx.alert_dialog.root(
+                    rx.alert_dialog.trigger(
+                        rx.icon_button(
+                            rx.icon("trash"),
+                            size="2",
+                            variant="ghost",
+                            color_scheme="red",
+                            _hover={"cursor": "pointer"},
+                            on_click=[
+                                ManageConfigState.set_prompt_to_delete(prompt.id),
+                            ],
+                        ),
+                    ),
+                    rx.alert_dialog.content(
+                        rx.alert_dialog.title(LS.delete_prompt),
+                        rx.alert_dialog.description(LS.delete_prompt_description),
+                        rx.box(
+                            height="0.5em",
+                        ),
+                        rx.text(LS.replacement_prompt + ":", weight="medium"),
+                        rx.box(
+                            height="0.5em",
+                        ),
+                        rx.select(
+                            ManageConfigState.remaining_prompt_names,
+                            value=ManageConfigState.replacement_prompt_name,
+                            on_change=ManageConfigState.set_replacement_prompt_name,
+                        ),
+                        rx.hstack(
+                            rx.alert_dialog.cancel(
+                                rx.button(
+                                    rx.text(LS.cancel),
+                                    _hover={"cursor": "pointer"},
+                                    on_click=[
+                                        ManageConfigState.set_replacement_prompt_name(
+                                            ""
+                                        ),
+                                        ManageConfigState.set_prompt_to_delete(-1),
+                                    ],
+                                ),
+                            ),
+                            rx.alert_dialog.action(
+                                rx.button(
+                                    LS.delete,
+                                    color_scheme="red",
+                                    on_click=ManageConfigState.delete_prompt(prompt.id),
+                                    _hover=rx.cond(
+                                        ManageConfigState.replacement_prompt_name == "",
+                                        {"cursor": "not-allowed"},
+                                        {"cursor": "pointer"},
+                                    ),
+                                    disabled=ManageConfigState.replacement_prompt_name
+                                    == "",
+                                ),
+                            ),
+                            justify="end",
+                            width="100%",
+                            margin_top="1em",
+                        ),
+                    ),
                 ),
                 width="10%",
             ),

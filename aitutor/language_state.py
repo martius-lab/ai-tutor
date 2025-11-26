@@ -922,6 +922,29 @@ Please test the chat for functionality after changing the model.
             en="Prompt Name",
         )
 
+    @rx.var
+    def delete_prompt(self) -> str:
+        return self.translate(
+            de="Prompt löschen",
+            en="Delete Prompt",
+        )
+
+    @rx.var
+    def delete_prompt_description(self) -> str:
+        return self.translate(
+            de="Möchten Sie diesen Prompt wirklich löschen? Der Prompt wird in "
+            "existierenden Übungen durch den ausgewählten Ersatzprompt ersetzt.",
+            en="Are you sure you want to delete this prompt? The prompt will be "
+            "replaced in existing exercises by the selected replacement prompt.",
+        )
+
+    @rx.var
+    def replacement_prompt(self) -> str:
+        return self.translate(
+            de="Ersatzprompt",
+            en="Replacement Prompt",
+        )
+
 
 class BackendTranslations:
     """Translations for use in the backend (where LanguageState is not available)."""
