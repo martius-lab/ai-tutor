@@ -17,6 +17,7 @@ def input(
     value: str,
     on_change,
     info: Optional[rx.Component] = None,
+    **props,
 ) -> rx.Component:
     """Returns an input field with a heading."""
     return rx.vstack(
@@ -30,7 +31,7 @@ def input(
             ),
             rx.text(heading, weight="medium"),
         ),
-        rx.input(name=name, value=value, width="100%", on_change=on_change),
+        rx.input(name=name, value=value, width="100%", on_change=on_change, **props),
         width="40em",
         max_width="100%",
         padding="4",
@@ -44,6 +45,7 @@ def text_area(
     value: str,
     on_change,
     info: Optional[rx.Component] = None,
+    **props,
 ) -> rx.Component:
     """Returns a text area with a heading."""
     return rx.vstack(
@@ -64,6 +66,7 @@ def text_area(
             resize="vertical",
             rows="4",
             on_change=on_change,
+            **props,
         ),
         width="40em",
         max_width="100%",
@@ -256,7 +259,12 @@ def prompt_management() -> rx.Component:
                     ManageConfigState.prompts,
                     lambda prompt: prompt_card(prompt),
                 ),
-                rx.button(rx.icon("plus"), LS.add_prompt, _hover={"cursor": "pointer"}),
+                rx.button(
+                    rx.icon("plus"),
+                    LS.add_prompt,
+                    _hover={"cursor": "pointer"},
+                    on_click=ManageConfigState.add_prompt,
+                ),
                 rx.hstack(
                     rx.button(
                         LS.cancel,
@@ -298,6 +306,7 @@ def prompt_card(prompt: Prompt) -> rx.Component:
                     on_change=lambda value: ManageConfigState.set_prompt_name(
                         prompt.id, value
                     ),
+                    placeholder=LS.prompt_name_placeholder,
                 ),
                 text_area(
                     name="prompt_template",
@@ -306,6 +315,7 @@ def prompt_card(prompt: Prompt) -> rx.Component:
                     on_change=lambda value: ManageConfigState.set_prompt_template(
                         prompt.id, value
                     ),
+                    placeholder=LS.prompt_variables_info,
                 ),
                 width="90%",
             ),

@@ -97,7 +97,9 @@ class ManageConfigState(SessionState):
     def remaining_prompt_names(self) -> list[str]:
         """Returns the names of the prompts excluding the one to delete."""
         return [
-            prompt.name for prompt in self.prompts if prompt.id != self.prompt_to_delete
+            prompt.name
+            for prompt in self.prompts
+            if prompt.id != self.prompt_to_delete and prompt.name != ""
         ]
 
     @rx.event
@@ -148,7 +150,14 @@ class ManageConfigState(SessionState):
                 position="bottom-center",
                 invert=True,
             )
-            self.load_prompts_from_db()
+            return
+        if "" in [prompt.name for prompt in prompts]:
+            yield rx.toast.error(
+                description=BT.prompt_names_nonempty_error(self.language),
+                duration=5000,
+                position="bottom-center",
+                invert=True,
+            )
             return
         with rx.session() as session:
             for prompt in prompts:
@@ -180,6 +189,12 @@ class ManageConfigState(SessionState):
         self.replacement_prompt_name = ""
         self.prompt_to_delete = -1
         # TODO: replace deleted prompt with replacement prompt in the exercises
+
+    @rx.event
+    def add_prompt(self):
+        """Adds a new prompt to the state"""
+        new_prompt = Prompt(name="", prompt_template="")
+        self.prompts.append(new_prompt)
 
     def load_prompts_from_db(self):
         """Loads prompts from the database."""
