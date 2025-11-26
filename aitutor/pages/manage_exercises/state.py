@@ -294,11 +294,7 @@ class ManageExercisesState(FilterMixin, SessionState):
                 lesson_context=self.lesson_context,
                 title=form_data["title"],
                 description=form_data["description"],
-                prompt=self.prompts[self.current_prompt_name].format(
-                    title=form_data["title"],
-                    description=form_data["description"],
-                    lesson_context=self.lesson_context,
-                ),
+                prompt=self.prompts[self.current_prompt_name],
                 prompt_name=self.current_prompt_name,
                 is_hidden=self.current_hidden_state,
                 tags=session.exec(
@@ -449,11 +445,7 @@ class ManageExercisesState(FilterMixin, SessionState):
             updated_exercise.tags = session.exec(
                 select(Tag).where(Tag.name.in_(self.selected_tags))  # type: ignore
             ).all()
-            updated_exercise.prompt = self.prompts[self.current_prompt_name].format(
-                title=form_data["title"],
-                description=form_data["description"],
-                lesson_context=self.lesson_context,
-            )
+            updated_exercise.prompt = self.prompts[self.current_prompt_name]
             updated_exercise.prompt_name = self.current_prompt_name
             updated_exercise.lesson_context = self.lesson_context
             updated_exercise.is_hidden = self.current_hidden_state
