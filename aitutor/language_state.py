@@ -945,6 +945,13 @@ Please test the chat for functionality after changing the model.
             en="Replacement Prompt",
         )
 
+    @rx.var
+    def prompt_name_placeholder(self) -> str:
+        return self.translate(
+            de="Einzigartiger Prompt Name",
+            en="Unique prompt name",
+        )
+
 
 class BackendTranslations:
     """Translations for use in the backend (where LanguageState is not available)."""
@@ -1091,4 +1098,12 @@ class BackendTranslations:
             language,
             de="Fehler: Prompt Namen müssen eindeutig sein.",
             en="Error: Prompt names must be unique.",
+        )
+
+    @staticmethod
+    def prompt_names_nonempty_error(language: Language) -> str:
+        return translate(
+            language,
+            de="Fehler: Prompt Namen dürfen nicht leer sein.",
+            en="Error: Prompt names must not be empty.",
         )
