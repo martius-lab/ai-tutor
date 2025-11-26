@@ -7,7 +7,7 @@ import sys
 
 import decouple
 import reflex as rx
-from sqlalchemy import select
+from sqlmodel import select
 
 import aitutor.routes as routes
 from aitutor import pages
