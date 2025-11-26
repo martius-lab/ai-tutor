@@ -26,44 +26,41 @@ empty_config: Config = Config(
 class ManageConfigState(SessionState):
     """The State for the configuration page."""
 
-    unsaved_changes: bool = False
+    general_unsaved_changes: bool = False
+    prompts_unsaved_changes: bool = False
     current_config: Config = empty_config
     prompts: list[Prompt] = []
-    manage_prompt_dialog_open: bool = False
     replacement_prompt_name: str = ""
-    prompt_to_delete: int = -1
+    prompt_to_delete: str = ""
 
     @rx.event
-    def set_unsaved_changes(self, unsaved: bool):
+    def set_general_unsaved_changes(self, unsaved: bool):
         """Sets the unsaved changes flag."""
-        self.unsaved_changes = unsaved
+        self.general_unsaved_changes = unsaved
 
     @rx.event
     def set_config_value(self, name: str, value: str):
         """Sets a configuration value in the current config."""
         setattr(self.current_config, name, value)
-        self.unsaved_changes = True
+        self.general_unsaved_changes = True
 
     @rx.event
-    def set_prompt_name(self, prompt_id: int, name: str):
+    def set_prompt_name(self, prompt_id: int | None, name: str):
         """Sets the name of a prompt."""
         for prompt in self.prompts:
             if prompt.id == prompt_id:
                 prompt.name = name
                 break
+        self.prompts_unsaved_changes = True
 
     @rx.event
-    def set_prompt_template(self, prompt_id: int, template: str):
+    def set_prompt_template(self, prompt_id: int | None, template: str):
         """Sets the template of a prompt."""
         for prompt in self.prompts:
             if prompt.id == prompt_id:
                 prompt.prompt_template = template
                 break
-
-    @rx.event
-    def set_manage_prompt_dialog_open(self, is_open: bool):
-        """Sets the manage prompt dialog open state."""
-        self.manage_prompt_dialog_open = is_open
+        self.prompts_unsaved_changes = True
 
     @rx.event
     def set_replacement_prompt_name(self, prompt_name: str):
@@ -71,9 +68,9 @@ class ManageConfigState(SessionState):
         self.replacement_prompt_name = prompt_name
 
     @rx.event
-    def set_prompt_to_delete(self, prompt_id: int):
+    def set_prompt_to_delete(self, prompt_name: str):
         """Sets the prompt to delete."""
-        self.prompt_to_delete = prompt_id
+        self.prompt_to_delete = prompt_name
 
     @rx.event
     @state_require_role_at_least(UserRole.TUTOR)
@@ -81,17 +78,17 @@ class ManageConfigState(SessionState):
         """Initialization for the page."""
         self.global_load()
         self.current_config = get_config_db_model()
-        self.unsaved_changes = False
+        self.general_unsaved_changes = False
         self.load_prompts_from_db()
 
     def on_logout(self):
         """Clears the state when the user logs out."""
-        self.unsaved_changes = False
+        self.general_unsaved_changes = False
+        self.prompts_unsaved_changes = False
         self.current_config = empty_config
         self.prompts = []
-        self.manage_prompt_dialog_open = False
         self.replacement_prompt_name = ""
-        self.prompt_to_delete = -1
+        self.prompt_to_delete = ""
 
     @rx.var
     def remaining_prompt_names(self) -> list[str]:
@@ -99,7 +96,7 @@ class ManageConfigState(SessionState):
         return [
             prompt.name
             for prompt in self.prompts
-            if prompt.id != self.prompt_to_delete and prompt.name != ""
+            if prompt.name != self.prompt_to_delete and prompt.name != ""
         ]
 
     @rx.event
@@ -126,7 +123,7 @@ class ManageConfigState(SessionState):
                 session.add(db_config)
                 session.commit()
 
-        self.unsaved_changes = False
+        self.general_unsaved_changes = False
 
         yield rx.toast.success(
             description=BT.config_saved(self.language),
@@ -169,7 +166,9 @@ class ManageConfigState(SessionState):
                 )
                 session.merge(new_prompt)  # insert/update ORM object
             session.commit()
-        self.set_manage_prompt_dialog_open(False)
+        self.prompts_unsaved_changes = False
+        self.load_prompts_from_db()
+
         yield rx.toast.success(
             description=BT.prompts_saved(self.language),
             duration=5000,
@@ -178,7 +177,7 @@ class ManageConfigState(SessionState):
         )
 
     @rx.event
-    def delete_prompt(self, prompt_id: int):
+    def delete_prompt(self, prompt_id: int | None):
         """Deletes a prompt from the database."""
         with rx.session() as session:
             prompt = session.get(Prompt, prompt_id)
@@ -187,7 +186,13 @@ class ManageConfigState(SessionState):
                 session.commit()
         self.load_prompts_from_db()
         self.replacement_prompt_name = ""
-        self.prompt_to_delete = -1
+        self.prompt_to_delete = ""
+        yield rx.toast.success(
+            description=BT.prompt_deleted(self.language),
+            duration=5000,
+            position="bottom-center",
+            invert=True,
+        )
         # TODO: replace deleted prompt with replacement prompt in the exercises
 
     @rx.event
@@ -195,9 +200,12 @@ class ManageConfigState(SessionState):
         """Adds a new prompt to the state"""
         new_prompt = Prompt(name="", prompt_template="")
         self.prompts.append(new_prompt)
+        self.prompts_unsaved_changes = True
 
+    @rx.event
     def load_prompts_from_db(self):
         """Loads prompts from the database."""
         with rx.session() as session:
             prompts = session.exec(select(Prompt).order_by(Prompt.id))  # type: ignore
             self.prompts = list(prompts)
+        self.prompts_unsaved_changes = False
