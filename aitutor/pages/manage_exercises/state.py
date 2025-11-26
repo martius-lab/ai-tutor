@@ -137,7 +137,7 @@ class ManageExercisesState(FilterMixin, SessionState):
 
         self.global_load()
         config = get_config()
-        self.prompts = {p.name: p.prompt for p in config.exercise_prompts}
+        self.prompts = {p.name: p.prompt_template for p in config.exercise_prompts}
         self.prompt_names = list(self.prompts.keys())
         self.load_exercises()
 
