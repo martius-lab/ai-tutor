@@ -7,7 +7,7 @@ from aitutor.auth.protection import state_require_role_at_least
 from aitutor.auth.state import SessionState
 from aitutor.config import get_config_db_model
 from aitutor.language_state import BackendTranslations as BT
-from aitutor.models import Config, Prompt, UserRole
+from aitutor.models import Config, Exercise, Prompt, UserRole
 
 empty_config: Config = Config(
     id=None,
@@ -179,21 +179,49 @@ class ManageConfigState(SessionState):
     @rx.event
     def delete_prompt(self, prompt_id: int | None):
         """Deletes a prompt from the database."""
+        if prompt_id is None:
+            return
+
         with rx.session() as session:
             prompt = session.get(Prompt, prompt_id)
             if prompt:
-                session.delete(prompt)
-                session.commit()
+                # Find the replacement prompt by name
+                replacement_prompt = session.exec(
+                    select(Prompt).where(Prompt.name == self.replacement_prompt_name)
+                ).first()
+
+                if replacement_prompt:
+                    # Update all exercises that use the prompt to be deleted
+                    exercises = session.exec(
+                        select(Exercise).where(Exercise.prompt_id == prompt_id)
+                    ).all()
+
+                    for exercise in exercises:
+                        exercise.prompt_id = replacement_prompt.id
+                        session.add(exercise)
+
+                    # Delete the prompt
+                    session.delete(prompt)
+                    session.commit()
+
+                    yield rx.toast.success(
+                        description=BT.prompt_deleted(self.language),
+                        duration=5000,
+                        position="bottom-center",
+                        invert=True,
+                    )
+                else:
+                    yield rx.toast.error(
+                        description=BT.replacement_prompt_not_found(self.language),
+                        duration=5000,
+                        position="bottom-center",
+                        invert=True,
+                    )
+                    return
+
         self.load_prompts_from_db()
         self.replacement_prompt_name = ""
         self.prompt_to_delete = ""
-        yield rx.toast.success(
-            description=BT.prompt_deleted(self.language),
-            duration=5000,
-            position="bottom-center",
-            invert=True,
-        )
-        # TODO: replace deleted prompt with replacement prompt in the exercises
 
     @rx.event
     def add_prompt(self):

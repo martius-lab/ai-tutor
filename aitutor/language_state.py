@@ -1122,3 +1122,11 @@ class BackendTranslations:
             de="Prompt erfolgreich gelöscht.",
             en="Prompt deleted successfully.",
         )
+
+    @staticmethod
+    def replacement_prompt_not_found(language: Language) -> str:
+        return translate(
+            language,
+            de="Fehler: Ersatzprompt nicht gefunden.",
+            en="Error: Replacement prompt not found.",
+        )
