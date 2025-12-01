@@ -4,15 +4,23 @@ from dataclasses import dataclass
 from typing import override
 
 import reflex as rx
-from sqlmodel import select
 from sqlalchemy import and_, or_
 from sqlalchemy.orm import selectinload
+from sqlmodel import select
 
-from aitutor.auth.state import SessionState
-from aitutor.models import Report, ExerciseResult, Exercise, UserInfo, UserRole, LocalUser, Tag
-from aitutor.auth.protection import state_require_role_at_least
-from aitutor.utilities.filtering_components import FilterMixin
 import aitutor.global_vars as gv
+from aitutor.auth.protection import state_require_role_at_least
+from aitutor.auth.state import SessionState
+from aitutor.models import (
+    Exercise,
+    ExerciseResult,
+    LocalUser,
+    Report,
+    Tag,
+    UserInfo,
+    UserRole,
+)
+from aitutor.utilities.filtering_components import FilterMixin
 
 
 @dataclass
@@ -80,12 +88,10 @@ class ReportsState(FilterMixin, SessionState):
                 for key, value in self.search_values:
                     match key:
                         case gv.SEARCH_USER_KEY:
-                            stmt = stmt.join(
-                                ExerciseResult, Report.exercise_result
-                            ).join(
-                                UserInfo, ExerciseResult.user
-                            ).join(
-                                LocalUser, UserInfo.local_user
+                            stmt = (
+                                stmt.join(ExerciseResult, Report.exercise_result)
+                                .join(UserInfo, ExerciseResult.user)
+                                .join(LocalUser, UserInfo.local_user)
                             )
                             search_conditions.append(
                                 LocalUser.username.ilike(f"%{value}%")
@@ -93,31 +99,22 @@ class ReportsState(FilterMixin, SessionState):
                         case gv.SEARCH_EXERCISE_KEY:
                             stmt = stmt.join(
                                 ExerciseResult, Report.exercise_result
-                            ).join(
-                                Exercise, ExerciseResult.exercise
-                            )
-                            search_conditions.append(
-                                Exercise.title.ilike(f"%{value}%")
-                            )
+                            ).join(Exercise, ExerciseResult.exercise)
+                            search_conditions.append(Exercise.title.ilike(f"%{value}%"))
                         case gv.SEARCH_TAG_KEY:
                             stmt = stmt.join(
                                 ExerciseResult, Report.exercise_result
-                            ).join(
-                                Exercise, ExerciseResult.exercise
-                            )
+                            ).join(Exercise, ExerciseResult.exercise)
                             search_conditions.append(
                                 Exercise.tags.any(Tag.name.ilike(f"%{value}%"))
                             )
                         case _:
                             # General search across all fields
-                            stmt = stmt.join(
-                                ExerciseResult, Report.exercise_result
-                            ).join(
-                                UserInfo, ExerciseResult.user
-                            ).join(
-                                LocalUser, UserInfo.local_user
-                            ).join(
-                                Exercise, ExerciseResult.exercise
+                            stmt = (
+                                stmt.join(ExerciseResult, Report.exercise_result)
+                                .join(UserInfo, ExerciseResult.user)
+                                .join(LocalUser, UserInfo.local_user)
+                                .join(Exercise, ExerciseResult.exercise)
                             )
                             search_conditions.append(
                                 or_(
@@ -127,7 +124,7 @@ class ReportsState(FilterMixin, SessionState):
                                     Report.report_text.ilike(f"%{value}%"),
                                 )
                             )
-                
+
                 if search_conditions:
                     stmt = stmt.where(and_(*search_conditions))
 
@@ -140,7 +137,9 @@ class ReportsState(FilterMixin, SessionState):
                     report_id=report.id,
                     username=report.exercise_result.user.local_user.username,
                     exercise_title=report.exercise_result.exercise.title,
-                    report_preview=report.report_text[:30] + "..." if len(report.report_text) > 30 else report.report_text,
+                    report_preview=report.report_text[:30] + "..."
+                    if len(report.report_text) > 30
+                    else report.report_text,
                     looked_at=report.looked_at,
                 )
                 for report in reports
@@ -151,15 +150,13 @@ class ReportsState(FilterMixin, SessionState):
     def toggle_looked_at(self, report_id: int):
         """Toggle the looked_at status of a report."""
         with rx.session() as session:
-            report = session.exec(
-                select(Report).where(Report.id == report_id)
-            ).first()
-            
+            report = session.exec(select(Report).where(Report.id == report_id)).first()
+
             if report:
                 report.looked_at = not report.looked_at
                 session.add(report)
                 session.commit()
-                
+
                 # Reload reports to update UI
                 self.load_reports()
 
@@ -168,13 +165,11 @@ class ReportsState(FilterMixin, SessionState):
     def delete_report(self, report_id: int):
         """Delete a report from the database."""
         with rx.session() as session:
-            report = session.exec(
-                select(Report).where(Report.id == report_id)
-            ).first()
-            
+            report = session.exec(select(Report).where(Report.id == report_id)).first()
+
             if report:
                 session.delete(report)
                 session.commit()
-                
+
                 # Reload reports to update UI
                 self.load_reports()

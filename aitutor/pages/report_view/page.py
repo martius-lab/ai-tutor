@@ -7,8 +7,8 @@ from aitutor.auth.protection import page_require_role_at_least
 from aitutor.language_state import LanguageState
 from aitutor.models import UserRole
 from aitutor.pages.chat.components import message_box
-from aitutor.pages.report_view.state import ReportViewState
 from aitutor.pages.navbar import with_navbar
+from aitutor.pages.report_view.state import ReportViewState
 
 
 @with_navbar(routes.REPORTS)
@@ -77,7 +77,9 @@ def report_view_page() -> rx.Component:
                     width="100%",
                 ),
                 rx.divider(),
-                rx.text(LanguageState.report_submitted_conversation, weight="bold", size="4"),
+                rx.text(
+                    LanguageState.report_submitted_conversation, weight="bold", size="4"
+                ),
                 rx.box(
                     rx.foreach(
                         ReportViewState.messages,

@@ -1,12 +1,12 @@
 """State for the Report View page."""
 
 import reflex as rx
-from sqlmodel import select
 from sqlalchemy.orm import selectinload
+from sqlmodel import select
 
-from aitutor.auth.state import SessionState
-from aitutor.models import Report, ExerciseResult, Exercise, UserInfo, UserRole
 from aitutor.auth.protection import state_require_role_at_least
+from aitutor.auth.state import SessionState
+from aitutor.models import ExerciseResult, Report, UserInfo, UserRole
 from aitutor.pages.chat.state import ChatMessage, Role
 
 
@@ -43,18 +43,19 @@ class ReportViewState(SessionState):
                 select(Report)
                 .where(Report.id == self.report_id)
                 .options(
-                    selectinload(Report.exercise_result)
-                    .selectinload(ExerciseResult.exercise),
-                    selectinload(Report.exercise_result)
-                    .selectinload(ExerciseResult.user)
-                    .selectinload(UserInfo.local_user),
+                    selectinload(Report.exercise_result).selectinload(  # type: ignore
+                        ExerciseResult.exercise  # type: ignore
+                    ),
+                    selectinload(Report.exercise_result)  # type: ignore
+                    .selectinload(ExerciseResult.user)  # type: ignore
+                    .selectinload(UserInfo.local_user),  # type: ignore
                 )
             ).first()
 
             if report:
                 self.report_text = report.report_text
                 self.looked_at = report.looked_at
-                
+
                 # Mark report as looked at if not already
                 if not report.looked_at:
                     report.looked_at = True
@@ -68,13 +69,13 @@ class ReportViewState(SessionState):
                 self.username = exercise_result.user.local_user.username
 
                 # Convert conversation to ChatMessage format
-                # Use finished_conversation if available, otherwise use conversation_text
+                # Use finished_conversation if available, otherwise conversation_text
                 conversation_data = (
-                    exercise_result.finished_conversation 
-                    if exercise_result.finished_conversation 
+                    exercise_result.finished_conversation
+                    if exercise_result.finished_conversation
                     else exercise_result.conversation_text
                 )
-                
+
                 self.messages = [
                     ChatMessage(
                         role=Role(msg["role"]),
@@ -92,7 +93,7 @@ class ReportViewState(SessionState):
             report = session.exec(
                 select(Report).where(Report.id == self.report_id)
             ).first()
-            
+
             if report:
                 report.looked_at = not report.looked_at
                 session.add(report)

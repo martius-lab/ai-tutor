@@ -164,10 +164,8 @@ class ChatState(SessionState):
 
         with rx.session() as session:
             if self.current_exercise.id is None:
-                raise ValueError(
-                    "Failed to save report because exercise_id is None."
-                )
-            
+                raise ValueError("Failed to save report because exercise_id is None.")
+
             exercise_result = session.exec(
                 select(ExerciseResult).where(
                     ExerciseResult.exercise_id == self.current_exercise.id,
@@ -185,12 +183,11 @@ class ChatState(SessionState):
                 session.commit()
                 session.refresh(exercise_result)
 
-            
             if exercise_result.id is None:
                 raise ValueError("Failed to obtain exercise_result.id after commit.")
 
             report = Report(
-                exercise_result_id=exercise_result.id,  
+                exercise_result_id=exercise_result.id,
                 report_text=self.report_text,
                 looked_at=False,
             )

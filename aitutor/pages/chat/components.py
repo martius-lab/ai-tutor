@@ -1,7 +1,6 @@
 """The UI components for the chat page."""
 
 import reflex as rx
-from typing import Type
 
 from aitutor.language_state import LanguageState
 from aitutor.pages.chat.state import ChatMessage, ChatState, Role
