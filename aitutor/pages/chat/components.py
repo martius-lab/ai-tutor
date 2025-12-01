@@ -194,7 +194,7 @@ def reset_conversation_button() -> rx.Component:
         trigger=rx.button(
             rx.desktop_only(LanguageState.reset_conversation),
             rx.mobile_and_tablet(LanguageState.reset_string),
-            color_scheme="iris",
+            color_scheme="red",
             _hover=rx.cond(
                 ChatState.messages.length() < 2,  # type: ignore
                 {"cursor": "not-allowed"},
