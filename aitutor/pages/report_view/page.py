@@ -25,7 +25,7 @@ def report_view_page() -> rx.Component:
                         on_click=rx.redirect(routes.REPORTS),
                         _hover={"cursor": "pointer"},
                     ),
-                    rx.heading("Report Details", size="5"),
+                    rx.heading(LanguageState.report_detail, size="5"),
                     align="center",
                 ),
                 rx.hstack(
@@ -42,7 +42,7 @@ def report_view_page() -> rx.Component:
                 ),
                 rx.hstack(
                     rx.icon("flag", size=18),
-                    rx.text("Report Message:", weight="bold"),
+                    rx.text(LanguageState.report_message, weight="bold"),
                     align="center",
                 ),
                 rx.box(
@@ -61,12 +61,12 @@ def report_view_page() -> rx.Component:
                             ReportViewState.looked_at,
                             rx.hstack(
                                 rx.icon("mail-check", size=18),
-                                rx.text("Mark as Unread"),
+                                rx.text(LanguageState.report_mark_as_unread),
                                 spacing="2",
                             ),
                             rx.hstack(
                                 rx.icon("mail-open", size=18),
-                                rx.text("Mark as Read"),
+                                rx.text(LanguageState.report_mark_as_read),
                                 spacing="2",
                             ),
                         ),
@@ -77,20 +77,18 @@ def report_view_page() -> rx.Component:
                     width="100%",
                 ),
                 rx.divider(),
-                rx.text("Submitted Conversation:", weight="bold", size="4"),
+                rx.text(LanguageState.report_submitted_conversation, weight="bold", size="4"),
                 rx.box(
                     rx.foreach(
                         ReportViewState.messages,
                         message_box,
                     ),
-                    overflow="auto",
                     width="100%",
+                    padding_bottom="2em",
                 ),
                 spacing="3",
                 justify="start",
-                min_height="82vh",
-                max_height="82vh",
-                height="100%",
+                width="100%",
             ),
             width="100%",
         ),
