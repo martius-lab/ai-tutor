@@ -401,7 +401,6 @@ class LanguageState(SessionState):
         """Tags string"""
         return self.translate(de="Tags", en="Tags")
 
-
     @rx.var
     def no_submission(self) -> str:
         """No submission string"""
@@ -409,7 +408,7 @@ class LanguageState(SessionState):
             de="Keine Abgabe",
             en="No submission",
         )
-    
+
     @rx.var
     def submission(self) -> str:
         """Submission string"""
@@ -754,12 +753,13 @@ class LanguageState(SessionState):
     @rx.var
     def current_password(self) -> str:
         return self.translate(de="Aktuelles Passwort", en="Current Password")
-    
-    
+
     # Report Strings -------------------------------------------------------------------
     @rx.var
     def report_conversation(self) -> str:
-        return self.translate(de="Problematischen Chat melden", en="Report problematic chat")
+        return self.translate(
+            de="Problematischen Chat melden", en="Report problematic chat"
+        )
 
     @rx.var
     def reports(self) -> str:
@@ -767,36 +767,36 @@ class LanguageState(SessionState):
 
     @rx.var
     def report_placeholder(self) -> str:
-        return self.translate(de="Melde hier Probleme wie eine unfaire Bewertung durch die KI, fehlerhafte Inhalte, unangemessene Antworten oder sonstige Auffälligkeiten...", en="Report issues here, such as unfair AI evaluations, incorrect content, inappropriate responses, or any other concerns...")
-    
+        return self.translate(
+            de="Melde hier Probleme wie eine unfaire Bewertung durch die KI, fehlerhafte Inhalte, unangemessene Antworten oder sonstige Auffälligkeiten...",
+            en="Report issues here, such as unfair AI evaluations, incorrect content, inappropriate responses, or any other concerns...",
+        )
+
     @rx.var
     def report_view(self) -> str:
         return self.translate(de="Gesehen", en="View")
-    
+
     # ReportViewPage Strings -------------------------------------------------------------------
 
     @rx.var
     def report_message(self) -> str:
         return self.translate(de="Gemeldete Nachricht:", en="Report Message:")
-    
+
     @rx.var
     def report_detail(self) -> str:
         return self.translate(de="Details zur Meldung", en="Report Details")
-    
+
     @rx.var
     def report_mark_as_read(self) -> str:
         return self.translate(de="Als gelesen markieren", en="Mark as Read")
-    
+
     @rx.var
     def report_mark_as_unread(self) -> str:
         return self.translate(de="Als ungelesen markieren", en="Mark as Unread")
-    
+
     @rx.var
     def report_submitted_conversation(self) -> str:
         return self.translate(de="Eingereichter Chat:", en="Submitted Conversation:")
-
-
-
 
 
 class BackendTranslations:

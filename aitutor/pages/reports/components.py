@@ -94,7 +94,7 @@ def show_table_row(table_row: TableRow) -> rx.Component:
                 rx.alert_dialog.content(
                     rx.alert_dialog.title("Delete Report"),
                     rx.alert_dialog.description(
-                        "Are you sure you want to delete this report? This action cannot be undone."
+                        "Are you sure you want to delete this report?"
                     ),
                     rx.hstack(
                         rx.alert_dialog.cancel(
