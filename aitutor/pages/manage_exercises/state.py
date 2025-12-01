@@ -359,7 +359,7 @@ class ManageExercisesState(FilterMixin, SessionState):
         with rx.session() as session:
             # load exercises
             query_exercises = select(Exercise).options(
-                selectinload(Exercise.tags), # type: ignore
+                selectinload(Exercise.tags),  # type: ignore
                 selectinload(Exercise.prompt),  # type: ignore
             )
 
