@@ -5,7 +5,6 @@ import reflex as rx
 from aitutor import routes
 from aitutor.global_vars import (
     SEARCH_EXERCISE_KEY,
-    SEARCH_TAG_KEY,
     SEARCH_USER_KEY,
 )
 from aitutor.language_state import LanguageState
@@ -57,8 +56,8 @@ def show_table_row(table_row: TableRow) -> rx.Component:
             rx.icon_button(
                 rx.cond(
                     table_row.looked_at,
-                    rx.icon("mail-open", size=18),
-                    rx.icon("mail", size=18),
+                    rx.icon("mail-open", size=22),
+                    rx.icon("mail", size=22),
                 ),
                 size="2",
                 color_scheme=rx.cond(
@@ -66,7 +65,7 @@ def show_table_row(table_row: TableRow) -> rx.Component:
                     "gray",
                     "blue",
                 ),
-                variant="soft",
+                variant="ghost",
                 on_click=ReportsState.toggle_looked_at(table_row.report_id),
                 _hover={"cursor": "pointer"},
             )
@@ -75,10 +74,9 @@ def show_table_row(table_row: TableRow) -> rx.Component:
             rx.icon_button(
                 "eye",
                 size="2",
+                variant="ghost",
                 color_scheme="iris",
-                on_click=rx.redirect(
-                    f"{routes.REPORT_VIEW}/{table_row.report_id}"
-                ),
+                on_click=rx.redirect(f"{routes.REPORT_VIEW}/{table_row.report_id}"),
                 _hover={"cursor": "pointer"},
             )
         ),
@@ -86,10 +84,10 @@ def show_table_row(table_row: TableRow) -> rx.Component:
             rx.alert_dialog.root(
                 rx.alert_dialog.trigger(
                     rx.icon_button(
-                        "trash-2",
+                        rx.icon("trash"),
                         size="2",
+                        variant="ghost",
                         color_scheme="red",
-                        variant="soft",
                         _hover={"cursor": "pointer"},
                     )
                 ),
@@ -110,7 +108,9 @@ def show_table_row(table_row: TableRow) -> rx.Component:
                             rx.button(
                                 "Delete",
                                 color_scheme="red",
-                                on_click=ReportsState.delete_report(table_row.report_id),
+                                on_click=ReportsState.delete_report(
+                                    table_row.report_id
+                                ),
                                 _hover={"cursor": "pointer"},
                             ),
                         ),
@@ -131,10 +131,10 @@ def reports_table():
             rx.table.row(
                 header_cell(LanguageState.user, "user-round"),
                 header_cell(LanguageState.exercise, "book"),
-                header_cell("Report", "flag"),
+                header_cell(LanguageState.reports, "flag"),
                 header_cell("Status", "mail"),
-                header_cell("View", "eye"),
-                header_cell("Delete", "trash-2"),
+                header_cell(LanguageState.report_view, "eye"),
+                header_cell(LanguageState.delete, "trash"),
             ),
         ),
         rx.table.body(

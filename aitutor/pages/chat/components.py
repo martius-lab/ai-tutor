@@ -454,7 +454,7 @@ def report_conversation_link() -> rx.Component:
                 ),
                 rx.alert_dialog.action(
                     rx.button(
-                        LanguageState.submit_report,
+                        LanguageState.submit,
                         color_scheme="iris",
                         on_click=ChatState.submit_report,
                         _hover={"cursor": "pointer"},
