@@ -16,7 +16,7 @@ from aitutor.auth.protection import state_require_role_at_least
 from aitutor.auth.state import SessionState
 from aitutor.config import get_config
 from aitutor.language_state import BackendTranslations as BT
-from aitutor.models import Exercise, Tag, UserRole
+from aitutor.models import Exercise, Prompt, Tag, UserRole
 from aitutor.utilities.filtering_components import FilterMixin
 
 
@@ -55,7 +55,7 @@ class ManageExercisesState(FilterMixin, SessionState):
     #: the currently selected prompt name
     current_prompt_name: str = ""
     #: the prompt templates
-    prompts: dict[str, str] = {}
+    prompts: list[Prompt] = []
     #: the prompt names that can be selected
     prompt_names: list[str] = []
     #: Flag to control if lesson material is being extracted
@@ -137,8 +137,8 @@ class ManageExercisesState(FilterMixin, SessionState):
 
         self.global_load()
         config = get_config()
-        self.prompts = {p.name: p.prompt_template for p in config.exercise_prompts}
-        self.prompt_names = list(self.prompts.keys())
+        self.prompts = config.exercise_prompts
+        self.prompt_names = [prompt.name for prompt in self.prompts]
         self.load_exercises()
 
     def on_logout(self):
@@ -153,7 +153,7 @@ class ManageExercisesState(FilterMixin, SessionState):
         self.lesson_context = ""
         self.lesson_file_name = ""
         self.current_prompt_name = ""
-        self.prompts = {}
+        self.prompts = []
         self.prompt_names = []
         self.extracting_lesson_material = False
         self.current_hidden_state = False
@@ -179,6 +179,14 @@ class ManageExercisesState(FilterMixin, SessionState):
         """Return True if at least one exercise is selected."""
         return any(self.exercise_is_selected.values())
 
+    @rx.var
+    def get_current_prompt_template(self) -> str:
+        """Return the prompt template for the currently selected prompt name."""
+        for prompt in self.prompts:
+            if prompt.name == self.current_prompt_name:
+                return prompt.prompt_template
+        return "prompt selection error!"
+
     @rx.event
     def delete_selected_exercises(self):
         """Delete all selected exercises."""
@@ -197,6 +205,13 @@ class ManageExercisesState(FilterMixin, SessionState):
             invert=True,
         )
 
+    def get_prompt_id_by_name(self, prompt_name: str) -> int | None:
+        """Return the prompt id for a given prompt name."""
+        for prompt in self.prompts:
+            if prompt.name == prompt_name:
+                return prompt.id
+        return None
+
     @rx.event
     def export_selected_exercises(self):
         """Export all selected exercises as JSON string."""
@@ -212,7 +227,9 @@ class ManageExercisesState(FilterMixin, SessionState):
                     "title": ex.title,
                     "description": ex.description,
                     "lesson_context": ex.lesson_context,
-                    "prompt_name": ex.prompt_name,
+                    "prompt_name": ex.prompt.name
+                    if ex.prompt
+                    else "prompt not found error!",
                     "is_hidden": ex.is_hidden,
                     "deadline": ex.deadline.isoformat() if ex.deadline else None,
                     "days_to_complete": ex.days_to_complete,
@@ -221,7 +238,13 @@ class ManageExercisesState(FilterMixin, SessionState):
             )
 
         json_data = json.dumps(
-            {"prompt_templates": self.prompts, "exercises": exercises_dicts}, indent=4
+            {
+                "prompt_templates": {
+                    prompt.name: prompt.prompt_template for prompt in self.prompts
+                },
+                "exercises": exercises_dicts,
+            },
+            indent=4,
         )
         timestamp = datetime.today().date().isoformat()
 
@@ -294,8 +317,7 @@ class ManageExercisesState(FilterMixin, SessionState):
                 lesson_context=self.lesson_context,
                 title=form_data["title"],
                 description=form_data["description"],
-                prompt=self.prompts[self.current_prompt_name],
-                prompt_name=self.current_prompt_name,
+                prompt_id=self.get_prompt_id_by_name(self.current_prompt_name),
                 is_hidden=self.current_hidden_state,
                 tags=session.exec(
                     select(Tag).where(Tag.name.in_(self.selected_tags))  # type: ignore
@@ -336,7 +358,10 @@ class ManageExercisesState(FilterMixin, SessionState):
         """Get exercises from db."""
         with rx.session() as session:
             # load exercises
-            query_exercises = select(Exercise).options(selectinload(Exercise.tags))  # type: ignore
+            query_exercises = select(Exercise).options(
+                selectinload(Exercise.tags), # type: ignore
+                selectinload(Exercise.prompt),  # type: ignore
+            )
 
             # filter with search values
             if self.search_values:
@@ -445,8 +470,9 @@ class ManageExercisesState(FilterMixin, SessionState):
             updated_exercise.tags = session.exec(
                 select(Tag).where(Tag.name.in_(self.selected_tags))  # type: ignore
             ).all()
-            updated_exercise.prompt = self.prompts[self.current_prompt_name]
-            updated_exercise.prompt_name = self.current_prompt_name
+            updated_exercise.prompt_id = self.get_prompt_id_by_name(
+                self.current_prompt_name
+            )
             updated_exercise.lesson_context = self.lesson_context
             updated_exercise.is_hidden = self.current_hidden_state
 
@@ -545,7 +571,9 @@ class ManageExercisesState(FilterMixin, SessionState):
                 exercise = self.exercises[i]
                 break
         self.current_exercise = exercise
-        self.current_prompt_name = exercise.prompt_name
+        self.current_prompt_name = (
+            exercise.prompt.name if exercise.prompt else "error loading prompt!"
+        )
         self.lesson_context = exercise.lesson_context
         self.selected_tags = [tag.name for tag in exercise.tags]
         self.lesson_file_name = ""  # reset lesson_file_name
