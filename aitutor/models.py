@@ -74,8 +74,7 @@ class Exercise(SQLModel, table=True):
     title: str = Field(nullable=False, default="")
     description: str = Field(nullable=False, default="")
     lesson_context: str = Field(nullable=False, default="")
-    prompt_name: str = Field(nullable=False, default="")
-    prompt: str = Field(nullable=False, default="")
+    prompt_id: Optional[int] = Field(default=None, foreign_key="prompt.id")
     is_hidden: bool = Field(default=False)
     deadline: Optional[datetime] = Field(
         sa_column=Column(DateTime, nullable=True), default=None
@@ -89,6 +88,7 @@ class Exercise(SQLModel, table=True):
     tags: List[Tag] = Relationship(
         back_populates="exercises", link_model=ExerciseTagLink
     )
+    prompt: Optional["Prompt"] = Relationship()
 
     @property
     def editing_period(self) -> str:
