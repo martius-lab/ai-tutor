@@ -130,7 +130,7 @@ def chat_form() -> rx.Component:
                 width="100%",
                 justify="between",
             ),
-            report_conversation_link(chat_state=ChatState, lang_state=LanguageState),
+            report_conversation_link(),
         ),
         on_submit=ChatState.send_message,
         reset_on_submit=True,
@@ -414,7 +414,7 @@ def show_exercise_status() -> rx.Component:
     )
 
 
-def report_conversation_link(chat_state: Type[ChatState], lang_state: Type[LanguageState]) -> rx.Component:
+def report_conversation_link() -> rx.Component:
     """
     Render a link to report the conversation (placed below buttons).
     """
@@ -422,7 +422,7 @@ def report_conversation_link(chat_state: Type[ChatState], lang_state: Type[Langu
         rx.alert_dialog.trigger(
             rx.box(
                 rx.text(
-                    lang_state.report_conversation,
+                    LanguageState.report_conversation,
                     size="2",
                     color=rx.color("red", 11),
                     text_decoration="underline",
@@ -434,12 +434,12 @@ def report_conversation_link(chat_state: Type[ChatState], lang_state: Type[Langu
             )
         ),
         rx.alert_dialog.content(
-            rx.alert_dialog.title(lang_state.report_conversation),
+            rx.alert_dialog.title(LanguageState.report_conversation),
             rx.alert_dialog.description(
                 rx.text_area(
-                    placeholder=lang_state.report_placeholder,
-                    value=chat_state.report_text,
-                    on_change=lambda value: chat_state.set_report_text(value),
+                    placeholder=LanguageState.report_placeholder,
+                    value=ChatState.report_text,
+                    on_change=lambda value: ChatState.set_report_text(value),
                     width="100%",
                     rows="4",
                 )
@@ -447,16 +447,16 @@ def report_conversation_link(chat_state: Type[ChatState], lang_state: Type[Langu
             rx.hstack(
                 rx.alert_dialog.cancel(
                     rx.button(
-                        rx.text(lang_state.cancel),
+                        rx.text(LanguageState.cancel),
                         color_scheme="red",
                         _hover={"cursor": "pointer"},
                     ),
                 ),
                 rx.alert_dialog.action(
                     rx.button(
-                        lang_state.submit_report,
+                        LanguageState.submit_report,
                         color_scheme="iris",
-                        on_click=chat_state.submit_report,
+                        on_click=ChatState.submit_report,
                         _hover={"cursor": "pointer"},
                     )
                 ),
