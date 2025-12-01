@@ -401,10 +401,6 @@ class LanguageState(SessionState):
         """Tags string"""
         return self.translate(de="Tags", en="Tags")
 
-    @rx.var
-    def submission(self) -> str:
-        """Submission string"""
-        return self.translate(de="Abgabe", en="Submission")
 
     @rx.var
     def no_submission(self) -> str:
@@ -413,6 +409,11 @@ class LanguageState(SessionState):
             de="Keine Abgabe",
             en="No submission",
         )
+    
+    @rx.var
+    def submission(self) -> str:
+        """Submission string"""
+        return self.translate(de="Abgabe", en="Submission")
 
     # Finished View Tutor Page Strings -----------------------------------------------
     @rx.var
