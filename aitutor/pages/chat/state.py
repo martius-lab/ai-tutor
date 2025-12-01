@@ -159,6 +159,7 @@ class ChatState(SessionState):
             return rx.toast.error(
                 title="Report Error",
                 description="Cannot submit empty report.",
+                position="top-center",
             )
 
         with rx.session() as session:
@@ -184,12 +185,12 @@ class ChatState(SessionState):
                 session.commit()
                 session.refresh(exercise_result)
 
-            # ✅ Fix ExerciseResult.id type error
+            
             if exercise_result.id is None:
                 raise ValueError("Failed to obtain exercise_result.id after commit.")
 
             report = Report(
-                exercise_result_id=exercise_result.id,  # now guaranteed int
+                exercise_result_id=exercise_result.id,  
                 report_text=self.report_text,
                 looked_at=False,
             )
@@ -201,6 +202,7 @@ class ChatState(SessionState):
         return rx.toast.success(
             title="Report Submitted",
             description="Thank you for your feedback!",
+            position="top-center",
         )
 
     @rx.event
