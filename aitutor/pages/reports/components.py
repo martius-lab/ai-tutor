@@ -53,42 +53,71 @@ def show_table_row(table_row: TableRow) -> rx.Component:
             )
         ),
         rx.table.cell(
-            rx.icon_button(
-                rx.cond(
-                    table_row.looked_at,
-                    rx.icon("mail-open", size=22),
-                    rx.icon("mail", size=22),
+            rx.hover_card.root(
+                rx.hover_card.trigger(
+                    rx.icon_button(
+                        rx.cond(
+                            table_row.looked_at,
+                            rx.icon("mail-open", size=22),
+                            rx.icon("mail", size=22),
+                        ),
+                        size="2",
+                        color_scheme=rx.cond(
+                            table_row.looked_at,
+                            "gray",
+                            "blue",
+                        ),
+                        variant="ghost",
+                        on_click=ReportsState.toggle_looked_at(table_row.report_id),
+                        _hover={"cursor": "pointer"},
+                    )
                 ),
-                size="2",
-                color_scheme=rx.cond(
-                    table_row.looked_at,
-                    "gray",
-                    "blue",
+                rx.hover_card.content(
+                    rx.text(
+                        rx.cond(
+                            table_row.looked_at,
+                            LanguageState.report_seen_tooltip,
+                            LanguageState.report_not_seen_tooltip,
+                        )
+                    ),
                 ),
-                variant="ghost",
-                on_click=ReportsState.toggle_looked_at(table_row.report_id),
-                _hover={"cursor": "pointer"},
             )
         ),
         rx.table.cell(
-            rx.icon_button(
-                "eye",
-                size="2",
-                variant="ghost",
-                color_scheme="iris",
-                on_click=rx.redirect(f"{routes.REPORT_VIEW}/{table_row.report_id}"),
-                _hover={"cursor": "pointer"},
+            rx.hover_card.root(
+                rx.hover_card.trigger(
+                    rx.icon_button(
+                        "eye",
+                        size="2",
+                        variant="ghost",
+                        color_scheme="iris",
+                        on_click=rx.redirect(
+                            f"{routes.REPORT_VIEW}/{table_row.report_id}"
+                        ),
+                        _hover={"cursor": "pointer"},
+                    )
+                ),
+                rx.hover_card.content(
+                    rx.text(LanguageState.report_view_tooltip),
+                ),
             )
         ),
         rx.table.cell(
             rx.alert_dialog.root(
                 rx.alert_dialog.trigger(
-                    rx.icon_button(
-                        rx.icon("trash"),
-                        size="2",
-                        variant="ghost",
-                        color_scheme="red",
-                        _hover={"cursor": "pointer"},
+                    rx.hover_card.root(
+                        rx.hover_card.trigger(
+                            rx.icon_button(
+                                rx.icon("trash"),
+                                size="2",
+                                variant="ghost",
+                                color_scheme="red",
+                                _hover={"cursor": "pointer"},
+                            )
+                        ),
+                        rx.hover_card.content(
+                            rx.text(LanguageState.report_delete_tooltip),
+                        ),
                     )
                 ),
                 rx.alert_dialog.content(

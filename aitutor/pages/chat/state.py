@@ -146,6 +146,17 @@ class ChatState(SessionState):
 
     _userinfo_id: int = -1
     report_text: str = ""
+    MAX_REPORT_LENGTH: int = 2000
+
+    @rx.var
+    def report_char_count(self) -> int:
+        """Get the current character count of the report text."""
+        return len(self.report_text)
+
+    @rx.var
+    def report_is_valid(self) -> bool:
+        """Check if the report text is valid (not empty and within max length)."""
+        return 0 < len(self.report_text.strip()) <= self.MAX_REPORT_LENGTH
 
     @rx.event
     def set_report_text(self, value: str):

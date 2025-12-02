@@ -435,12 +435,30 @@ def report_conversation_link() -> rx.Component:
         rx.alert_dialog.content(
             rx.alert_dialog.title(LanguageState.report_conversation),
             rx.alert_dialog.description(
-                rx.text_area(
-                    placeholder=LanguageState.report_placeholder,
-                    value=ChatState.report_text,
-                    on_change=lambda value: ChatState.set_report_text(value),
-                    width="100%",
-                    rows="4",
+                rx.vstack(
+                    rx.text_area(
+                        placeholder=LanguageState.report_placeholder,
+                        value=ChatState.report_text,
+                        on_change=lambda value: ChatState.set_report_text(value),
+                        width="100%",
+                        rows="4",
+                    ),
+                    rx.box(
+                        rx.text(
+                            f"{ChatState.report_char_count} / "
+                            f"{ChatState.MAX_REPORT_LENGTH}",
+                            size="2",
+                            color=rx.cond(
+                                ChatState.report_char_count
+                                > ChatState.MAX_REPORT_LENGTH,
+                                rx.color("red", 11),
+                                rx.color("gray", 11),
+                            ),
+                        ),
+                        text_align="right",
+                        width="100%",
+                    ),
+                    spacing="2",
                 )
             ),
             rx.hstack(
@@ -456,7 +474,12 @@ def report_conversation_link() -> rx.Component:
                         LanguageState.submit,
                         color_scheme="iris",
                         on_click=ChatState.submit_report,
-                        _hover={"cursor": "pointer"},
+                        disabled=~ChatState.report_is_valid,
+                        _hover=rx.cond(
+                            ChatState.report_is_valid,
+                            {"cursor": "pointer"},
+                            {"cursor": "not-allowed"},
+                        ),
                     )
                 ),
                 margin_top="1em",
