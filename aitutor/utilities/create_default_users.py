@@ -9,7 +9,7 @@ import reflex as rx
 from reflex_local_auth.user import LocalUser
 from sqlmodel import select
 
-from aitutor.config import get_config
+from aitutor.config import get_config_from_file
 from aitutor.models import UserInfo, UserRole
 
 
@@ -49,7 +49,7 @@ def create_user_if_not_exists(role: UserRole, name: str, password: str, email: s
 
 def create_default_users():
     """Create default users, if a user with that role does not already exist."""
-    for user in get_config().default_users:
+    for user in get_config_from_file().default_users:
         create_user_if_not_exists(
             role=UserRole[user.role.upper()],
             name=user.name,

@@ -14,7 +14,6 @@ from sqlmodel import and_, or_, select
 import aitutor.global_vars as gv
 from aitutor.auth.protection import state_require_role_at_least
 from aitutor.auth.state import SessionState
-from aitutor.config import get_config
 from aitutor.language_state import BackendTranslations as BT
 from aitutor.models import Exercise, Prompt, Tag, UserRole
 from aitutor.utilities.filtering_components import FilterMixin
@@ -134,10 +133,9 @@ class ManageExercisesState(FilterMixin, SessionState):
     @state_require_role_at_least(UserRole.ADMIN)
     def on_load(self):
         """Initialize the state"""
-
+        with rx.session() as session:
+            self.prompts = list(session.exec(select(Prompt)).all()) or []
         self.global_load()
-        config = get_config()
-        self.prompts = config.exercise_prompts
         self.prompt_names = [prompt.name for prompt in self.prompts]
         self.load_exercises()
 
