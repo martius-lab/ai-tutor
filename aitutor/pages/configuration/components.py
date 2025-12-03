@@ -227,87 +227,6 @@ def config_form() -> rx.Component:
     )
 
 
-def prompt_management() -> rx.Component:
-    """The Button to manage prompts."""
-    return rx.card(
-        rx.vstack(
-            rx.callout(
-                rx.hstack(
-                    rx.icon("info"),
-                    rx.markdown(
-                        LS.prompt_variables_info,
-                        margin_top="0",
-                        margin_bottom="0",
-                        align="left",
-                    ),
-                    align="center",
-                ),
-                color_scheme="blue",
-                role="alert",
-                width="100%",
-            ),
-            rx.foreach(
-                ManageConfigState.prompts.values(),
-                prompt_card,
-            ),
-            rx.button(
-                rx.icon("plus"),
-                LS.add_prompt,
-                _hover={"cursor": "pointer"},
-                on_click=ManageConfigState.add_prompt,
-            ),
-            rx.cond(
-                ManageConfigState.prompts_unsaved_changes,
-                rx.callout(
-                    LS.unsaved_changes_info,
-                    icon="info",
-                    width="100%",
-                    color_scheme="orange",
-                ),
-            ),
-            rx.box(
-                height="1em",
-            ),
-            rx.hstack(
-                rx.button(
-                    LS.discard_changes,
-                    _hover=rx.cond(
-                        ManageConfigState.prompts_unsaved_changes,
-                        {"cursor": "pointer"},
-                        {"cursor": "not-allowed"},
-                    ),
-                    color_scheme="red",
-                    on_click=ManageConfigState.load_prompts_from_db,
-                    disabled=~ManageConfigState.prompts_unsaved_changes,  # type: ignore
-                ),
-                rx.button(
-                    LS.save,
-                    _hover=rx.cond(
-                        ManageConfigState.prompts_unsaved_changes,
-                        {"cursor": "pointer"},
-                        {"cursor": "not-allowed"},
-                    ),
-                    color_scheme="green",
-                    on_click=ManageConfigState.save_prompts_to_db,
-                    disabled=~ManageConfigState.prompts_unsaved_changes,  # type: ignore
-                ),
-                width="100%",
-                justify="end",
-            ),
-            spacing="4",
-            align="center",
-        ),
-        width="40em",
-        max_width="90vw",
-        variant="ghost",
-        outline=rx.cond(
-            ManageConfigState.prompts_unsaved_changes,
-            "1px solid orange",
-            "none",
-        ),
-    )
-
-
 def prompt_card(prompt: Prompt) -> rx.Component:
     """A card representing a prompt."""
     return rx.card(
@@ -403,4 +322,136 @@ def prompt_card(prompt: Prompt) -> rx.Component:
         ),
         padding="4",
         width="100%",
+    )
+
+
+def add_prompt_dialog() -> rx.Component:
+    """The Dialog to add a new prompt."""
+    return rx.dialog.root(
+        rx.dialog.trigger(
+            rx.button(
+                rx.icon("plus"),
+                LS.add_prompt,
+                _hover={"cursor": "pointer"},
+                on_click=ManageConfigState.set_add_prompt_dialog_open(True),
+            ),
+        ),
+        rx.dialog.content(
+            rx.vstack(
+                input(
+                    name="prompt_name",
+                    heading=LS.prompt_name,
+                    value=ManageConfigState.new_prompt_name,
+                    on_change=ManageConfigState.set_new_prompt_name,
+                    placeholder=LS.prompt_name_placeholder,
+                ),
+                text_area(
+                    name="prompt_template",
+                    heading=LS.prompt,
+                    value=ManageConfigState.new_prompt,
+                    on_change=ManageConfigState.set_new_prompt,
+                    placeholder=LS.prompt_variables_info,
+                ),
+                rx.hstack(
+                    rx.dialog.close(
+                        rx.button(
+                            rx.text(LS.cancel),
+                            _hover={"cursor": "pointer"},
+                            color_scheme="gray",
+                            on_click=ManageConfigState.set_add_prompt_dialog_open(
+                                False
+                            ),
+                        ),
+                    ),
+                    rx.button(
+                        LS.add_prompt,
+                        color_scheme="green",
+                        _hover={"cursor": "pointer"},
+                        on_click=ManageConfigState.add_prompt,
+                    ),
+                    justify="end",
+                    width="100%",
+                    margin_top="1em",
+                ),
+            ),
+            width="40em",
+            max_width="90vw",
+        ),
+        open=ManageConfigState.add_prompt_dialog_open,
+    )
+
+
+def prompt_management() -> rx.Component:
+    """The Button to manage prompts."""
+    return rx.card(
+        rx.vstack(
+            add_prompt_dialog(),
+            rx.callout(
+                rx.hstack(
+                    rx.icon("info"),
+                    rx.markdown(
+                        LS.prompt_variables_info,
+                        margin_top="0",
+                        margin_bottom="0",
+                        align="left",
+                    ),
+                    align="center",
+                ),
+                color_scheme="blue",
+                role="alert",
+                width="100%",
+            ),
+            rx.foreach(
+                ManageConfigState.prompts.values(),
+                prompt_card,
+            ),
+            rx.cond(
+                ManageConfigState.prompts_unsaved_changes,
+                rx.callout(
+                    LS.unsaved_changes_info,
+                    icon="info",
+                    width="100%",
+                    color_scheme="orange",
+                ),
+            ),
+            rx.box(
+                height="1em",
+            ),
+            rx.hstack(
+                rx.button(
+                    LS.discard_changes,
+                    _hover=rx.cond(
+                        ManageConfigState.prompts_unsaved_changes,
+                        {"cursor": "pointer"},
+                        {"cursor": "not-allowed"},
+                    ),
+                    color_scheme="red",
+                    on_click=ManageConfigState.load_prompts_from_db,
+                    disabled=~ManageConfigState.prompts_unsaved_changes,  # type: ignore
+                ),
+                rx.button(
+                    LS.save,
+                    _hover=rx.cond(
+                        ManageConfigState.prompts_unsaved_changes,
+                        {"cursor": "pointer"},
+                        {"cursor": "not-allowed"},
+                    ),
+                    color_scheme="green",
+                    on_click=ManageConfigState.save_prompts_to_db,
+                    disabled=~ManageConfigState.prompts_unsaved_changes,  # type: ignore
+                ),
+                width="100%",
+                justify="end",
+            ),
+            spacing="4",
+            align="center",
+        ),
+        width="40em",
+        max_width="90vw",
+        variant="ghost",
+        outline=rx.cond(
+            ManageConfigState.prompts_unsaved_changes,
+            "1px solid orange",
+            "none",
+        ),
     )

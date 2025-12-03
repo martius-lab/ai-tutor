@@ -31,6 +31,9 @@ class ManageConfigState(SessionState):
     prompts: dict[int | None, Prompt] = {}
     replacement_prompt_name: str = ""
     prompt_to_delete: str = ""
+    new_prompt_name: str = ""
+    new_prompt: str = ""
+    add_prompt_dialog_open: bool = False
 
     @rx.event
     def set_general_unsaved_changes(self, unsaved: bool):
@@ -68,6 +71,21 @@ class ManageConfigState(SessionState):
         self.prompt_to_delete = prompt_name
 
     @rx.event
+    def set_new_prompt_name(self, name: str):
+        """Sets the name for the new prompt."""
+        self.new_prompt_name = name
+
+    @rx.event
+    def set_new_prompt(self, prompt: str):
+        """Sets the template for the new prompt."""
+        self.new_prompt = prompt
+
+    @rx.event
+    def set_add_prompt_dialog_open(self, is_open: bool):
+        """Sets whether the add prompt dialog is open."""
+        self.add_prompt_dialog_open = is_open
+
+    @rx.event
     @state_require_role_at_least(UserRole.TUTOR)
     def on_load(self):
         """Initialization for the page."""
@@ -88,6 +106,9 @@ class ManageConfigState(SessionState):
         self.prompts = {}
         self.replacement_prompt_name = ""
         self.prompt_to_delete = ""
+        self.new_prompt_name = ""
+        self.new_prompt = ""
+        self.add_prompt_dialog_open = False
 
     @rx.var
     def remaining_prompt_names(self) -> list[str]:
@@ -156,14 +177,7 @@ class ManageConfigState(SessionState):
             )
             return
         with rx.session() as session:
-            for prompt in prompts.values():
-                # create a new instance, detached from old session
-                new_prompt = Prompt(
-                    id=prompt.id,
-                    name=prompt.name,
-                    prompt_template=prompt.prompt_template,
-                )
-                session.merge(new_prompt)  # insert/update ORM object
+            session.add_all(prompts.values())
             session.commit()
         self.prompts_unsaved_changes = False
         self.load_prompts_from_db()
@@ -211,30 +225,54 @@ class ManageConfigState(SessionState):
                 session.delete(prompt)
                 session.commit()
 
-            # remove prompt from local state without reloading all prompts
-            if prompt_id in self.prompts:
-                del self.prompts[prompt_id]
                 yield rx.toast.success(
                     description=BT.prompt_deleted(self.language),
                     duration=5000,
                     position="bottom-center",
                     invert=True,
                 )
-
+        self.load_prompts_from_db()
         self.replacement_prompt_name = ""
         self.prompt_to_delete = ""
 
     @rx.event
     def add_prompt(self):
         """Adds a new prompt to the state"""
-        # Find the lowest existing ID to generate a unique temp ID (e.g., -1, -2)
-        current_ids = [k for k in self.prompts.keys() if k is not None]
-        min_id = min(current_ids) if current_ids else 0
-        new_temp_id = min_id - 1 if min_id < 0 else -1
-
-        new_prompt = Prompt(id=new_temp_id, name="", prompt_template="")
-        self.prompts[new_temp_id] = new_prompt
-        self.prompts_unsaved_changes = True
+        if not self.names_are_unique(
+            [prompt.name for prompt in self.prompts.values()] + [self.new_prompt_name]
+        ):
+            yield rx.toast.error(
+                description=BT.prompt_names_unique_error(self.language),
+                duration=5000,
+                position="bottom-center",
+                invert=True,
+            )
+            return
+        if self.new_prompt_name == "":
+            yield rx.toast.error(
+                description=BT.prompt_names_nonempty_error(self.language),
+                duration=5000,
+                position="bottom-center",
+                invert=True,
+            )
+            return
+        with rx.session() as session:
+            new_prompt = Prompt(
+                name=self.new_prompt_name,
+                prompt_template=self.new_prompt,
+            )
+            session.add(new_prompt)
+            session.commit()
+        self.load_prompts_from_db()
+        self.new_prompt_name = ""
+        self.new_prompt = ""
+        self.add_prompt_dialog_open = False
+        yield rx.toast.success(
+            description=BT.prompt_added(self.language),
+            duration=5000,
+            position="bottom-center",
+            invert=True,
+        )
 
     @rx.event
     def load_prompts_from_db(self):

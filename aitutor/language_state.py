@@ -1108,6 +1108,14 @@ class BackendTranslations:
         )
 
     @staticmethod
+    def prompt_added(language: Language) -> str:
+        return translate(
+            language,
+            de="Prompt erfolgreich hinzugefügt.",
+            en="Prompt added successfully.",
+        )
+
+    @staticmethod
     def prompt_names_unique_error(language: Language) -> str:
         return translate(
             language,
