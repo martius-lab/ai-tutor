@@ -248,7 +248,7 @@ def prompt_management() -> rx.Component:
             ),
             rx.foreach(
                 ManageConfigState.prompts,
-                lambda prompt: prompt_card(prompt),
+                prompt_card,
             ),
             rx.button(
                 rx.icon("plus"),
