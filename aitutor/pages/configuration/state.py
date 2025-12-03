@@ -190,27 +190,7 @@ class ManageConfigState(SessionState):
                     select(Prompt).where(Prompt.name == self.replacement_prompt_name)
                 ).first()
 
-                if replacement_prompt:
-                    # Update all exercises that use the prompt to be deleted
-                    exercises = session.exec(
-                        select(Exercise).where(Exercise.prompt_id == prompt_id)
-                    ).all()
-
-                    for exercise in exercises:
-                        exercise.prompt_id = replacement_prompt.id
-                        session.add(exercise)
-
-                    # Delete the prompt
-                    session.delete(prompt)
-                    session.commit()
-
-                    yield rx.toast.success(
-                        description=BT.prompt_deleted(self.language),
-                        duration=5000,
-                        position="bottom-center",
-                        invert=True,
-                    )
-                else:
+                if not replacement_prompt:
                     yield rx.toast.error(
                         description=BT.replacement_prompt_not_found(self.language),
                         duration=5000,
@@ -218,6 +198,26 @@ class ManageConfigState(SessionState):
                         invert=True,
                     )
                     return
+
+                # Update all exercises that use the prompt to be deleted
+                exercises = session.exec(
+                    select(Exercise).where(Exercise.prompt_id == prompt_id)
+                ).all()
+
+                for exercise in exercises:
+                    exercise.prompt_id = replacement_prompt.id
+                    session.add(exercise)
+
+                # Delete the prompt
+                session.delete(prompt)
+                session.commit()
+
+                yield rx.toast.success(
+                    description=BT.prompt_deleted(self.language),
+                    duration=5000,
+                    position="bottom-center",
+                    invert=True,
+                )
 
         self.load_prompts_from_db()
         self.replacement_prompt_name = ""
