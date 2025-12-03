@@ -33,7 +33,7 @@ class ConfigExercisePrompt:
 
 
 @dataclass
-class ConfigFileFormat:
+class ConfigFile:
     """Configuration class for the AiTutor config file."""
 
     check_conversation_prompt: str
@@ -55,7 +55,7 @@ _config_from_file = None
 def load_config_from_file():
     """Load configuration from file."""
     global _config_from_file
-    wconf = variconf.WConf(ConfigFileFormat)
+    wconf = variconf.WConf(ConfigFile)
     try:
         wconf.load_file(CONFIG_FILE_PATH)
     except FileNotFoundError:
@@ -67,12 +67,12 @@ def load_config_from_file():
     _config_from_file = wconf.get()
 
 
-def get_config_from_file() -> ConfigFileFormat:
+def get_config_from_file() -> ConfigFile:
     """Get the content of the configuration file."""
     if _config_from_file is None:
         load_config_from_file()
     # Type of _config_from_file is actually some OmegaConf object, but it should have
-    # the same fields as AiTutorConfig, so list that as return type for better
+    # the same fields as ConfigFile, so list that as return type for better
     # auto-completion.
     return _config_from_file  # type: ignore[return-value]
 
@@ -123,40 +123,13 @@ def initialize_config_db():
             print("Configuration row exists in the database.")
 
 
-def get_config_db_model() -> Config:
-    """Get the configuration as a database model instance."""
-    with rx.session() as session:
-        _config = session.get(Config, 1)
-        if _config is None:
-            raise ValueError("Configuration not found in the database.")
-        return _config
-
-
-@dataclass
-class ConfigDbFormat:
-    """Configuration class for the merged config values from the database."""
-
-    check_conversation_prompt: str
-    response_ai_model: str
-    check_ai_model: str
-    how_to_use_text: str
-    general_information_text: str
-    lecture_information_text: str
-    course_name: str
-    impressum_text: str
-    registration_code: str
-    default_users: list[ConfigDefaultUser]
-    exercise_prompts: list[Prompt]
-
-
-def get_config() -> ConfigDbFormat:
+def get_config() -> Config:
     """Get the configuration from the database."""
     with rx.session() as session:
         _config = session.get(Config, 1)
         if _config is None:
             raise ValueError("Configuration not found in the database.")
-        _prompts = list(session.exec(select(Prompt)).all()) or []
-        return ConfigDbFormat(
+        return Config(
             check_conversation_prompt=_config.check_conversation_prompt,
             response_ai_model=_config.response_ai_model,
             check_ai_model=_config.check_ai_model,
@@ -166,6 +139,4 @@ def get_config() -> ConfigDbFormat:
             course_name=_config.course_name,
             impressum_text=_config.impressum_text,
             registration_code=_config.registration_code,
-            default_users=get_config_from_file().default_users,
-            exercise_prompts=_prompts,
         )

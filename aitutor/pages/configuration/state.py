@@ -5,7 +5,6 @@ from sqlmodel import select
 
 from aitutor.auth.protection import state_require_role_at_least
 from aitutor.auth.state import SessionState
-from aitutor.config import get_config_db_model
 from aitutor.language_state import BackendTranslations as BT
 from aitutor.models import Config, Exercise, Prompt, UserRole
 
@@ -72,8 +71,12 @@ class ManageConfigState(SessionState):
     @state_require_role_at_least(UserRole.TUTOR)
     def on_load(self):
         """Initialization for the page."""
+        with rx.session() as session:
+            _config = session.get(Config, 1)
+            if _config is None:
+                raise ValueError("Configuration not found in the database.")
+            self.current_config = _config
         self.global_load()
-        self.current_config = get_config_db_model()
         self.general_unsaved_changes = False
         self.load_prompts_from_db()
 
