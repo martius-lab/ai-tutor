@@ -29,7 +29,7 @@ class ManageConfigState(SessionState):
     general_unsaved_changes: bool = False
     prompts_unsaved_changes: bool = False
     current_config: Config = empty_config
-    prompts: list[Prompt] = []
+    prompts: dict[int | None, Prompt] = {}
     replacement_prompt_name: str = ""
     prompt_to_delete: str = ""
 
@@ -47,20 +47,16 @@ class ManageConfigState(SessionState):
     @rx.event
     def set_prompt_name(self, prompt_id: int | None, name: str):
         """Sets the name of a prompt."""
-        for prompt in self.prompts:
-            if prompt.id == prompt_id:
-                prompt.name = name
-                break
-        self.prompts_unsaved_changes = True
+        if prompt_id in self.prompts:
+            self.prompts[prompt_id].name = name
+            self.prompts_unsaved_changes = True
 
     @rx.event
     def set_prompt_template(self, prompt_id: int | None, template: str):
         """Sets the template of a prompt."""
-        for prompt in self.prompts:
-            if prompt.id == prompt_id:
-                prompt.prompt_template = template
-                break
-        self.prompts_unsaved_changes = True
+        if prompt_id in self.prompts:
+            self.prompts[prompt_id].prompt_template = template
+            self.prompts_unsaved_changes = True
 
     @rx.event
     def set_replacement_prompt_name(self, prompt_name: str):
@@ -86,7 +82,7 @@ class ManageConfigState(SessionState):
         self.general_unsaved_changes = False
         self.prompts_unsaved_changes = False
         self.current_config = empty_config
-        self.prompts = []
+        self.prompts = {}
         self.replacement_prompt_name = ""
         self.prompt_to_delete = ""
 
@@ -95,7 +91,7 @@ class ManageConfigState(SessionState):
         """Returns the names of the prompts excluding the one to delete."""
         return [
             prompt.name
-            for prompt in self.prompts
+            for prompt in self.prompts.values()
             if prompt.name != self.prompt_to_delete and prompt.name != ""
         ]
 
@@ -140,7 +136,7 @@ class ManageConfigState(SessionState):
     def save_prompts_to_db(self):
         """Saves the current prompts to the database."""
         prompts = self.prompts
-        if not self.names_are_unique([prompt.name for prompt in prompts]):
+        if not self.names_are_unique([prompt.name for prompt in prompts.values()]):
             yield rx.toast.error(
                 description=BT.prompt_names_unique_error(self.language),
                 duration=5000,
@@ -148,7 +144,7 @@ class ManageConfigState(SessionState):
                 invert=True,
             )
             return
-        if "" in [prompt.name for prompt in prompts]:
+        if "" in [prompt.name for prompt in prompts.values()]:
             yield rx.toast.error(
                 description=BT.prompt_names_nonempty_error(self.language),
                 duration=5000,
@@ -157,7 +153,7 @@ class ManageConfigState(SessionState):
             )
             return
         with rx.session() as session:
-            for prompt in prompts:
+            for prompt in prompts.values():
                 # create a new instance, detached from old session
                 new_prompt = Prompt(
                     id=prompt.id,
@@ -212,6 +208,9 @@ class ManageConfigState(SessionState):
                 session.delete(prompt)
                 session.commit()
 
+            # remove prompt from local state without reloading all prompts
+            if prompt_id in self.prompts:
+                del self.prompts[prompt_id]
                 yield rx.toast.success(
                     description=BT.prompt_deleted(self.language),
                     duration=5000,
@@ -219,15 +218,19 @@ class ManageConfigState(SessionState):
                     invert=True,
                 )
 
-        self.load_prompts_from_db()
         self.replacement_prompt_name = ""
         self.prompt_to_delete = ""
 
     @rx.event
     def add_prompt(self):
         """Adds a new prompt to the state"""
-        new_prompt = Prompt(name="", prompt_template="")
-        self.prompts.append(new_prompt)
+        # Find the lowest existing ID to generate a unique temp ID (e.g., -1, -2)
+        current_ids = [k for k in self.prompts.keys() if k is not None]
+        min_id = min(current_ids) if current_ids else 0
+        new_temp_id = min_id - 1 if min_id < 0 else -1
+
+        new_prompt = Prompt(id=new_temp_id, name="", prompt_template="")
+        self.prompts[new_temp_id] = new_prompt
         self.prompts_unsaved_changes = True
 
     @rx.event
@@ -235,5 +238,5 @@ class ManageConfigState(SessionState):
         """Loads prompts from the database."""
         with rx.session() as session:
             prompts = session.exec(select(Prompt).order_by(Prompt.id))  # type: ignore
-            self.prompts = list(prompts)
+            self.prompts = {p.id: p for p in prompts}
         self.prompts_unsaved_changes = False

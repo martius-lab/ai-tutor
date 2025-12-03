@@ -247,7 +247,7 @@ def prompt_management() -> rx.Component:
                 width="100%",
             ),
             rx.foreach(
-                ManageConfigState.prompts,
+                ManageConfigState.prompts.values(),
                 prompt_card,
             ),
             rx.button(
