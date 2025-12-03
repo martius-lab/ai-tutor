@@ -1055,6 +1055,14 @@ class BackendTranslations:
             en="The exercise was submitted successfully.",
         )
 
+    @staticmethod
+    def prompt_loading_error(language: Language) -> str:
+        return translate(
+            language,
+            de="Fehler: Der Prompt für diese Übung konnte nicht geladen werden.",
+            en="Error: The prompt for this exercise could not be loaded.",
+        )
+
     # UserSettingsState ----------------------------------------------------------------
 
     @staticmethod
