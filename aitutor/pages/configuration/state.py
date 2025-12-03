@@ -225,13 +225,16 @@ class ManageConfigState(SessionState):
                 session.delete(prompt)
                 session.commit()
 
-                yield rx.toast.success(
-                    description=BT.prompt_deleted(self.language),
-                    duration=5000,
-                    position="bottom-center",
-                    invert=True,
-                )
-        self.load_prompts_from_db()
+        # Remove the prompt from the state
+        if prompt_id in self.prompts:
+            del self.prompts[prompt_id]
+            yield rx.toast.success(
+                description=BT.prompt_deleted(self.language),
+                duration=5000,
+                position="bottom-center",
+                invert=True,
+            )
+            print("prompts:", self.prompts)
         self.replacement_prompt_name = ""
         self.prompt_to_delete = ""
 
@@ -263,7 +266,12 @@ class ManageConfigState(SessionState):
             )
             session.add(new_prompt)
             session.commit()
-        self.load_prompts_from_db()
+
+            # add the new prompt to the state
+            session.refresh(new_prompt)
+            if new_prompt.id:
+                self.prompts[new_prompt.id] = new_prompt
+                print("prompts:", self.prompts)
         self.new_prompt_name = ""
         self.new_prompt = ""
         self.add_prompt_dialog_open = False
