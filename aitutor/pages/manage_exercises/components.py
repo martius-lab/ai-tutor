@@ -465,7 +465,7 @@ def select_prompt(mode: DialogMode) -> rx.Component:
     """The prompt selection component."""
     return (
         rx.text(
-            LanguageState.prompt,
+            LanguageState.prompt + ":",
             size="3",
             weight="medium",
             text_align="left",
@@ -489,27 +489,9 @@ def select_prompt(mode: DialogMode) -> rx.Component:
                 ),
                 rx.popover.content(
                     rx.flex(
-                        rx.cond(
-                            mode == DialogMode.ADD,
-                            rx.text(
-                                ManageExercisesState.prompts[
-                                    ManageExercisesState.current_prompt_name
-                                ],
-                                padding="1em",
-                            ),
-                            rx.text(
-                                # show the prompt from the db or
-                                # the selected prompt template
-                                rx.cond(
-                                    ManageExercisesState.current_exercise.prompt_name
-                                    == ManageExercisesState.current_prompt_name,
-                                    ManageExercisesState.current_exercise.prompt,
-                                    ManageExercisesState.prompts[
-                                        ManageExercisesState.current_prompt_name
-                                    ],
-                                ),
-                                padding="1em",
-                            ),
+                        rx.text(
+                            ManageExercisesState.get_current_prompt_template,
+                            padding="1em",
                         ),
                         style={
                             "white-space": "pre-wrap",

@@ -72,6 +72,13 @@ class LanguageState(SessionState):
         """Delete string"""
         return self.translate(de="Löschen", en="Delete")
 
+    @rx.var
+    def prompt(self) -> str:
+        return self.translate(
+            de="Prompt",
+            en="Prompt",
+        )
+
     # Search Bar Strings ---------------------------------------------------------------
     @rx.var
     def search_placeholder(self) -> str:
@@ -527,11 +534,6 @@ class LanguageState(SessionState):
         )
 
     @rx.var
-    def prompt(self) -> str:
-        """Prompt string"""
-        return self.translate(de="Prompt:", en="Prompt:")
-
-    @rx.var
     def select_prompt(self) -> str:
         """Select prompt string"""
         return self.translate(de="Prompt auswählen", en="Select prompt")
@@ -888,6 +890,75 @@ Please test the chat for functionality after changing the model.
             en="Discard changes",
         )
 
+    @rx.var
+    def manage_prompts(self) -> str:
+        return self.translate(
+            de="Prompts verwalten",
+            en="Manage Prompts",
+        )
+
+    @rx.var
+    def general_configuration(self) -> str:
+        return self.translate(
+            de="Allgemeine Konfiguration",
+            en="General Configuration",
+        )
+
+    @rx.var
+    def prompt_variables_info(self) -> str:
+        return self.translate(
+            de="Sie können in Ihrem Prompt folgende Variablen verwenden: "
+            "{title}, {description}, {lesson_context}. "
+            "Die Variablen werden in der Übungsverwaltung gesetzt.",
+            en="You can use the following variables in your prompt: "
+            "{title}, {description}, {lesson_context}. "
+            "The variables are set in the exercise management.",
+        )
+
+    @rx.var
+    def add_prompt(self) -> str:
+        return self.translate(
+            de="Prompt hinzufügen",
+            en="Add Prompt",
+        )
+
+    @rx.var
+    def prompt_name(self) -> str:
+        return self.translate(
+            de="Prompt Name",
+            en="Prompt Name",
+        )
+
+    @rx.var
+    def delete_prompt(self) -> str:
+        return self.translate(
+            de="Prompt löschen",
+            en="Delete Prompt",
+        )
+
+    @rx.var
+    def delete_prompt_description(self) -> str:
+        return self.translate(
+            de="Möchten Sie diesen Prompt wirklich löschen? Der Prompt wird in "
+            "existierenden Übungen durch den ausgewählten Ersatzprompt ersetzt.",
+            en="Are you sure you want to delete this prompt? The prompt will be "
+            "replaced in existing exercises by the selected replacement prompt.",
+        )
+
+    @rx.var
+    def replacement_prompt(self) -> str:
+        return self.translate(
+            de="Ersatzprompt",
+            en="Replacement Prompt",
+        )
+
+    @rx.var
+    def prompt_name_placeholder(self) -> str:
+        return self.translate(
+            de="Einzigartiger Prompt Name",
+            en="Unique prompt name",
+        )
+
 
 class BackendTranslations:
     """Translations for use in the backend (where LanguageState is not available)."""
@@ -984,6 +1055,14 @@ class BackendTranslations:
             en="The exercise was submitted successfully.",
         )
 
+    @staticmethod
+    def prompt_loading_error(language: Language) -> str:
+        return translate(
+            language,
+            de="Fehler: Der Prompt für diese Übung konnte nicht geladen werden.",
+            en="Error: The prompt for this exercise could not be loaded.",
+        )
+
     # UserSettingsState ----------------------------------------------------------------
 
     @staticmethod
@@ -1018,4 +1097,52 @@ class BackendTranslations:
             language,
             de="Konfiguration erfolgreich gespeichert.",
             en="Configuration saved successfully.",
+        )
+
+    @staticmethod
+    def prompts_saved(language: Language) -> str:
+        return translate(
+            language,
+            de="Prompts erfolgreich gespeichert.",
+            en="Prompts saved successfully.",
+        )
+
+    @staticmethod
+    def prompt_added(language: Language) -> str:
+        return translate(
+            language,
+            de="Prompt erfolgreich hinzugefügt.",
+            en="Prompt added successfully.",
+        )
+
+    @staticmethod
+    def prompt_names_unique_error(language: Language) -> str:
+        return translate(
+            language,
+            de="Fehler: Prompt Namen müssen eindeutig sein.",
+            en="Error: Prompt names must be unique.",
+        )
+
+    @staticmethod
+    def prompt_names_nonempty_error(language: Language) -> str:
+        return translate(
+            language,
+            de="Fehler: Prompt Namen dürfen nicht leer sein.",
+            en="Error: Prompt names must not be empty.",
+        )
+
+    @staticmethod
+    def prompt_deleted(language: Language) -> str:
+        return translate(
+            language,
+            de="Prompt erfolgreich gelöscht.",
+            en="Prompt deleted successfully.",
+        )
+
+    @staticmethod
+    def replacement_prompt_not_found(language: Language) -> str:
+        return translate(
+            language,
+            de="Fehler: Ersatzprompt nicht gefunden.",
+            en="Error: Replacement prompt not found.",
         )
