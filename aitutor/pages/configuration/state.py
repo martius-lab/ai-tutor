@@ -32,7 +32,7 @@ class ManageConfigState(SessionState):
     replacement_prompt_name: str = ""
     prompt_to_delete: str = ""
     new_prompt_name: str = ""
-    new_prompt: str = ""
+    new_prompt_template: str = ""
     add_prompt_dialog_open: bool = False
 
     @rx.event
@@ -78,7 +78,7 @@ class ManageConfigState(SessionState):
     @rx.event
     def set_new_prompt(self, prompt: str):
         """Sets the template for the new prompt."""
-        self.new_prompt = prompt
+        self.new_prompt_template = prompt
 
     @rx.event
     def set_add_prompt_dialog_open(self, is_open: bool):
@@ -107,7 +107,7 @@ class ManageConfigState(SessionState):
         self.replacement_prompt_name = ""
         self.prompt_to_delete = ""
         self.new_prompt_name = ""
-        self.new_prompt = ""
+        self.new_prompt_template = ""
         self.add_prompt_dialog_open = False
 
     @rx.var
@@ -234,7 +234,6 @@ class ManageConfigState(SessionState):
                 position="bottom-center",
                 invert=True,
             )
-            print("prompts:", self.prompts)
         self.replacement_prompt_name = ""
         self.prompt_to_delete = ""
 
@@ -262,7 +261,7 @@ class ManageConfigState(SessionState):
         with rx.session() as session:
             new_prompt = Prompt(
                 name=self.new_prompt_name,
-                prompt_template=self.new_prompt,
+                prompt_template=self.new_prompt_template,
             )
             session.add(new_prompt)
             session.commit()
@@ -271,9 +270,8 @@ class ManageConfigState(SessionState):
             session.refresh(new_prompt)
             if new_prompt.id:
                 self.prompts[new_prompt.id] = new_prompt
-                print("prompts:", self.prompts)
         self.new_prompt_name = ""
-        self.new_prompt = ""
+        self.new_prompt_template = ""
         self.add_prompt_dialog_open = False
         yield rx.toast.success(
             description=BT.prompt_added(self.language),
