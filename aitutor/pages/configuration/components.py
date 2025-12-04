@@ -348,7 +348,7 @@ def add_prompt_dialog() -> rx.Component:
                 text_area(
                     name="prompt_template",
                     heading=LS.prompt,
-                    value=ManageConfigState.new_prompt,
+                    value=ManageConfigState.new_prompt_template,
                     on_change=ManageConfigState.set_new_prompt,
                     placeholder=LS.prompt_variables_info,
                 ),
