@@ -5,6 +5,7 @@ from typing import Optional
 import reflex as rx
 
 from aitutor.language_state import LanguageState as LS
+from aitutor.models import Prompt
 from aitutor.pages.configuration.state import ManageConfigState
 from aitutor.states.config_state import DisplayConfigState
 
@@ -16,6 +17,7 @@ def input(
     value: str,
     on_change,
     info: Optional[rx.Component] = None,
+    **props,
 ) -> rx.Component:
     """Returns an input field with a heading."""
     return rx.vstack(
@@ -29,7 +31,7 @@ def input(
             ),
             rx.text(heading, weight="medium"),
         ),
-        rx.input(name=name, value=value, width="100%", on_change=on_change),
+        rx.input(name=name, value=value, width="100%", on_change=on_change, **props),
         width="40em",
         max_width="100%",
         padding="4",
@@ -43,6 +45,7 @@ def text_area(
     value: str,
     on_change,
     info: Optional[rx.Component] = None,
+    **props,
 ) -> rx.Component:
     """Returns a text area with a heading."""
     return rx.vstack(
@@ -63,6 +66,7 @@ def text_area(
             resize="vertical",
             rows="4",
             on_change=on_change,
+            **props,
         ),
         width="40em",
         max_width="100%",
@@ -171,7 +175,7 @@ def config_form() -> rx.Component:
                     info=info_icon(LS.impressum_info),
                 ),
                 rx.cond(
-                    ManageConfigState.unsaved_changes,
+                    ManageConfigState.general_unsaved_changes,
                     rx.callout(
                         LS.unsaved_changes_info,
                         icon="info",
@@ -185,9 +189,9 @@ def config_form() -> rx.Component:
                         color_scheme="red",
                         type="button",
                         on_click=ManageConfigState.on_load(),
-                        disabled=~ManageConfigState.unsaved_changes,  # type: ignore
+                        disabled=~ManageConfigState.general_unsaved_changes,  # type: ignore
                         _hover=rx.cond(
-                            ManageConfigState.unsaved_changes,
+                            ManageConfigState.general_unsaved_changes,
                             {"cursor": "pointer"},
                             {"cursor": "not-allowed"},
                         ),
@@ -195,9 +199,9 @@ def config_form() -> rx.Component:
                     rx.button(
                         LS.save,
                         type="submit",
-                        disabled=~ManageConfigState.unsaved_changes,  # type: ignore
+                        disabled=~ManageConfigState.general_unsaved_changes,  # type: ignore
                         _hover=rx.cond(
-                            ManageConfigState.unsaved_changes,
+                            ManageConfigState.general_unsaved_changes,
                             {"cursor": "pointer"},
                             {"cursor": "not-allowed"},
                         ),
@@ -215,9 +219,239 @@ def config_form() -> rx.Component:
             max_width="90vw",
         ),
         outline=rx.cond(
-            ManageConfigState.unsaved_changes,
+            ManageConfigState.general_unsaved_changes,
             "1px solid orange",
             "none",
         ),
         variant="ghost",
+    )
+
+
+def prompt_card(prompt: Prompt) -> rx.Component:
+    """A card representing a prompt."""
+    return rx.card(
+        rx.hstack(
+            rx.vstack(
+                input(
+                    name="prompt_name",
+                    heading=LS.prompt_name,
+                    value=prompt.name,
+                    on_change=lambda value: ManageConfigState.set_prompt_name(
+                        prompt.id, value
+                    ),
+                    placeholder=LS.prompt_name_placeholder,
+                ),
+                text_area(
+                    name="prompt_template",
+                    heading=LS.prompt,
+                    value=prompt.prompt_template,
+                    on_change=lambda value: ManageConfigState.set_prompt_template(
+                        prompt.id, value
+                    ),
+                    placeholder=LS.prompt_variables_info,
+                ),
+                width="90%",
+            ),
+            # delete button with confirmation dialog
+            rx.box(
+                rx.alert_dialog.root(
+                    rx.alert_dialog.trigger(
+                        rx.icon_button(
+                            rx.icon("trash"),
+                            size="2",
+                            variant="ghost",
+                            color_scheme="red",
+                            _hover={"cursor": "pointer"},
+                            on_click=ManageConfigState.set_prompt_to_delete(
+                                prompt.name
+                            ),
+                        ),
+                    ),
+                    rx.alert_dialog.content(
+                        rx.alert_dialog.title(LS.delete_prompt),
+                        rx.alert_dialog.description(LS.delete_prompt_description),
+                        rx.box(
+                            height="0.5em",
+                        ),
+                        rx.text(LS.replacement_prompt + ":", weight="medium"),
+                        rx.box(
+                            height="0.5em",
+                        ),
+                        rx.select(
+                            ManageConfigState.remaining_prompt_names,
+                            value=ManageConfigState.replacement_prompt_name,
+                            on_change=ManageConfigState.set_replacement_prompt_name,
+                        ),
+                        rx.hstack(
+                            rx.alert_dialog.cancel(
+                                rx.button(
+                                    rx.text(LS.cancel),
+                                    _hover={"cursor": "pointer"},
+                                    on_click=[
+                                        ManageConfigState.set_replacement_prompt_name(
+                                            ""
+                                        ),
+                                        ManageConfigState.set_prompt_to_delete(""),
+                                    ],
+                                ),
+                            ),
+                            rx.alert_dialog.action(
+                                rx.button(
+                                    LS.delete,
+                                    color_scheme="red",
+                                    on_click=ManageConfigState.delete_prompt(prompt.id),
+                                    _hover=rx.cond(
+                                        ManageConfigState.replacement_prompt_name == "",
+                                        {"cursor": "not-allowed"},
+                                        {"cursor": "pointer"},
+                                    ),
+                                    disabled=ManageConfigState.replacement_prompt_name
+                                    == "",
+                                ),
+                            ),
+                            justify="end",
+                            width="100%",
+                            margin_top="1em",
+                        ),
+                    ),
+                ),
+                width="10%",
+            ),
+            align="center",
+            spacing="4",
+        ),
+        padding="4",
+        width="100%",
+    )
+
+
+def add_prompt_dialog() -> rx.Component:
+    """The Dialog to add a new prompt."""
+    return rx.dialog.root(
+        rx.dialog.trigger(
+            rx.button(
+                rx.icon("plus"),
+                LS.add_prompt,
+                _hover={"cursor": "pointer"},
+                on_click=ManageConfigState.set_add_prompt_dialog_open(True),
+            ),
+        ),
+        rx.dialog.content(
+            rx.vstack(
+                input(
+                    name="prompt_name",
+                    heading=LS.prompt_name,
+                    value=ManageConfigState.new_prompt_name,
+                    on_change=ManageConfigState.set_new_prompt_name,
+                    placeholder=LS.prompt_name_placeholder,
+                ),
+                text_area(
+                    name="prompt_template",
+                    heading=LS.prompt,
+                    value=ManageConfigState.new_prompt_template,
+                    on_change=ManageConfigState.set_new_prompt,
+                    placeholder=LS.prompt_variables_info,
+                ),
+                rx.hstack(
+                    rx.dialog.close(
+                        rx.button(
+                            rx.text(LS.cancel),
+                            _hover={"cursor": "pointer"},
+                            color_scheme="gray",
+                            on_click=ManageConfigState.set_add_prompt_dialog_open(
+                                False
+                            ),
+                        ),
+                    ),
+                    rx.button(
+                        LS.add_prompt,
+                        color_scheme="green",
+                        _hover={"cursor": "pointer"},
+                        on_click=ManageConfigState.add_prompt,
+                    ),
+                    justify="end",
+                    width="100%",
+                    margin_top="1em",
+                ),
+            ),
+            width="40em",
+            max_width="90vw",
+        ),
+        open=ManageConfigState.add_prompt_dialog_open,
+    )
+
+
+def prompt_management() -> rx.Component:
+    """The Button to manage prompts."""
+    return rx.card(
+        rx.vstack(
+            add_prompt_dialog(),
+            rx.callout(
+                rx.hstack(
+                    rx.icon("info"),
+                    rx.markdown(
+                        LS.prompt_variables_info,
+                        margin_top="0",
+                        margin_bottom="0",
+                        align="left",
+                    ),
+                    align="center",
+                ),
+                color_scheme="blue",
+                role="alert",
+                width="100%",
+            ),
+            rx.foreach(
+                ManageConfigState.prompts.values(),
+                prompt_card,
+            ),
+            rx.cond(
+                ManageConfigState.prompts_unsaved_changes,
+                rx.callout(
+                    LS.unsaved_changes_info,
+                    icon="info",
+                    width="100%",
+                    color_scheme="orange",
+                ),
+            ),
+            rx.box(
+                height="1em",
+            ),
+            rx.hstack(
+                rx.button(
+                    LS.discard_changes,
+                    _hover=rx.cond(
+                        ManageConfigState.prompts_unsaved_changes,
+                        {"cursor": "pointer"},
+                        {"cursor": "not-allowed"},
+                    ),
+                    color_scheme="red",
+                    on_click=ManageConfigState.load_prompts_from_db,
+                    disabled=~ManageConfigState.prompts_unsaved_changes,  # type: ignore
+                ),
+                rx.button(
+                    LS.save,
+                    _hover=rx.cond(
+                        ManageConfigState.prompts_unsaved_changes,
+                        {"cursor": "pointer"},
+                        {"cursor": "not-allowed"},
+                    ),
+                    color_scheme="green",
+                    on_click=ManageConfigState.save_prompts_to_db,
+                    disabled=~ManageConfigState.prompts_unsaved_changes,  # type: ignore
+                ),
+                width="100%",
+                justify="end",
+            ),
+            spacing="4",
+            align="center",
+        ),
+        width="40em",
+        max_width="90vw",
+        variant="ghost",
+        outline=rx.cond(
+            ManageConfigState.prompts_unsaved_changes,
+            "1px solid orange",
+            "none",
+        ),
     )

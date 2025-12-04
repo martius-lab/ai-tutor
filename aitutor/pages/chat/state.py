@@ -177,11 +177,26 @@ class ChatState(SessionState):
                     ExerciseResult.userinfo_id == self._userinfo_id,
                 )
             ).one_or_none()
+            error_when_loading_prompt: bool = False
             if exercise:
                 self.current_exercise = exercise
                 self.exercise_title = self.current_exercise.title
                 self.is_overdue = self.current_exercise.deadline_exceeded
-                self.system_message_gpt = self.current_exercise.prompt
+
+                if self.current_exercise.prompt:
+                    exercise_prompt = self.current_exercise.prompt.prompt_template
+                else:
+                    exercise_prompt = (
+                        "tell the user there was an error when loading "
+                        "the prompt. Don't answer any questions."
+                    )
+                    error_when_loading_prompt = True
+                self.system_message_gpt = exercise_prompt.format(
+                    title=self.current_exercise.title,
+                    description=self.current_exercise.description,
+                    lesson_context=self.current_exercise.lesson_context,
+                )
+
                 self.messages = []
                 self.load_existing_conversation()
                 if not self.messages:
@@ -206,7 +221,16 @@ class ChatState(SessionState):
             else:
                 self.check_passed = False
                 self.conversation_is_submitted = False
-        yield
+        if error_when_loading_prompt:
+            yield rx.toast.error(
+                description=BT.prompt_loading_error(self.language),
+                duration=5000,
+                position="bottom-center",
+                invert=True,
+            )
+            error_when_loading_prompt = False
+        else:
+            yield
 
     def on_logout(self):
         """Clears the state when the user logs out."""
