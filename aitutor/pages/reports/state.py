@@ -43,7 +43,6 @@ class ReportsState(FilterMixin, SessionState):
     search_keys: list[str] = [
         gv.SEARCH_USER_KEY,
         gv.SEARCH_EXERCISE_KEY,
-        
     ]
 
     @rx.event
@@ -101,7 +100,7 @@ class ReportsState(FilterMixin, SessionState):
                                 ExerciseResult, Report.exercise_result
                             ).join(Exercise, ExerciseResult.exercise)
                             search_conditions.append(Exercise.title.ilike(f"%{value}%"))
-                        
+
                         case _:
                             # General search across all fields
                             stmt = (
