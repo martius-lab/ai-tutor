@@ -2,6 +2,7 @@
 
 import reflex as rx
 
+from aitutor.components.dialogs import confirm, destructive_confirm
 from aitutor.language_state import LanguageState
 from aitutor.pages.chat.state import ChatMessage, ChatState, Role
 
@@ -139,52 +140,33 @@ def edit_last_message_button() -> rx.Component:
     """
     Render the button to delete the last message.
     """
-    return rx.alert_dialog.root(
-        rx.alert_dialog.trigger(
-            rx.button(
-                rx.hstack(
-                    rx.icon("trash", size=20),
-                    rx.text("+", size="4"),
-                    rx.icon("pencil", size=20),
-                    spacing="1",
-                    align="center",
-                    justify="center",
-                ),
-                color_scheme="iris",
-                _hover=rx.cond(
-                    ChatState.waiting_for_response,
-                    {"cursor": "not-allowed"},
-                    {"cursor": "pointer"},
-                ),
-                disabled=rx.cond(
-                    ChatState.waiting_for_response,
-                    True,
-                    False,
-                ),
-                type="button",
-            ),
-        ),
-        rx.alert_dialog.content(
-            rx.alert_dialog.title(LanguageState.edit_last_message),
-            rx.alert_dialog.description(LanguageState.edit_last_message_info),
+    return confirm(
+        title=LanguageState.edit_last_message,
+        description=LanguageState.edit_last_message_info,
+        confirm_text=LanguageState.confirm,
+        cancel_text=LanguageState.cancel,
+        on_confirm=ChatState.edit_last_message,
+        trigger=rx.button(
             rx.hstack(
-                rx.alert_dialog.cancel(
-                    rx.button(
-                        LanguageState.cancel,
-                        color_scheme="red",
-                        _hover={"cursor": "pointer"},
-                    ),
-                ),
-                rx.alert_dialog.action(
-                    rx.button(
-                        LanguageState.confirm,
-                        color_scheme="iris",
-                        on_click=ChatState.edit_last_message,
-                        _hover={"cursor": "pointer"},
-                    ),
-                ),
-                margin_top="1em",
+                rx.icon("trash", size=20),
+                rx.text("+", size="4"),
+                rx.icon("pencil", size=20),
+                spacing="1",
+                align="center",
+                justify="center",
             ),
+            color_scheme="iris",
+            _hover=rx.cond(
+                ChatState.waiting_for_response,
+                {"cursor": "not-allowed"},
+                {"cursor": "pointer"},
+            ),
+            disabled=rx.cond(
+                ChatState.waiting_for_response,
+                True,
+                False,
+            ),
+            type="button",
         ),
     )
 
@@ -207,57 +189,32 @@ def send_message_button() -> rx.Component:
 
 
 def reset_conversation_button() -> rx.Component:
-    """
-    Render the button to reset the conversation.
-    """
-    return (
-        rx.alert_dialog.root(
-            rx.alert_dialog.trigger(
-                rx.button(
-                    rx.desktop_only(LanguageState.reset_conversation),
-                    rx.mobile_and_tablet(LanguageState.reset_string),
-                    color_scheme="red",
-                    _hover=rx.cond(
-                        ChatState.messages.length() < 2,  # type: ignore
-                        {"cursor": "not-allowed"},
-                        {"cursor": "pointer"},
-                    ),
-                    disabled=rx.cond(
-                        ChatState.messages.length() < 2,  # type: ignore
-                        True,
-                        False,
-                    ),
-                )
+    """Render a button that resets the current conversation with confirmation."""
+    return destructive_confirm(
+        trigger=rx.button(
+            rx.desktop_only(LanguageState.reset_conversation),
+            rx.mobile_and_tablet(LanguageState.reset_string),
+            color_scheme="red",
+            _hover=rx.cond(
+                ChatState.messages.length() < 2,  # type: ignore
+                {"cursor": "not-allowed"},
+                {"cursor": "pointer"},
             ),
-            rx.alert_dialog.content(
-                rx.alert_dialog.title(LanguageState.reset_conversation),
-                rx.alert_dialog.description(
-                    rx.cond(
-                        ChatState.conversation_is_submitted,
-                        LanguageState.reset_info_message_submitted,
-                        LanguageState.reset_info_message_not_submitted,
-                    )
-                ),
-                rx.hstack(
-                    rx.alert_dialog.cancel(
-                        rx.button(
-                            rx.text(LanguageState.cancel),
-                            color_scheme="red",
-                            _hover={"cursor": "pointer"},
-                        ),
-                    ),
-                    rx.alert_dialog.action(
-                        rx.button(
-                            LanguageState.confirm,
-                            color_scheme="iris",
-                            on_click=ChatState.reset_conversation,
-                            _hover={"cursor": "pointer"},
-                        ),
-                    ),
-                    margin_top="1em",
-                ),
+            disabled=rx.cond(
+                ChatState.messages.length() < 2,  # type: ignore
+                True,
+                False,
             ),
         ),
+        title=LanguageState.reset_conversation,
+        description=rx.cond(
+            ChatState.conversation_is_submitted,
+            LanguageState.reset_info_message_submitted,
+            LanguageState.reset_info_message_not_submitted,
+        ),
+        cancel_text=LanguageState.cancel,
+        confirm_text=LanguageState.confirm,
+        on_confirm=ChatState.reset_conversation,
     )
 
 
@@ -305,45 +262,26 @@ def check_conversation_button() -> rx.Component:
                 _hover={"cursor": "not-allowed"},
                 disabled=True,
             ),
-            rx.alert_dialog.root(
-                rx.alert_dialog.trigger(
-                    rx.button(
-                        rx.desktop_only(LanguageState.check_conversation),
-                        rx.mobile_and_tablet(LanguageState.check),
-                        color_scheme="yellow",
-                        type="button",
-                        _hover=rx.cond(
-                            ChatState.messages.length() < 2,  # type: ignore
-                            {"cursor": "not-allowed"},
-                            {"cursor": "pointer"},
-                        ),
-                        disabled=rx.cond(
-                            ChatState.messages.length() < 2,  # type: ignore
-                            True,
-                            False,
-                        ),
+            confirm(
+                title=LanguageState.check_conversation,
+                description=LanguageState.check_conversation_info,
+                confirm_text=LanguageState.confirm,
+                cancel_text=LanguageState.cancel,
+                on_confirm=ChatState.check_conversation,
+                trigger=rx.button(
+                    rx.desktop_only(LanguageState.check_conversation),
+                    rx.mobile_and_tablet(LanguageState.check),
+                    color_scheme="yellow",
+                    type="button",
+                    _hover=rx.cond(
+                        ChatState.messages.length() < 2,  # type: ignore
+                        {"cursor": "not-allowed"},
+                        {"cursor": "pointer"},
                     ),
-                ),
-                rx.alert_dialog.content(
-                    rx.alert_dialog.title(LanguageState.check_conversation),
-                    rx.alert_dialog.description(LanguageState.check_conversation_info),
-                    rx.hstack(
-                        rx.alert_dialog.cancel(
-                            rx.button(
-                                rx.text(LanguageState.cancel),
-                                color_scheme="red",
-                                _hover={"cursor": "pointer"},
-                            ),
-                        ),
-                        rx.alert_dialog.action(
-                            rx.button(
-                                LanguageState.confirm,
-                                color_scheme="iris",
-                                on_click=ChatState.check_conversation,
-                                _hover={"cursor": "pointer"},
-                            ),
-                        ),
-                        margin_top="1em",
+                    disabled=rx.cond(
+                        ChatState.messages.length() < 2,  # type: ignore
+                        True,
+                        False,
                     ),
                 ),
             ),
