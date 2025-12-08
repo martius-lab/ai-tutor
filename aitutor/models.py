@@ -185,6 +185,7 @@ class Report(SQLModel, table=True):
         exercise_result_id (int): Foreign key referencing the associated ExerciseResult.
         report_text (str): The text content of the report.
         looked_at (bool): Flag indicating whether the report has been viewed by a tutor.
+        conversation_snapshot (List[Dict[str, Any]]): Snapshot of the conversation at report submission time.
         exercise_result (ExerciseResult): Relationship to the associated ExerciseResult.
     """
 
@@ -192,5 +193,8 @@ class Report(SQLModel, table=True):
     exercise_result_id: int = Field(foreign_key="exerciseresult.id", nullable=False)
     report_text: str
     looked_at: bool = Field(default=False)
+    conversation_snapshot: List[Dict[str, Any]] = Field(
+        sa_column=Column(JSON), default=[]
+    )
 
     exercise_result: "ExerciseResult" = Relationship(back_populates="reports")

@@ -105,19 +105,12 @@ def show_table_row(table_row: TableRow) -> rx.Component:
         rx.table.cell(
             rx.alert_dialog.root(
                 rx.alert_dialog.trigger(
-                    rx.hover_card.root(
-                        rx.hover_card.trigger(
-                            rx.icon_button(
-                                rx.icon("trash"),
-                                size="2",
-                                variant="ghost",
-                                color_scheme="red",
-                                _hover={"cursor": "pointer"},
-                            )
-                        ),
-                        rx.hover_card.content(
-                            rx.text(LanguageState.report_delete_tooltip),
-                        ),
+                    rx.icon_button(
+                        rx.icon("trash"),
+                        size="2",
+                        variant="ghost",
+                        color_scheme="red",
+                        _hover={"cursor": "pointer"},
                     )
                 ),
                 rx.alert_dialog.content(
@@ -132,6 +125,7 @@ def show_table_row(table_row: TableRow) -> rx.Component:
                                 color_scheme="gray",
                                 _hover={"cursor": "pointer"},
                             ),
+                           
                         ),
                         rx.alert_dialog.action(
                             rx.button(
@@ -143,6 +137,7 @@ def show_table_row(table_row: TableRow) -> rx.Component:
                                 _hover={"cursor": "pointer"},
                             ),
                         ),
+                        
                         margin_top="1em",
                     ),
                 ),

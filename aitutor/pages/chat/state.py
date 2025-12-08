@@ -197,10 +197,14 @@ class ChatState(SessionState):
             if exercise_result.id is None:
                 raise ValueError("Failed to obtain exercise_result.id after commit.")
 
+            # Create a snapshot of the current conversation
+            conversation_snapshot = self.get_messages_dict_gpt()
+
             report = Report(
                 exercise_result_id=exercise_result.id,
                 report_text=self.report_text,
                 looked_at=False,
+                conversation_snapshot=conversation_snapshot,
             )
             session.add(report)
             session.commit()
