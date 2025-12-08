@@ -69,7 +69,11 @@ def show_table_row(table_row: TableRow) -> rx.Component:
                             "blue",
                         ),
                         variant="ghost",
-                        on_click=ReportsState.toggle_looked_at(table_row.report_id),
+                        on_click=ReportsState.toggle_looked_at(
+                            table_row.report_id
+                            if table_row.report_id is not None
+                            else 0
+                        ),
                         _hover={"cursor": "pointer"},
                     )
                 ),
@@ -108,7 +112,9 @@ def show_table_row(table_row: TableRow) -> rx.Component:
                 description=LanguageState.delete_report_content,
                 confirm_text=LanguageState.delete,
                 cancel_text=LanguageState.cancel,
-                on_confirm=ReportsState.delete_report(table_row.report_id),
+                on_confirm=ReportsState.delete_report(
+                    table_row.report_id if table_row.report_id is not None else 0
+                ),
                 trigger=rx.icon_button(
                     rx.icon("trash"),
                     size="2",

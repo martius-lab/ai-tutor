@@ -27,7 +27,7 @@ from aitutor.utilities.filtering_components import FilterMixin
 class TableRow:
     """A row in the reports table."""
 
-    report_id: int
+    report_id: int | None
     username: str
     exercise_title: str
     report_preview: str  # First 30 characters
@@ -71,14 +71,14 @@ class ReportsState(FilterMixin, SessionState):
             stmt = (
                 select(Report)
                 .options(
-                    selectinload(Report.exercise_result)
-                    .selectinload(ExerciseResult.exercise)
-                    .selectinload(Exercise.tags),
-                    selectinload(Report.exercise_result)
-                    .selectinload(ExerciseResult.user)
-                    .selectinload(UserInfo.local_user),
+                    selectinload(Report.exercise_result)  # type: ignore
+                    .selectinload(ExerciseResult.exercise)  # type: ignore
+                    .selectinload(Exercise.tags),  # type: ignore
+                    selectinload(Report.exercise_result)  # type: ignore
+                    .selectinload(ExerciseResult.user)  # type: ignore
+                    .selectinload(UserInfo.local_user),  # type: ignore
                 )
-                .order_by(Report.id.desc())
+                .order_by(Report.id.desc())  # type: ignore
             )
 
             # Apply search filters if any
@@ -88,33 +88,34 @@ class ReportsState(FilterMixin, SessionState):
                     match key:
                         case gv.SEARCH_USER_KEY:
                             stmt = (
-                                stmt.join(ExerciseResult, Report.exercise_result)
-                                .join(UserInfo, ExerciseResult.user)
-                                .join(LocalUser, UserInfo.local_user)
+                                stmt.join(ExerciseResult, Report.exercise_result)  # type: ignore
+                                .join(UserInfo, ExerciseResult.user)  # type: ignore
+                                .join(LocalUser, UserInfo.local_user)  # type: ignore
                             )
                             search_conditions.append(
-                                LocalUser.username.ilike(f"%{value}%")
+                                LocalUser.username.ilike(f"%{value}%")  # type: ignore
                             )
                         case gv.SEARCH_EXERCISE_KEY:
                             stmt = stmt.join(
-                                ExerciseResult, Report.exercise_result
-                            ).join(Exercise, ExerciseResult.exercise)
-                            search_conditions.append(Exercise.title.ilike(f"%{value}%"))
+                                ExerciseResult,
+                                Report.exercise_result,  # type: ignore
+                            ).join(Exercise, ExerciseResult.exercise)  # type: ignore
+                            search_conditions.append(Exercise.title.ilike(f"%{value}%"))  # type: ignore
 
                         case _:
                             # General search across all fields
                             stmt = (
-                                stmt.join(ExerciseResult, Report.exercise_result)
-                                .join(UserInfo, ExerciseResult.user)
-                                .join(LocalUser, UserInfo.local_user)
-                                .join(Exercise, ExerciseResult.exercise)
+                                stmt.join(ExerciseResult, Report.exercise_result)  # type: ignore
+                                .join(UserInfo, ExerciseResult.user)  # type: ignore
+                                .join(LocalUser, UserInfo.local_user)  # type: ignore
+                                .join(Exercise, ExerciseResult.exercise)  # type: ignore
                             )
                             search_conditions.append(
                                 or_(
-                                    LocalUser.username.ilike(f"%{value}%"),
-                                    Exercise.title.ilike(f"%{value}%"),
-                                    Exercise.tags.any(Tag.name.ilike(f"%{value}%")),
-                                    Report.report_text.ilike(f"%{value}%"),
+                                    LocalUser.username.ilike(f"%{value}%"),  # type: ignore
+                                    Exercise.title.ilike(f"%{value}%"),  # type: ignore
+                                    Exercise.tags.any(Tag.name.ilike(f"%{value}%")),  # type: ignore
+                                    Report.report_text.ilike(f"%{value}%"),  # type: ignore
                                 )
                             )
 
