@@ -29,6 +29,34 @@ def report_view_page() -> rx.Component:
                     align="center",
                 ),
                 rx.hstack(
+                    rx.cond(
+                        ~ReportViewState.looked_at,
+                        rx.icon("mail-check", size=18),
+                        rx.icon("mail-open", size=18),
+                    ),
+                    rx.button(
+                        rx.cond(
+                            ReportViewState.looked_at,
+                            rx.hstack(
+                                rx.text(LanguageState.report_mark_as_unread),
+                                spacing="2",
+                            ),
+                            rx.hstack(
+                                rx.text(LanguageState.report_mark_as_read),
+                                spacing="2",
+                            ),
+                        ),
+                        color_scheme="iris",
+                        on_click=[
+                            ReportViewState.toggle_looked_at,
+                            rx.redirect(routes.REPORTS),
+                        ],
+                        _hover={"cursor": "pointer"},
+                    ),
+                    align="center",
+                    spacing="2",
+                ),
+                rx.hstack(
                     rx.icon("book", size=18),
                     rx.text(LanguageState.exercise + ":", weight="bold"),
                     rx.text(ReportViewState.exercise_title),
@@ -52,35 +80,6 @@ def report_view_page() -> rx.Component:
                         border_radius="8px",
                         background_color=rx.color("red", 4),
                         color=rx.color("red", 12),
-                    ),
-                    width="100%",
-                ),
-                rx.hstack(
-                    rx.cond(
-                        ~ReportViewState.looked_at,
-                        rx.icon("mail-check", size=18),
-                        rx.icon("mail-open", size=18),
-                    ),
-                    rx.button(
-                        rx.cond(
-                            ReportViewState.looked_at,
-                            rx.hstack(
-                                #  rx.icon("mail-check", size=18),
-                                rx.text(LanguageState.report_mark_as_unread),
-                                spacing="2",
-                            ),
-                            rx.hstack(
-                                #   rx.icon("mail-open", size=18),
-                                rx.text(LanguageState.report_mark_as_read),
-                                spacing="2",
-                            ),
-                        ),
-                        color_scheme="blue",
-                        on_click=[
-                            ReportViewState.toggle_looked_at,
-                            rx.redirect(routes.REPORTS),
-                        ],
-                        _hover={"cursor": "pointer"},
                     ),
                     width="100%",
                 ),

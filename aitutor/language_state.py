@@ -775,7 +775,7 @@ class LanguageState(SessionState):
     @rx.var
     def report_view(self) -> str:
         return self.translate(de="Anschauen", en="View")
-    
+
     @rx.var
     def report_seen_tooltip(self) -> str:
         return self.translate(
@@ -793,7 +793,6 @@ class LanguageState(SessionState):
         return self.translate(
             de="Hier können Sie den Bericht ansehen", en="Here you can view the report"
         )
-
 
     # ReportViewPage Strings -------------------------------------------------------------------
 
@@ -816,8 +815,6 @@ class LanguageState(SessionState):
     @rx.var
     def report_submitted_conversation(self) -> str:
         return self.translate(de="Eingereichter Chat:", en="Submitted Conversation:")
-
-    
 
 
 class BackendTranslations:

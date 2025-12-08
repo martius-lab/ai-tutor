@@ -124,7 +124,6 @@ def show_table_row(table_row: TableRow) -> rx.Component:
                                 color_scheme="gray",
                                 _hover={"cursor": "pointer"},
                             ),
-                           
                         ),
                         rx.alert_dialog.action(
                             rx.button(
@@ -136,7 +135,6 @@ def show_table_row(table_row: TableRow) -> rx.Component:
                                 _hover={"cursor": "pointer"},
                             ),
                         ),
-                        
                         margin_top="1em",
                     ),
                 ),
