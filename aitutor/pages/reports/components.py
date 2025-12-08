@@ -3,6 +3,7 @@
 import reflex as rx
 
 from aitutor import routes
+from aitutor.components.dialogs import destructive_confirm
 from aitutor.global_vars import (
     SEARCH_EXERCISE_KEY,
     SEARCH_USER_KEY,
@@ -102,41 +103,18 @@ def show_table_row(table_row: TableRow) -> rx.Component:
             )
         ),
         rx.table.cell(
-            rx.alert_dialog.root(
-                rx.alert_dialog.trigger(
-                    rx.icon_button(
-                        rx.icon("trash"),
-                        size="2",
-                        variant="ghost",
-                        color_scheme="red",
-                        _hover={"cursor": "pointer"},
-                    )
-                ),
-                rx.alert_dialog.content(
-                    rx.alert_dialog.title("Delete Report"),
-                    rx.alert_dialog.description(
-                        "Are you sure you want to delete this report?"
-                    ),
-                    rx.hstack(
-                        rx.alert_dialog.cancel(
-                            rx.button(
-                                "Cancel",
-                                color_scheme="gray",
-                                _hover={"cursor": "pointer"},
-                            ),
-                        ),
-                        rx.alert_dialog.action(
-                            rx.button(
-                                "Delete",
-                                color_scheme="red",
-                                on_click=ReportsState.delete_report(
-                                    table_row.report_id
-                                ),
-                                _hover={"cursor": "pointer"},
-                            ),
-                        ),
-                        margin_top="1em",
-                    ),
+            destructive_confirm(
+                title=LanguageState.delete_report_title,
+                description=LanguageState.delete_report_content,
+                confirm_text=LanguageState.delete,
+                cancel_text=LanguageState.cancel,
+                on_confirm=ReportsState.delete_report(table_row.report_id),
+                trigger=rx.icon_button(
+                    rx.icon("trash"),
+                    size="2",
+                    variant="ghost",
+                    color_scheme="red",
+                    _hover={"cursor": "pointer"},
                 ),
             )
         ),
