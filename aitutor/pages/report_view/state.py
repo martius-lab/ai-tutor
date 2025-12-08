@@ -69,11 +69,16 @@ class ReportViewState(SessionState):
                 self.username = exercise_result.user.local_user.username
 
                 # Convert conversation to ChatMessage format
-                # Use finished_conversation if available, otherwise conversation_text
+                # Use the snapshot from the report instead of live conversation
+                # This ensures the conversation shown is exactly as it was when reported
                 conversation_data = (
-                    exercise_result.finished_conversation
-                    if exercise_result.finished_conversation
-                    else exercise_result.conversation_text
+                    report.conversation_snapshot
+                    if report.conversation_snapshot
+                    else (
+                        exercise_result.finished_conversation
+                        if exercise_result.finished_conversation
+                        else exercise_result.conversation_text
+                    )
                 )
 
                 self.messages = [
