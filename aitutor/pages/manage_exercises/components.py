@@ -4,6 +4,7 @@ from typing import Sequence
 
 import reflex as rx
 
+from aitutor.components.dialogs import destructive_confirm
 from aitutor.global_vars import TIME_ZONE
 from aitutor.language_state import LanguageState
 from aitutor.models import Exercise
@@ -62,38 +63,19 @@ def new_tag_dialog():
 
 def delete_exercise_button(exercise: Exercise):
     """Delete exercise"""
-    return (
-        rx.alert_dialog.root(
-            rx.alert_dialog.trigger(
-                rx.icon_button(
-                    rx.icon("trash"),
-                    size="2",
-                    variant="ghost",
-                    color_scheme="red",
-                    _hover={"cursor": "pointer"},
-                ),
-            ),
-            rx.alert_dialog.content(
-                rx.alert_dialog.title(LanguageState.delete_exercise),
-                rx.alert_dialog.description(LanguageState.delete_exercise_info),
-                rx.hstack(
-                    rx.alert_dialog.cancel(
-                        rx.button(
-                            rx.text(LanguageState.cancel),
-                            _hover={"cursor": "pointer"},
-                        ),
-                    ),
-                    rx.alert_dialog.action(
-                        rx.button(
-                            LanguageState.delete,
-                            color_scheme="red",
-                            on_click=ManageExercisesState.delete_exercise(exercise.id),  # type: ignore
-                            _hover={"cursor": "pointer"},
-                        ),
-                    ),
-                    margin_top="1em",
-                ),
-            ),
+
+    return destructive_confirm(
+        title=LanguageState.delete_exercise,
+        description=LanguageState.delete_exercise_info,
+        confirm_text=LanguageState.delete,
+        cancel_text=LanguageState.cancel,
+        on_confirm=ManageExercisesState.delete_exercise(exercise.id),  # type: ignore
+        trigger=rx.icon_button(
+            rx.icon("trash"),
+            size="2",
+            variant="ghost",
+            color_scheme="red",
+            _hover={"cursor": "pointer"},
         ),
     )
 
@@ -239,43 +221,26 @@ def add_exercise_button() -> rx.Component:
 
 def delete_selected_exercises_button() -> rx.Component:
     """Button to delete all selected exercises."""
-    return rx.alert_dialog.root(
-        rx.alert_dialog.trigger(
-            rx.button(
-                rx.icon("trash"),
-                rx.text(
-                    LanguageState.delete
-                    + " ("
-                    + ManageExercisesState.selected_exercises_num
-                    + ")",
-                    size="3",
-                ),
-                color_scheme="red",
-                _hover={"cursor": "pointer"},
-                type="button",
-                radius="large",
-            )
-        ),
-        rx.alert_dialog.content(
-            rx.alert_dialog.title(LanguageState.delete),
-            rx.alert_dialog.description(LanguageState.delete_selected_info),
-            rx.hstack(
-                rx.alert_dialog.cancel(
-                    rx.button(
-                        rx.text(LanguageState.cancel),
-                        _hover={"cursor": "pointer"},
-                    ),
-                ),
-                rx.alert_dialog.action(
-                    rx.button(
-                        LanguageState.delete,
-                        color_scheme="red",
-                        on_click=ManageExercisesState.delete_selected_exercises,
-                        _hover={"cursor": "pointer"},
-                    ),
-                ),
-                margin_top="1em",
+
+    return destructive_confirm(
+        title=LanguageState.delete,
+        description=LanguageState.delete_selected_info,
+        confirm_text=LanguageState.delete,
+        cancel_text=LanguageState.cancel,
+        on_confirm=ManageExercisesState.delete_selected_exercises,
+        trigger=rx.button(
+            rx.icon("trash"),
+            rx.text(
+                LanguageState.delete
+                + " ("
+                + ManageExercisesState.selected_exercises_num
+                + ")",
+                size="3",
             ),
+            color_scheme="red",
+            _hover={"cursor": "pointer"},
+            type="button",
+            radius="large",
         ),
     )
 
@@ -465,7 +430,7 @@ def select_prompt(mode: DialogMode) -> rx.Component:
     """The prompt selection component."""
     return (
         rx.text(
-            LanguageState.prompt,
+            LanguageState.prompt + ":",
             size="3",
             weight="medium",
             text_align="left",
@@ -489,27 +454,9 @@ def select_prompt(mode: DialogMode) -> rx.Component:
                 ),
                 rx.popover.content(
                     rx.flex(
-                        rx.cond(
-                            mode == DialogMode.ADD,
-                            rx.text(
-                                ManageExercisesState.prompts[
-                                    ManageExercisesState.current_prompt_name
-                                ],
-                                padding="1em",
-                            ),
-                            rx.text(
-                                # show the prompt from the db or
-                                # the selected prompt template
-                                rx.cond(
-                                    ManageExercisesState.current_exercise.prompt_name
-                                    == ManageExercisesState.current_prompt_name,
-                                    ManageExercisesState.current_exercise.prompt,
-                                    ManageExercisesState.prompts[
-                                        ManageExercisesState.current_prompt_name
-                                    ],
-                                ),
-                                padding="1em",
-                            ),
+                        rx.text(
+                            ManageExercisesState.get_current_prompt_template,
+                            padding="1em",
                         ),
                         style={
                             "white-space": "pre-wrap",

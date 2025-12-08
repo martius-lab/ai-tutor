@@ -13,6 +13,7 @@ NOT_FOUND = "/404"
 FINISHED_VIEW = "/finished_view"  # needs to be /finished_view/[exercise_id] to work
 SUBMISSIONS = "/submissions"
 USER_SETTINGS = "/user_settings"
+CONFIGURATION = "/configuration"
 REPORTS = "/reports"
 
 # needs to be /finished_view_tutor/[exercise_id]/[url_user_id]

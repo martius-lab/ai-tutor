@@ -5,7 +5,7 @@ This module defines the navbar components for the Reflex application.
 import reflex as rx
 
 import aitutor.routes as routes
-from aitutor import ConfigState
+from aitutor import DisplayConfigState
 from aitutor.auth.protection import has_role_at_least
 from aitutor.auth.state import SessionState
 from aitutor.language_state import LanguageState
@@ -41,6 +41,7 @@ tutor_links = [
 admin_links = [
     (LanguageState.manage_exercises_link, routes.MANAGE_EXERCISES, "pencil-line"),
     (LanguageState.manage_users, routes.MANAGE_USERS, "users"),
+    (LanguageState.configuration, routes.CONFIGURATION, "file-sliders"),
     (LanguageState.reports, routes.REPORTS, "flag"),
 ]
 
@@ -220,7 +221,7 @@ def navbar(route_to_highlight: str) -> rx.Component:
                     align_items="center",
                 ),
                 rx.vstack(
-                    rx.text(ConfigState.course_name, weight="bold"),
+                    rx.text(DisplayConfigState.course_name, weight="bold"),
                     rx.hstack(
                         rx.foreach(
                             links,
@@ -230,6 +231,7 @@ def navbar(route_to_highlight: str) -> rx.Component:
                         ),
                         spacing="5",
                         align="center",
+                        wrap="wrap",
                     ),
                     align="center",
                 ),
@@ -265,7 +267,7 @@ def navbar(route_to_highlight: str) -> rx.Component:
                         rx.menu.content(
                             rx.box(
                                 rx.text(
-                                    ConfigState.course_name,
+                                    DisplayConfigState.course_name,
                                     color_scheme="gray",
                                     weight="bold",
                                 ),

@@ -6,7 +6,15 @@ from typing import Any, Dict, List, Optional
 from zoneinfo import ZoneInfo
 
 from reflex_local_auth.user import LocalUser
-from sqlmodel import JSON, Column, DateTime, Field, Relationship, SQLModel
+from sqlmodel import (
+    JSON,
+    CheckConstraint,
+    Column,
+    DateTime,
+    Field,
+    Relationship,
+    SQLModel,
+)
 
 from aitutor.global_vars import TIME_ZONE
 
@@ -66,8 +74,7 @@ class Exercise(SQLModel, table=True):
     title: str = Field(nullable=False, default="")
     description: str = Field(nullable=False, default="")
     lesson_context: str = Field(nullable=False, default="")
-    prompt_name: str = Field(nullable=False, default="")
-    prompt: str = Field(nullable=False, default="")
+    prompt_id: Optional[int] = Field(default=None, foreign_key="prompt.id")
     is_hidden: bool = Field(default=False)
     deadline: Optional[datetime] = Field(
         sa_column=Column(DateTime, nullable=True), default=None
@@ -81,6 +88,7 @@ class Exercise(SQLModel, table=True):
     tags: List[Tag] = Relationship(
         back_populates="exercises", link_model=ExerciseTagLink
     )
+    prompt: Optional["Prompt"] = Relationship()
 
     @property
     def editing_period(self) -> str:
@@ -174,6 +182,42 @@ class UserInfo(SQLModel, table=True):
         back_populates="user", cascade_delete=True
     )
     local_user: "LocalUser" = Relationship()
+
+
+class Config(SQLModel, table=True):
+    """
+    Table for storing global configuration settings.
+    """
+
+    # make sure there is only one row in the table
+    __table_args__ = (CheckConstraint("id = 1", name="only_one_row"),)
+
+    id: Optional[int] = Field(default=1, primary_key=True)
+    check_conversation_prompt: str
+    response_ai_model: str
+    check_ai_model: str
+    how_to_use_text: str
+    general_information_text: str
+    lecture_information_text: str
+    course_name: str
+    impressum_text: str
+    registration_code: str
+
+    def __repr__(self):
+        return f"<Config(id={self.id}, course_name='{self.course_name}')>"
+
+
+class Prompt(SQLModel, table=True):
+    """
+    Table for storing prompt templates.
+    """
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    name: str = Field(unique=True, nullable=False)
+    prompt_template: str = Field(nullable=False, default="")
+
+    def __repr__(self):
+        return f"<Prompt(name='{self.name}')>"
 
 
 class Report(SQLModel, table=True):

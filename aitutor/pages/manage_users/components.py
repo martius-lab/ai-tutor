@@ -3,6 +3,7 @@
 import reflex as rx
 
 from aitutor.components import password_input
+from aitutor.components.dialogs import destructive_confirm
 from aitutor.language_state import LanguageState as LS
 from aitutor.models import LocalUser, UserInfo, UserRole
 from aitutor.pages.manage_users.state import ManageUsersState
@@ -21,38 +22,22 @@ def role_to_text(role: UserRole):
 
 def delete_user_button(user: LocalUser) -> rx.Component:
     """Button to delete a user with a confirmation dialog."""
-    return rx.alert_dialog.root(
-        rx.alert_dialog.trigger(
-            rx.button(
-                rx.flex(
-                    rx.icon("trash", size=15), LS.delete, gap="0.5em", align="center"
-                ),
-                color_scheme="red",
-                _hover={"cursor": "pointer"},
+
+    return destructive_confirm(
+        title=LS.delete_user + f" '{user.username}'",
+        description=LS.delete_user_description,
+        confirm_text=LS.delete,
+        cancel_text=LS.cancel,
+        on_confirm=ManageUsersState.delete_user(user.id),  # type: ignore
+        trigger=rx.button(
+            rx.flex(
+                rx.icon("trash", size=15),
+                LS.delete,
+                gap="0.5em",
+                align="center",
             ),
-        ),
-        rx.alert_dialog.content(
-            rx.alert_dialog.title(LS.delete_user + f" '{user.username}'"),
-            rx.alert_dialog.description(LS.delete_user_description),
-            rx.hstack(
-                rx.spacer(),
-                rx.alert_dialog.cancel(
-                    rx.button(
-                        rx.text(LS.cancel),
-                        _hover={"cursor": "pointer"},
-                    ),
-                    _hover={"cursor": "pointer"},
-                ),
-                rx.alert_dialog.action(
-                    rx.button(
-                        LS.delete,
-                        color_scheme="red",
-                        on_click=ManageUsersState.delete_user(user.id),  # type: ignore
-                        _hover={"cursor": "pointer"},
-                    ),
-                ),
-                margin_top="1em",
-            ),
+            color_scheme="red",
+            _hover={"cursor": "pointer"},
         ),
     )
 
