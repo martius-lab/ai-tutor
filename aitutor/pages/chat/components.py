@@ -140,7 +140,7 @@ def edit_last_message_button() -> rx.Component:
     """
     Render the button to delete the last message.
     """
-    return destructive_confirm(
+    return confirm(
         title=LanguageState.edit_last_message,
         description=LanguageState.edit_last_message_info,
         confirm_text=LanguageState.confirm,
