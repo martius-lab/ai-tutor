@@ -774,7 +774,26 @@ class LanguageState(SessionState):
 
     @rx.var
     def report_view(self) -> str:
-        return self.translate(de="Gesehen", en="View")
+        return self.translate(de="Anschauen", en="View")
+    
+    @rx.var
+    def report_seen_tooltip(self) -> str:
+        return self.translate(
+            de="Dieser Bericht wurde gesehen", en="This report was seen"
+        )
+
+    @rx.var
+    def report_not_seen_tooltip(self) -> str:
+        return self.translate(
+            de="Dieser Bericht wurde nicht gesehen", en="This report was not seen"
+        )
+
+    @rx.var
+    def report_view_tooltip(self) -> str:
+        return self.translate(
+            de="Hier können Sie den Bericht ansehen", en="Here you can view the report"
+        )
+
 
     # ReportViewPage Strings -------------------------------------------------------------------
 
@@ -798,30 +817,7 @@ class LanguageState(SessionState):
     def report_submitted_conversation(self) -> str:
         return self.translate(de="Eingereichter Chat:", en="Submitted Conversation:")
 
-    @rx.var
-    def report_seen_tooltip(self) -> str:
-        return self.translate(
-            de="Ich habe diesen Bericht gesehen", en="I have seen this report"
-        )
-
-    @rx.var
-    def report_not_seen_tooltip(self) -> str:
-        return self.translate(
-            de="Ich habe diesen Bericht nicht gesehen", en="I have not seen this report"
-        )
-
-    @rx.var
-    def report_view_tooltip(self) -> str:
-        return self.translate(
-            de="Hier können Sie den Bericht ansehen", en="Here you can view the report"
-        )
-
-    @rx.var
-    def report_delete_tooltip(self) -> str:
-        return self.translate(
-            de="Hier können Sie den Bericht löschen",
-            en="Here you can delete the report",
-        )
+    
 
 
 class BackendTranslations:
