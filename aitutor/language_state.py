@@ -999,6 +999,17 @@ Please test the chat for functionality after changing the model.
             de="Hier können Sie den Bericht ansehen", en="Here you can view the report"
         )
 
+    @rx.var
+    def delete_report_title(self) -> str:
+        return self.translate(de="Bericht löschen", en="Delete Report")
+
+    @rx.var
+    def delete_report_content(self) -> str:
+        return self.translate(
+            de="Möchten Sie diesen Bericht wirklich löschen?",
+            en="Are you sure you want to delete this report?",
+        )
+
     # ReportViewPage Strings -------------------------------------------------------------------
 
     @rx.var
