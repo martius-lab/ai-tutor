@@ -170,7 +170,7 @@ class ChatState(SessionState):
             return rx.toast.error(
                 title="Report Error",
                 description="Cannot submit empty report.",
-                position="top-center",
+                position="bottom-center",
             )
 
         with rx.session() as session:
@@ -214,7 +214,7 @@ class ChatState(SessionState):
         return rx.toast.success(
             title="Report Submitted",
             description="Thank you for your feedback!",
-            position="top-center",
+            position="bottom-center",
         )
 
     @rx.event

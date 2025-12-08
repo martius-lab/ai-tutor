@@ -30,7 +30,7 @@ class TableRow:
     report_id: int
     username: str
     exercise_title: str
-    report_preview: str  # First 20-30 characters
+    report_preview: str  # First 30 characters
     looked_at: bool
 
 
@@ -43,7 +43,7 @@ class ReportsState(FilterMixin, SessionState):
     search_keys: list[str] = [
         gv.SEARCH_USER_KEY,
         gv.SEARCH_EXERCISE_KEY,
-        gv.SEARCH_TAG_KEY,
+        
     ]
 
     @rx.event
@@ -101,13 +101,7 @@ class ReportsState(FilterMixin, SessionState):
                                 ExerciseResult, Report.exercise_result
                             ).join(Exercise, ExerciseResult.exercise)
                             search_conditions.append(Exercise.title.ilike(f"%{value}%"))
-                        case gv.SEARCH_TAG_KEY:
-                            stmt = stmt.join(
-                                ExerciseResult, Report.exercise_result
-                            ).join(Exercise, ExerciseResult.exercise)
-                            search_conditions.append(
-                                Exercise.tags.any(Tag.name.ilike(f"%{value}%"))
-                            )
+                        
                         case _:
                             # General search across all fields
                             stmt = (
