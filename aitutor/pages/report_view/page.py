@@ -56,22 +56,30 @@ def report_view_page() -> rx.Component:
                     width="100%",
                 ),
                 rx.hstack(
+                    rx.cond(
+                        ~ReportViewState.looked_at,
+                        rx.icon("mail-check", size=18),
+                        rx.icon("mail-open", size=18),
+                    ),
                     rx.button(
                         rx.cond(
                             ReportViewState.looked_at,
                             rx.hstack(
-                                rx.icon("mail-check", size=18),
+                                #  rx.icon("mail-check", size=18),
                                 rx.text(LanguageState.report_mark_as_unread),
                                 spacing="2",
                             ),
                             rx.hstack(
-                                rx.icon("mail-open", size=18),
+                                #   rx.icon("mail-open", size=18),
                                 rx.text(LanguageState.report_mark_as_read),
                                 spacing="2",
                             ),
                         ),
                         color_scheme="blue",
-                        on_click=ReportViewState.toggle_looked_at,
+                        on_click=[
+                            ReportViewState.toggle_looked_at,
+                            rx.redirect(routes.REPORTS),
+                        ],
                         _hover={"cursor": "pointer"},
                     ),
                     width="100%",
