@@ -71,15 +71,7 @@ class ReportViewState(SessionState):
                 # Convert conversation to ChatMessage format
                 # Use the snapshot from the report instead of live conversation
                 # This ensures the conversation shown is exactly as it was when reported
-                conversation_data = (
-                    report.conversation_snapshot
-                    if report.conversation_snapshot
-                    else (
-                        exercise_result.finished_conversation
-                        if exercise_result.finished_conversation
-                        else exercise_result.conversation_text
-                    )
-                )
+                conversation_data = report.conversation_snapshot
 
                 self.messages = [
                     ChatMessage(

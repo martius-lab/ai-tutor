@@ -225,13 +225,12 @@ class Report(SQLModel, table=True):
     Represents a report submitted for a particular exercise result.
 
     Attributes:
-        id (Optional[int]): Primary key of the report.
-        exercise_result_id (int): Foreign key referencing the associated ExerciseResult.
-        report_text (str): The text content of the report.
-        looked_at (bool): Flag indicating whether the report has been viewed by a tutor.
-        conversation_snapshot (List[Dict[str, Any]]):
-        Snapshot of the conversation at report submission time.
-        exercise_result (ExerciseResult): Relationship to the associated ExerciseResult.
+        id: Primary key of the report.
+        exercise_result_id: Foreign key referencing the associated ExerciseResult.
+        report_text: The text content of the report.
+        looked_at: Flag indicating whether the report has been viewed by a tutor.
+        conversation_snapshot: Snapshot of the conversation at report submission time.
+        exercise_result: Relationship to the associated ExerciseResult.
     """
 
     id: Optional[int] = Field(default=None, primary_key=True)
