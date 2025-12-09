@@ -83,7 +83,7 @@ class LanguageState(SessionState):
     @rx.var
     def search_placeholder(self) -> str:
         """Search placeholder string"""
-        return self.translate(de="tag:tagname", en="tag:tagname")
+        return self.translate(de="Suche...", en="Search...")
 
     @rx.var
     def search_info_one(self) -> str:
@@ -962,9 +962,7 @@ Please test the chat for functionality after changing the model.
     # Report Strings -------------------------------------------------------------------
     @rx.var
     def report_conversation(self) -> str:
-        return self.translate(
-            de="Problematischen Chat melden", en="Report problematic chat"
-        )
+        return self.translate(de="Konversation melden", en="Report conversation")
 
     @rx.var
     def reports(self) -> str:

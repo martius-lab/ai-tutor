@@ -361,13 +361,15 @@ def report_conversation_link() -> rx.Component:
                 rx.text(
                     LanguageState.report_conversation,
                     size="2",
-                    color=rx.color("red", 11),
+                    color=rx.color("blue", 11),
                     text_decoration="underline",
                     _hover={"cursor": "pointer"},
                 ),
                 text_align="center",
                 width="100%",
                 margin_top="0.5em",
+                margin_left="auto",
+                margin_right="auto",
             )
         ),
         rx.alert_dialog.content(
@@ -403,7 +405,8 @@ def report_conversation_link() -> rx.Component:
                 rx.alert_dialog.cancel(
                     rx.button(
                         rx.text(LanguageState.cancel),
-                        color_scheme="red",
+                        color_scheme="iris",
+                        variant="outline",
                         _hover={"cursor": "pointer"},
                     ),
                 ),
