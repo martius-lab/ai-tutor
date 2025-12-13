@@ -383,20 +383,17 @@ def report_conversation_link() -> rx.Component:
                         width="100%",
                         rows="4",
                     ),
-                    rx.box(
-                        rx.text(
-                            f"{ChatState.report_char_count} / "
-                            f"{ChatState.MAX_REPORT_LENGTH}",
-                            size="2",
-                            color=rx.cond(
-                                ChatState.report_char_count
-                                > ChatState.MAX_REPORT_LENGTH,
-                                rx.color("red", 11),
-                                rx.color("gray", 11),
-                            ),
-                        ),
+                    rx.text(
+                        f"{ChatState.report_char_count} / "
+                        f"{ChatState.MAX_REPORT_LENGTH}",
+                        size="2",
                         text_align="right",
                         width="100%",
+                        color=rx.cond(
+                            ChatState.report_char_count > ChatState.MAX_REPORT_LENGTH,
+                            rx.color("red", 11),
+                            rx.color("gray", 11),
+                        ),
                     ),
                     spacing="2",
                 )

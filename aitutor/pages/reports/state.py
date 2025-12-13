@@ -21,6 +21,8 @@ from aitutor.models import (
 )
 from aitutor.utilities.filtering_components import FilterMixin
 
+REPORT_PREVIEW_LENGTH = 20  # Number of characters to show in table preview
+
 
 @dataclass
 class TableRow:
@@ -29,7 +31,7 @@ class TableRow:
     report_id: int | None
     username: str
     exercise_title: str
-    report_preview: str  # First 30 characters
+    report_preview: str  # First 20 characters
     looked_at: bool
 
 
@@ -118,18 +120,25 @@ class ReportsState(FilterMixin, SessionState):
             reports = session.exec(stmt).all()
 
             # Convert to TableRow format
-            self.table_rows = [
-                TableRow(
-                    report_id=report.id,
-                    username=report.user.local_user.username,
-                    exercise_title=report.exercise.title,
-                    report_preview=report.report_text[:30] + "..."
-                    if len(report.report_text) > 30
-                    else report.report_text,
-                    looked_at=report.looked_at,
+            self.table_rows = []
+
+            for report in reports:
+                # Determine the report preview text
+                if len(report.report_text) > REPORT_PREVIEW_LENGTH:
+                    preview = report.report_text[:REPORT_PREVIEW_LENGTH] + "..."
+                else:
+                    preview = report.report_text
+
+                # Append a TableRow
+                self.table_rows.append(
+                    TableRow(
+                        report_id=report.id,
+                        username=report.user.local_user.username,
+                        exercise_title=report.exercise.title,
+                        report_preview=preview,
+                        looked_at=report.looked_at,
+                    )
                 )
-                for report in reports
-            ]
 
     @rx.event
     @state_require_role_at_least(UserRole.TUTOR)
