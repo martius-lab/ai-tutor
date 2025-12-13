@@ -15,7 +15,6 @@ from aitutor.models import (
     Exercise,
     LocalUser,
     Report,
-    Tag,
     UserInfo,
     UserRole,
 )
@@ -72,7 +71,7 @@ class ReportsState(FilterMixin, SessionState):
             stmt = (
                 select(Report)
                 .options(
-                    selectinload(Report.exercise).selectinload(Exercise.tags),  # type: ignore
+                    selectinload(Report.exercise),  # type: ignore
                     selectinload(Report.user).selectinload(UserInfo.local_user),  # type: ignore
                 )
                 .order_by(Report.id.desc())  # type: ignore
@@ -108,7 +107,6 @@ class ReportsState(FilterMixin, SessionState):
                                 or_(
                                     LocalUser.username.ilike(f"%{value}%"),  # type: ignore
                                     Exercise.title.ilike(f"%{value}%"),  # type: ignore
-                                    Exercise.tags.any(Tag.name.ilike(f"%{value}%")),  # type: ignore
                                     Report.report_text.ilike(f"%{value}%"),  # type: ignore
                                 )
                             )

@@ -137,7 +137,7 @@ def reports_table():
                 header_cell(LanguageState.user, "user-round"),
                 header_cell(LanguageState.exercise, "book"),
                 header_cell(LanguageState.reports, "flag"),
-                header_cell("Status", "mail"),
+                header_cell(LanguageState.status, "mail"),
                 header_cell(LanguageState.report_view, "search"),
                 header_cell(LanguageState.delete, "trash"),
             ),

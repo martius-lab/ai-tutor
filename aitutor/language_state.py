@@ -961,6 +961,10 @@ Please test the chat for functionality after changing the model.
 
     # Report Strings -------------------------------------------------------------------
     @rx.var
+    def status(self) -> str:
+        return self.translate(de="Status", en="Status")
+
+    @rx.var
     def report_conversation(self) -> str:
         return self.translate(de="Konversation melden", en="Report conversation")
 
@@ -1132,6 +1136,30 @@ class BackendTranslations:
             language,
             de="Fehler: Der Prompt für diese Übung konnte nicht geladen werden.",
             en="Error: The prompt for this exercise could not be loaded.",
+        )
+
+    @staticmethod
+    def successful_report_title(language: Language) -> str:
+        return translate(language, de="Bericht gesendet", en="Report submitted")
+
+    @staticmethod
+    def successful_report_description(language: Language) -> str:
+        return translate(
+            language,
+            de="Vielen Dank für Ihre Rückmeldung!",
+            en="Thank you for your feedback!",
+        )
+
+    @staticmethod
+    def no_report_message_title(language: Language) -> str:
+        return translate(language, de="Bericht fehlgeschlagen", en="Report failed")
+
+    @staticmethod
+    def no_report_message_description(language: Language) -> str:
+        return translate(
+            language,
+            de="Ein leerer Bericht kann nicht eingereicht werden.",
+            en="Cannot submit empty report.",
         )
 
     # UserSettingsState ----------------------------------------------------------------
