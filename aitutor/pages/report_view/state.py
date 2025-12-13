@@ -6,7 +6,7 @@ from sqlmodel import select
 
 from aitutor.auth.protection import state_require_role_at_least
 from aitutor.auth.state import SessionState
-from aitutor.models import ExerciseResult, Report, UserInfo, UserRole
+from aitutor.models import Report, UserInfo, UserRole
 from aitutor.pages.chat.state import ChatMessage, Role
 
 
@@ -43,12 +43,8 @@ class ReportViewState(SessionState):
                 select(Report)
                 .where(Report.id == self.report_id)
                 .options(
-                    selectinload(Report.exercise_result).selectinload(  # type: ignore
-                        ExerciseResult.exercise  # type: ignore
-                    ),
-                    selectinload(Report.exercise_result)  # type: ignore
-                    .selectinload(ExerciseResult.user)  # type: ignore
-                    .selectinload(UserInfo.local_user),  # type: ignore
+                    selectinload(Report.exercise),  # type: ignore
+                    selectinload(Report.user).selectinload(UserInfo.local_user),  # type: ignore
                 )
             ).first()
 
@@ -63,10 +59,9 @@ class ReportViewState(SessionState):
                     session.commit()
                     self.looked_at = True
 
-                # Get exercise and user info
-                exercise_result = report.exercise_result
-                self.exercise_title = exercise_result.exercise.title
-                self.username = exercise_result.user.local_user.username
+                # Get exercise and user info from report
+                self.exercise_title = report.exercise.title
+                self.username = report.user.local_user.username
 
                 # Convert conversation to ChatMessage format
                 # Use the snapshot from the report instead of live conversation

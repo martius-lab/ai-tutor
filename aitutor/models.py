@@ -156,7 +156,6 @@ class ExerciseResult(SQLModel, table=True):
     # ORM relationships
     exercise: "Exercise" = Relationship(back_populates="submissions")
     user: "UserInfo" = Relationship(back_populates="exercise_results")
-    reports: list["Report"] = Relationship(back_populates="exercise_result")
 
     def __repr__(self):
         return (
@@ -222,23 +221,29 @@ class Prompt(SQLModel, table=True):
 
 class Report(SQLModel, table=True):
     """
-    Represents a report submitted for a particular exercise result.
+    Represents a report submitted for a particular exercise.
 
     Attributes:
         id: Primary key of the report.
-        exercise_result_id: Foreign key referencing the associated ExerciseResult.
+        exercise_id: Foreign key referencing the associated Exercise.
+        user_id: Foreign key referencing the user who submitted the report.
         report_text: The text content of the report.
         looked_at: Flag indicating whether the report has been viewed by a tutor.
         conversation_snapshot: Snapshot of the conversation at report submission time.
-        exercise_result: Relationship to the associated ExerciseResult.
+        exercise: Relationship to the associated Exercise.
+        user: Relationship to the user who submitted the report.
     """
 
     id: Optional[int] = Field(default=None, primary_key=True)
-    exercise_result_id: int = Field(foreign_key="exerciseresult.id", nullable=False)
+    exercise_id: int = Field(
+        foreign_key="exercise.id", nullable=False, ondelete="CASCADE"
+    )
+    user_id: int = Field(foreign_key="userinfo.id", nullable=False, ondelete="CASCADE")
     report_text: str
     looked_at: bool = Field(default=False)
     conversation_snapshot: List[Dict[str, Any]] = Field(
         sa_column=Column(JSON), default=[]
     )
 
-    exercise_result: "ExerciseResult" = Relationship(back_populates="reports")
+    exercise: "Exercise" = Relationship()
+    user: "UserInfo" = Relationship()

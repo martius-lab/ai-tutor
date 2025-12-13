@@ -13,7 +13,6 @@ from aitutor.auth.protection import state_require_role_at_least
 from aitutor.auth.state import SessionState
 from aitutor.models import (
     Exercise,
-    ExerciseResult,
     LocalUser,
     Report,
     Tag,
@@ -71,12 +70,8 @@ class ReportsState(FilterMixin, SessionState):
             stmt = (
                 select(Report)
                 .options(
-                    selectinload(Report.exercise_result)  # type: ignore
-                    .selectinload(ExerciseResult.exercise)  # type: ignore
-                    .selectinload(Exercise.tags),  # type: ignore
-                    selectinload(Report.exercise_result)  # type: ignore
-                    .selectinload(ExerciseResult.user)  # type: ignore
-                    .selectinload(UserInfo.local_user),  # type: ignore
+                    selectinload(Report.exercise).selectinload(Exercise.tags),  # type: ignore
+                    selectinload(Report.user).selectinload(UserInfo.local_user),  # type: ignore
                 )
                 .order_by(Report.id.desc())  # type: ignore
             )
@@ -88,27 +83,24 @@ class ReportsState(FilterMixin, SessionState):
                     match key:
                         case gv.SEARCH_USER_KEY:
                             stmt = (
-                                stmt.join(ExerciseResult, Report.exercise_result)  # type: ignore
-                                .join(UserInfo, ExerciseResult.user)  # type: ignore
-                                .join(LocalUser, UserInfo.local_user)  # type: ignore
+                                stmt.join(UserInfo, Report.user).join(  # type: ignore
+                                    LocalUser,
+                                    UserInfo.local_user,  # type: ignore
+                                )  # type: ignore
                             )
                             search_conditions.append(
                                 LocalUser.username.ilike(f"%{value}%")  # type: ignore
                             )
                         case gv.SEARCH_EXERCISE_KEY:
-                            stmt = stmt.join(
-                                ExerciseResult,
-                                Report.exercise_result,  # type: ignore
-                            ).join(Exercise, ExerciseResult.exercise)  # type: ignore
+                            stmt = stmt.join(Exercise, Report.exercise)  # type: ignore
                             search_conditions.append(Exercise.title.ilike(f"%{value}%"))  # type: ignore
 
                         case _:
                             # General search across all fields
                             stmt = (
-                                stmt.join(ExerciseResult, Report.exercise_result)  # type: ignore
-                                .join(UserInfo, ExerciseResult.user)  # type: ignore
+                                stmt.join(UserInfo, Report.user)  # type: ignore
                                 .join(LocalUser, UserInfo.local_user)  # type: ignore
-                                .join(Exercise, ExerciseResult.exercise)  # type: ignore
+                                .join(Exercise, Report.exercise)  # type: ignore
                             )
                             search_conditions.append(
                                 or_(
@@ -129,8 +121,8 @@ class ReportsState(FilterMixin, SessionState):
             self.table_rows = [
                 TableRow(
                     report_id=report.id,
-                    username=report.exercise_result.user.local_user.username,
-                    exercise_title=report.exercise_result.exercise.title,
+                    username=report.user.local_user.username,
+                    exercise_title=report.exercise.title,
                     report_preview=report.report_text[:30] + "..."
                     if len(report.report_text) > 30
                     else report.report_text,

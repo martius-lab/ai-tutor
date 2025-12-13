@@ -177,31 +177,12 @@ class ChatState(SessionState):
             if self.current_exercise.id is None:
                 raise ValueError("Failed to save report because exercise_id is None.")
 
-            exercise_result = session.exec(
-                select(ExerciseResult).where(
-                    ExerciseResult.exercise_id == self.current_exercise.id,
-                    ExerciseResult.userinfo_id == self._userinfo_id,
-                )
-            ).one_or_none()
-
-            if not exercise_result:
-                exercise_result = ExerciseResult(
-                    exercise_id=self.current_exercise.id,
-                    userinfo_id=self._userinfo_id,
-                    conversation_text=self.get_messages_dict_gpt(),
-                )
-                session.add(exercise_result)
-                session.commit()
-                session.refresh(exercise_result)
-
-            if exercise_result.id is None:
-                raise ValueError("Failed to obtain exercise_result.id after commit.")
-
             # Create a snapshot of the current conversation
             conversation_snapshot = self.get_messages_dict_gpt()
 
             report = Report(
-                exercise_result_id=exercise_result.id,
+                exercise_id=self.current_exercise.id,
+                user_id=self._userinfo_id,
                 report_text=self.report_text,
                 looked_at=False,
                 conversation_snapshot=conversation_snapshot,
