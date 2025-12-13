@@ -357,20 +357,18 @@ def report_conversation_link() -> rx.Component:
     """
     return rx.alert_dialog.root(
         rx.alert_dialog.trigger(
-            rx.box(
-                rx.text(
-                    LanguageState.report_conversation,
-                    size="2",
-                    color=rx.color("blue", 11),
-                    text_decoration="underline",
-                    _hover={"cursor": "pointer"},
-                ),
+            rx.text(
+                LanguageState.report_conversation,
+                size="2",
+                color=rx.color("blue", 11),
+                text_decoration="underline",
                 text_align="center",
                 width="100%",
                 margin_top="0.5em",
                 margin_left="auto",
                 margin_right="auto",
-            )
+                _hover={"cursor": "pointer"},
+            ),
         ),
         rx.alert_dialog.content(
             rx.alert_dialog.title(LanguageState.report_conversation),
