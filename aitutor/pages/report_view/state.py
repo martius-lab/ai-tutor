@@ -44,7 +44,7 @@ class ReportViewState(SessionState):
                 .where(Report.id == self.report_id)
                 .options(
                     selectinload(Report.exercise),  # type: ignore
-                    selectinload(Report.user).selectinload(UserInfo.local_user),  # type: ignore
+                    selectinload(Report.userinfo).selectinload(UserInfo.local_user),  # type: ignore
                 )
             ).first()
 
@@ -61,7 +61,7 @@ class ReportViewState(SessionState):
 
                 # Get exercise and user info from report
                 self.exercise_title = report.exercise.title
-                self.username = report.user.local_user.username
+                self.username = report.userinfo.local_user.username
 
                 # Convert conversation to ChatMessage format
                 # Use the snapshot from the report instead of live conversation

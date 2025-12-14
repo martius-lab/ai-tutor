@@ -226,7 +226,7 @@ class Report(SQLModel, table=True):
     Attributes:
         id: Primary key of the report.
         exercise_id: Foreign key referencing the associated Exercise.
-        user_id: Foreign key referencing the user who submitted the report.
+        userinfo_id: Foreign key referencing the user who submitted the report.
         report_text: The text content of the report.
         looked_at: Flag indicating whether the report has been viewed by a tutor.
         conversation_snapshot: Snapshot of the conversation at report submission time.
@@ -238,7 +238,9 @@ class Report(SQLModel, table=True):
     exercise_id: int = Field(
         foreign_key="exercise.id", nullable=False, ondelete="CASCADE"
     )
-    user_id: int = Field(foreign_key="userinfo.id", nullable=False, ondelete="CASCADE")
+    userinfo_id: int = Field(
+        foreign_key="userinfo.id", nullable=False, ondelete="CASCADE"
+    )
     report_text: str
     looked_at: bool = Field(default=False)
     conversation_snapshot: List[Dict[str, Any]] = Field(
@@ -246,4 +248,4 @@ class Report(SQLModel, table=True):
     )
 
     exercise: "Exercise" = Relationship()
-    user: "UserInfo" = Relationship()
+    userinfo: "UserInfo" = Relationship()

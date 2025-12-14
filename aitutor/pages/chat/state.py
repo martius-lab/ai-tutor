@@ -291,7 +291,7 @@ class ChatState(SessionState):
 
             report = Report(
                 exercise_id=self.current_exercise.id,
-                user_id=self._userinfo_id,
+                userinfo_id=self._userinfo_id,
                 report_text=self.report_text,
                 looked_at=False,
                 conversation_snapshot=conversation_snapshot,
