@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: 48fd40e2c517
+Revision ID: 984c654a75a6
 Revises: 4d41b672bb0b
-Create Date: 2025-12-13 21:28:20.594835
+Create Date: 2025-12-14 15:38:20.552237
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 import sqlmodel
 
 # revision identifiers, used by Alembic.
-revision: str = '48fd40e2c517'
+revision: str = '984c654a75a6'
 down_revision: Union[str, None] = '4d41b672bb0b'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -24,12 +24,12 @@ def upgrade() -> None:
     op.create_table('report',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('exercise_id', sa.Integer(), nullable=False),
-    sa.Column('user_id', sa.Integer(), nullable=False),
+    sa.Column('userinfo_id', sa.Integer(), nullable=False),
     sa.Column('report_text', sqlmodel.sql.sqltypes.AutoString(), nullable=False),
     sa.Column('looked_at', sa.Boolean(), nullable=False),
     sa.Column('conversation_snapshot', sa.JSON(), nullable=True),
     sa.ForeignKeyConstraint(['exercise_id'], ['exercise.id'], ondelete='CASCADE'),
-    sa.ForeignKeyConstraint(['user_id'], ['userinfo.id'], ondelete='CASCADE'),
+    sa.ForeignKeyConstraint(['userinfo_id'], ['userinfo.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id')
     )
     # ### end Alembic commands ###

@@ -30,7 +30,7 @@ class TableRow:
     report_id: int | None
     username: str
     exercise_title: str
-    report_preview: str  # First 20 characters
+    report_preview: str
     looked_at: bool
 
 
@@ -72,7 +72,7 @@ class ReportsState(FilterMixin, SessionState):
                 select(Report)
                 .options(
                     selectinload(Report.exercise),  # type: ignore
-                    selectinload(Report.user).selectinload(UserInfo.local_user),  # type: ignore
+                    selectinload(Report.userinfo).selectinload(UserInfo.local_user),  # type: ignore
                 )
                 .order_by(Report.id.desc())  # type: ignore
             )
@@ -84,7 +84,7 @@ class ReportsState(FilterMixin, SessionState):
                     match key:
                         case gv.SEARCH_USER_KEY:
                             stmt = (
-                                stmt.join(UserInfo, Report.user).join(  # type: ignore
+                                stmt.join(UserInfo, Report.userinfo).join(  # type: ignore
                                     LocalUser,
                                     UserInfo.local_user,  # type: ignore
                                 )  # type: ignore
@@ -99,7 +99,7 @@ class ReportsState(FilterMixin, SessionState):
                         case _:
                             # General search across all fields
                             stmt = (
-                                stmt.join(UserInfo, Report.user)  # type: ignore
+                                stmt.join(UserInfo, Report.userinfo)  # type: ignore
                                 .join(LocalUser, UserInfo.local_user)  # type: ignore
                                 .join(Exercise, Report.exercise)  # type: ignore
                             )
@@ -131,7 +131,7 @@ class ReportsState(FilterMixin, SessionState):
                 self.table_rows.append(
                     TableRow(
                         report_id=report.id,
-                        username=report.user.local_user.username,
+                        username=report.userinfo.local_user.username,
                         exercise_title=report.exercise.title,
                         report_preview=preview,
                         looked_at=report.looked_at,
