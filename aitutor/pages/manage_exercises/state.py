@@ -279,6 +279,16 @@ class ManageExercisesState(FilterMixin, SessionState):
         yield
 
     @rx.event
+    async def import_exercises(self, files: list[rx.UploadFile]):
+        """Import exercises from a JSON file."""
+        if files:
+            upload_data = await files[0].read()
+            print(upload_data)
+
+        # TODO: implement import functionality
+        rx.clear_selected_files("exercises_upload")
+
+    @rx.event
     def add_selected_tag(self):
         """Add the currently selected tag to the list of selected tags."""
         if not self.current_tag:

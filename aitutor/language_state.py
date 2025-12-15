@@ -437,6 +437,15 @@ class LanguageState(SessionState):
         return self.translate(de="Importieren", en="Import")
 
     @rx.var
+    def exercises_upload_info(self) -> str:
+        return self.translate(
+            de="Drag & Drop oder klicken, um aus dem Dateisystem auszuwählen "
+            "(JSON-Format erwartet).",
+            en="Drag and drop or click to select from file system "
+            "(JSON format expected).",
+        )
+
+    @rx.var
     def new_tag(self) -> str:
         """Create new tag string"""
         return self.translate(de="Neues Tag", en="New tag")
