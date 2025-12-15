@@ -280,13 +280,146 @@ class ManageExercisesState(FilterMixin, SessionState):
 
     @rx.event
     async def import_exercises(self, files: list[rx.UploadFile]):
-        """Import exercises from a JSON file."""
-        if files:
-            upload_data = await files[0].read()
-            print(upload_data)
+        """Import exercises from a JSON file handling duplicates."""
+        if not files:
+            return
 
-        # TODO: implement import functionality
-        rx.clear_selected_files("exercises_upload")
+        # --- 1. Read and parse JSON ---
+        file_content = await files[0].read()
+        try:
+            data = json.loads(file_content.decode("utf-8"))
+        except json.JSONDecodeError:
+            return rx.window_alert("Invalid JSON file.")
+
+        prompt_templates = data.get("prompt_templates", {})
+        exercises_list = data.get("exercises", [])
+
+        with rx.session() as session:
+            # --- 2. Process Prompts ---
+            # Map original names from JSON to actual DB IDs
+            prompt_name_to_id = {}
+
+            # store (old_name, new_name) tuples for renamed prompts
+            prompt_renames: list[tuple[str, str]] = []
+
+            # names of newly added prompts
+            new_prompts: list[str] = []
+
+            for p_name, p_template in prompt_templates.items():
+                existing_prompt = session.exec(
+                    select(Prompt).where(Prompt.name == p_name)
+                ).first()
+
+                if existing_prompt:
+                    if existing_prompt.prompt_template == p_template:
+                        # Exact match: reuse existing ID
+                        prompt_name_to_id[p_name] = existing_prompt.id
+                    else:
+                        # Name taken but content differs: Rename imported prompt
+                        new_name = p_name
+                        counter = 1
+                        while session.exec(
+                            select(Prompt).where(Prompt.name == new_name)
+                        ).first():
+                            new_name = f"{p_name}_imported_{counter}"
+                            counter += 1
+
+                        new_prompt = Prompt(name=new_name, prompt_template=p_template)
+                        session.add(new_prompt)
+                        session.flush()  # Flush to get the ID
+                        prompt_name_to_id[p_name] = new_prompt.id
+                        prompt_renames.append((p_name, new_name))
+                else:
+                    # New prompt
+                    new_prompt = Prompt(name=p_name, prompt_template=p_template)
+                    session.add(new_prompt)
+                    session.flush()
+                    prompt_name_to_id[p_name] = new_prompt.id
+                    new_prompts.append(p_name)
+
+            # --- 3. Process Exercises ---
+            for ex_data in exercises_list:
+                # Handle Title Duplicates
+                title = ex_data["title"]
+                original_title = title
+                counter = 1
+                while session.exec(
+                    select(Exercise).where(Exercise.title == title)
+                ).first():
+                    title = f"{original_title} ({counter})"
+                    counter += 1
+
+                # Handle Tags (Get or Create)
+                tags = []
+                for tag_name in ex_data.get("tags", []):
+                    tag = session.exec(select(Tag).where(Tag.name == tag_name)).first()
+                    if not tag:
+                        tag = Tag(name=tag_name)
+                        session.add(tag)
+                        session.flush()
+                    tags.append(tag)
+
+                # Resolve Prompt ID
+                p_id = prompt_name_to_id.get(ex_data.get("prompt_name"))
+
+                # Create Exercise
+                new_exercise = Exercise(
+                    title=title,
+                    description=ex_data["description"],
+                    lesson_context=ex_data["lesson_context"],
+                    prompt_id=p_id,
+                    is_hidden=ex_data["is_hidden"],
+                    deadline=None,
+                    days_to_complete=None,
+                    tags=tags,
+                )
+                session.add(new_exercise)
+
+            session.commit()
+
+        # Refresh UI
+        self.on_load()
+
+        # 1. Create base events list
+        events = [
+            rx.clear_selected_files("exercises_upload"),
+            rx.toast.success(
+                BT.successfully_imported_exercises(self.language, len(exercises_list)),
+                duration=3000,
+                position="bottom-center",
+                invert=True,
+            ),
+        ]
+
+        # 2. Add toast for newly added prompts (if any)
+        if new_prompts:
+            new_prompts_list = ", ".join(new_prompts)
+            events.append(
+                rx.toast.info(
+                    BT.added_new_prompts(self.language, new_prompts_list),
+                    duration=5000,
+                    position="bottom-center",
+                    invert=True,
+                )
+            )
+
+        # 3. Add toast for renamed prompts (if any)
+        if prompt_renames:
+            renamed_prompts_list = ", ".join(
+                [f"'{old}' -> '{new}'" for old, new in prompt_renames]
+            )
+            events.append(
+                rx.toast.info(
+                    BT.added_and_renamed_conflicting_prompts(
+                        self.language, renamed_prompts_list
+                    ),
+                    duration=8000,
+                    position="bottom-center",
+                    invert=True,
+                )
+            )
+
+        return events
 
     @rx.event
     def add_selected_tag(self):
