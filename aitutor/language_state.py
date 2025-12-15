@@ -1125,6 +1125,32 @@ class BackendTranslations:
             en="Selected exercises deleted successfully",
         )
 
+    @staticmethod
+    def successfully_imported_exercises(language: Language, count: int) -> str:
+        return translate(
+            language,
+            de=f"{count} Übungen erfolgreich importiert.",
+            en=f"{count} exercises imported successfully.",
+        )
+
+    @staticmethod
+    def added_new_prompts(language: Language, prompt_list: str) -> str:
+        return translate(
+            language,
+            de=f"Neue Prompts hinzugefügt: {prompt_list}",
+            en=f"Added new prompts: {prompt_list}",
+        )
+
+    @staticmethod
+    def added_and_renamed_conflicting_prompts(
+        language: Language, prompt_list: str
+    ) -> str:
+        return translate(
+            language,
+            de=f"Konfliktierende Prompts hinzugefügt und umbenannt: {prompt_list}",
+            en=f"Added and renamed conflicting prompts: {prompt_list}",
+        )
+
     # FinishedViewState ----------------------------------------------------------------
     @staticmethod
     def submission_deleted_title(language: Language) -> str:
