@@ -784,7 +784,13 @@ def import_exercises_button() -> rx.Component:
                             on_click=ManageExercisesState.import_exercises(
                                 rx.upload_files(upload_id="exercises_upload")  # type: ignore
                             ),
-                            _hover={"cursor": "pointer"},
+                            _hover=rx.cond(
+                                rx.selected_files("exercises_upload").length() == 0,  # type: ignore
+                                {"cursor": "not-allowed"},
+                                {"cursor": "pointer"},
+                            ),
+                            disabled=rx.selected_files("exercises_upload").length()  # type: ignore
+                            == 0,
                         ),
                     ),
                     width="100%",
