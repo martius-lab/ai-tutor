@@ -212,7 +212,12 @@ def add_exercise_button() -> rx.Component:
     """Button for adding new exercises."""
     return rx.button(
         rx.icon("file-plus"),
-        rx.text(LanguageState.add_exercise, size="3"),
+        rx.desktop_only(
+            rx.text(LanguageState.add_exercise, size="3"),
+        ),
+        rx.mobile_and_tablet(
+            rx.text(LanguageState.add, size="3"),
+        ),
         _hover={"cursor": "pointer"},
         on_click=ManageExercisesState.open_add_dialog,
         type="button",
@@ -724,4 +729,19 @@ def add_edit_exercise_form(mode: DialogMode) -> Sequence[rx.Component]:
             spacing="2",
             justify="end",
         ),
+    )
+
+
+def import_exercises_button() -> rx.Component:
+    """Button for importing exercises from a json file."""
+    return rx.button(
+        rx.icon("file_up"),
+        rx.desktop_only(
+            rx.text(LanguageState.import_exercises, size="3"),
+        ),
+        rx.mobile_and_tablet(
+            rx.text(LanguageState.import_, size="3"),
+        ),
+        _hover={"cursor": "pointer"},
+        on_click=[],  # TODO
     )

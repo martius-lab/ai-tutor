@@ -10,6 +10,7 @@ from aitutor.pages.manage_exercises.components import (
     delete_selected_exercises_button,
     exercise_table,
     export_selected_exercises_button,
+    import_exercises_button,
 )
 from aitutor.pages.manage_exercises.state import ManageExercisesState
 from aitutor.pages.navbar import with_navbar
@@ -30,12 +31,16 @@ def manage_exercises_page() -> rx.Component:
                             delete_selected_exercises_button(),
                             export_selected_exercises_button(),
                         ),
-                        add_exercise_button(),
+                        rx.hstack(
+                            import_exercises_button(),
+                            add_exercise_button(),
+                        ),
                         align="center",
                         justify="between",
                         width="100%",
                     ),
                     rx.hstack(
+                        import_exercises_button(),
                         add_exercise_button(),
                         align="center",
                         justify="end",
@@ -45,7 +50,10 @@ def manage_exercises_page() -> rx.Component:
                 width="100%",
             ),
             rx.mobile_and_tablet(
-                add_exercise_button(),
+                rx.hstack(
+                    import_exercises_button(),
+                    add_exercise_button(),
+                )
             ),
             rx.mobile_and_tablet(
                 rx.cond(

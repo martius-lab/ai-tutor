@@ -429,6 +429,14 @@ class LanguageState(SessionState):
 
     # Manage Exercises Page Strings ----------------------------------------------------
     @rx.var
+    def import_exercises(self) -> str:
+        return self.translate(de="Übungen importieren", en="Import Exercises")
+
+    @rx.var
+    def import_(self) -> str:
+        return self.translate(de="Importieren", en="Import")
+
+    @rx.var
     def new_tag(self) -> str:
         """Create new tag string"""
         return self.translate(de="Neues Tag", en="New tag")
@@ -610,6 +618,10 @@ class LanguageState(SessionState):
     def add_task(self) -> str:
         """Add task string"""
         return self.translate(de="Aufgabe hinzufügen", en="Add exercise")
+
+    @rx.var
+    def add(self) -> str:
+        return self.translate(de="Hinzufügen", en="Add")
 
     @rx.var
     def update_task(self) -> str:
