@@ -217,3 +217,35 @@ class Prompt(SQLModel, table=True):
 
     def __repr__(self):
         return f"<Prompt(name='{self.name}')>"
+
+
+class Report(SQLModel, table=True):
+    """
+    Represents a report submitted for a particular exercise.
+
+    Attributes:
+        id: Primary key of the report.
+        exercise_id: Foreign key referencing the associated Exercise.
+        userinfo_id: Foreign key referencing the user who submitted the report.
+        report_text: The text content of the report.
+        looked_at: Flag indicating whether the report has been viewed by a tutor.
+        conversation_snapshot: Snapshot of the conversation at report submission time.
+        exercise: Relationship to the associated Exercise.
+        user: Relationship to the user who submitted the report.
+    """
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    exercise_id: int = Field(
+        foreign_key="exercise.id", nullable=False, ondelete="CASCADE"
+    )
+    userinfo_id: int = Field(
+        foreign_key="userinfo.id", nullable=False, ondelete="CASCADE"
+    )
+    report_text: str
+    looked_at: bool = Field(default=False)
+    conversation_snapshot: List[Dict[str, Any]] = Field(
+        sa_column=Column(JSON), default=[]
+    )
+
+    exercise: "Exercise" = Relationship()
+    userinfo: "UserInfo" = Relationship()

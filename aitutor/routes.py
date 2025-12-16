@@ -14,9 +14,13 @@ FINISHED_VIEW = "/finished_view"  # needs to be /finished_view/[exercise_id] to 
 SUBMISSIONS = "/submissions"
 USER_SETTINGS = "/user_settings"
 CONFIGURATION = "/configuration"
+REPORTS = "/reports"
 
 # needs to be /finished_view_tutor/[exercise_id]/[url_user_id]
 FINISHED_VIEW_TUTOR = "/finished_view_tutor"
+
+# needs to be /report_view/[report_id]
+REPORT_VIEW = "/report_view"
 
 IMPRESSUM = "/impressum"
 PRIVACY_NOTICE = "/privacy_notice"

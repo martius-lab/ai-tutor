@@ -23,6 +23,11 @@ app.add_page(
     on_load=pages.FinishedViewTutorState.on_load,
 )
 app.add_page(
+    pages.report_view_page,
+    route=routes.REPORT_VIEW + "/[report_id]",
+    on_load=pages.ReportViewState.on_load,
+)
+app.add_page(
     pages.chat_page,
     route=routes.CHAT + "/[exercise_id]",
     on_load=pages.ChatState.on_load,
@@ -65,6 +70,11 @@ app.add_page(
 app.add_page(
     pages.user_settings_page,
     route=routes.USER_SETTINGS,
+)
+app.add_page(
+    pages.reports_page,
+    route=routes.REPORTS,
+    on_load=pages.ReportsState.on_load,
 )
 
 # reflex_local_auth pages

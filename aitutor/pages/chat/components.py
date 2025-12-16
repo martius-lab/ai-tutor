@@ -130,6 +130,7 @@ def chat_form() -> rx.Component:
                 width="100%",
                 justify="between",
             ),
+            report_conversation_link(),
         ),
         on_submit=ChatState.send_message,
         reset_on_submit=True,
@@ -346,5 +347,78 @@ def show_exercise_status() -> rx.Component:
         rx.cond(
             ~ChatState.is_overdue,
             not_submitted_status(),
+        ),
+    )
+
+
+def report_conversation_link() -> rx.Component:
+    """
+    Render a link to report the conversation (placed below buttons).
+    """
+    return rx.alert_dialog.root(
+        rx.alert_dialog.trigger(
+            rx.text(
+                LanguageState.report_conversation,
+                size="2",
+                color=rx.color("blue", 11),
+                text_decoration="underline",
+                text_align="center",
+                width="100%",
+                margin_top="0.5em",
+                margin_left="auto",
+                margin_right="auto",
+                _hover={"cursor": "pointer"},
+            ),
+        ),
+        rx.alert_dialog.content(
+            rx.alert_dialog.title(LanguageState.report_conversation),
+            rx.alert_dialog.description(
+                rx.vstack(
+                    rx.text_area(
+                        placeholder=LanguageState.report_placeholder,
+                        value=ChatState.report_text,
+                        on_change=lambda value: ChatState.set_report_text(value),
+                        width="100%",
+                        rows="4",
+                    ),
+                    rx.text(
+                        f"{ChatState.report_char_count} / "
+                        f"{ChatState.MAX_REPORT_LENGTH}",
+                        size="2",
+                        text_align="right",
+                        width="100%",
+                        color=rx.cond(
+                            ChatState.report_char_count > ChatState.MAX_REPORT_LENGTH,
+                            rx.color("red", 11),
+                            rx.color("gray", 11),
+                        ),
+                    ),
+                    spacing="2",
+                )
+            ),
+            rx.hstack(
+                rx.alert_dialog.cancel(
+                    rx.button(
+                        rx.text(LanguageState.cancel),
+                        color_scheme="iris",
+                        variant="outline",
+                        _hover={"cursor": "pointer"},
+                    ),
+                ),
+                rx.alert_dialog.action(
+                    rx.button(
+                        LanguageState.submit,
+                        color_scheme="iris",
+                        on_click=ChatState.submit_report,
+                        disabled=~ChatState.report_is_valid,
+                        _hover=rx.cond(
+                            ChatState.report_is_valid,
+                            {"cursor": "pointer"},
+                            {"cursor": "not-allowed"},
+                        ),
+                    )
+                ),
+                margin_top="1em",
+            ),
         ),
     )

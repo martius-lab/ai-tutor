@@ -83,7 +83,7 @@ class LanguageState(SessionState):
     @rx.var
     def search_placeholder(self) -> str:
         """Search placeholder string"""
-        return self.translate(de="tag:tagname", en="tag:tagname")
+        return self.translate(de="Suche...", en="Search...")
 
     @rx.var
     def search_info_one(self) -> str:
@@ -409,17 +409,17 @@ class LanguageState(SessionState):
         return self.translate(de="Tags", en="Tags")
 
     @rx.var
-    def submission(self) -> str:
-        """Submission string"""
-        return self.translate(de="Abgabe", en="Submission")
-
-    @rx.var
     def no_submission(self) -> str:
         """No submission string"""
         return self.translate(
             de="Keine Abgabe",
             en="No submission",
         )
+
+    @rx.var
+    def submission(self) -> str:
+        """Submission string"""
+        return self.translate(de="Abgabe", en="Submission")
 
     # Finished View Tutor Page Strings -----------------------------------------------
     @rx.var
@@ -959,6 +959,81 @@ Please test the chat for functionality after changing the model.
             en="Unique prompt name",
         )
 
+    # Report Strings -------------------------------------------------------------------
+    @rx.var
+    def status(self) -> str:
+        return self.translate(de="Status", en="Status")
+
+    @rx.var
+    def report_conversation(self) -> str:
+        return self.translate(de="Konversation melden", en="Report conversation")
+
+    @rx.var
+    def reports(self) -> str:
+        return self.translate(de="Meldungen", en="Reports")
+
+    @rx.var
+    def report_placeholder(self) -> str:
+        return self.translate(
+            de="Melde hier Probleme wie eine unfaire Bewertung durch die KI, fehlerhafte Inhalte, unangemessene Antworten oder sonstige Auffälligkeiten...",
+            en="Report issues here, such as unfair AI evaluations, incorrect content, inappropriate responses, or any other concerns...",
+        )
+
+    @rx.var
+    def report_view(self) -> str:
+        return self.translate(de="Anschauen", en="View")
+
+    @rx.var
+    def report_seen_tooltip(self) -> str:
+        return self.translate(
+            de="Dieser Bericht wurde gesehen", en="This report was seen"
+        )
+
+    @rx.var
+    def report_not_seen_tooltip(self) -> str:
+        return self.translate(
+            de="Dieser Bericht wurde nicht gesehen", en="This report was not seen"
+        )
+
+    @rx.var
+    def report_view_tooltip(self) -> str:
+        return self.translate(
+            de="Hier können Sie den Bericht ansehen", en="Here you can view the report"
+        )
+
+    @rx.var
+    def delete_report_title(self) -> str:
+        return self.translate(de="Bericht löschen", en="Delete Report")
+
+    @rx.var
+    def delete_report_content(self) -> str:
+        return self.translate(
+            de="Möchten Sie diesen Bericht wirklich löschen?",
+            en="Are you sure you want to delete this report?",
+        )
+
+    # ReportViewPage Strings -------------------------------------------------------------------
+
+    @rx.var
+    def report_message(self) -> str:
+        return self.translate(de="Gemeldete Nachricht:", en="Report Message:")
+
+    @rx.var
+    def report_detail(self) -> str:
+        return self.translate(de="Details zur Meldung", en="Report Details")
+
+    @rx.var
+    def report_mark_as_read(self) -> str:
+        return self.translate(de="Als gelesen markieren", en="Mark as Read")
+
+    @rx.var
+    def report_mark_as_unread(self) -> str:
+        return self.translate(de="Als ungelesen markieren", en="Mark as Unread")
+
+    @rx.var
+    def report_submitted_conversation(self) -> str:
+        return self.translate(de="Eingereichter Chat:", en="Submitted Conversation:")
+
 
 class BackendTranslations:
     """Translations for use in the backend (where LanguageState is not available)."""
@@ -1061,6 +1136,30 @@ class BackendTranslations:
             language,
             de="Fehler: Der Prompt für diese Übung konnte nicht geladen werden.",
             en="Error: The prompt for this exercise could not be loaded.",
+        )
+
+    @staticmethod
+    def successful_report_title(language: Language) -> str:
+        return translate(language, de="Bericht gesendet", en="Report submitted")
+
+    @staticmethod
+    def successful_report_description(language: Language) -> str:
+        return translate(
+            language,
+            de="Vielen Dank für Ihre Rückmeldung!",
+            en="Thank you for your feedback!",
+        )
+
+    @staticmethod
+    def no_report_message_title(language: Language) -> str:
+        return translate(language, de="Bericht fehlgeschlagen", en="Report failed")
+
+    @staticmethod
+    def no_report_message_description(language: Language) -> str:
+        return translate(
+            language,
+            de="Ein leerer Bericht kann nicht eingereicht werden.",
+            en="Cannot submit empty report.",
         )
 
     # UserSettingsState ----------------------------------------------------------------

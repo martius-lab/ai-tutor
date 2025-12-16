@@ -17,7 +17,7 @@ from aitutor.auth.state import SessionState
 from aitutor.config import get_config
 from aitutor.global_vars import TIME_FORMAT, TIME_ZONE
 from aitutor.language_state import BackendTranslations as BT
-from aitutor.models import Exercise, ExerciseResult, UserRole
+from aitutor.models import Exercise, ExerciseResult, Report, UserRole
 
 
 class Role(StrEnum):
@@ -143,8 +143,14 @@ class ChatState(SessionState):
     user_input: str = ""
     last_user_message_index: int = -1
     is_overdue: bool = False
-
     _userinfo_id: int = -1
+    report_text: str = ""
+    MAX_REPORT_LENGTH: int = 2000
+
+    @rx.event
+    def set_report_text(self, value: str):
+        """Set the report text."""
+        self.report_text = value
 
     @rx.event
     def set_user_input(self, value: str):
@@ -248,12 +254,59 @@ class ChatState(SessionState):
         self._userinfo_id = -1
 
     @rx.var
+    def report_char_count(self) -> int:
+        """Get the current character count of the report text."""
+        return len(self.report_text)
+
+    @rx.var
+    def report_is_valid(self) -> bool:
+        """Check if the report text is valid (not empty and within max length)."""
+        return 0 < len(self.report_text.strip()) <= self.MAX_REPORT_LENGTH
+
+    @rx.var
     def finished_view_url(self) -> str:
         """
         The exercise_id is used to identify the current exercise.
         It is set by the route parameter in the URL.
         """
         return f"{routes.FINISHED_VIEW}/{self.exercise_id}"
+
+    @rx.event
+    def submit_report(self):
+        """Save the report to the database."""
+        if not self.current_exercise or not self.report_text.strip():
+            return rx.toast.error(
+                title=BT.no_report_message_title(self.language),
+                description=BT.no_report_message_description(self.language),
+                position="bottom-center",
+                invert=True,
+            )
+
+        with rx.session() as session:
+            if self.current_exercise.id is None:
+                raise ValueError("Failed to save report because exercise_id is None.")
+
+            # Create a snapshot of the current conversation
+            conversation_snapshot = self.get_messages_dict_gpt()
+
+            report = Report(
+                exercise_id=self.current_exercise.id,
+                userinfo_id=self._userinfo_id,
+                report_text=self.report_text,
+                looked_at=False,
+                conversation_snapshot=conversation_snapshot,
+            )
+            session.add(report)
+            session.commit()
+
+        # clear the report text
+        self.report_text = ""
+        return rx.toast.success(
+            title=BT.successful_report_title(self.language),
+            description=BT.successful_report_description(self.language),
+            position="bottom-center",
+            invert=True,
+        )
 
     @rx.event
     def edit_last_message(self):
