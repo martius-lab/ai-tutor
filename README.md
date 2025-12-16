@@ -165,3 +165,12 @@ To deploy on a server
   ```
   docker compose -f compose.yaml -f compose.prod.yaml down
   ```
+
+
+## License
+
+All files in this package are provided under the AGPL v3 license, see
+[LICENSE](./LICENSE).
+
+Copyright © 2024 Eberhard Karls Universität Tübingen, Distributed
+Intelligence/Autonomous Learning Group
