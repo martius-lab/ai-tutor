@@ -302,6 +302,12 @@ class ManageExercisesState(FilterMixin, SessionState):
         prompt_templates = data.get("prompt_templates", {})
         exercises_list = data.get("exercises", [])
 
+        MAX_EXERCISES_IMPORT = 500
+        if len(exercises_list) > MAX_EXERCISES_IMPORT:
+            return rx.window_alert(
+                f"Cannot import more than {MAX_EXERCISES_IMPORT} exercises at once."
+            )
+
         with rx.session() as session:
             # --- 2. Process Prompts ---
             # Map original names from JSON to actual DB IDs
