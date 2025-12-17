@@ -280,7 +280,14 @@ class ManageExercisesState(FilterMixin, SessionState):
 
     @rx.event
     async def import_exercises(self, files: list[rx.UploadFile]):
-        """Import exercises from a JSON file handling duplicates."""
+        """
+        Import exercises from a JSON file.
+        In case of name conflicts for prompts, the following rules apply:
+        - If a prompt with the same name and content exists, it is reused.
+        - If a prompt with the same name but different content exists, the imported
+          prompt is renamed
+        - If a prompt does not exist, it is created
+        """
         if not files:
             return
 
