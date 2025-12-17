@@ -1137,8 +1137,8 @@ class BackendTranslations:
     def added_new_prompts(language: Language, prompt_list: str) -> str:
         return translate(
             language,
-            de=f"Neue Prompts hinzugefügt: {prompt_list}",
-            en=f"Added new prompts: {prompt_list}",
+            de=f"Neue Prompts hinzugefügt: \n {prompt_list}",
+            en=f"Added new prompts: \n {prompt_list}",
         )
 
     @staticmethod
@@ -1147,8 +1147,8 @@ class BackendTranslations:
     ) -> str:
         return translate(
             language,
-            de=f"Konfliktierende Prompts hinzugefügt und umbenannt: {prompt_list}",
-            en=f"Added and renamed conflicting prompts: {prompt_list}",
+            de=f"Konfliktierende Prompts hinzugefügt und umbenannt: \n {prompt_list}",
+            en=f"Added and renamed conflicting prompts: \n {prompt_list}",
         )
 
     # FinishedViewState ----------------------------------------------------------------

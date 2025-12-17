@@ -427,34 +427,26 @@ class ManageExercisesState(FilterMixin, SessionState):
                 invert=True,
             ),
         ]
+        window_alert_msg = ""
 
-        # 2. Add toast for newly added prompts (if any)
+        # 2. Add log for new prompts (if any)
         if new_prompts:
             new_prompts_list = ", ".join(new_prompts)
-            events.append(
-                rx.toast.info(
-                    BT.added_new_prompts(self.language, new_prompts_list),
-                    duration=5000,
-                    position="bottom-center",
-                    invert=True,
-                )
+            window_alert_msg += (
+                BT.added_new_prompts(self.language, new_prompts_list) + "\n\n"
             )
 
-        # 3. Add toast for renamed prompts (if any)
+        # 3. Add log for renamed prompts (if any)
         if prompt_renames:
-            renamed_prompts_list = ", ".join(
+            renamed_prompts_list = "\n".join(
                 [f"'{old}' -> '{new}'" for old, new in prompt_renames]
             )
-            events.append(
-                rx.toast.info(
-                    BT.added_and_renamed_conflicting_prompts(
-                        self.language, renamed_prompts_list
-                    ),
-                    duration=8000,
-                    position="bottom-center",
-                    invert=True,
-                )
+            window_alert_msg += BT.added_and_renamed_conflicting_prompts(
+                self.language, renamed_prompts_list
             )
+
+        if window_alert_msg:
+            events.append(rx.window_alert(window_alert_msg))
 
         return events
 
