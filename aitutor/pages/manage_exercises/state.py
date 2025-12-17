@@ -376,7 +376,8 @@ class ManageExercisesState(FilterMixin, SessionState):
                     return [
                         rx.clear_selected_files("exercises_upload"),
                         rx.window_alert(
-                            f"Missing field in exercise data: {', '.join(missing_fields)}"
+                            f"Missing field in exercise data: \
+                            {', '.join(missing_fields)}"
                         ),
                     ]
 
