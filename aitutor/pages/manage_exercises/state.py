@@ -290,7 +290,7 @@ class ManageExercisesState(FilterMixin, SessionState):
         """
         if not files:
             return
-        
+
         MAX_FILE_SIZE = 5 * 1024 * 1024  # 5 MB
 
         # --- 1. Read and parse JSON ---
@@ -333,7 +333,7 @@ class ManageExercisesState(FilterMixin, SessionState):
                         while session.exec(
                             select(Prompt).where(Prompt.name == new_name)
                         ).first():
-                            new_name = f"{p_name}_imported_{counter}"
+                            new_name = f"{p_name} (imported {counter})"
                             counter += 1
 
                         new_prompt = Prompt(name=new_name, prompt_template=p_template)
@@ -358,7 +358,7 @@ class ManageExercisesState(FilterMixin, SessionState):
                 while session.exec(
                     select(Exercise).where(Exercise.title == title)
                 ).first():
-                    title = f"{original_title} ({counter})"
+                    title = f"{original_title} (imported {counter})"
                     counter += 1
 
                 # Handle Tags (Get or Create)
