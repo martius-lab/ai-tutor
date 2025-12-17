@@ -351,6 +351,24 @@ class ManageExercisesState(FilterMixin, SessionState):
 
             # --- 3. Process Exercises ---
             for ex_data in exercises_list:
+                # validate required fields
+                required_fields = [
+                    "title",
+                    "description",
+                    "lesson_context",
+                    "is_hidden",
+                    "deadline",
+                    "days_to_complete",
+                    "tags",
+                ]
+                missing_fields = [
+                    field for field in required_fields if field not in ex_data
+                ]
+                if missing_fields:
+                    return rx.window_alert(
+                        f"Missing field in exercise data: {', '.join(missing_fields)}"
+                    )
+
                 # Handle Title Duplicates
                 title = ex_data["title"]
                 original_title = title
