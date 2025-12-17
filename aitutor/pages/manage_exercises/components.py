@@ -760,6 +760,7 @@ def import_exercises_button() -> rx.Component:
                     id="exercises_upload",
                     multiple=False,
                     accept={"application/json": [".json"]},
+                    max_size=10 * 1024 * 1024,  # 10 MB
                     padding="5em",
                     padding_top="1em",
                     padding_bottom="1em",

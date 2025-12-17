@@ -291,13 +291,9 @@ class ManageExercisesState(FilterMixin, SessionState):
         if not files:
             return
 
-        MAX_FILE_SIZE = 5 * 1024 * 1024  # 5 MB
-
         # --- 1. Read and parse JSON ---
         file_content = await files[0].read()
 
-        if len(file_content) > MAX_FILE_SIZE:
-            return rx.window_alert("File size exceeds the maximum limit of 5 MB.")
         try:
             data = json.loads(file_content.decode("utf-8"))
         except json.JSONDecodeError:
