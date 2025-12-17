@@ -374,6 +374,12 @@ class ManageExercisesState(FilterMixin, SessionState):
                 # Resolve Prompt ID
                 p_id = prompt_name_to_id.get(ex_data.get("prompt_name"))
 
+                # Parse deadline
+                deadline_str = ex_data["deadline"]
+                deadline_dt = (
+                    datetime.fromisoformat(deadline_str) if deadline_str else None
+                )
+
                 # Create Exercise
                 new_exercise = Exercise(
                     title=title,
@@ -381,8 +387,8 @@ class ManageExercisesState(FilterMixin, SessionState):
                     lesson_context=ex_data["lesson_context"],
                     prompt_id=p_id,
                     is_hidden=ex_data["is_hidden"],
-                    deadline=None,
-                    days_to_complete=None,
+                    deadline=deadline_dt,
+                    days_to_complete=ex_data["days_to_complete"],
                     tags=tags,
                 )
                 session.add(new_exercise)
