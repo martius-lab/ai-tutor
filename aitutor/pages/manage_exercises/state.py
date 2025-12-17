@@ -297,16 +297,22 @@ class ManageExercisesState(FilterMixin, SessionState):
         try:
             data = json.loads(file_content.decode("utf-8"))
         except json.JSONDecodeError:
-            return rx.window_alert("Invalid JSON file.")
+            return [
+                rx.clear_selected_files("exercises_upload"),
+                rx.window_alert("Invalid JSON file."),
+            ]
 
         prompt_templates = data.get("prompt_templates", {})
         exercises_list = data.get("exercises", [])
 
         MAX_EXERCISES_IMPORT = 500
         if len(exercises_list) > MAX_EXERCISES_IMPORT:
-            return rx.window_alert(
-                f"Cannot import more than {MAX_EXERCISES_IMPORT} exercises at once."
-            )
+            return [
+                rx.clear_selected_files("exercises_upload"),
+                rx.window_alert(
+                    f"Cannot import more than {MAX_EXERCISES_IMPORT} exercises at once."
+                ),
+            ]
 
         with rx.session() as session:
             # --- 2. Process Prompts ---
@@ -367,9 +373,12 @@ class ManageExercisesState(FilterMixin, SessionState):
                     field for field in required_fields if field not in ex_data
                 ]
                 if missing_fields:
-                    return rx.window_alert(
-                        f"Missing field in exercise data: {', '.join(missing_fields)}"
-                    )
+                    return [
+                        rx.clear_selected_files("exercises_upload"),
+                        rx.window_alert(
+                            f"Missing field in exercise data: {', '.join(missing_fields)}"
+                        ),
+                    ]
 
                 # Handle Title Duplicates
                 title = ex_data["title"]
@@ -394,10 +403,13 @@ class ManageExercisesState(FilterMixin, SessionState):
                 # Resolve Prompt ID
                 p_id = prompt_name_to_id.get(ex_data.get("prompt_name"))
                 if p_id is None:
-                    return rx.window_alert(
-                        f"Prompt '{ex_data.get('prompt_name')}' not found for exercise \
-                        '{title}'."
-                    )
+                    return [
+                        rx.clear_selected_files("exercises_upload"),
+                        rx.window_alert(
+                            f"Prompt '{ex_data.get('prompt_name')}' not found for \
+                                exercise '{title}'."
+                        ),
+                    ]
 
                 # Parse deadline
                 deadline_str = ex_data["deadline"]
