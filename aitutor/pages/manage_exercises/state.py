@@ -391,6 +391,11 @@ class ManageExercisesState(FilterMixin, SessionState):
 
                 # Resolve Prompt ID
                 p_id = prompt_name_to_id.get(ex_data.get("prompt_name"))
+                if p_id is None:
+                    return rx.window_alert(
+                        f"Prompt '{ex_data.get('prompt_name')}' not found for exercise \
+                        '{title}'."
+                    )
 
                 # Parse deadline
                 deadline_str = ex_data["deadline"]
