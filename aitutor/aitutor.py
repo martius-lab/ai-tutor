@@ -17,7 +17,7 @@ from aitutor.utilities.create_default_users import create_default_users
 
 app = rx.App(
     theme=rx.theme(
-        accent_color="crimson",  # TODO: choose a better accent color
+        accent_color="indigo",
         gray_color="slate",
         radius="medium",
     )

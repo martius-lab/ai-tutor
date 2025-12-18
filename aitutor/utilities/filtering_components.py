@@ -108,7 +108,6 @@ def search_badges(state: type[FilterMixin]) -> rx.Component:
                     align="center",
                 ),
                 variant="solid",
-                color_scheme="blue",
             ),
         ),
         spacing="2",

@@ -357,7 +357,7 @@ def add_prompt_dialog() -> rx.Component:
                         rx.button(
                             rx.text(LS.cancel),
                             _hover={"cursor": "pointer"},
-                            color_scheme="gray",
+                            color_scheme="red",
                             on_click=ManageConfigState.set_add_prompt_dialog_open(
                                 False
                             ),
@@ -397,7 +397,6 @@ def prompt_management() -> rx.Component:
                     ),
                     align="center",
                 ),
-                color_scheme="blue",
                 role="alert",
                 width="100%",
             ),
@@ -436,7 +435,6 @@ def prompt_management() -> rx.Component:
                         {"cursor": "pointer"},
                         {"cursor": "not-allowed"},
                     ),
-                    color_scheme="green",
                     on_click=ManageConfigState.save_prompts_to_db,
                     disabled=~ManageConfigState.prompts_unsaved_changes,  # type: ignore
                 ),

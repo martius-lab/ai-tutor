@@ -65,7 +65,7 @@ def show_table_row(table_row: TableRow) -> rx.Component:
                         color_scheme=rx.cond(
                             table_row.looked_at,
                             "gray",
-                            "blue",
+                            "accent",
                         ),
                         variant="ghost",
                         on_click=ReportsState.toggle_looked_at(
@@ -93,7 +93,6 @@ def show_table_row(table_row: TableRow) -> rx.Component:
                     rx.icon_button(
                         "search",
                         size="2",
-                        color_scheme="iris",
                         on_click=rx.redirect(
                             f"{routes.REPORT_VIEW}/{table_row.report_id}"
                         ),

@@ -21,7 +21,6 @@ def report_view_page() -> rx.Component:
                 rx.hstack(
                     rx.button(
                         rx.icon("arrow-left", size=20),
-                        color_scheme="iris",
                         on_click=rx.redirect(routes.REPORTS),
                         _hover={"cursor": "pointer"},
                     ),
@@ -46,7 +45,6 @@ def report_view_page() -> rx.Component:
                                 spacing="2",
                             ),
                         ),
-                        color_scheme="iris",
                         on_click=[
                             ReportViewState.toggle_looked_at,
                             rx.redirect(routes.REPORTS),

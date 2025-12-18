@@ -61,7 +61,6 @@ def user_table_row(user: tuple[LocalUser, UserInfo]) -> rx.Component:
                     rx.flex(
                         rx.icon("pen", size=15), LS.edit, gap="0.5em", align="center"
                     ),
-                    color_scheme="blue",
                     on_click=ManageUsersState.open_edit_dialog(user[0].id),  # type: ignore
                     _hover={"cursor": "pointer"},
                 ),
@@ -94,7 +93,6 @@ def edit_user_dialog() -> rx.Component:
                 rx.hstack(
                     rx.badge(
                         rx.icon(tag="pen", size=34),
-                        color_scheme="orange",
                         radius="full",
                     ),
                     rx.dialog.title(
@@ -162,14 +160,13 @@ def edit_user_dialog() -> rx.Component:
                         rx.hstack(
                             rx.button(
                                 LS.cancel,
-                                color_scheme="gray",
+                                variant="outline",
                                 type="button",
                                 on_click=ManageUsersState.close_edit_dialog(),
                                 _hover={"cursor": "pointer"},
                             ),
                             rx.button(
                                 LS.save,
-                                color_scheme="blue",
                                 type="submit",
                                 _hover={"cursor": "pointer"},
                             ),

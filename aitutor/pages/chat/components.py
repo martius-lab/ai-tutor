@@ -106,7 +106,6 @@ def chat_form() -> rx.Component:
             required=True,
             width="100%",
             max_height="40vh",
-            color_scheme="iris",
             enter_key_submit=with_key_submit,
             resize="vertical",
             rows="4",
@@ -157,7 +156,6 @@ def edit_last_message_button() -> rx.Component:
                 align="center",
                 justify="center",
             ),
-            color_scheme="iris",
             _hover=rx.cond(
                 ChatState.waiting_for_response,
                 {"cursor": "not-allowed"},
@@ -180,7 +178,6 @@ def send_message_button() -> rx.Component:
     return rx.button(
         rx.icon("send-horizontal", size=20),
         type="submit",
-        color_scheme="iris",
         _hover=rx.cond(
             ChatState.waiting_for_response,
             {"cursor": "not-allowed"},
@@ -300,7 +297,6 @@ def submitted_status() -> rx.Component:
             rx.hover_card.trigger(
                 rx.button(
                     rx.icon("eye", size=20),
-                    color_scheme="iris",
                     on_click=rx.redirect(ChatState.finished_view_url),
                     _hover={"cursor": "pointer"},
                 ),
@@ -357,7 +353,7 @@ def report_conversation_link() -> rx.Component:
     """
     return rx.alert_dialog.root(
         rx.alert_dialog.trigger(
-            rx.text(
+            rx.link(
                 LanguageState.report_conversation,
                 size="2",
                 text_decoration="underline",
@@ -399,7 +395,6 @@ def report_conversation_link() -> rx.Component:
                 rx.alert_dialog.cancel(
                     rx.button(
                         rx.text(LanguageState.cancel),
-                        color_scheme="iris",
                         variant="outline",
                         _hover={"cursor": "pointer"},
                     ),
@@ -407,7 +402,6 @@ def report_conversation_link() -> rx.Component:
                 rx.alert_dialog.action(
                     rx.button(
                         LanguageState.submit,
-                        color_scheme="iris",
                         on_click=ChatState.submit_report,
                         disabled=~ChatState.report_is_valid,
                         _hover=rx.cond(

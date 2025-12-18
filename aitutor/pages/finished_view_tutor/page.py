@@ -21,7 +21,6 @@ def finished_view_tutor_page() -> rx.Component:
                 rx.hstack(
                     rx.button(
                         rx.icon("arrow-left", size=20),
-                        color_scheme="iris",
                         on_click=rx.redirect(
                             routes.SUBMISSIONS,
                         ),

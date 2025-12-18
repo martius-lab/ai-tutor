@@ -74,7 +74,6 @@ def dashboard_card():
                                 spacing="1",
                             ),
                             _hover={"cursor": "pointer"},
-                            color_scheme="iris",
                             on_click=rx.redirect(LOGIN),
                         ),
                         rx.button(

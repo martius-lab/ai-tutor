@@ -165,7 +165,6 @@ def register_form() -> rx.Component:
                         ),
                         align="center",
                     ),
-                    color_scheme="blue",
                     role="alert",
                     width="100%",
                 ),
