@@ -2,6 +2,7 @@
 
 import reflex as rx
 
+import aitutor.global_vars as gv
 from aitutor.components.dialogs import confirm, destructive_confirm
 from aitutor.language_state import LanguageState
 from aitutor.pages.chat.state import ChatMessage, ChatState, Role
@@ -25,8 +26,8 @@ def message_box(chat_message: ChatMessage) -> rx.Component:
                 rx.color(check_result_color, 4),
                 rx.cond(
                     chat_message.role == Role.AITUTOR,
-                    rx.color("mauve", 4),
-                    rx.color("iris", 4),
+                    rx.color("gray", 3),
+                    rx.color("accent", 3),
                 ),
             ),
             color=rx.cond(
@@ -34,8 +35,8 @@ def message_box(chat_message: ChatMessage) -> rx.Component:
                 rx.color(check_result_color, 12),
                 rx.cond(
                     chat_message.role == Role.AITUTOR,
-                    rx.color("mauve", 12),
-                    rx.color("iris", 12),
+                    rx.color("gray", 12),
+                    rx.color("accent", 12),
                 ),
             ),
             text_align="left",
@@ -105,7 +106,6 @@ def chat_form() -> rx.Component:
             required=True,
             width="100%",
             max_height="40vh",
-            color_scheme="iris",
             enter_key_submit=with_key_submit,
             resize="vertical",
             rows="4",
@@ -156,7 +156,6 @@ def edit_last_message_button() -> rx.Component:
                 align="center",
                 justify="center",
             ),
-            color_scheme="iris",
             _hover=rx.cond(
                 ChatState.waiting_for_response,
                 {"cursor": "not-allowed"},
@@ -179,7 +178,6 @@ def send_message_button() -> rx.Component:
     return rx.button(
         rx.icon("send-horizontal", size=20),
         type="submit",
-        color_scheme="iris",
         _hover=rx.cond(
             ChatState.waiting_for_response,
             {"cursor": "not-allowed"},
@@ -299,7 +297,6 @@ def submitted_status() -> rx.Component:
             rx.hover_card.trigger(
                 rx.button(
                     rx.icon("eye", size=20),
-                    color_scheme="iris",
                     on_click=rx.redirect(ChatState.finished_view_url),
                     _hover={"cursor": "pointer"},
                 ),
@@ -314,7 +311,7 @@ def submitted_status() -> rx.Component:
         ),
         rx.icon(
             "circle-check",
-            color="green",
+            color=gv.GREEN_CHECK_COLOR,
             size=30,
         ),
         align="center",
@@ -328,7 +325,6 @@ def not_submitted_status() -> rx.Component:
     return rx.hstack(
         rx.icon(
             "info",
-            color=rx.color_mode_cond(light="black", dark="white"),
             size=20,
         ),
         rx.text(LanguageState.not_submitted_yet),
@@ -357,10 +353,9 @@ def report_conversation_link() -> rx.Component:
     """
     return rx.alert_dialog.root(
         rx.alert_dialog.trigger(
-            rx.text(
+            rx.link(
                 LanguageState.report_conversation,
                 size="2",
-                color=rx.color("blue", 11),
                 text_decoration="underline",
                 text_align="center",
                 width="100%",
@@ -400,7 +395,6 @@ def report_conversation_link() -> rx.Component:
                 rx.alert_dialog.cancel(
                     rx.button(
                         rx.text(LanguageState.cancel),
-                        color_scheme="iris",
                         variant="outline",
                         _hover={"cursor": "pointer"},
                     ),
@@ -408,7 +402,6 @@ def report_conversation_link() -> rx.Component:
                 rx.alert_dialog.action(
                     rx.button(
                         LanguageState.submit,
-                        color_scheme="iris",
                         on_click=ChatState.submit_report,
                         disabled=~ChatState.report_is_valid,
                         _hover=rx.cond(

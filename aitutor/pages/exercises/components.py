@@ -2,6 +2,7 @@
 
 import reflex as rx
 
+import aitutor.global_vars as gv
 from aitutor.language_state import LanguageState
 from aitutor.models import Exercise, ExerciseResult
 from aitutor.pages.exercises.state import ExercisesState, ExerciseWithResult
@@ -56,9 +57,7 @@ def render_exercise_card(exercise_with_res: ExerciseWithResult) -> rx.Component:
                             rx.hstack(
                                 rx.foreach(
                                     exercise.tags,
-                                    lambda tag: rx.badge(
-                                        tag.name, variant="soft", color_scheme="blue"
-                                    ),
+                                    lambda tag: rx.badge(tag.name, variant="soft"),
                                 ),
                                 spacing="2",
                                 wrap="wrap",
@@ -70,7 +69,7 @@ def render_exercise_card(exercise_with_res: ExerciseWithResult) -> rx.Component:
                         rx.hstack(
                             rx.icon(
                                 "circle-check",
-                                color="green",
+                                color=gv.GREEN_CHECK_COLOR,
                                 size=20,
                             ),
                             rx.text(
@@ -159,9 +158,7 @@ def render_exercises() -> rx.Component:
         ),
         rx.cond(
             ExercisesState.exercises_with_result.length() == 0,  # type: ignore
-            rx.callout(
-                LanguageState.no_exercises_available, icon="info", color_scheme="gray"
-            ),
+            rx.callout(LanguageState.no_exercises_available, icon="info"),
         ),
         align="center",
         spacing="4",

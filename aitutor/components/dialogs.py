@@ -55,9 +55,6 @@ def confirm_dialog(
     rx.Component
         A fully configured Reflex alert-dialog component."""
 
-    confirm_color = "red" if destructive else "iris"
-    cancel_color = "iris"
-
     return rx.alert_dialog.root(
         rx.alert_dialog.trigger(trigger),
         rx.alert_dialog.content(
@@ -67,7 +64,6 @@ def confirm_dialog(
                 rx.alert_dialog.cancel(
                     rx.button(
                         rx.text(cancel_text),
-                        color_scheme=cancel_color,
                         _hover={"cursor": "pointer"},
                         variant=rx.cond(destructive, "solid", "outline"),
                     )
@@ -75,12 +71,13 @@ def confirm_dialog(
                 rx.alert_dialog.action(
                     rx.button(
                         rx.text(confirm_text),
-                        color_scheme=confirm_color,
+                        color_scheme="red" if destructive else None,
                         on_click=on_confirm,
                         _hover={"cursor": "pointer"},
                     )
                 ),
                 margin_top="1em",
+                justify="end",
             ),
         ),
     )

@@ -48,7 +48,6 @@ def show_table_row(table_row: TableRow) -> rx.Component:
                     lambda tag: rx.badge(
                         tag,
                         variant="soft",
-                        color_scheme="blue",
                         on_click=SubmissionsState.add_search_value(
                             {"search_value": f'{SEARCH_TAG_KEY}:"{tag}"'}
                         ),
@@ -65,7 +64,6 @@ def show_table_row(table_row: TableRow) -> rx.Component:
                 rx.icon_button(
                     "search",
                     size="2",
-                    color_scheme="iris",
                     on_click=rx.redirect(
                         f"{routes.FINISHED_VIEW_TUTOR}/{table_row.exercise_id}/{table_row.user_id}"
                     ),

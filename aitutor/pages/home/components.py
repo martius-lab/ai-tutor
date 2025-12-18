@@ -2,6 +2,7 @@
 
 import reflex as rx
 
+import aitutor.global_vars as gv
 from aitutor import DisplayConfigState, routes
 from aitutor.language_state import LanguageState
 from aitutor.pages.home.state import HomeState
@@ -24,7 +25,7 @@ def dashboard_card():
                     rx.text(LanguageState.welcome_back, weight="medium"),
                     rx.progress(value=HomeState.progress_value, max=100, width="100%"),  # type: ignore
                     rx.hstack(
-                        rx.icon("circle-check", color="green", size=20),
+                        rx.icon("circle-check", color=gv.GREEN_CHECK_COLOR, size=20),
                         rx.cond(
                             exercises_num > 0,
                             rx.text(
@@ -73,7 +74,6 @@ def dashboard_card():
                                 spacing="1",
                             ),
                             _hover={"cursor": "pointer"},
-                            color_scheme="iris",
                             on_click=rx.redirect(LOGIN),
                         ),
                         rx.button(

@@ -138,6 +138,7 @@ class ManageExercisesState(FilterMixin, SessionState):
         self.global_load()
         self.prompt_names = [prompt.name for prompt in self.prompts]
         self.load_exercises()
+        self.extracting_lesson_material = False
 
     def on_logout(self):
         """Clears the state when the user logs out."""
@@ -170,7 +171,9 @@ class ManageExercisesState(FilterMixin, SessionState):
     @rx.var
     def all_exercises_selected(self) -> bool:
         """Return True if all exercises are selected."""
-        return all(self.exercise_is_selected.values())
+        return len(self.exercise_is_selected) > 0 and all(
+            self.exercise_is_selected.values()
+        )
 
     @rx.var
     def something_is_selected(self) -> bool:

@@ -20,7 +20,6 @@ def new_tag_dialog():
                 rx.button(
                     LanguageState.new_tag,
                     margin_top="0.5em",
-                    color_scheme="orange",
                     shade="7",
                     _hover={"cursor": "pointer"},
                 ),
@@ -43,7 +42,6 @@ def new_tag_dialog():
                         rx.form.submit(
                             rx.button(
                                 LanguageState.add_tag,
-                                color_scheme="grass",
                                 type="submit",
                                 _hover={"cursor": "pointer"},
                             ),
@@ -103,7 +101,6 @@ def show_exercise(exercise: Exercise):
                     lambda tag: rx.badge(
                         tag.name,
                         variant="soft",
-                        color_scheme="blue",
                         on_click=ManageExercisesState.add_search_value(
                             {"search_value": f'tag:"{tag.name}"'}
                         ),
@@ -274,8 +271,8 @@ def add_exercise_dialog() -> rx.Component:
             rx.hstack(
                 rx.badge(
                     rx.icon(tag="file-plus", size=34),
-                    color_scheme="grass",
                     radius="full",
+                    color_scheme="green",
                 ),
                 rx.vstack(
                     rx.dialog.title(
@@ -316,7 +313,7 @@ def edit_exercise_button(exercise: Exercise):
     """Button to open the edit exercise dialog."""
     return rx.button(
         rx.icon("wrench", size=22),
-        color_scheme="orange",
+        color_scheme="yellow",
         size="2",
         variant="ghost",
         on_click=ManageExercisesState.open_edit_dialog(exercise),
@@ -332,7 +329,7 @@ def edit_exercise_dialog() -> rx.Component:
             rx.hstack(
                 rx.badge(
                     rx.icon(tag="wrench", size=34),
-                    color_scheme="orange",
+                    color_scheme="yellow",
                     radius="full",
                 ),
                 rx.vstack(
@@ -402,6 +399,7 @@ def pdf_upload() -> rx.Component:
                 align="center",
             ),
             id="upload1",
+            accept={"application/pdf": [".pdf"]},
             padding="5em",
             padding_top="1em",
             padding_bottom="1em",
@@ -542,7 +540,6 @@ def tag_management() -> rx.Component:
                             align_items="center",
                         ),
                         on_click=ManageExercisesState.remove_selected_tag(tag),  # type: ignore
-                        color_scheme="grass",
                         cursor="pointer",
                         size="3",
                         style={
@@ -701,7 +698,7 @@ def add_edit_exercise_form(mode: DialogMode) -> Sequence[rx.Component]:
         rx.hstack(
             rx.button(
                 LanguageState.cancel,
-                color_scheme="red",
+                variant="outline",
                 _hover={"cursor": "pointer"},
                 on_click=ManageExercisesState.close_dialog,
                 type="button",
@@ -771,7 +768,6 @@ def import_exercises_button() -> rx.Component:
                     rx.dialog.close(
                         rx.button(
                             rx.text(LanguageState.cancel),
-                            color_scheme="iris",
                             variant="outline",
                             _hover={"cursor": "pointer"},
                             type="button",
@@ -781,7 +777,6 @@ def import_exercises_button() -> rx.Component:
                     rx.dialog.close(
                         rx.button(
                             LanguageState.import_,
-                            color_scheme="iris",
                             on_click=ManageExercisesState.import_exercises(
                                 rx.upload_files(upload_id="exercises_upload")  # type: ignore
                             ),
