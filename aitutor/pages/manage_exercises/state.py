@@ -171,7 +171,9 @@ class ManageExercisesState(FilterMixin, SessionState):
     @rx.var
     def all_exercises_selected(self) -> bool:
         """Return True if all exercises are selected."""
-        return all(self.exercise_is_selected.values())
+        return len(self.exercise_is_selected) > 0 and all(
+            self.exercise_is_selected.values()
+        )
 
     @rx.var
     def something_is_selected(self) -> bool:
