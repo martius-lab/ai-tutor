@@ -212,7 +212,12 @@ def add_exercise_button() -> rx.Component:
     """Button for adding new exercises."""
     return rx.button(
         rx.icon("file-plus"),
-        rx.text(LanguageState.add_exercise, size="3"),
+        rx.desktop_only(
+            rx.text(LanguageState.add_exercise, size="3"),
+        ),
+        rx.mobile_and_tablet(
+            rx.text(LanguageState.add, size="3"),
+        ),
         _hover={"cursor": "pointer"},
         on_click=ManageExercisesState.open_add_dialog,
         type="button",
@@ -403,6 +408,7 @@ def pdf_upload() -> rx.Component:
             on_drop=ManageExercisesState.extract_lesson_material(
                 rx.upload_files(upload_id="upload1")  # type: ignore
             ),
+            _hover={"cursor": "pointer"},
         ),
         rx.text(
             LanguageState.last_uploaded_file,
@@ -723,5 +729,76 @@ def add_edit_exercise_form(mode: DialogMode) -> Sequence[rx.Component]:
             ),
             spacing="2",
             justify="end",
+        ),
+    )
+
+
+def import_exercises_button() -> rx.Component:
+    """Button for importing exercises from a json file."""
+    return rx.dialog.root(
+        rx.dialog.trigger(
+            rx.button(
+                rx.icon("file_up"),
+                rx.desktop_only(
+                    rx.text(LanguageState.import_exercises, size="3"),
+                ),
+                rx.mobile_and_tablet(
+                    rx.text(LanguageState.import_, size="3"),
+                ),
+                _hover={"cursor": "pointer"},
+            )
+        ),
+        rx.dialog.content(
+            rx.vstack(
+                rx.upload(
+                    rx.text(
+                        LanguageState.exercises_upload_info,
+                    ),
+                    rx.text(
+                        rx.selected_files("exercises_upload"), color="yellow", size="3"
+                    ),
+                    id="exercises_upload",
+                    multiple=False,
+                    accept={"application/json": [".json"]},
+                    max_size=10 * 1024 * 1024,  # 10 MB
+                    padding="5em",
+                    padding_top="1em",
+                    padding_bottom="1em",
+                    _hover={"cursor": "pointer"},
+                    width="100%",
+                ),
+                rx.hstack(
+                    rx.dialog.close(
+                        rx.button(
+                            rx.text(LanguageState.cancel),
+                            color_scheme="iris",
+                            variant="outline",
+                            _hover={"cursor": "pointer"},
+                            type="button",
+                            on_click=rx.clear_selected_files("exercises_upload"),
+                        )
+                    ),
+                    rx.dialog.close(
+                        rx.button(
+                            LanguageState.import_,
+                            color_scheme="iris",
+                            on_click=ManageExercisesState.import_exercises(
+                                rx.upload_files(upload_id="exercises_upload")  # type: ignore
+                            ),
+                            _hover=rx.cond(
+                                rx.selected_files("exercises_upload").length() == 0,  # type: ignore
+                                {"cursor": "not-allowed"},
+                                {"cursor": "pointer"},
+                            ),
+                            disabled=rx.selected_files("exercises_upload").length()  # type: ignore
+                            == 0,
+                        ),
+                    ),
+                    width="100%",
+                    justify="end",
+                ),
+            ),
+            width="40em",
+            max_width="90vw",
         ),
     )

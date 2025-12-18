@@ -279,6 +279,203 @@ class ManageExercisesState(FilterMixin, SessionState):
         yield
 
     @rx.event
+    async def import_exercises(self, files: list[rx.UploadFile]):
+        """
+        Import exercises from a JSON file.
+        In case of name conflicts for prompts, the following rules apply:
+        - If a prompt with the same name and content exists, it is reused.
+        - If a prompt with the same name but different content exists, the imported
+          prompt is renamed
+        - If a prompt does not exist, it is created
+        """
+        events = [rx.clear_selected_files("exercises_upload")]
+
+        if not files:
+            return events
+
+        try:
+            # --- 1. Read and parse JSON ---
+            file_content = await files[0].read()
+
+            try:
+                data = json.loads(file_content.decode("utf-8"))
+            except json.JSONDecodeError:
+                raise ValueError("Invalid JSON file.") from None
+
+            prompt_templates = data.get("prompt_templates", {})
+            exercises_list = data.get("exercises", [])
+
+            MAX_EXERCISES_IMPORT = 500
+            if len(exercises_list) > MAX_EXERCISES_IMPORT:
+                raise ValueError(
+                    f"Cannot import more than {MAX_EXERCISES_IMPORT} exercises at once."
+                )
+
+            with rx.session() as session:
+                # --- 2. Process Prompts ---
+                # Map original names from JSON to actual DB IDs
+                prompt_name_to_id = {}
+
+                # store (old_name, new_name) tuples for renamed prompts
+                prompt_renames: list[tuple[str, str]] = []
+
+                # names of newly added prompts
+                new_prompts: list[str] = []
+
+                for p_name, p_template in prompt_templates.items():
+                    existing_prompt = session.exec(
+                        select(Prompt).where(Prompt.name == p_name)
+                    ).first()
+
+                    if existing_prompt:
+                        if existing_prompt.prompt_template == p_template:
+                            # Exact match: reuse existing ID
+                            prompt_name_to_id[p_name] = existing_prompt.id
+                        else:
+                            # Name taken but content differs: Rename imported prompt
+                            new_name = p_name
+                            counter = 1
+                            while session.exec(
+                                select(Prompt).where(Prompt.name == new_name)
+                            ).first():
+                                new_name = f"{p_name} (imported {counter})"
+                                counter += 1
+
+                            new_prompt = Prompt(
+                                name=new_name, prompt_template=p_template
+                            )
+                            session.add(new_prompt)
+                            session.flush()  # Flush to get the ID
+                            prompt_name_to_id[p_name] = new_prompt.id
+                            prompt_renames.append((p_name, new_name))
+                    else:
+                        # New prompt
+                        new_prompt = Prompt(name=p_name, prompt_template=p_template)
+                        session.add(new_prompt)
+                        session.flush()
+                        prompt_name_to_id[p_name] = new_prompt.id
+                        new_prompts.append(p_name)
+
+                # --- 3. Process Exercises ---
+                for ex_data in exercises_list:
+                    # validate required fields
+                    required_fields = [
+                        "title",
+                        "description",
+                        "lesson_context",
+                        "is_hidden",
+                        "deadline",
+                        "days_to_complete",
+                        "tags",
+                    ]
+                    missing_fields = [
+                        field for field in required_fields if field not in ex_data
+                    ]
+                    if missing_fields:
+                        raise ValueError(
+                            "Missing field in exercise data: "
+                            f"{', '.join(missing_fields)}"
+                        )
+
+                    # Handle Title Duplicates
+                    title = ex_data["title"]
+                    original_title = title
+                    counter = 1
+                    while session.exec(
+                        select(Exercise).where(Exercise.title == title)
+                    ).first():
+                        title = f"{original_title} (imported {counter})"
+                        counter += 1
+
+                    # Handle Tags (Get or Create)
+                    tags = []
+                    for tag_name in ex_data.get("tags", []):
+                        tag = session.exec(
+                            select(Tag).where(Tag.name == tag_name)
+                        ).first()
+                        if not tag:
+                            tag = Tag(name=tag_name)
+                            session.add(tag)
+                            session.flush()
+                        tags.append(tag)
+
+                    # Resolve Prompt ID
+                    prompt_id = prompt_name_to_id.get(ex_data.get("prompt_name"))
+                    if prompt_id is None:
+                        raise ValueError(
+                            f"Prompt '{ex_data.get('prompt_name')}' not found for "
+                            "exercise '{title}'."
+                        )
+
+                    # Parse deadline
+                    deadline_str = ex_data["deadline"]
+                    deadline_dt = (
+                        datetime.fromisoformat(deadline_str) if deadline_str else None
+                    )
+
+                    # Create Exercise
+                    new_exercise = Exercise(
+                        title=title,
+                        description=ex_data["description"],
+                        lesson_context=ex_data["lesson_context"],
+                        prompt_id=prompt_id,
+                        is_hidden=ex_data["is_hidden"],
+                        deadline=deadline_dt,
+                        days_to_complete=ex_data["days_to_complete"],
+                        tags=tags,
+                    )
+                    session.add(new_exercise)
+
+                session.commit()
+
+            # Refresh UI
+            self.on_load()
+
+            # Add success toast
+            events.append(
+                rx.toast.success(
+                    BT.successfully_imported_exercises(
+                        self.language, len(exercises_list)
+                    ),
+                    duration=3000,
+                    position="bottom-center",
+                    invert=True,
+                )
+            )
+
+            # build window alert message for new/renamed prompts
+            window_alert_msg = ""
+            if new_prompts:
+                new_prompts_list = ", ".join(new_prompts)
+                window_alert_msg += (
+                    BT.added_new_prompts(self.language, new_prompts_list) + "\n\n"
+                )
+
+            if prompt_renames:
+                renamed_prompts_list = "\n".join(
+                    [f"'{old}' -> '{new}'" for old, new in prompt_renames]
+                )
+                window_alert_msg += BT.added_and_renamed_conflicting_prompts(
+                    self.language, renamed_prompts_list
+                )
+
+            if window_alert_msg:
+                events.append(rx.window_alert(window_alert_msg))
+
+        except Exception as e:
+            # Catch and show any errors
+            events.append(
+                rx.toast.error(
+                    str(e),
+                    duration=5000,
+                    position="bottom-center",
+                    invert=True,
+                )
+            )
+
+        return events
+
+    @rx.event
     def add_selected_tag(self):
         """Add the currently selected tag to the list of selected tags."""
         if not self.current_tag:

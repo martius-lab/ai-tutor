@@ -429,6 +429,23 @@ class LanguageState(SessionState):
 
     # Manage Exercises Page Strings ----------------------------------------------------
     @rx.var
+    def import_exercises(self) -> str:
+        return self.translate(de="Übungen importieren", en="Import Exercises")
+
+    @rx.var
+    def import_(self) -> str:
+        return self.translate(de="Importieren", en="Import")
+
+    @rx.var
+    def exercises_upload_info(self) -> str:
+        return self.translate(
+            de="Drag & Drop oder klicken, um aus dem Dateisystem auszuwählen "
+            "(JSON-Format erwartet).",
+            en="Drag and drop or click to select from file system "
+            "(JSON format expected).",
+        )
+
+    @rx.var
     def new_tag(self) -> str:
         """Create new tag string"""
         return self.translate(de="Neues Tag", en="New tag")
@@ -610,6 +627,10 @@ class LanguageState(SessionState):
     def add_task(self) -> str:
         """Add task string"""
         return self.translate(de="Aufgabe hinzufügen", en="Add exercise")
+
+    @rx.var
+    def add(self) -> str:
+        return self.translate(de="Hinzufügen", en="Add")
 
     @rx.var
     def update_task(self) -> str:
@@ -1102,6 +1123,32 @@ class BackendTranslations:
             language,
             de="Ausgewählte Übungen erfolgreich gelöscht",
             en="Selected exercises deleted successfully",
+        )
+
+    @staticmethod
+    def successfully_imported_exercises(language: Language, count: int) -> str:
+        return translate(
+            language,
+            de=f"{count} Übungen erfolgreich importiert.",
+            en=f"{count} exercises imported successfully.",
+        )
+
+    @staticmethod
+    def added_new_prompts(language: Language, prompt_list: str) -> str:
+        return translate(
+            language,
+            de=f"Neue Prompts hinzugefügt: \n {prompt_list}",
+            en=f"Added new prompts: \n {prompt_list}",
+        )
+
+    @staticmethod
+    def added_and_renamed_conflicting_prompts(
+        language: Language, prompt_list: str
+    ) -> str:
+        return translate(
+            language,
+            de=f"Konfliktierende Prompts hinzugefügt und umbenannt: \n {prompt_list}",
+            en=f"Added and renamed conflicting prompts: \n {prompt_list}",
         )
 
     # FinishedViewState ----------------------------------------------------------------
