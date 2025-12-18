@@ -280,11 +280,15 @@ def navbar(route_to_highlight: str) -> rx.Component:
                                     rx.cond(
                                         link[1] == route_to_highlight,
                                         rx.hstack(
-                                            rx.icon(link[2], size=15, color="#0d74ce"),
+                                            rx.icon(
+                                                link[2],
+                                                size=15,
+                                                color=rx.color("accent", 9),
+                                            ),
                                             rx.text(
                                                 link[0],
                                                 weight="bold",
-                                                color="#0d74ce",
+                                                color=rx.color("accent", 9),
                                             ),
                                             align="center",
                                         ),

@@ -2,6 +2,7 @@
 
 import reflex as rx
 
+import aitutor.global_vars as gv
 from aitutor.components.dialogs import confirm, destructive_confirm
 from aitutor.language_state import LanguageState
 from aitutor.pages.chat.state import ChatMessage, ChatState, Role
@@ -25,8 +26,8 @@ def message_box(chat_message: ChatMessage) -> rx.Component:
                 rx.color(check_result_color, 4),
                 rx.cond(
                     chat_message.role == Role.AITUTOR,
-                    rx.color("mauve", 4),
-                    rx.color("iris", 4),
+                    rx.color("gray", 3),
+                    rx.color("accent", 3),
                 ),
             ),
             color=rx.cond(
@@ -34,8 +35,8 @@ def message_box(chat_message: ChatMessage) -> rx.Component:
                 rx.color(check_result_color, 12),
                 rx.cond(
                     chat_message.role == Role.AITUTOR,
-                    rx.color("mauve", 12),
-                    rx.color("iris", 12),
+                    rx.color("gray", 12),
+                    rx.color("accent", 12),
                 ),
             ),
             text_align="left",
@@ -314,7 +315,7 @@ def submitted_status() -> rx.Component:
         ),
         rx.icon(
             "circle-check",
-            color="green",
+            color=gv.GREEN_CHECK_COLOR,
             size=30,
         ),
         align="center",
@@ -328,7 +329,6 @@ def not_submitted_status() -> rx.Component:
     return rx.hstack(
         rx.icon(
             "info",
-            color=rx.color_mode_cond(light="black", dark="white"),
             size=20,
         ),
         rx.text(LanguageState.not_submitted_yet),
@@ -360,7 +360,6 @@ def report_conversation_link() -> rx.Component:
             rx.text(
                 LanguageState.report_conversation,
                 size="2",
-                color=rx.color("blue", 11),
                 text_decoration="underline",
                 text_align="center",
                 width="100%",

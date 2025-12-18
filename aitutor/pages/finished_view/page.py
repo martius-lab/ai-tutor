@@ -2,6 +2,7 @@
 
 import reflex as rx
 
+import aitutor.global_vars as gv
 from aitutor import routes
 from aitutor.auth.protection import page_require_role_at_least
 from aitutor.language_state import LanguageState
@@ -28,7 +29,7 @@ def finished_view_page() -> rx.Component:
                         ),
                         _hover={"cursor": "pointer"},
                     ),
-                    rx.icon("circle-check", color="green"),
+                    rx.icon("circle-check", color=gv.GREEN_CHECK_COLOR),
                     rx.heading(
                         LanguageState.submitted_chat,
                         size="5",

@@ -52,7 +52,7 @@ def user_table_row(user: tuple[LocalUser, UserInfo]) -> rx.Component:
             rx.cond(
                 user[0].enabled,
                 rx.icon("square-check"),
-                rx.icon("square-x", color="red"),
+                rx.icon("square-x", color=rx.color("red", 9)),
             )
         ),
         rx.table.cell(

@@ -44,7 +44,6 @@ def show_table_row(table_row: TableRow) -> rx.Component:
         rx.table.cell(
             rx.text(
                 table_row.report_preview,
-                color=rx.color("black", 11),
                 style={
                     "white-space": "nowrap",
                     "overflow": "hidden",

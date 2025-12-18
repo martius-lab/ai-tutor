@@ -2,6 +2,7 @@
 
 import reflex as rx
 
+import aitutor.global_vars as gv
 from aitutor.language_state import LanguageState
 from aitutor.models import Exercise, ExerciseResult
 from aitutor.pages.exercises.state import ExercisesState, ExerciseWithResult
@@ -70,7 +71,7 @@ def render_exercise_card(exercise_with_res: ExerciseWithResult) -> rx.Component:
                         rx.hstack(
                             rx.icon(
                                 "circle-check",
-                                color="green",
+                                color=gv.GREEN_CHECK_COLOR,
                                 size=20,
                             ),
                             rx.text(

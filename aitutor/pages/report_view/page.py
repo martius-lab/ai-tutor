@@ -78,7 +78,7 @@ def report_view_page() -> rx.Component:
                         ReportViewState.report_text,
                         padding="1em",
                         border_radius="8px",
-                        background_color=rx.color("red", 4),
+                        background_color=rx.color("red", 3),
                         color=rx.color("red", 12),
                     ),
                     width="100%",

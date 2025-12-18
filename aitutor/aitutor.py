@@ -15,8 +15,14 @@ from aitutor.config import add_configprompts_to_db, get_config, initialize_confi
 from aitutor.models import Prompt
 from aitutor.utilities.create_default_users import create_default_users
 
+app = rx.App(
+    theme=rx.theme(
+        accent_color="crimson",  # TODO: choose a better accent color
+        gray_color="slate",
+        radius="medium",
+    )
+)
 # info: add dynamic routes first
-app = rx.App()
 app.add_page(
     pages.finished_view_tutor_page,
     route=routes.FINISHED_VIEW_TUTOR + "/[exercise_id]/[url_user_id]",
