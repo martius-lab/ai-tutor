@@ -77,6 +77,7 @@ def confirm_dialog(
                     )
                 ),
                 margin_top="1em",
+                justify="end",
             ),
         ),
     )
