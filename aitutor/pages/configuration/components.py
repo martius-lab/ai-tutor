@@ -357,7 +357,7 @@ def add_prompt_dialog() -> rx.Component:
                         rx.button(
                             rx.text(LS.cancel),
                             _hover={"cursor": "pointer"},
-                            color_scheme="red",
+                            variant="outline",
                             on_click=ManageConfigState.set_add_prompt_dialog_open(
                                 False
                             ),

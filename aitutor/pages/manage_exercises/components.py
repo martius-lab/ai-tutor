@@ -272,6 +272,7 @@ def add_exercise_dialog() -> rx.Component:
                 rx.badge(
                     rx.icon(tag="file-plus", size=34),
                     radius="full",
+                    color_scheme="green",
                 ),
                 rx.vstack(
                     rx.dialog.title(
@@ -696,7 +697,7 @@ def add_edit_exercise_form(mode: DialogMode) -> Sequence[rx.Component]:
         rx.hstack(
             rx.button(
                 LanguageState.cancel,
-                color_scheme="red",
+                variant="outline",
                 _hover={"cursor": "pointer"},
                 on_click=ManageExercisesState.close_dialog,
                 type="button",
