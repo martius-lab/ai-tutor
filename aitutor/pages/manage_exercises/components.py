@@ -399,6 +399,7 @@ def pdf_upload() -> rx.Component:
                 align="center",
             ),
             id="upload1",
+            accept={"application/pdf": [".pdf"]},
             padding="5em",
             padding_top="1em",
             padding_bottom="1em",

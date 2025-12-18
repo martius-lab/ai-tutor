@@ -138,6 +138,7 @@ class ManageExercisesState(FilterMixin, SessionState):
         self.global_load()
         self.prompt_names = [prompt.name for prompt in self.prompts]
         self.load_exercises()
+        self.extracting_lesson_material = False
 
     def on_logout(self):
         """Clears the state when the user logs out."""
