@@ -52,6 +52,7 @@ def page_require_role_at_least(required_role: UserRole):
                             on_mount=LoginState.redir,
                         ),
                         height="85vh",
+                        width="100%",
                     ),
                 )
             )

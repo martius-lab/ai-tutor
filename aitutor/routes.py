@@ -5,6 +5,7 @@ Defines the routes used in the AI Tutor application.
 import reflex_local_auth
 
 HOME = "/"
+ADMIN_SETTINGS = "/admin_settings"
 CHAT = "/chat"  # needs to be /chat/[exercise_id] to work
 EXERCISES = "/exercises"
 MANAGE_EXERCISES = "/manage_exercises"

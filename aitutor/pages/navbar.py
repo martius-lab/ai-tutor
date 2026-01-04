@@ -39,6 +39,7 @@ tutor_links = [
     (LanguageState.submissions_link, routes.SUBMISSIONS, "search-check"),
 ]
 admin_links = [
+    (LanguageState.admin_settings_link, routes.ADMIN_SETTINGS, "shield-check"),
     (LanguageState.manage_exercises_link, routes.MANAGE_EXERCISES, "pencil-line"),
     (LanguageState.manage_users, routes.MANAGE_USERS, "users"),
     (LanguageState.configuration, routes.CONFIGURATION, "file-sliders"),

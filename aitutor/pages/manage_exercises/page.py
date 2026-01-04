@@ -70,6 +70,7 @@ def manage_exercises_page() -> rx.Component:
             spacing="3",
             align="center",
             justify="center",
+            width="100%",
         ),
         margin_top="2em",
         margin_bottom="2em",

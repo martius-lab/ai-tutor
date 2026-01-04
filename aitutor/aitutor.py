@@ -44,6 +44,10 @@ app.add_page(
     on_load=pages.FinishedViewState.on_load,
 )
 app.add_page(
+    pages.admin_settings_page,
+    route=routes.ADMIN_SETTINGS,
+)
+app.add_page(
     pages.submissions_page,
     route=routes.SUBMISSIONS,
     on_load=pages.SubmissionsState.on_load,

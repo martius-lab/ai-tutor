@@ -1,3 +1,4 @@
+from aitutor.pages.admin_settings.page import admin_settings_page
 from aitutor.pages.chat.page import chat_page
 from aitutor.pages.chat.state import ChatState
 from aitutor.pages.configuration.page import configuration_page
@@ -33,6 +34,7 @@ from aitutor.pages.user_settings.state import UserSettingsState
 
 __all__ = [
     # pages
+    "admin_settings_page",
     "chat_page",
     "home_page",
     "manage_exercises_page",

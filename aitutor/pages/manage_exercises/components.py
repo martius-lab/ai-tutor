@@ -166,7 +166,7 @@ def exercise_table():
                 ),
                 variant="surface",
                 size="3",
-                width="85vw",
+                width="100%",
                 overflow_y="auto",
                 max_height="66vh",
             ),
