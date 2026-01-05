@@ -127,12 +127,15 @@ class ReportsState(FilterMixin, SessionState):
                 else:
                     preview = report.report_text
 
+                # Handle deleted exercise (exercise_id set to NULL)
+                exercise_title = report.exercise.title if report.exercise else "[Deleted]"
+
                 # Append a TableRow
                 self.table_rows.append(
                     TableRow(
                         report_id=report.id,
                         username=report.userinfo.local_user.username,
-                        exercise_title=report.exercise.title,
+                        exercise_title=exercise_title,
                         report_preview=preview,
                         looked_at=report.looked_at,
                     )

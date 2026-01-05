@@ -6,6 +6,8 @@ from typing import Any, Dict, List, Optional
 from zoneinfo import ZoneInfo
 
 from reflex_local_auth.user import LocalUser
+import sqlalchemy as sa
+from sqlalchemy import ForeignKey as SAForeignKey
 from sqlmodel import (
     JSON,
     CheckConstraint,
@@ -225,18 +227,24 @@ class Report(SQLModel, table=True):
 
     Attributes:
         id: Primary key of the report.
-        exercise_id: Foreign key referencing the associated Exercise.
+        exercise_id: Foreign key referencing the associated Exercise (nullable if exercise deleted).
         userinfo_id: Foreign key referencing the user who submitted the report.
         report_text: The text content of the report.
         looked_at: Flag indicating whether the report has been viewed by a tutor.
         conversation_snapshot: Snapshot of the conversation at report submission time.
-        exercise: Relationship to the associated Exercise.
+        exercise: Relationship to the associated Exercise (may be None if deleted).
         user: Relationship to the user who submitted the report.
     """
 
     id: Optional[int] = Field(default=None, primary_key=True)
-    exercise_id: int = Field(
-        foreign_key="exercise.id", nullable=False, ondelete="CASCADE"
+    exercise_id: Optional[int] = Field(
+        default=None,
+        sa_column=Column(
+            "exercise_id",
+            sa.Integer,
+            SAForeignKey("exercise.id", ondelete="SET NULL", name="fk_report_exercise_id"),
+            nullable=True,
+        ),
     )
     userinfo_id: int = Field(
         foreign_key="userinfo.id", nullable=False, ondelete="CASCADE"
@@ -247,5 +255,5 @@ class Report(SQLModel, table=True):
         sa_column=Column(JSON), default=[]
     )
 
-    exercise: "Exercise" = Relationship()
+    exercise: Optional["Exercise"] = Relationship()
     userinfo: "UserInfo" = Relationship()
