@@ -93,15 +93,17 @@ class ReportsState(FilterMixin, SessionState):
                                 LocalUser.username.ilike(f"%{value}%")  # type: ignore
                             )
                         case gv.SEARCH_EXERCISE_KEY:
-                            stmt = stmt.join(Exercise, Report.exercise)  # type: ignore
+                            # Use outer join for exercise since it can be NULL
+                            stmt = stmt.outerjoin(Exercise, Report.exercise)  # type: ignore
                             search_conditions.append(Exercise.title.ilike(f"%{value}%"))  # type: ignore
 
                         case _:
                             # General search across all fields
+                            # Use outer join for exercise since it can be NULL
                             stmt = (
                                 stmt.join(UserInfo, Report.userinfo)  # type: ignore
                                 .join(LocalUser, UserInfo.local_user)  # type: ignore
-                                .join(Exercise, Report.exercise)  # type: ignore
+                                .outerjoin(Exercise, Report.exercise)  # type: ignore
                             )
                             search_conditions.append(
                                 or_(
@@ -121,6 +123,12 @@ class ReportsState(FilterMixin, SessionState):
             self.table_rows = []
 
             for report in reports:
+                # Skip orphaned reports (user was deleted before CASCADE was enabled)
+                if not report.userinfo or not report.userinfo.local_user:
+                    # Delete the orphaned report
+                    session.delete(report)
+                    continue
+
                 # Determine the report preview text
                 if len(report.report_text) > REPORT_PREVIEW_LENGTH:
                     preview = report.report_text[:REPORT_PREVIEW_LENGTH] + "..."
@@ -140,6 +148,9 @@ class ReportsState(FilterMixin, SessionState):
                         looked_at=report.looked_at,
                     )
                 )
+            
+            # Commit deletion of orphaned reports
+            session.commit()
 
     @rx.event
     @state_require_role_at_least(UserRole.TUTOR)
