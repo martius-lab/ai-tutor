@@ -85,7 +85,8 @@ class Exercise(SQLModel, table=True):
 
     # ORM relationship
     submissions: List["ExerciseResult"] = Relationship(
-        back_populates="exercise", cascade_delete=True
+        back_populates="exercise",
+        sa_relationship_kwargs={"passive_deletes": True}
     )
     tags: List[Tag] = Relationship(
         back_populates="exercises", link_model=ExerciseTagLink
@@ -180,7 +181,8 @@ class UserInfo(SQLModel, table=True):
 
     # ORM relationship
     exercise_results: List["ExerciseResult"] = Relationship(
-        back_populates="user", cascade_delete=True
+        back_populates="user",
+        sa_relationship_kwargs={"passive_deletes": True}
     )
     local_user: "LocalUser" = Relationship()
 
