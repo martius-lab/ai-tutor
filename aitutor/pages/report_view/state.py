@@ -61,7 +61,9 @@ class ReportViewState(SessionState):
 
                 # Get exercise and user info from report
                 # Handle deleted exercise (exercise_id set to NULL)
-                self.exercise_title = report.exercise.title if report.exercise else "[Deleted]"
+                self.exercise_title = (
+                    report.exercise.title if report.exercise else "[Deleted]"
+                )
                 self.username = report.userinfo.local_user.username
 
                 # Convert conversation to ChatMessage format

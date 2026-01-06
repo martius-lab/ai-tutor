@@ -5,8 +5,8 @@ from enum import IntEnum, StrEnum
 from typing import Any, Dict, List, Optional
 from zoneinfo import ZoneInfo
 
-from reflex_local_auth.user import LocalUser
 import sqlalchemy as sa
+from reflex_local_auth.user import LocalUser
 from sqlalchemy import ForeignKey as SAForeignKey
 from sqlmodel import (
     JSON,
@@ -85,8 +85,7 @@ class Exercise(SQLModel, table=True):
 
     # ORM relationship
     submissions: List["ExerciseResult"] = Relationship(
-        back_populates="exercise",
-        sa_relationship_kwargs={"passive_deletes": True}
+        back_populates="exercise", sa_relationship_kwargs={"passive_deletes": True}
     )
     tags: List[Tag] = Relationship(
         back_populates="exercises", link_model=ExerciseTagLink
@@ -181,8 +180,7 @@ class UserInfo(SQLModel, table=True):
 
     # ORM relationship
     exercise_results: List["ExerciseResult"] = Relationship(
-        back_populates="user",
-        sa_relationship_kwargs={"passive_deletes": True}
+        back_populates="user", sa_relationship_kwargs={"passive_deletes": True}
     )
     local_user: "LocalUser" = Relationship()
 
@@ -229,7 +227,8 @@ class Report(SQLModel, table=True):
 
     Attributes:
         id: Primary key of the report.
-        exercise_id: Foreign key referencing the associated Exercise (nullable if exercise deleted).
+        exercise_id: Foreign key referencing the associated Exercise
+        (nullable if exercise deleted).
         userinfo_id: Foreign key referencing the user who submitted the report.
         report_text: The text content of the report.
         looked_at: Flag indicating whether the report has been viewed by a tutor.
@@ -244,7 +243,9 @@ class Report(SQLModel, table=True):
         sa_column=Column(
             "exercise_id",
             sa.Integer,
-            SAForeignKey("exercise.id", ondelete="SET NULL", name="fk_report_exercise_id"),
+            SAForeignKey(
+                "exercise.id", ondelete="SET NULL", name="fk_report_exercise_id"
+            ),
             nullable=True,
         ),
     )

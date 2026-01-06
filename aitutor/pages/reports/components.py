@@ -41,7 +41,11 @@ def show_table_row(table_row: TableRow) -> rx.Component:
                 rx.text(
                     table_row.exercise_title,
                     on_click=ReportsState.add_search_value(
-                        {"search_value": f'{SEARCH_EXERCISE_KEY}:"{table_row.exercise_title}"'}
+                        {
+                            "search_value": (
+                                f'{SEARCH_EXERCISE_KEY}:"{table_row.exercise_title}"'
+                            )
+                        }
                     ),
                     _hover={"cursor": "pointer"},
                 ),

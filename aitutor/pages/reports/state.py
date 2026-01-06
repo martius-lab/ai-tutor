@@ -136,7 +136,9 @@ class ReportsState(FilterMixin, SessionState):
                     preview = report.report_text
 
                 # Handle deleted exercise (exercise_id set to NULL)
-                exercise_title = report.exercise.title if report.exercise else "[Deleted]"
+                exercise_title = (
+                    report.exercise.title if report.exercise else "[Deleted]"
+                )
 
                 # Append a TableRow
                 self.table_rows.append(
@@ -148,7 +150,7 @@ class ReportsState(FilterMixin, SessionState):
                         looked_at=report.looked_at,
                     )
                 )
-            
+
             # Commit deletion of orphaned reports
             session.commit()
 

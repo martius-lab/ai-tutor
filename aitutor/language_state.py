@@ -990,6 +990,12 @@ Please test the chat for functionality after changing the model.
         return self.translate(de="Konversation melden", en="Report conversation")
 
     @rx.var
+    def report_problematic_chat(self) -> str:
+        return self.translate(
+            de="Problematischen Chat melden", en="Report problematic chat"
+        )
+
+    @rx.var
     def reports(self) -> str:
         return self.translate(de="Meldungen", en="Reports")
 
