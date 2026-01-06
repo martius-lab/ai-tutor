@@ -1,6 +1,8 @@
-# What needs to be in the config.toml file?
-The config file is mandatory. If you don't create one yourself, a default config is used. But if you create one, you need to set all variables.
+# Configuration File
+The config file is only used to initialize the application by setting the configuration values in the database. This makes the first time setup faster.
+If no config.toml file is found, the default config is used for initialization. Changes can be made in the admin interface later on.
 
+# What needs to be in the config.toml file?
 ## check_conversation_prompt
 
 Here you define the prompt that should be given to the AI when the check conversation
