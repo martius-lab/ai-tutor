@@ -68,7 +68,7 @@ For more information about the config file and its content, please refer to the 
 The reflex configuration is located in the file rxconfig.py.
 
 
-# 4. Maintainance
+# 4. Maintenance
 
 ## 4.1 Add dependencies:
 
