@@ -399,12 +399,13 @@ def not_submitted_status() -> rx.Component:
     """
     return rx.hstack(
         report_conversation_button(),
-        rx.icon(
-            "info",
-            size=20,
+        rx.hstack(
+            rx.icon("info", size=20),
+            rx.text(LanguageState.not_submitted_yet),
+            spacing="1",
+            align="center",
         ),
-        rx.text(LanguageState.not_submitted_yet),
-        spacing="3",
+        spacing="4",
         align="center",
     )
 
