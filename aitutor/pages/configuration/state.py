@@ -90,16 +90,16 @@ class ManageConfigState(SessionState):
         """Toggle the is_default_prompt flag for a prompt."""
         if prompt_id is None:
             return
-        
+
         # If this prompt is being set as default, unset all others
         if not self.prompts[prompt_id].is_default_prompt:
-            for p_id, prompt in self.prompts.items():
+            for prompt in self.prompts.values():
                 prompt.is_default_prompt = False
             self.prompts[prompt_id].is_default_prompt = True
         else:
             # If unsetting, just unset this one
             self.prompts[prompt_id].is_default_prompt = False
-        
+
         self.prompts_unsaved_changes = True
 
     @rx.event
@@ -304,8 +304,7 @@ class ManageConfigState(SessionState):
             all_prompts = list(session.exec(select(Prompt)).all())
             # Sort prompts: default first, then by id
             sorted_prompts = sorted(
-                all_prompts,
-                key=lambda p: (not p.is_default_prompt, p.id or 0)
+                all_prompts, key=lambda p: (not p.is_default_prompt, p.id or 0)
             )
             self.prompts = {p.id: p for p in sorted_prompts}
         self.prompts_unsaved_changes = False

@@ -980,6 +980,20 @@ Please test the chat for functionality after changing the model.
             en="Unique prompt name",
         )
 
+    @rx.var
+    def mark_as_default_prompt(self) -> str:
+        return self.translate(
+            de="Als Standard Prompt markieren",
+            en="Mark as default prompt",
+        )
+
+    @rx.var
+    def default_prompt(self) -> str:
+        return self.translate(
+            de="Standard Prompt",
+            en="Default prompt",
+        )
+
     # Report Strings -------------------------------------------------------------------
     @rx.var
     def status(self) -> str:

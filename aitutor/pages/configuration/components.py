@@ -250,16 +250,34 @@ def prompt_card(prompt: Prompt) -> rx.Component:
                     ),
                     placeholder=LS.prompt_variables_info,
                 ),
-                rx.hstack(
-                    rx.checkbox(
-                        checked=prompt.is_default_prompt,
-                        on_change=lambda _: ManageConfigState.toggle_default_prompt(
-                            prompt.id
+                rx.button(
+                    rx.icon(
+                        "star",
+                        size=18,
+                        fill=rx.cond(
+                            prompt.is_default_prompt,
+                            "currentColor",
+                            "none",
                         ),
                     ),
-                    rx.text("Mark as default prompt", weight="medium"),
-                    align="center",
-                    spacing="2",
+                    rx.cond(
+                        prompt.is_default_prompt,
+                        LS.default_prompt,
+                        LS.mark_as_default_prompt,
+                    ),
+                    on_click=lambda: ManageConfigState.toggle_default_prompt(prompt.id),
+                    variant="soft",
+                    color_scheme=rx.cond(
+                        prompt.is_default_prompt,
+                        "green",
+                        "gray",
+                    ),
+                    _hover={
+                        "cursor": "pointer",
+                        "opacity": "0.8",
+                    },
+                    width="100%",
+                    max_width="300px",
                 ),
                 width="90%",
             ),
