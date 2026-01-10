@@ -86,6 +86,23 @@ class ManageConfigState(SessionState):
         self.add_prompt_dialog_open = is_open
 
     @rx.event
+    def toggle_default_prompt(self, prompt_id: int | None):
+        """Toggle the is_default_prompt flag for a prompt."""
+        if prompt_id is None:
+            return
+        
+        # If this prompt is being set as default, unset all others
+        if not self.prompts[prompt_id].is_default_prompt:
+            for p_id, prompt in self.prompts.items():
+                prompt.is_default_prompt = False
+            self.prompts[prompt_id].is_default_prompt = True
+        else:
+            # If unsetting, just unset this one
+            self.prompts[prompt_id].is_default_prompt = False
+        
+        self.prompts_unsaved_changes = True
+
+    @rx.event
     @state_require_role_at_least(UserRole.TUTOR)
     def on_load(self):
         """Initialization for the page."""
@@ -284,6 +301,11 @@ class ManageConfigState(SessionState):
     def load_prompts_from_db(self):
         """Loads prompts from the database."""
         with rx.session() as session:
-            prompts = session.exec(select(Prompt).order_by(Prompt.id))  # type: ignore
-            self.prompts = {p.id: p for p in prompts}
+            all_prompts = list(session.exec(select(Prompt)).all())
+            # Sort prompts: default first, then by id
+            sorted_prompts = sorted(
+                all_prompts,
+                key=lambda p: (not p.is_default_prompt, p.id or 0)
+            )
+            self.prompts = {p.id: p for p in sorted_prompts}
         self.prompts_unsaved_changes = False

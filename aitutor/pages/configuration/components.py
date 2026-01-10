@@ -250,6 +250,17 @@ def prompt_card(prompt: Prompt) -> rx.Component:
                     ),
                     placeholder=LS.prompt_variables_info,
                 ),
+                rx.hstack(
+                    rx.checkbox(
+                        checked=prompt.is_default_prompt,
+                        on_change=lambda _: ManageConfigState.toggle_default_prompt(
+                            prompt.id
+                        ),
+                    ),
+                    rx.text("Mark as default prompt", weight="medium"),
+                    align="center",
+                    spacing="2",
+                ),
                 width="90%",
             ),
             # delete button with confirmation dialog
