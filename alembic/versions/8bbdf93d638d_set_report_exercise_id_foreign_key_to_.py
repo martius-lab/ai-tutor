@@ -1,8 +1,8 @@
-"""Fix report exercise_id foreign key
+"""Set report exercise_id foreign key to SET NULL on delete
 
-Revision ID: 4fc3b8f7ceb5
-Revises: 8851001f41b5
-Create Date: 2026-01-06 19:34:55.840984
+Revision ID: 8bbdf93d638d
+Revises: 984c654a75a6
+Create Date: 2026-01-10 17:14:04.381938
 
 """
 from typing import Sequence, Union
@@ -12,16 +12,16 @@ import sqlalchemy as sa
 import sqlmodel
 
 # revision identifiers, used by Alembic.
-revision: str = '4fc3b8f7ceb5'
-down_revision: Union[str, None] = '8851001f41b5'
+revision: str = '8bbdf93d638d'
+down_revision: Union[str, None] = '984c654a75a6'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
     """Upgrade schema."""
-    # For SQLite, we need to recreate the table to change the foreign key constraint
-    # Batch mode with naming_convention will help SQLite name the constraints
+    # Manually edited: For SQLite, batch mode with naming_convention will
+    # recreate the table with the correct foreign key constraint
     with op.batch_alter_table(
         'report',
         schema=None,
@@ -33,7 +33,7 @@ def upgrade() -> None:
         batch_op.alter_column('exercise_id',
                existing_type=sa.INTEGER(),
                nullable=True)
-        # Drop and recreate the foreign key
+        # Drop and recreate the foreign key with SET NULL
         batch_op.drop_constraint('fk_report_exercise_id', type_='foreignkey')
         batch_op.create_foreign_key(
             'fk_report_exercise_id',
@@ -46,7 +46,7 @@ def upgrade() -> None:
 
 def downgrade() -> None:
     """Downgrade schema."""
-    # Revert to the old schema
+    # Revert to the old schema with CASCADE
     with op.batch_alter_table(
         'report',
         schema=None,
