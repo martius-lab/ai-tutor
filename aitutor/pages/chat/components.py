@@ -291,71 +291,68 @@ def report_conversation_button() -> rx.Component:
     """
     Render an icon button to report the conversation.
     """
-    return rx.hover_card.root(
-        rx.hover_card.trigger(
-            rx.alert_dialog.root(
+    return rx.alert_dialog.root(
+        rx.hover_card.root(
+            rx.hover_card.trigger(
                 rx.alert_dialog.trigger(
                     rx.button(
                         rx.icon("flag", size=20),
                         _hover={"cursor": "pointer"},
                     ),
                 ),
-                rx.alert_dialog.content(
-                    rx.alert_dialog.title(LanguageState.report_conversation),
-                    rx.alert_dialog.description(
-                        rx.vstack(
-                            rx.text_area(
-                                placeholder=LanguageState.report_placeholder,
-                                value=ChatState.report_text,
-                                on_change=lambda value: ChatState.set_report_text(
-                                    value
-                                ),
-                                width="100%",
-                                rows="4",
-                            ),
-                            rx.text(
-                                f"{ChatState.report_char_count} / "
-                                f"{ChatState.MAX_REPORT_LENGTH}",
-                                size="2",
-                                text_align="right",
-                                width="100%",
-                                color=rx.cond(
-                                    ChatState.report_char_count
-                                    > ChatState.MAX_REPORT_LENGTH,
-                                    rx.color("red", 11),
-                                    rx.color("gray", 11),
-                                ),
-                            ),
-                            spacing="2",
-                        )
-                    ),
-                    rx.hstack(
-                        rx.alert_dialog.cancel(
-                            rx.button(
-                                rx.text(LanguageState.cancel),
-                                variant="outline",
-                                _hover={"cursor": "pointer"},
-                            ),
-                        ),
-                        rx.alert_dialog.action(
-                            rx.button(
-                                LanguageState.submit,
-                                on_click=ChatState.submit_report,
-                                disabled=~ChatState.report_is_valid,
-                                _hover=rx.cond(
-                                    ChatState.report_is_valid,
-                                    {"cursor": "pointer"},
-                                    {"cursor": "not-allowed"},
-                                ),
-                            )
-                        ),
-                        margin_top="1em",
-                    ),
-                ),
+            ),
+            rx.hover_card.content(
+                rx.text(LanguageState.report_problematic_chat),
             ),
         ),
-        rx.hover_card.content(
-            rx.text(LanguageState.report_problematic_chat),
+        rx.alert_dialog.content(
+            rx.alert_dialog.title(LanguageState.report_conversation),
+            rx.alert_dialog.description(
+                rx.vstack(
+                    rx.text_area(
+                        placeholder=LanguageState.report_placeholder,
+                        value=ChatState.report_text,
+                        on_change=lambda value: ChatState.set_report_text(value),
+                        width="100%",
+                        rows="4",
+                    ),
+                    rx.text(
+                        f"{ChatState.report_char_count} / "
+                        f"{ChatState.MAX_REPORT_LENGTH}",
+                        size="2",
+                        text_align="right",
+                        width="100%",
+                        color=rx.cond(
+                            ChatState.report_char_count > ChatState.MAX_REPORT_LENGTH,
+                            rx.color("red", 11),
+                            rx.color("gray", 11),
+                        ),
+                    ),
+                    spacing="2",
+                )
+            ),
+            rx.hstack(
+                rx.alert_dialog.cancel(
+                    rx.button(
+                        rx.text(LanguageState.cancel),
+                        variant="outline",
+                        _hover={"cursor": "pointer"},
+                    ),
+                ),
+                rx.alert_dialog.action(
+                    rx.button(
+                        LanguageState.submit,
+                        on_click=ChatState.submit_report,
+                        disabled=~ChatState.report_is_valid,
+                        _hover=rx.cond(
+                            ChatState.report_is_valid,
+                            {"cursor": "pointer"},
+                            {"cursor": "not-allowed"},
+                        ),
+                    )
+                ),
+                margin_top="1em",
+            ),
         ),
     )
 
