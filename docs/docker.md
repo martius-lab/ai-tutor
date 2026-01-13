@@ -16,12 +16,9 @@ to build images using the current state of the code and run with
 docker compose up
 ```
 
-Then open [https://localhost](https://localhost) in your browser to access the
-application.
+Then open [https://localhost](https://localhost) in your browser to access the application.
 
-The config files `config.toml` and `.env` are expected to be found in the projects root
-directory and are mounted into the container from the host system.  This means that the
-configuration can easily be changed without the need of rebuilding the images.
+The config files `config.toml` and `.env` are expected to be found in the projects root directory and are mounted into the container from the host system.  This means that the configuration can easily be changed without the need of rebuilding the images.
 
 
 ## Production environment with Postgresql
