@@ -136,6 +136,13 @@ class ManageConfigState(SessionState):
             if prompt.name != self.prompt_to_delete and prompt.name != ""
         ]
 
+    @rx.var
+    def sorted_prompts_list(self) -> list[Prompt]:
+        """Returns prompts sorted with default first, then by id."""
+        return sorted(
+            self.prompts.values(), key=lambda p: (not p.is_default_prompt, p.id or 0)
+        )
+
     @rx.event
     def save_config_to_db(self):
         """Saves the current configuration to the database."""
