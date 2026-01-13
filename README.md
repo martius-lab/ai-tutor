@@ -60,9 +60,7 @@ To start the server in developer mode, run:
 
     uv run reflex run
 
-For production mode, run:
-
-    uv run reflex run --env prod
+For production mode, please refer to [docker.md](docs/docker.md) for more information.
 
 
 # Run with Docker
