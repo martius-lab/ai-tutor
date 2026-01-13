@@ -24,12 +24,7 @@ For more information about the config file and its content, please refer to the 
 This project is managed with `uv`.  See [installation
 instructions](https://docs.astral.sh/uv/getting-started/installation/).
 
-After installing uv, run this command in the project root directory.
-
-    uv run
-
-When run for the first time, uv will automatically create a virtual environment in
-`.venv` at the package root.
+When run for the first time, uv will automatically create a virtual environment in `.venv` at the package root.
 You can activate this venv normally but for the uv commands, that's actually not needed as long as uv is called from the projects root directory. So instead of activating the environment, you can also run commands like this:
 
     uv run <command>
