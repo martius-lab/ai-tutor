@@ -1,6 +1,6 @@
 # What is AI Tutor? 
 
-AITutor is a web-based platform that supports professors and universities in providing students with automated and AI-supported exercises. The students explain the question from the exercise to the AI agent. The AI then helps the student to understand the topic by asking questions and providing hints. Once the student thinks that the exercise is solved, a second AI agent checks the conversation and gives feedback on whether the exercise was solved correctly or not.
+AI Tutor is a web-based platform that supports professors and universities in providing students with automated and AI-supported exercises. The students explain the question from the exercise to the AI agent. The AI then helps the student to understand the topic by asking questions and providing hints. Once the student thinks that the exercise is solved, a second AI agent checks the conversation and gives feedback on whether the exercise was solved correctly or not.
 Tutors and admins have special roles to enable them to view the submitted conversations and give further feedback if necessary.
 
 
