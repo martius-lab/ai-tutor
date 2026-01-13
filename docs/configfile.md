@@ -15,9 +15,9 @@ If the student answered correctly, you can write one sentence that the student a
 """
 ```
 
-## ai models
+## AI models
 
-You can define which ai model should be used for the normal responses and which for the check conversation responses. To see which models you can use, please refer to the open ai [documentation](https://platform.openai.com/docs/models).
+You can define which AI model should be used for the normal responses and which for the check conversation responses. To see which models you can use, please refer to the OpenAI [documentation](https://platform.openai.com/docs/models).
 
 ```toml
 response_ai_model = "gpt-4.1-mini"
@@ -27,7 +27,7 @@ check_ai_model = "gpt-4.1"
 
 ## info text on the home page
 The homepage has 3 sections to display your information.
-- One section to explain how to use the ai tutor
+- One section to explain how to use the AI Tutor
 - One section with general information
 - One section with specific information about the lecture
 
