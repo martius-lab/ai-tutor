@@ -242,7 +242,6 @@ def delete_selected_exercises_button() -> rx.Component:
             color_scheme="red",
             _hover={"cursor": "pointer"},
             type="button",
-            radius="large",
         ),
     )
 
