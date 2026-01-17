@@ -7,9 +7,11 @@ from aitutor.auth.protection import page_require_role_at_least
 from aitutor.models import UserRole
 from aitutor.pages.manage_users.components import edit_user_dialog, users_table
 from aitutor.pages.navbar import with_navbar
+from aitutor.pages.navbar_admin import with_admin_navbar
 
 
-@with_navbar(routes.MANAGE_USERS)
+@with_navbar(routes.MANAGE_EXERCISES)
+@with_admin_navbar(routes.MANAGE_USERS)
 @page_require_role_at_least(UserRole.ADMIN)
 def manage_users_page() -> rx.Component:
     """Manage users page."""
@@ -23,5 +25,5 @@ def manage_users_page() -> rx.Component:
         ),
         margin_top="2em",
         margin_bottom="2em",
-        width="90%",
+        width="100%",
     )

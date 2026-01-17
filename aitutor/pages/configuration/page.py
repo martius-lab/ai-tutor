@@ -8,9 +8,11 @@ from aitutor.language_state import LanguageState as LS
 from aitutor.models import UserRole
 from aitutor.pages.configuration.components import config_form, prompt_management
 from aitutor.pages.navbar import with_navbar
+from aitutor.pages.navbar_admin import with_admin_navbar
 
 
-@with_navbar(routes.CONFIGURATION)
+@with_navbar(routes.MANAGE_EXERCISES)
+@with_admin_navbar(routes.CONFIGURATION)
 @page_require_role_at_least(UserRole.ADMIN)
 def configuration_page() -> rx.Component:
     """Configuration page."""
@@ -51,5 +53,5 @@ def configuration_page() -> rx.Component:
         ),
         margin_top="1em",
         margin_bottom="2em",
-        width="90%",
+        width="100%",
     )
