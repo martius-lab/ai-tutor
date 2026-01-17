@@ -6,11 +6,39 @@ import aitutor.routes as routes
 from aitutor.language_state import LanguageState
 
 admin_links = [
-    (LanguageState.manage_exercises_link, routes.MANAGE_EXERCISES),
-    (LanguageState.manage_users, routes.MANAGE_USERS),
-    (LanguageState.configuration, routes.CONFIGURATION),
-    (LanguageState.reports, routes.REPORTS),
+    (LanguageState.manage_exercises_link, routes.MANAGE_EXERCISES, "book-copy"),
+    (LanguageState.manage_prompts, routes.PROMPTS, "text-search"),
+    (LanguageState.manage_users, routes.MANAGE_USERS, "users"),
+    (LanguageState.reports, routes.REPORTS, "flag"),
+    (LanguageState.configuration, routes.CONFIGURATION, "file-sliders"),
 ]
+
+
+def tab_content(link):
+    """
+    The Icon and text for a tab in the admin navbar.
+
+    This function is needed because the icon for some reason loads slower than the text,
+    causing a layout shift. By wrapping them in a box with fixed dimensions, this can
+    be avoided. You will still see a "flash" when switching tabs, because icons are not
+    loaded from the start, but at least the layout will not shift.
+    """
+    return (
+        rx.hstack(
+            rx.box(
+                rx.icon(link[2], size=20),
+                width="20px",
+                height="20px",
+                display="flex",
+                align_items="center",
+                justify_content="center",
+                flex_shrink=0,
+            ),
+            rx.text(link[0]),
+            spacing="2",
+            align="center",
+        ),
+    )
 
 
 def admin_navbar(tab_to_highlight: str) -> rx.Component:
@@ -26,7 +54,7 @@ def admin_navbar(tab_to_highlight: str) -> rx.Component:
                 rx.foreach(
                     admin_links,
                     lambda link: rx.tabs.trigger(
-                        link[0],
+                        tab_content(link),
                         value=link[1],
                         on_click=rx.redirect(link[1]),
                         _hover={"cursor": "pointer"},

@@ -923,13 +923,6 @@ Please test the chat for functionality after changing the model.
         )
 
     @rx.var
-    def general_configuration(self) -> str:
-        return self.translate(
-            de="Allgemeine Konfiguration",
-            en="General Configuration",
-        )
-
-    @rx.var
     def prompt_variables_info(self) -> str:
         return self.translate(
             de="Sie können in Ihrem Prompt folgende Variablen verwenden: "
