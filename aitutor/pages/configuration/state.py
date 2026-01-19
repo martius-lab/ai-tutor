@@ -86,8 +86,8 @@ class ManageConfigState(SessionState):
         self.add_prompt_dialog_open = is_open
 
     @rx.event
-    def toggle_default_prompt(self, prompt_id: int | None):
-        """Toggle the is_default_prompt flag for a prompt."""
+    def set_default_prompt(self, prompt_id: int | None):
+        """Set the is_default_prompt flag for a prompt."""
         if prompt_id is None:
             return
 
@@ -96,9 +96,6 @@ class ManageConfigState(SessionState):
             for prompt in self.prompts.values():
                 prompt.is_default_prompt = False
             self.prompts[prompt_id].is_default_prompt = True
-        else:
-            # If unsetting, just unset this one
-            self.prompts[prompt_id].is_default_prompt = False
 
         self.prompts_unsaved_changes = True
 

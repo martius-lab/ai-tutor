@@ -265,7 +265,7 @@ def prompt_card(prompt: Prompt) -> rx.Component:
                         LS.default_prompt,
                         LS.mark_as_default_prompt,
                     ),
-                    on_click=lambda: ManageConfigState.toggle_default_prompt(prompt.id),
+                    on_click=lambda: ManageConfigState.set_default_prompt(prompt.id),
                     variant="soft",
                     color_scheme=rx.cond(
                         prompt.is_default_prompt,
