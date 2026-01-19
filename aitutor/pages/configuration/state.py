@@ -301,10 +301,9 @@ class ManageConfigState(SessionState):
     def load_prompts_from_db(self):
         """Loads prompts from the database."""
         with rx.session() as session:
-            all_prompts = list(session.exec(select(Prompt)).all())
-            # Sort prompts: default first, then by id
-            sorted_prompts = sorted(
-                all_prompts, key=lambda p: (not p.is_default_prompt, p.id or 0)
-            )
-            self.prompts = {p.id: p for p in sorted_prompts}
+            # Sort prompts at database level: default first, then by id
+            prompts = session.exec(
+                select(Prompt).order_by(Prompt.is_default_prompt.desc(), Prompt.id)  # type: ignore
+            ).all()
+            self.prompts = {p.id: p for p in prompts}
         self.prompts_unsaved_changes = False
