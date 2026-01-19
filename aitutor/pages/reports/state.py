@@ -11,7 +11,6 @@ from sqlmodel import select
 import aitutor.global_vars as gv
 from aitutor.auth.protection import state_require_role_at_least
 from aitutor.auth.state import SessionState
-from aitutor.language_state import BackendTranslations as BT
 from aitutor.models import (
     Exercise,
     LocalUser,
@@ -30,7 +29,7 @@ class TableRow:
 
     report_id: int | None
     username: str
-    exercise_title: str
+    exercise_title: str | None
     report_preview: str
     looked_at: bool
 
@@ -131,11 +130,8 @@ class ReportsState(FilterMixin, SessionState):
                     preview = report.report_text
 
                 # Handle deleted exercise (exercise_id set to NULL)
-                exercise_title = (
-                    report.exercise.title
-                    if report.exercise
-                    else BT.deleted_report_title(self.language)
-                )
+
+                exercise_title = report.exercise.title if report.exercise else None
 
                 # Append a TableRow
                 self.table_rows.append(

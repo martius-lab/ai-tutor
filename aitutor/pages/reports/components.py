@@ -36,8 +36,8 @@ def show_table_row(table_row: TableRow) -> rx.Component:
         ),
         rx.table.cell(
             rx.cond(
-                table_row.exercise_title == LanguageState.deleted_report_title,
-                rx.text(table_row.exercise_title, color="red"),
+                table_row.exercise_title == None,
+                rx.text(LanguageState.deleted_report_title, color="red"),
                 rx.text(
                     table_row.exercise_title,
                     on_click=ReportsState.add_search_value(

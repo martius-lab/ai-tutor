@@ -6,7 +6,6 @@ from sqlmodel import select
 
 from aitutor.auth.protection import state_require_role_at_least
 from aitutor.auth.state import SessionState
-from aitutor.language_state import BackendTranslations as BT
 from aitutor.models import Report, UserInfo, UserRole
 from aitutor.pages.chat.state import ChatMessage, Role
 
@@ -16,7 +15,7 @@ class ReportViewState(SessionState):
 
     report_text: str = ""
     looked_at: bool = False
-    exercise_title: str = ""
+    exercise_title: str | None = None
     username: str = ""
     messages: list[ChatMessage] = []
 
@@ -62,11 +61,7 @@ class ReportViewState(SessionState):
 
                 # Get exercise and user info from report
                 # Handle deleted exercise (exercise_id set to NULL)
-                self.exercise_title = (
-                    report.exercise.title
-                    if report.exercise
-                    else BT.deleted_report_title(self.language)
-                )
+                self.exercise_title = report.exercise.title if report.exercise else None
                 self.username = report.userinfo.local_user.username
 
                 # Convert conversation to ChatMessage format

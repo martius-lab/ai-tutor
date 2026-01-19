@@ -57,7 +57,11 @@ def report_view_page() -> rx.Component:
                 rx.hstack(
                     rx.icon("book", size=18),
                     rx.text(LanguageState.exercise + ":", weight="bold"),
-                    rx.text(ReportViewState.exercise_title),
+                    rx.cond(
+                        ReportViewState.exercise_title == None,
+                        rx.text(LanguageState.deleted_report_title, color="red"),
+                        rx.text(ReportViewState.exercise_title),
+                    ),
                     align="center",
                 ),
                 rx.hstack(
