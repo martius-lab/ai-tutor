@@ -312,7 +312,7 @@ def report_conversation_button() -> rx.Component:
                     rx.text_area(
                         placeholder=LanguageState.report_placeholder,
                         value=ChatState.report_text,
-                        on_change=lambda value: ChatState.set_report_text(value),
+                        on_change=ChatState.set_report_text,
                         width="100%",
                         rows="4",
                     ),

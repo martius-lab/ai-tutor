@@ -1039,6 +1039,13 @@ Please test the chat for functionality after changing the model.
             en="Are you sure you want to delete this report?",
         )
 
+    @rx.var
+    def deleted_report_title(self) -> str:
+        return self.translate(
+            de="[Gelöscht]",
+            en="[Deleted]",
+        )
+
     # ReportViewPage Strings -------------------------------------------------------------------
 
     @rx.var
@@ -1064,6 +1071,15 @@ Please test the chat for functionality after changing the model.
 
 class BackendTranslations:
     """Translations for use in the backend (where LanguageState is not available)."""
+
+    # ReportsState -------------------------------------------------------------------------
+    @staticmethod
+    def deleted_report_title(language: Language) -> str:
+        return translate(
+            language,
+            de="[Gelöscht]",
+            en="[Deleted]",
+        )
 
     # ManageUsersState -----------------------------------------------------------------
     @staticmethod

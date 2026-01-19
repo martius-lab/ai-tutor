@@ -11,6 +11,7 @@ from sqlmodel import select
 import aitutor.global_vars as gv
 from aitutor.auth.protection import state_require_role_at_least
 from aitutor.auth.state import SessionState
+from aitutor.language_state import BackendTranslations as BT
 from aitutor.models import (
     Exercise,
     LocalUser,
@@ -123,12 +124,6 @@ class ReportsState(FilterMixin, SessionState):
             self.table_rows = []
 
             for report in reports:
-                # Skip orphaned reports (user was deleted before CASCADE was enabled)
-                if not report.userinfo or not report.userinfo.local_user:
-                    # Delete the orphaned report
-                    session.delete(report)
-                    continue
-
                 # Determine the report preview text
                 if len(report.report_text) > REPORT_PREVIEW_LENGTH:
                     preview = report.report_text[:REPORT_PREVIEW_LENGTH] + "..."
@@ -137,7 +132,9 @@ class ReportsState(FilterMixin, SessionState):
 
                 # Handle deleted exercise (exercise_id set to NULL)
                 exercise_title = (
-                    report.exercise.title if report.exercise else "[Deleted]"
+                    report.exercise.title
+                    if report.exercise
+                    else BT.deleted_report_title(self.language)
                 )
 
                 # Append a TableRow
@@ -150,9 +147,6 @@ class ReportsState(FilterMixin, SessionState):
                         looked_at=report.looked_at,
                     )
                 )
-
-            # Commit deletion of orphaned reports
-            session.commit()
 
     @rx.event
     @state_require_role_at_least(UserRole.TUTOR)
