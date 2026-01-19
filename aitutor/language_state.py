@@ -994,6 +994,13 @@ Please test the chat for functionality after changing the model.
             en="Default prompt",
         )
 
+    @rx.var
+    def default_prompt_hover(self) -> str:
+        return self.translate(
+            de="Der Standard Prompt wird beim Hinzufügen einer Übung automatisch vorausgewählt, was Ihnen Zeit spart.",
+            en="The default prompt will be automatically pre-selected when adding an exercise, saving you time.",
+        )
+
     # Report Strings -------------------------------------------------------------------
     @rx.var
     def status(self) -> str:
