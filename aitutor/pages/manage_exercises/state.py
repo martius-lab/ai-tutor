@@ -134,10 +134,17 @@ class ManageExercisesState(FilterMixin, SessionState):
     def on_load(self):
         """Initialize the state"""
         with rx.session() as session:
-            all_prompts = list(session.exec(select(Prompt)).all()) or []
-            # Sort prompts: default first, then by id
-            self.prompts = sorted(
-                all_prompts, key=lambda p: (not p.is_default_prompt, p.id or 0)
+            # Sort prompts at database level: default first, then by id
+            self.prompts = (
+                list(
+                    session.exec(
+                        select(Prompt).order_by(
+                            Prompt.is_default_prompt.desc(),  # type: ignore
+                            Prompt.id,  # type: ignore
+                        )
+                    ).all()
+                )
+                or []
             )
         self.global_load()
         self.prompt_names = [prompt.name for prompt in self.prompts]
