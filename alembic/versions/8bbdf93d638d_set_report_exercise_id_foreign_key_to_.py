@@ -26,7 +26,7 @@ def upgrade() -> None:
         'report',
         schema=None,
         naming_convention={
-            "fk": "fk_%(table_name)s_%(column_0_name)s",
+            "fk": "%(table_name)s_%(column_0_name)s_fkey",
         }
     ) as batch_op:
         # Make exercise_id nullable
@@ -34,9 +34,9 @@ def upgrade() -> None:
                existing_type=sa.INTEGER(),
                nullable=True)
         # Drop and recreate the foreign key with SET NULL
-        batch_op.drop_constraint('fk_report_exercise_id', type_='foreignkey')
+        batch_op.drop_constraint('report_exercise_id_fkey', type_='foreignkey')
         batch_op.create_foreign_key(
-            'fk_report_exercise_id',
+            'report_exercise_id_fkey',
             'exercise',
             ['exercise_id'],
             ['id'],
@@ -54,9 +54,9 @@ def downgrade() -> None:
             "fk": "fk_%(table_name)s_%(column_0_name)s",
         }
     ) as batch_op:
-        batch_op.drop_constraint('fk_report_exercise_id', type_='foreignkey')
+        batch_op.drop_constraint('report_exercise_id_fkey', type_='foreignkey')
         batch_op.create_foreign_key(
-            'fk_report_exercise_id',
+            'report_exercise_id_fkey',
             'exercise',
             ['exercise_id'],
             ['id'],
