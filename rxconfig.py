@@ -9,7 +9,9 @@ from sqlalchemy.engine import Engine
 @event.listens_for(Engine, "connect")
 def set_sqlite_pragma(dbapi_conn, connection_record):
     """Enable foreign key constraints on SQLite connections."""
-    if hasattr(dbapi_conn, "execute"):
+    # Check if this is a SQLite connection (sqlite3 or pysqlite2)
+    module_name = dbapi_conn.__class__.__module__
+    if module_name.startswith("sqlite3") or module_name.startswith("pysqlite"):
         cursor = dbapi_conn.cursor()
         cursor.execute("PRAGMA foreign_keys=ON")
         cursor.close()
