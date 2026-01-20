@@ -41,7 +41,7 @@ class ReportViewState(SessionState):
             # Load report with all needed relationships
             report = session.exec(
                 select(Report)
-                .where(Report.id == self.report_id)
+                .where(Report.id == int(self.report_id))
                 .options(
                     selectinload(Report.exercise),  # type: ignore
                     selectinload(Report.userinfo).selectinload(UserInfo.local_user),  # type: ignore
@@ -84,7 +84,7 @@ class ReportViewState(SessionState):
         """Toggle the looked_at status of the report."""
         with rx.session() as session:
             report = session.exec(
-                select(Report).where(Report.id == self.report_id)
+                select(Report).where(Report.id == int(self.report_id))
             ).first()
 
             if report:
