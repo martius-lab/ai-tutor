@@ -12,17 +12,23 @@ from aitutor.language_state import LanguageState
 from aitutor.models import UserRole
 
 
-def navbar_link(text: str, url: str, route_to_highlight) -> rx.Component:
+def is_highlighted(route_to_highlight: str, url: str) -> rx.Var[bool]:
     """
-    Creates a navigation link component.
+    Determines if a navigation link should be highlighted based on the current route.
     """
-    is_highlighted = rx.cond(
+    return rx.cond(
         route_to_highlight == routes.HOME,
         url == routes.HOME,
         url.startswith(route_to_highlight),
     )
+
+
+def navbar_link(text: str, url: str, route_to_highlight) -> rx.Component:
+    """
+    Creates a navigation link component.
+    """
     return rx.cond(
-        is_highlighted,
+        is_highlighted(route_to_highlight, url),
         rx.link(
             rx.button(
                 rx.text(text, size="4", weight="medium"), _hover={"cursor": "pointer"}
@@ -282,12 +288,8 @@ def navbar(route_to_highlight: str) -> rx.Component:
                                 links,
                                 lambda link: rx.menu.item(
                                     rx.cond(
-                                        rx.cond(
-                                            # check if the link should be highlighted
-                                            route_to_highlight == routes.HOME,
-                                            link[1] == routes.HOME,
-                                            link[1].startswith(route_to_highlight),
-                                        ),
+                                        # check if the link should be highlighted
+                                        is_highlighted(route_to_highlight, link[1]),
                                         rx.hstack(
                                             # highlighted link
                                             rx.icon(
