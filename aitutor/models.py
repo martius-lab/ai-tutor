@@ -216,6 +216,7 @@ class Prompt(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     name: str = Field(unique=True, nullable=False)
     prompt_template: str = Field(nullable=False, default="")
+    is_default_prompt: bool = Field(default=False)
 
     def __repr__(self):
         return f"<Prompt(name='{self.name}')>"
