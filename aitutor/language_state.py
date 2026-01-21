@@ -216,6 +216,14 @@ class LanguageState(SessionState):
         """Datenschutzerklärung string"""
         return self.translate(de="Datenschutzerklärung", en="Privacy Notice")
 
+    @rx.var
+    def privacy_notice_short(self) -> str:
+        """Short Datenschutzerklärung string"""
+        return self.translate(
+            de="Datenschutzerklärung Kurzfassung",
+            en="Privacy Notice Summary",
+        )
+
     # Exercise Page Strings ------------------------------------------------------------
     @rx.var
     def deadline(self) -> str:
