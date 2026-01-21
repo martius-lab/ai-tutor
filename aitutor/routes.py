@@ -22,8 +22,8 @@ MANAGE_USERS = ADMIN_SETTINGS + "/manage_users"
 CONFIGURATION = ADMIN_SETTINGS + "/configuration"
 PROMPTS = ADMIN_SETTINGS + "/prompts"
 REPORTS = ADMIN_SETTINGS + "/reports"
-# needs to be /report_view/[report_id]
-REPORT_VIEW = "/report_view"
+# needs to be .../report_view/[report_id]
+REPORT_VIEW = REPORTS + "/report_view"
 
 USER_SETTINGS = "/user_settings"
 

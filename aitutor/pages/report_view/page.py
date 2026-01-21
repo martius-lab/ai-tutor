@@ -11,7 +11,7 @@ from aitutor.pages.navbar import with_navbar
 from aitutor.pages.report_view.state import ReportViewState
 
 
-@with_navbar(routes.REPORTS)
+@with_navbar(routes.ADMIN_SETTINGS)
 @page_require_role_at_least(UserRole.TUTOR)
 def report_view_page() -> rx.Component:
     """Renders the report view page."""
