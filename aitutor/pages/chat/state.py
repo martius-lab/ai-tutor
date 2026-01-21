@@ -7,7 +7,7 @@ from zoneinfo import ZoneInfo
 
 import decouple
 import reflex as rx
-from openai import AsyncOpenAI, OpenAI
+from openai import AsyncOpenAI
 from pydantic import BaseModel
 from sqlmodel import select
 
