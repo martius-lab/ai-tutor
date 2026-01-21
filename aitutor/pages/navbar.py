@@ -16,8 +16,13 @@ def navbar_link(text: str, url: str, route_to_highlight) -> rx.Component:
     """
     Creates a navigation link component.
     """
+    is_highlighted = rx.cond(
+        route_to_highlight == routes.HOME,
+        url == routes.HOME,
+        url.startswith(route_to_highlight),
+    )
     return rx.cond(
-        url == route_to_highlight,
+        is_highlighted,
         rx.link(
             rx.button(
                 rx.text(text, size="4", weight="medium"), _hover={"cursor": "pointer"}
@@ -31,6 +36,7 @@ def navbar_link(text: str, url: str, route_to_highlight) -> rx.Component:
     )
 
 
+# (label, route, icon)
 general_links = [
     (LanguageState.home_link, routes.HOME, "house"),
     (LanguageState.exercises_link, routes.EXERCISES, "book"),
@@ -276,8 +282,14 @@ def navbar(route_to_highlight: str) -> rx.Component:
                                 links,
                                 lambda link: rx.menu.item(
                                     rx.cond(
-                                        link[1] == route_to_highlight,
+                                        rx.cond(
+                                            # check if the link should be highlighted
+                                            route_to_highlight == routes.HOME,
+                                            link[1] == routes.HOME,
+                                            link[1].startswith(route_to_highlight),
+                                        ),
                                         rx.hstack(
+                                            # highlighted link
                                             rx.icon(
                                                 link[2],
                                                 size=15,
@@ -291,6 +303,7 @@ def navbar(route_to_highlight: str) -> rx.Component:
                                             align="center",
                                         ),
                                         rx.hstack(
+                                            # non-highlighted link
                                             rx.icon(link[2], size=15),
                                             rx.text(link[0]),
                                             align="center",

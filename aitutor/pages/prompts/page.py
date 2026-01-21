@@ -10,7 +10,7 @@ from aitutor.pages.navbar_admin import with_admin_navbar
 from aitutor.pages.prompts.components import prompt_management
 
 
-@with_navbar(routes.MANAGE_EXERCISES)
+@with_navbar(routes.ADMIN_SETTINGS)
 @with_admin_navbar(routes.PROMPTS)
 @page_require_role_at_least(UserRole.ADMIN)
 def prompts_page() -> rx.Component:

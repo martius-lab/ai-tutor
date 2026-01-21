@@ -10,7 +10,7 @@ from aitutor.pages.navbar import with_navbar
 from aitutor.pages.navbar_admin import with_admin_navbar
 
 
-@with_navbar(routes.MANAGE_EXERCISES)
+@with_navbar(routes.ADMIN_SETTINGS)
 @with_admin_navbar(routes.CONFIGURATION)
 @page_require_role_at_least(UserRole.ADMIN)
 def configuration_page() -> rx.Component:

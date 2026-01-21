@@ -18,7 +18,7 @@ from aitutor.pages.navbar_admin import with_admin_navbar
 from aitutor.utilities.filtering_components import search_badges, search_bar
 
 
-@with_navbar(routes.MANAGE_EXERCISES)
+@with_navbar(routes.ADMIN_SETTINGS)
 @with_admin_navbar(routes.MANAGE_EXERCISES)
 @page_require_role_at_least(UserRole.ADMIN)
 def manage_exercises_page() -> rx.Component:

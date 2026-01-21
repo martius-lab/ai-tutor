@@ -12,7 +12,7 @@ from aitutor.pages.reports.state import ReportsState
 from aitutor.utilities.filtering_components import search_badges, search_bar
 
 
-@with_navbar(routes.MANAGE_EXERCISES)
+@with_navbar(routes.ADMIN_SETTINGS)
 @with_admin_navbar(routes.REPORTS)
 @page_require_role_at_least(UserRole.TUTOR)
 def reports_page() -> rx.Component:
