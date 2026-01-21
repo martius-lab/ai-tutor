@@ -226,6 +226,9 @@ class ManageConfigState(SessionState):
                     )
                     return
 
+                # Check if the prompt being deleted is the default prompt
+                is_deleting_default = prompt.is_default_prompt
+
                 # Update all exercises that use the prompt to be deleted
                 exercises = session.exec(
                     select(Exercise).where(Exercise.prompt_id == prompt_id)
@@ -234,6 +237,11 @@ class ManageConfigState(SessionState):
                 for exercise in exercises:
                     exercise.prompt_id = replacement_prompt.id
                     session.add(exercise)
+
+                # If deleting the default prompt, mark the replacement as default
+                if is_deleting_default:
+                    replacement_prompt.is_default_prompt = True
+                    session.add(replacement_prompt)
 
                 # Delete the prompt
                 session.delete(prompt)
@@ -250,6 +258,8 @@ class ManageConfigState(SessionState):
             )
         self.replacement_prompt_name = ""
         self.prompt_to_delete = ""
+
+        self.load_prompts_from_db()
 
     @rx.event
     def add_prompt(self):
