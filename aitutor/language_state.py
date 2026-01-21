@@ -990,6 +990,12 @@ Please test the chat for functionality after changing the model.
         return self.translate(de="Konversation melden", en="Report conversation")
 
     @rx.var
+    def report_problematic_chat(self) -> str:
+        return self.translate(
+            de="Problematischen Chat melden", en="Report problematic chat"
+        )
+
+    @rx.var
     def reports(self) -> str:
         return self.translate(de="Meldungen", en="Reports")
 
@@ -1031,6 +1037,13 @@ Please test the chat for functionality after changing the model.
         return self.translate(
             de="Möchten Sie diesen Bericht wirklich löschen?",
             en="Are you sure you want to delete this report?",
+        )
+
+    @rx.var
+    def deleted_report_title(self) -> str:
+        return self.translate(
+            de="[Gelöscht]",
+            en="[Deleted]",
         )
 
     # ReportViewPage Strings -------------------------------------------------------------------

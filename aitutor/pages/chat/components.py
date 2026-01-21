@@ -130,7 +130,6 @@ def chat_form() -> rx.Component:
                 width="100%",
                 justify="between",
             ),
-            report_conversation_link(),
         ),
         on_submit=ChatState.send_message,
         reset_on_submit=True,
@@ -288,81 +287,22 @@ def check_conversation_button() -> rx.Component:
     )
 
 
-def submitted_status() -> rx.Component:
+def report_conversation_button() -> rx.Component:
     """
-    Render the status when the conversation is submitted.
+    Render an icon button to report the conversation.
     """
-    return rx.hstack(
+    return rx.alert_dialog.root(
         rx.hover_card.root(
             rx.hover_card.trigger(
-                rx.button(
-                    rx.icon("eye", size=20),
-                    on_click=rx.redirect(ChatState.finished_view_url),
-                    _hover={"cursor": "pointer"},
+                rx.alert_dialog.trigger(
+                    rx.button(
+                        rx.icon("flag", size=20),
+                        _hover={"cursor": "pointer"},
+                    ),
                 ),
             ),
             rx.hover_card.content(
-                rx.text(LanguageState.view_your_submission),
-            ),
-        ),
-        rx.text(
-            LanguageState.last_submit + ChatState.submit_time_stamp,
-            color_scheme="green",
-        ),
-        rx.icon(
-            "circle-check",
-            color=gv.GREEN_CHECK_COLOR,
-            size=30,
-        ),
-        align="center",
-    )
-
-
-def not_submitted_status() -> rx.Component:
-    """
-    Render the status when the conversation is not submitted yet.
-    """
-    return rx.hstack(
-        rx.icon(
-            "info",
-            size=20,
-        ),
-        rx.text(LanguageState.not_submitted_yet),
-        spacing="1",
-        align="center",
-    )
-
-
-def show_exercise_status() -> rx.Component:
-    """
-    Show the status of the exercise, whether it is submitted or not.
-    """
-    return rx.cond(
-        ChatState.conversation_is_submitted,
-        submitted_status(),
-        rx.cond(
-            ~ChatState.is_overdue,
-            not_submitted_status(),
-        ),
-    )
-
-
-def report_conversation_link() -> rx.Component:
-    """
-    Render a link to report the conversation (placed below buttons).
-    """
-    return rx.alert_dialog.root(
-        rx.alert_dialog.trigger(
-            rx.link(
-                LanguageState.report_conversation,
-                size="2",
-                text_decoration="underline",
-                text_align="center",
-                width="100%",
-                margin_top="0.5em",
-                margin_left="auto",
-                margin_right="auto",
-                _hover={"cursor": "pointer"},
+                rx.text(LanguageState.report_problematic_chat),
             ),
         ),
         rx.alert_dialog.content(
@@ -372,7 +312,7 @@ def report_conversation_link() -> rx.Component:
                     rx.text_area(
                         placeholder=LanguageState.report_placeholder,
                         value=ChatState.report_text,
-                        on_change=lambda value: ChatState.set_report_text(value),
+                        on_change=ChatState.set_report_text,
                         width="100%",
                         rows="4",
                     ),
@@ -413,5 +353,69 @@ def report_conversation_link() -> rx.Component:
                 ),
                 margin_top="1em",
             ),
+        ),
+    )
+
+
+def submitted_status() -> rx.Component:
+    """
+    Render the status when the conversation is submitted.
+    """
+    return rx.hstack(
+        report_conversation_button(),
+        rx.hover_card.root(
+            rx.hover_card.trigger(
+                rx.button(
+                    rx.icon("eye", size=20),
+                    on_click=rx.redirect(ChatState.finished_view_url),
+                    _hover={"cursor": "pointer"},
+                ),
+            ),
+            rx.hover_card.content(
+                rx.text(LanguageState.view_your_submission),
+            ),
+        ),
+        rx.desktop_only(
+            rx.text(
+                LanguageState.last_submit + ChatState.submit_time_stamp,
+                color_scheme="green",
+            ),
+        ),
+        rx.icon(
+            "circle-check",
+            color=gv.GREEN_CHECK_COLOR,
+            size=30,
+        ),
+        align="center",
+    )
+
+
+def not_submitted_status() -> rx.Component:
+    """
+    Render the status when the conversation is not submitted yet.
+    """
+    return rx.hstack(
+        report_conversation_button(),
+        rx.hstack(
+            rx.icon("info", size=20),
+            rx.text(LanguageState.not_submitted_yet),
+            spacing="1",
+            align="center",
+        ),
+        spacing="4",
+        align="center",
+    )
+
+
+def show_exercise_status() -> rx.Component:
+    """
+    Show the status of the exercise, whether it is submitted or not.
+    """
+    return rx.cond(
+        ChatState.conversation_is_submitted,
+        submitted_status(),
+        rx.cond(
+            ~ChatState.is_overdue,
+            not_submitted_status(),
         ),
     )
