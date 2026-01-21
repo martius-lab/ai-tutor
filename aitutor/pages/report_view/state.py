@@ -15,7 +15,7 @@ class ReportViewState(SessionState):
 
     report_text: str = ""
     looked_at: bool = False
-    exercise_title: str = ""
+    exercise_title: str | None = None
     username: str = ""
     messages: list[ChatMessage] = []
 
@@ -41,7 +41,7 @@ class ReportViewState(SessionState):
             # Load report with all needed relationships
             report = session.exec(
                 select(Report)
-                .where(Report.id == self.report_id)
+                .where(Report.id == int(self.report_id))
                 .options(
                     selectinload(Report.exercise),  # type: ignore
                     selectinload(Report.userinfo).selectinload(UserInfo.local_user),  # type: ignore
@@ -60,7 +60,8 @@ class ReportViewState(SessionState):
                     self.looked_at = True
 
                 # Get exercise and user info from report
-                self.exercise_title = report.exercise.title
+                # Handle deleted exercise (exercise_id set to NULL)
+                self.exercise_title = report.exercise.title if report.exercise else None
                 self.username = report.userinfo.local_user.username
 
                 # Convert conversation to ChatMessage format
@@ -83,7 +84,7 @@ class ReportViewState(SessionState):
         """Toggle the looked_at status of the report."""
         with rx.session() as session:
             report = session.exec(
-                select(Report).where(Report.id == self.report_id)
+                select(Report).where(Report.id == int(self.report_id))
             ).first()
 
             if report:

@@ -2,7 +2,7 @@
 #     docker compose -f compose.yaml -f compose.prod.yaml up -d
 services:
   db:
-    image: postgres
+    image: postgres@sha256:073e7c8b84e2197f94c8083634640ab37105effe1bc853ca4d5fbece3219b0e8
     restart: always
     environment:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}

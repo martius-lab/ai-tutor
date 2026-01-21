@@ -29,7 +29,7 @@ class TableRow:
 
     report_id: int | None
     username: str
-    exercise_title: str
+    exercise_title: str | None
     report_preview: str
     looked_at: bool
 
@@ -93,15 +93,17 @@ class ReportsState(FilterMixin, SessionState):
                                 LocalUser.username.ilike(f"%{value}%")  # type: ignore
                             )
                         case gv.SEARCH_EXERCISE_KEY:
-                            stmt = stmt.join(Exercise, Report.exercise)  # type: ignore
+                            # Use outer join for exercise since it can be NULL
+                            stmt = stmt.outerjoin(Exercise, Report.exercise)  # type: ignore
                             search_conditions.append(Exercise.title.ilike(f"%{value}%"))  # type: ignore
 
                         case _:
                             # General search across all fields
+                            # Use outer join for exercise since it can be NULL
                             stmt = (
                                 stmt.join(UserInfo, Report.userinfo)  # type: ignore
                                 .join(LocalUser, UserInfo.local_user)  # type: ignore
-                                .join(Exercise, Report.exercise)  # type: ignore
+                                .outerjoin(Exercise, Report.exercise)  # type: ignore
                             )
                             search_conditions.append(
                                 or_(
@@ -127,12 +129,16 @@ class ReportsState(FilterMixin, SessionState):
                 else:
                     preview = report.report_text
 
+                # Handle deleted exercise (exercise_id set to NULL)
+
+                exercise_title = report.exercise.title if report.exercise else None
+
                 # Append a TableRow
                 self.table_rows.append(
                     TableRow(
                         report_id=report.id,
                         username=report.userinfo.local_user.username,
-                        exercise_title=report.exercise.title,
+                        exercise_title=exercise_title,
                         report_preview=preview,
                         looked_at=report.looked_at,
                     )

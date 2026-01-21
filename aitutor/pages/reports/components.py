@@ -35,11 +35,21 @@ def show_table_row(table_row: TableRow) -> rx.Component:
             _hover={"cursor": "pointer"},
         ),
         rx.table.cell(
-            table_row.exercise_title,
-            on_click=ReportsState.add_search_value(
-                {"search_value": f'{SEARCH_EXERCISE_KEY}:"{table_row.exercise_title}"'}
-            ),
-            _hover={"cursor": "pointer"},
+            rx.cond(
+                table_row.exercise_title == None,  # noqa: E711
+                rx.text(LanguageState.deleted_report_title, color="red"),
+                rx.text(
+                    table_row.exercise_title,
+                    on_click=ReportsState.add_search_value(
+                        {
+                            "search_value": (
+                                f'{SEARCH_EXERCISE_KEY}:"{table_row.exercise_title}"'
+                            )
+                        }
+                    ),
+                    _hover={"cursor": "pointer"},
+                ),
+            )
         ),
         rx.table.cell(
             rx.text(
