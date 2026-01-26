@@ -86,6 +86,20 @@ class ManageConfigState(SessionState):
         self.add_prompt_dialog_open = is_open
 
     @rx.event
+    def set_default_prompt(self, prompt_id: int | None):
+        """Set the is_default_prompt flag for a prompt."""
+        if prompt_id is None:
+            return
+
+        # If this prompt is being set as default, unset all others
+        if not self.prompts[prompt_id].is_default_prompt:
+            for prompt in self.prompts.values():
+                prompt.is_default_prompt = False
+            self.prompts[prompt_id].is_default_prompt = True
+
+        self.prompts_unsaved_changes = True
+
+    @rx.event
     @state_require_role_at_least(UserRole.TUTOR)
     def on_load(self):
         """Initialization for the page."""
@@ -212,6 +226,9 @@ class ManageConfigState(SessionState):
                     )
                     return
 
+                # Check if the prompt being deleted is the default prompt
+                is_deleting_default = prompt.is_default_prompt
+
                 # Update all exercises that use the prompt to be deleted
                 exercises = session.exec(
                     select(Exercise).where(Exercise.prompt_id == prompt_id)
@@ -220,6 +237,11 @@ class ManageConfigState(SessionState):
                 for exercise in exercises:
                     exercise.prompt_id = replacement_prompt.id
                     session.add(exercise)
+
+                # If deleting the default prompt, mark the replacement as default
+                if is_deleting_default:
+                    replacement_prompt.is_default_prompt = True
+                    session.add(replacement_prompt)
 
                 # Delete the prompt
                 session.delete(prompt)
@@ -236,6 +258,8 @@ class ManageConfigState(SessionState):
             )
         self.replacement_prompt_name = ""
         self.prompt_to_delete = ""
+
+        self.load_prompts_from_db()
 
     @rx.event
     def add_prompt(self):
@@ -284,6 +308,10 @@ class ManageConfigState(SessionState):
     def load_prompts_from_db(self):
         """Loads prompts from the database."""
         with rx.session() as session:
-            prompts = session.exec(select(Prompt).order_by(Prompt.id))  # type: ignore
+            # Sort prompts at database level: default first, then by id
+            prompts = session.exec(
+                select(Prompt).order_by(Prompt.is_default_prompt.desc(), Prompt.id)  # type: ignore
+            ).all()
+
             self.prompts = {p.id: p for p in prompts}
         self.prompts_unsaved_changes = False
