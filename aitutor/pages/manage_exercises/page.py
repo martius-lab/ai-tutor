@@ -14,10 +14,12 @@ from aitutor.pages.manage_exercises.components import (
 )
 from aitutor.pages.manage_exercises.state import ManageExercisesState
 from aitutor.pages.navbar import with_navbar
+from aitutor.pages.navbar_admin import with_admin_navbar
 from aitutor.utilities.filtering_components import search_badges, search_bar
 
 
-@with_navbar(routes.MANAGE_EXERCISES)
+@with_navbar(routes.ADMIN_SETTINGS)
+@with_admin_navbar(routes.MANAGE_EXERCISES)
 @page_require_role_at_least(UserRole.ADMIN)
 def manage_exercises_page() -> rx.Component:
     """Manage exercises page."""
@@ -70,8 +72,9 @@ def manage_exercises_page() -> rx.Component:
             spacing="3",
             align="center",
             justify="center",
+            width="100%",
         ),
         margin_top="2em",
         margin_bottom="2em",
-        width="90%",
+        width="100%",
     )

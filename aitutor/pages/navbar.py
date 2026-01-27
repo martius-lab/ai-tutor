@@ -12,12 +12,23 @@ from aitutor.language_state import LanguageState
 from aitutor.models import UserRole
 
 
+def is_highlighted(route_to_highlight: str, url: str) -> rx.Var[bool]:
+    """
+    Determines if a navigation link should be highlighted based on the current route.
+    """
+    return rx.cond(
+        route_to_highlight == routes.HOME,
+        url == routes.HOME,
+        url.startswith(route_to_highlight),
+    )
+
+
 def navbar_link(text: str, url: str, route_to_highlight) -> rx.Component:
     """
     Creates a navigation link component.
     """
     return rx.cond(
-        url == route_to_highlight,
+        is_highlighted(route_to_highlight, url),
         rx.link(
             rx.button(
                 rx.text(text, size="4", weight="medium"), _hover={"cursor": "pointer"}
@@ -31,6 +42,7 @@ def navbar_link(text: str, url: str, route_to_highlight) -> rx.Component:
     )
 
 
+# (label, route, icon)
 general_links = [
     (LanguageState.home_link, routes.HOME, "house"),
     (LanguageState.exercises_link, routes.EXERCISES, "book"),
@@ -39,10 +51,8 @@ tutor_links = [
     (LanguageState.submissions_link, routes.SUBMISSIONS, "search-check"),
 ]
 admin_links = [
-    (LanguageState.manage_exercises_link, routes.MANAGE_EXERCISES, "pencil-line"),
-    (LanguageState.manage_users, routes.MANAGE_USERS, "users"),
-    (LanguageState.configuration, routes.CONFIGURATION, "file-sliders"),
-    (LanguageState.reports, routes.REPORTS, "flag"),
+    # navigate to any admin settings page to show the admin settings navbar
+    (LanguageState.admin_settings_link, routes.MANAGE_EXERCISES, "shield-check"),
 ]
 
 
@@ -278,8 +288,10 @@ def navbar(route_to_highlight: str) -> rx.Component:
                                 links,
                                 lambda link: rx.menu.item(
                                     rx.cond(
-                                        link[1] == route_to_highlight,
+                                        # check if the link should be highlighted
+                                        is_highlighted(route_to_highlight, link[1]),
                                         rx.hstack(
+                                            # highlighted link
                                             rx.icon(
                                                 link[2],
                                                 size=15,
@@ -293,6 +305,7 @@ def navbar(route_to_highlight: str) -> rx.Component:
                                             align="center",
                                         ),
                                         rx.hstack(
+                                            # non-highlighted link
                                             rx.icon(link[2], size=15),
                                             rx.text(link[0]),
                                             align="center",

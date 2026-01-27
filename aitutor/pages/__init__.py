@@ -22,6 +22,8 @@ from aitutor.pages.manage_users.page import manage_users_page
 from aitutor.pages.manage_users.state import ManageUsersState
 from aitutor.pages.navbar import navbar
 from aitutor.pages.not_found.page import not_found_page
+from aitutor.pages.prompts.page import prompts_page
+from aitutor.pages.prompts.state import ManagePromptsState
 from aitutor.pages.report_view.page import report_view_page
 from aitutor.pages.report_view.state import ReportViewState
 from aitutor.pages.reports.page import reports_page
@@ -40,6 +42,7 @@ __all__ = [
     "exercises_page",
     "navbar",
     "not_found_page",
+    "prompts_page",
     "finished_view_page",
     "submissions_page",
     "finished_view_tutor_page",
@@ -66,4 +69,5 @@ __all__ = [
     "ManageConfigState",
     "ReportsState",
     "ReportViewState",
+    "ManagePromptsState",
 ]

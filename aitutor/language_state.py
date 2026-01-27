@@ -119,6 +119,10 @@ class LanguageState(SessionState):
         return self.translate(de="Abgaben", en="Submissions")
 
     @rx.var
+    def admin_settings_link(self) -> str:
+        return self.translate(de="Admin Einstellungen", en="Admin Settings")
+
+    @rx.var
     def manage_exercises_link(self) -> str:
         """The string for the 'Manage Exercises' link."""
         return self.translate(de="Übungsverwaltung", en="Manage Exercises")
@@ -924,13 +928,6 @@ Please test the chat for functionality after changing the model.
         return self.translate(
             de="Prompts verwalten",
             en="Manage Prompts",
-        )
-
-    @rx.var
-    def general_configuration(self) -> str:
-        return self.translate(
-            de="Allgemeine Konfiguration",
-            en="General Configuration",
         )
 
     @rx.var

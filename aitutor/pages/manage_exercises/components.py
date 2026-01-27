@@ -166,7 +166,7 @@ def exercise_table():
                 ),
                 variant="surface",
                 size="3",
-                width="85vw",
+                width="100%",
                 overflow_y="auto",
                 max_height="66vh",
             ),
@@ -242,7 +242,6 @@ def delete_selected_exercises_button() -> rx.Component:
             color_scheme="red",
             _hover={"cursor": "pointer"},
             type="button",
-            radius="large",
         ),
     )
 
