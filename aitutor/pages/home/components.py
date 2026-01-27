@@ -6,6 +6,7 @@ import aitutor.global_vars as gv
 from aitutor import DisplayConfigState, routes
 from aitutor.language_state import LanguageState
 from aitutor.pages.home.state import HomeState
+from aitutor.pages.legal_infos.loader_functions import get_privacy_notice_short
 from aitutor.routes import LOGIN, REGISTER
 
 
@@ -109,11 +110,13 @@ def dashboard_card():
 
 def info_accordion():
     """Render the info accordion"""
+    privacy_notice_short: str = get_privacy_notice_short()
     return (
         rx.cond(
             (DisplayConfigState.how_to_use_text != "")
             | (DisplayConfigState.general_information_text != "")
-            | (DisplayConfigState.lecture_information_text != ""),
+            | (DisplayConfigState.lecture_information_text != "")
+            | (privacy_notice_short != ""),
             rx.accordion.root(
                 rx.cond(
                     DisplayConfigState.how_to_use_text != "",
@@ -138,6 +141,13 @@ def info_accordion():
                         content=rx.markdown(
                             DisplayConfigState.lecture_information_text
                         ),
+                    ),
+                ),
+                rx.cond(
+                    privacy_notice_short != "",
+                    rx.accordion.item(
+                        header=LanguageState.privacy_notice_short,
+                        content=rx.markdown(privacy_notice_short),
                     ),
                 ),
                 width="100%",

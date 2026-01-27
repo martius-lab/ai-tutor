@@ -352,6 +352,7 @@ def report_conversation_button() -> rx.Component:
                     )
                 ),
                 margin_top="1em",
+                justify="end",
             ),
         ),
     )

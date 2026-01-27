@@ -31,6 +31,44 @@ def prompt_card(prompt: Prompt) -> rx.Component:
                     ),
                     placeholder=LS.prompt_variables_info,
                 ),
+                rx.hover_card.root(
+                    rx.hover_card.trigger(
+                        rx.button(
+                            rx.icon(
+                                "star",
+                                size=18,
+                                fill=rx.cond(
+                                    prompt.is_default_prompt,
+                                    "currentColor",
+                                    "none",
+                                ),
+                            ),
+                            rx.cond(
+                                prompt.is_default_prompt,
+                                LS.default_prompt,
+                                LS.mark_as_default_prompt,
+                            ),
+                            on_click=lambda: ManagePromptsState.set_default_prompt(
+                                prompt.id
+                            ),
+                            variant="soft",
+                            color_scheme=rx.cond(
+                                prompt.is_default_prompt,
+                                "green",
+                                "gray",
+                            ),
+                            _hover={
+                                "cursor": "pointer",
+                                "opacity": "0.8",
+                            },
+                            width="100%",
+                            max_width="300px",
+                        ),
+                    ),
+                    rx.hover_card.content(
+                        rx.text(LS.default_prompt_hover),
+                    ),
+                ),
                 width="90%",
             ),
             # delete button with confirmation dialog
