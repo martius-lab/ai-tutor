@@ -7,7 +7,7 @@ from zoneinfo import ZoneInfo
 
 import decouple
 import reflex as rx
-from openai import AsyncOpenAI, OpenAI
+from openai import AsyncOpenAI
 from pydantic import BaseModel
 from sqlmodel import select
 
@@ -120,13 +120,14 @@ async def get_check_conversation_response(
     API_KEY = cast(str, decouple.config("OPENAI_API_KEY", cast=str, default=""))
     if API_KEY == "":
         raise ValueError("API key not found.")
-    client = OpenAI(api_key=API_KEY)
-    response = client.responses.parse(
+    client = AsyncOpenAI(api_key=API_KEY)
+    completion = await client.beta.chat.completions.parse(
         model=config.check_ai_model,
-        input=conversation,
-        text_format=CheckConversationResponse,
+        messages=conversation,
+        response_format=CheckConversationResponse,
     )
-    return response.output_parsed
+
+    return completion.choices[0].message.parsed
 
 
 class ChatState(SessionState):
