@@ -240,8 +240,13 @@ def delete_selected_exercises_button() -> rx.Component:
                 size="3",
             ),
             color_scheme="red",
-            _hover={"cursor": "pointer"},
+            _hover=rx.cond(
+                ManageExercisesState.something_is_selected,
+                {"cursor": "pointer"},
+                {"cursor": "not-allowed"},
+            ),
             type="button",
+            disabled=~ManageExercisesState.something_is_selected,
         ),
     )
 
@@ -257,9 +262,14 @@ def export_selected_exercises_button() -> rx.Component:
             + ")",
             size="3",
         ),
-        _hover={"cursor": "pointer"},
+        _hover=rx.cond(
+            ManageExercisesState.something_is_selected,
+            {"cursor": "pointer"},
+            {"cursor": "not-allowed"},
+        ),
         on_click=ManageExercisesState.export_selected_exercises,
         type="button",
+        disabled=~ManageExercisesState.something_is_selected,
     )
 
 
