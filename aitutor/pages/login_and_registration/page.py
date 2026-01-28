@@ -13,7 +13,7 @@ from aitutor.pages.navbar import with_navbar
 # login --------------------------------------------------------------------------------
 
 
-@with_navbar("")
+@with_navbar()
 def custom_login_page() -> rx.Component:
     """Custom login page."""
     return rx.center(
@@ -30,7 +30,7 @@ def custom_login_page() -> rx.Component:
 # registration -------------------------------------------------------------------------
 
 
-@with_navbar("")
+@with_navbar()
 def custom_register_page() -> rx.Component:
     """Custom register page."""
     return rx.center(
