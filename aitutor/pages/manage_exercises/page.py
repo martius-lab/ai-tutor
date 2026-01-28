@@ -26,28 +26,18 @@ def manage_exercises_page() -> rx.Component:
     return rx.center(
         rx.vstack(
             rx.desktop_only(
-                rx.cond(
-                    ManageExercisesState.something_is_selected,
+                rx.hstack(
                     rx.hstack(
-                        rx.hstack(
-                            delete_selected_exercises_button(),
-                            export_selected_exercises_button(),
-                        ),
-                        rx.hstack(
-                            import_exercises_button(),
-                            add_exercise_button(),
-                        ),
-                        align="center",
-                        justify="between",
-                        width="100%",
+                        delete_selected_exercises_button(),
+                        export_selected_exercises_button(),
                     ),
                     rx.hstack(
                         import_exercises_button(),
                         add_exercise_button(),
-                        align="center",
-                        justify="end",
-                        width="100%",
                     ),
+                    align="center",
+                    justify="between",
+                    width="100%",
                 ),
                 width="100%",
             ),
@@ -55,16 +45,13 @@ def manage_exercises_page() -> rx.Component:
                 rx.hstack(
                     import_exercises_button(),
                     add_exercise_button(),
-                )
+                ),
             ),
             rx.mobile_and_tablet(
-                rx.cond(
-                    ManageExercisesState.something_is_selected,
-                    rx.hstack(
-                        delete_selected_exercises_button(),
-                        export_selected_exercises_button(),
-                    ),
-                )
+                rx.hstack(
+                    delete_selected_exercises_button(),
+                    export_selected_exercises_button(),
+                ),
             ),
             search_bar(ManageExercisesState),
             search_badges(ManageExercisesState),
