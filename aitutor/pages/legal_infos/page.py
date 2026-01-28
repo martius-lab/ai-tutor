@@ -8,7 +8,7 @@ from aitutor.pages.legal_infos.loader_functions import get_privacy_notice
 from aitutor.pages.navbar import with_navbar
 
 
-@with_navbar("")
+@with_navbar()
 def impressum_page() -> rx.Component:
     """Impressum page."""
     return rx.box(
@@ -25,7 +25,7 @@ def impressum_page() -> rx.Component:
     )
 
 
-@with_navbar("")
+@with_navbar()
 def privacy_notice_page() -> rx.Component:
     """Privacy Notice page."""
     return rx.box(

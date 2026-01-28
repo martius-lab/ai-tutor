@@ -2,6 +2,8 @@
 This module defines the navbar components for the Reflex application.
 """
 
+from typing import Optional
+
 import reflex as rx
 
 import aitutor.routes as routes
@@ -12,18 +14,22 @@ from aitutor.language_state import LanguageState
 from aitutor.models import UserRole
 
 
-def is_highlighted(route_to_highlight: str, url: str) -> rx.Var[bool]:
+def is_highlighted(route_to_highlight: Optional[str], url: str) -> rx.Var[bool]:
     """
     Determines if a navigation link should be highlighted based on the current route.
     """
     return rx.cond(
-        route_to_highlight == routes.HOME,
-        url == routes.HOME,
-        url.startswith(route_to_highlight),
+        route_to_highlight,  # None check
+        rx.cond(
+            route_to_highlight == routes.HOME,
+            url == routes.HOME,
+            url.startswith(route_to_highlight or ""),  # None handled by outer cond
+        ),
+        False,
     )
 
 
-def navbar_link(text: str, url: str, route_to_highlight) -> rx.Component:
+def navbar_link(text: str, url: str, route_to_highlight: Optional[str]) -> rx.Component:
     """
     Creates a navigation link component.
     """
@@ -203,7 +209,7 @@ def profile_menu() -> rx.Component:
     )
 
 
-def navbar(route_to_highlight: str) -> rx.Component:
+def navbar(route_to_highlight: Optional[str]) -> rx.Component:
     """
     Creates the default navigation bar component for the application.
 
@@ -331,7 +337,7 @@ def navbar(route_to_highlight: str) -> rx.Component:
     )
 
 
-def with_navbar(route_to_highlight: str):
+def with_navbar(route_to_highlight: Optional[str] = None):
     """
     Decorator to add a navigation bar to a component.
 
