@@ -6,7 +6,12 @@ import aitutor.routes as routes
 from aitutor.auth.protection import page_require_role_at_least
 from aitutor.language_state import LanguageState
 from aitutor.models import UserRole
-from aitutor.pages.chat.components import chat_form, show_exercise_status, show_messages
+from aitutor.pages.chat.components import (
+    chat_form,
+    report_conversation_button,
+    show_exercise_status,
+    show_messages,
+)
 from aitutor.pages.chat.state import ChatState
 from aitutor.pages.navbar import with_navbar
 
@@ -32,13 +37,25 @@ def chat_page() -> rx.Component:
                         align="center",
                     ),
                     rx.tablet_and_desktop(
-                        show_exercise_status(),
+                        rx.hstack(
+                            report_conversation_button(),
+                            show_exercise_status(),
+                            spacing="4",
+                            align="center",
+                        ),
                     ),
                     align="center",
                     justify="between",
                     width="100%",
                 ),
-                rx.mobile_only(show_exercise_status()),
+                rx.mobile_only(
+                    rx.hstack(
+                        report_conversation_button(),
+                        show_exercise_status(),
+                        spacing="4",
+                        align="center",
+                    ),
+                ),
                 rx.cond(
                     ChatState.is_overdue,
                     rx.callout(
