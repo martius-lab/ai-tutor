@@ -363,7 +363,6 @@ def submitted_status() -> rx.Component:
     Render the status when the conversation is submitted.
     """
     return rx.hstack(
-        report_conversation_button(),
         rx.hover_card.root(
             rx.hover_card.trigger(
                 rx.button(
@@ -396,14 +395,9 @@ def not_submitted_status() -> rx.Component:
     Render the status when the conversation is not submitted yet.
     """
     return rx.hstack(
-        report_conversation_button(),
-        rx.hstack(
-            rx.icon("info", size=20),
-            rx.text(LanguageState.not_submitted_yet),
-            spacing="1",
-            align="center",
-        ),
-        spacing="4",
+        rx.icon("info", size=20),
+        rx.text(LanguageState.not_submitted_yet),
+        spacing="1",
         align="center",
     )
 
