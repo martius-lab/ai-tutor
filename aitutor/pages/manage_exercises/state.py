@@ -68,6 +68,8 @@ class ManageExercisesState(FilterMixin, SessionState):
     #: flag to control if the exercise should have a deadline
     use_deadline: bool = True
 
+    new_tag_name: str = ""
+
     # These dictionarys are needed because reflex does not accept propertys like
     # exercise.is_started or exercise.editing_period in the components.
     # So this is a workaround.
@@ -130,6 +132,11 @@ class ManageExercisesState(FilterMixin, SessionState):
         self.exercise_is_selected[exercise_id] = is_selected  # type: ignore
 
     @rx.event
+    def set_new_tag_name(self, tag_name: str):
+        """Set the new tag name."""
+        self.new_tag_name = tag_name
+
+    @rx.event
     @state_require_role_at_least(UserRole.ADMIN)
     def on_load(self):
         """Initialize the state"""
@@ -146,6 +153,7 @@ class ManageExercisesState(FilterMixin, SessionState):
                 )
                 or []
             )
+        self.load_tags()
         self.global_load()
         self.prompt_names = [prompt.name for prompt in self.prompts]
         self.load_exercises()
@@ -173,6 +181,7 @@ class ManageExercisesState(FilterMixin, SessionState):
         self.editing_periods = {}
         self.exercise_is_started = {}
         self.exercise_is_selected = {}
+        self.new_tag_name = ""
 
     @rx.var
     def selected_exercises_num(self) -> str:
@@ -636,36 +645,6 @@ class ManageExercisesState(FilterMixin, SessionState):
                     break
 
     @rx.event
-    def submit_tag(self, form_data: dict):
-        """Add tags to db."""
-        with rx.session() as session:
-            # check if tag is not None
-            if form_data["tag"] == "":
-                return rx.window_alert("Please enter a tag name.")
-
-            # check if tag exists
-            existing_tag = session.exec(
-                select(Tag).where(Tag.name == form_data["tag"])
-            ).one_or_none()
-            if existing_tag is not None:
-                return rx.window_alert("Tag exists already.")
-
-            new_tag = Tag(name=form_data["tag"])
-            # add tag to db
-            session.add(new_tag)
-            session.commit()
-            self.load_tags()
-
-            self.add_tag_dialog_is_open = False
-
-            return rx.toast.success(
-                BT.tag_was_added(self.language),
-                duration=2500,
-                position="bottom-center",
-                invert=True,
-            )
-
-    @rx.event
     def update_exercise(self, form_data: dict):
         """Update exercises in db."""
 
@@ -711,7 +690,41 @@ class ManageExercisesState(FilterMixin, SessionState):
         )
 
     @rx.event
-    def delete_tag(self):
+    def add_new_tag(self):
+        """Add tags to db."""
+        if not self.new_tag_name:
+            return rx.window_alert("Please enter a tag name.")
+
+        with rx.session() as session:
+            existing_tag = session.exec(
+                select(Tag).where(Tag.name == self.new_tag_name)
+            ).one_or_none()
+
+            if existing_tag is not None:
+                return rx.window_alert("Tag exists already.")
+
+            new_tag = Tag(name=self.new_tag_name)
+            session.add(new_tag)
+            session.commit()
+            self.load_tags()
+
+            if self.add_exercise_dialog_is_open or self.edit_exercise_dialog_is_open:
+                self.selected_tags.append(self.new_tag_name)
+
+            self.add_tag_dialog_is_open = False
+
+            # Reset input field after success
+            self.new_tag_name = ""
+
+            return rx.toast.success(
+                BT.tag_was_added(self.language),
+                duration=2500,
+                position="bottom-center",
+                invert=True,
+            )
+
+    @rx.event
+    def delete_tag_(self):
         """Delete a tag from the db."""
         with rx.session() as session:
             # fetch the tag by its name

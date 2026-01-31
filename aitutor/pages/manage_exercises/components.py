@@ -14,48 +14,59 @@ from aitutor.utilities.helper_functions import truncate_text_reflex_var
 
 def new_tag_dialog():
     """Dialog for adding new tags."""
-    return (
-        rx.dialog.root(
-            rx.dialog.trigger(
-                rx.button(
-                    LanguageState.new_tag,
-                    margin_top="0.5em",
-                    shade="7",
-                    _hover={"cursor": "pointer"},
-                ),
+    return rx.dialog.root(
+        rx.dialog.trigger(
+            rx.button(
+                rx.icon("tag", size=20),
+                LanguageState.new_tag,
+                margin_top="0.5em",
+                shade="7",
+                _hover={"cursor": "pointer"},
             ),
-            rx.dialog.content(
-                rx.form(
-                    rx.input(
-                        placeholder=LanguageState.tagname,
-                        name="tag",
-                    ),
-                    rx.center(
-                        rx.dialog.close(
-                            rx.button(
-                                rx.text(LanguageState.cancel),
-                                color_scheme="red",
-                                type="button",
-                                _hover={"cursor": "pointer"},
-                            ),
-                        ),
-                        rx.form.submit(
-                            rx.button(
-                                LanguageState.add_tag,
-                                type="submit",
-                                _hover={"cursor": "pointer"},
-                            ),
-                        ),
-                        padding_top="1em",
-                        spacing="2",
-                    ),
-                    # submit new tags
-                    on_submit=ManageExercisesState.submit_tag,
-                ),
-            ),
-            open=ManageExercisesState.add_tag_dialog_is_open,
-            on_open_change=ManageExercisesState.set_add_tag_dialog_is_open,
         ),
+        rx.dialog.content(
+            rx.vstack(
+                rx.heading(LanguageState.new_tag),
+                rx.input(
+                    placeholder=LanguageState.tagname,
+                    value=ManageExercisesState.new_tag_name,
+                    on_change=ManageExercisesState.set_new_tag_name,
+                    width="100%",
+                    on_key_down=lambda key: rx.cond(
+                        key == "Enter",
+                        ManageExercisesState.add_new_tag,
+                        None,
+                    ),
+                ),
+                rx.hstack(
+                    rx.dialog.close(
+                        rx.button(
+                            rx.text(LanguageState.cancel),
+                            variant="outline",
+                            _hover={"cursor": "pointer"},
+                        ),
+                    ),
+                    rx.button(
+                        LanguageState.add_tag,
+                        on_click=ManageExercisesState.add_new_tag,
+                        _hover=rx.cond(
+                            ManageExercisesState.new_tag_name == "",
+                            {"cursor": "not-allowed"},
+                            {"cursor": "pointer"},
+                        ),
+                        disabled=ManageExercisesState.new_tag_name == "",
+                    ),
+                    padding_top="1em",
+                    spacing="2",
+                    justify="end",
+                    width="100%",
+                ),
+            ),
+            width="20em",
+            max_width="90vw",
+        ),
+        open=ManageExercisesState.add_tag_dialog_is_open,
+        on_open_change=ManageExercisesState.set_add_tag_dialog_is_open,
     )
 
 
@@ -310,8 +321,6 @@ def add_exercise_dialog() -> rx.Component:
                 reset_on_submit=False,
                 enter_key_submit=True,
             ),
-            # add new tag
-            new_tag_dialog(),
             on_escape_key_down=ManageExercisesState.close_dialog,
         ),
         open=ManageExercisesState.add_exercise_dialog_is_open,
@@ -368,8 +377,6 @@ def edit_exercise_dialog() -> rx.Component:
                 reset_on_submit=False,
                 enter_key_submit=True,
             ),
-            # add new tag
-            new_tag_dialog(),
             on_escape_key_down=ManageExercisesState.close_dialog,
         ),
         open=ManageExercisesState.edit_exercise_dialog_is_open,
@@ -499,29 +506,26 @@ def tag_management() -> rx.Component:
             padding_bottom="0.5em",
         ),
         rx.hstack(
-            rx.hstack(
-                rx.center(
-                    rx.select(
-                        items=ManageExercisesState.tag_names,
-                        placeholder=LanguageState.select_tag,
-                        value=ManageExercisesState.current_tag,
-                        on_change=ManageExercisesState.set_current_tag,
-                        multiple=True,
-                    ),
-                    rx.icon_button(
-                        rx.icon("circle-x"),
-                        on_click=ManageExercisesState.delete_tag,
-                        size="2",
-                        variant="ghost",
-                        color_scheme="red",
-                        spacing="3",
-                        type="button",
-                        _hover={"cursor": "pointer"},
-                    ),
-                    spacing="3",
-                    align="center",
+            rx.center(
+                rx.select(
+                    items=ManageExercisesState.tag_names,
+                    placeholder=LanguageState.select_tag,
+                    value=ManageExercisesState.current_tag,
+                    on_change=ManageExercisesState.set_current_tag,
+                    multiple=True,
                 ),
-                flex="1",
+                rx.icon_button(
+                    rx.icon("circle-x"),
+                    on_click=ManageExercisesState.delete_tag_,
+                    size="2",
+                    variant="ghost",
+                    color_scheme="red",
+                    spacing="3",
+                    type="button",
+                    _hover={"cursor": "pointer"},
+                ),
+                spacing="3",
+                align="center",
             ),
             spacing="2",
         ),
@@ -562,6 +566,7 @@ def tag_management() -> rx.Component:
                 margin_top="0.5em",
                 margin_bottom="0.5em",
             ),
+            new_tag_dialog(),
         ),
     )
 
@@ -804,5 +809,71 @@ def import_exercises_button() -> rx.Component:
             ),
             width="40em",
             max_width="90vw",
+        ),
+    )
+
+
+def tags_button() -> rx.Component:
+    """Button for managing tags."""
+    return rx.dialog.root(
+        rx.dialog.trigger(
+            rx.button(
+                rx.icon("tags"),
+                rx.desktop_only(
+                    rx.text(LanguageState.tags, size="3"),
+                ),
+                rx.mobile_and_tablet(
+                    rx.text(LanguageState.tags, size="3"),
+                ),
+                _hover={"cursor": "pointer"},
+                type="button",
+            )
+        ),
+        rx.dialog.content(
+            rx.vstack(
+                rx.heading(
+                    LanguageState.tags,
+                ),
+                rx.foreach(
+                    ManageExercisesState.tag_list,
+                    lambda tag: rx.hstack(
+                        rx.badge(
+                            tag.name,
+                            variant="soft",
+                        ),
+                        rx.icon_button(
+                            rx.icon("pencil"),
+                            size="2",
+                            variant="ghost",
+                            _hover={"cursor": "pointer"},
+                            # TODO: implement tag editing
+                        ),
+                        rx.icon_button(
+                            rx.icon("trash"),
+                            size="2",
+                            variant="ghost",
+                            color_scheme="red",
+                            _hover={"cursor": "pointer"},
+                            # TODO: implement tag deletion
+                        ),
+                        spacing="4",
+                        align="center",
+                        justify="between",
+                    ),
+                ),
+                rx.hstack(
+                    new_tag_dialog(),
+                    rx.dialog.close(
+                        rx.button(
+                            rx.text(LanguageState.close),
+                            variant="outline",
+                            _hover={"cursor": "pointer"},
+                        ),
+                    ),
+                    align="center",
+                    justify="between",
+                    width="100%",
+                ),
+            ),
         ),
     )

@@ -43,6 +43,10 @@ class LanguageState(SessionState):
         return self.translate(de="Abbrechen", en="Cancel")
 
     @rx.var
+    def close(self) -> str:
+        return self.translate(de="Schließen", en="Close")
+
+    @rx.var
     def log_in(self) -> str:
         """Log in string"""
         return self.translate(de="Anmelden", en="Log in")
@@ -1128,8 +1132,8 @@ class BackendTranslations:
     def tag_was_added(language: Language) -> str:
         return translate(
             language,
-            de="Tag wurde hinzugefügt und kann jetzt ausgewählt werden.",
-            en="Tag has been added and can now be selected.",
+            de="Tag erfolgreich hinzugefügt.",
+            en="Tag has been added successfully.",
         )
 
     @staticmethod

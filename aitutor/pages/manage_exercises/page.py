@@ -11,6 +11,7 @@ from aitutor.pages.manage_exercises.components import (
     exercise_table,
     export_selected_exercises_button,
     import_exercises_button,
+    tags_button,
 )
 from aitutor.pages.manage_exercises.state import ManageExercisesState
 from aitutor.pages.navbar import with_navbar
@@ -53,6 +54,7 @@ def manage_exercises_page() -> rx.Component:
                     export_selected_exercises_button(),
                 ),
             ),
+            tags_button(),
             search_bar(ManageExercisesState),
             search_badges(ManageExercisesState),
             exercise_table(),
