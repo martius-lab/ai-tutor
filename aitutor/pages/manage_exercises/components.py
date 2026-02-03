@@ -558,11 +558,27 @@ def tag_selection() -> rx.Component:
             padding_bottom="0.5em",
         ),
         rx.hstack(
-            rx.select(
-                items=ManageExercisesState.tag_names,
-                placeholder=LanguageState.select_tag,
-                value="",
-                on_change=ManageExercisesState.add_to_selected_tags,
+            rx.menu.root(
+                rx.menu.trigger(
+                    rx.button(
+                        rx.icon("list", size=18),
+                        LanguageState.select_tags,
+                        type="button",
+                        _hover={"cursor": "pointer"},
+                    ),
+                ),
+                rx.menu.content(
+                    rx.foreach(
+                        ManageExercisesState.selectable_tags,
+                        lambda tag_name: rx.menu.item(
+                            tag_name,
+                            on_click=ManageExercisesState.add_to_selected_tags(
+                                tag_name
+                            ),
+                        ),
+                    ),
+                    min_width="10em",
+                ),
             ),
             new_tag_dialog(),
             align="center",
@@ -595,6 +611,7 @@ def tag_selection() -> rx.Component:
             ),
             margin_top="0.5em",
             margin_bottom="0.5em",
+            wrap="wrap",
         ),
         spacing="1",
     )
@@ -769,6 +786,7 @@ def add_edit_exercise_form(mode: DialogMode) -> Sequence[rx.Component]:
             ),
             spacing="2",
             justify="end",
+            margin_top="1em",
         ),
     )
 

@@ -199,6 +199,11 @@ class ManageExercisesState(FilterMixin, SessionState):
         self.editing_tag_id = None
 
     @rx.var
+    def selectable_tags(self) -> list[str]:
+        """Return the list of tags that can be selected (not already selected)."""
+        return [tag for tag in self.tag_names if tag not in self.selected_tags]
+
+    @rx.var
     def selected_exercises_num(self) -> str:
         """Return the number of selected exercises."""
         return str(sum(self.exercise_is_selected.values()))

@@ -593,9 +593,8 @@ class LanguageState(SessionState):
         return self.translate(de="Prompt auswählen", en="Select prompt")
 
     @rx.var
-    def select_tag(self) -> str:
-        """Select tag string"""
-        return self.translate(de="Tag auswählen", en="Select tag")
+    def select_tags(self) -> str:
+        return self.translate(de="Tags auswählen", en="Select tags")
 
     @rx.var
     def title(self) -> str:
