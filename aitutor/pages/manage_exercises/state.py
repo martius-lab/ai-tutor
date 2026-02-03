@@ -35,6 +35,7 @@ class ManageExercisesState(FilterMixin, SessionState):
     add_exercise_dialog_is_open: bool = False
     edit_exercise_dialog_is_open: bool = False
     add_tag_dialog_is_open: bool = False
+    edit_tag_dialog_is_open: bool = False
 
     exercises: list[Exercise] = []
     tag_list: list[Tag] = []
@@ -69,6 +70,8 @@ class ManageExercisesState(FilterMixin, SessionState):
     use_deadline: bool = True
 
     new_tag_name: str = ""
+    new_renamed_tag_name: str = ""
+    editing_tag_id: int | None = None
 
     # These dictionarys are needed because reflex does not accept propertys like
     # exercise.is_started or exercise.editing_period in the components.
@@ -84,6 +87,13 @@ class ManageExercisesState(FilterMixin, SessionState):
     def set_add_tag_dialog_is_open(self, is_open: bool):
         """Set the add tag dialog is open flag."""
         self.add_tag_dialog_is_open = is_open
+
+    @rx.event
+    def set_edit_tag_dialog_is_open(self, is_open: bool):
+        """Set the edit tag dialog is open flag."""
+        self.edit_tag_dialog_is_open = is_open
+        if not is_open:
+            self.new_renamed_tag_name = ""
 
     @rx.event
     def set_current_tag(self, tag: str):
@@ -137,6 +147,11 @@ class ManageExercisesState(FilterMixin, SessionState):
         self.new_tag_name = tag_name
 
     @rx.event
+    def set_new_renamed_tag_name(self, tag_name: str):
+        """Set the renamed tag name."""
+        self.new_renamed_tag_name = tag_name
+
+    @rx.event
     @state_require_role_at_least(UserRole.ADMIN)
     def on_load(self):
         """Initialize the state"""
@@ -182,6 +197,8 @@ class ManageExercisesState(FilterMixin, SessionState):
         self.exercise_is_started = {}
         self.exercise_is_selected = {}
         self.new_tag_name = ""
+        self.new_renamed_tag_name = ""
+        self.editing_tag_id = None
 
     @rx.var
     def selected_exercises_num(self) -> str:
@@ -207,6 +224,13 @@ class ManageExercisesState(FilterMixin, SessionState):
             if prompt.name == self.current_prompt_name:
                 return prompt.prompt_template
         return "prompt selection error!"
+
+    @rx.event
+    def open_edit_tag_dialog(self, tag_id, current_name):
+        """Sets the tag to edit and opens the dialog"""
+        self.editing_tag_id = tag_id
+        self.new_renamed_tag_name = current_name
+        self.set_edit_tag_dialog_is_open(True)
 
     @rx.event
     def delete_selected_exercises(self):
@@ -772,6 +796,50 @@ class ManageExercisesState(FilterMixin, SessionState):
 
             return rx.toast.success(
                 BT.tag_deleted(self.language),
+                duration=2500,
+                position="bottom-center",
+                invert=True,
+            )
+
+    @rx.event
+    def edit_tag_name(self):
+        """Edit a tag's name in the db."""
+        with rx.session() as session:
+            tag_to_edit = session.exec(
+                select(Tag).where(Tag.id == self.editing_tag_id)
+            ).first()
+
+            if tag_to_edit is None:
+                return rx.window_alert("Tag not found.")
+
+            # check if new name already exists
+            existing_tag = session.exec(
+                select(Tag).where(
+                    Tag.name == self.new_renamed_tag_name, Tag.id != self.editing_tag_id
+                )
+            ).one_or_none()
+
+            if existing_tag is not None:
+                return rx.toast.error(
+                    BT.tagname_already_exists(self.language),
+                    duration=2500,
+                    position="bottom-center",
+                    invert=True,
+                )
+
+            tag_to_edit.name = self.new_renamed_tag_name
+            session.add(tag_to_edit)
+            session.commit()
+
+            # load tags and exercises again to update the tag names
+            self.load_tags()
+            self.load_exercises()
+
+            # close dialog
+            self.set_edit_tag_dialog_is_open(False)
+
+            return rx.toast.success(
+                BT.tag_renamed_successfully(self.language),
                 duration=2500,
                 position="bottom-center",
                 invert=True,

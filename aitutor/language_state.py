@@ -458,6 +458,14 @@ class LanguageState(SessionState):
         )
 
     @rx.var
+    def rename_tag(self) -> str:
+        return self.translate(de="Tag umbenennen", en="Rename tag")
+
+    @rx.var
+    def edit_tags(self) -> str:
+        return self.translate(de="Tags bearbeiten", en="Edit tags")
+
+    @rx.var
     def import_exercises(self) -> str:
         return self.translate(de="Übungen importieren", en="Import Exercises")
 
@@ -1133,6 +1141,22 @@ class BackendTranslations:
         )
 
     # ManageExercisesState -------------------------------------------------------------
+    @staticmethod
+    def tagname_already_exists(language: Language) -> str:
+        return translate(
+            language,
+            de="Fehler: Dieser Tag Name existiert bereits.",
+            en="Error: This tag name already exists.",
+        )
+
+    @staticmethod
+    def tag_renamed_successfully(language: Language) -> str:
+        return translate(
+            language,
+            de="Tag erfolgreich umbenannt.",
+            en="Tag renamed successfully.",
+        )
+
     @staticmethod
     def exercise_added(language: Language) -> str:
         return translate(

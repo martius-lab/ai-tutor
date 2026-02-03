@@ -17,10 +17,13 @@ def new_tag_dialog():
     return rx.dialog.root(
         rx.dialog.trigger(
             rx.button(
-                rx.icon("tag", size=20),
+                rx.hstack(
+                    rx.icon("plus", size=20),
+                    rx.icon("tag", size=20),
+                    align="center",
+                    spacing="1",
+                ),
                 LanguageState.new_tag,
-                margin_top="0.5em",
-                shade="7",
                 _hover={"cursor": "pointer"},
             ),
         ),
@@ -67,6 +70,55 @@ def new_tag_dialog():
         ),
         open=ManageExercisesState.add_tag_dialog_is_open,
         on_open_change=ManageExercisesState.set_add_tag_dialog_is_open,
+    )
+
+
+def edit_tag_dialog():
+    """Dialog for editing existing tags."""
+    return rx.dialog.root(
+        rx.dialog.content(
+            rx.vstack(
+                rx.heading(LanguageState.rename_tag),
+                rx.input(
+                    placeholder=LanguageState.tagname,
+                    value=ManageExercisesState.new_renamed_tag_name,
+                    on_change=ManageExercisesState.set_new_renamed_tag_name,
+                    width="100%",
+                    on_key_down=lambda key: rx.cond(
+                        key == "Enter",
+                        ManageExercisesState.edit_tag_name(),
+                        None,
+                    ),
+                ),
+                rx.hstack(
+                    rx.dialog.close(
+                        rx.button(
+                            rx.text(LanguageState.cancel),
+                            variant="outline",
+                            _hover={"cursor": "pointer"},
+                        ),
+                    ),
+                    rx.button(
+                        LanguageState.confirm,
+                        on_click=ManageExercisesState.edit_tag_name(),
+                        _hover=rx.cond(
+                            ManageExercisesState.new_renamed_tag_name == "",
+                            {"cursor": "not-allowed"},
+                            {"cursor": "pointer"},
+                        ),
+                        disabled=ManageExercisesState.new_renamed_tag_name == "",
+                    ),
+                    padding_top="1em",
+                    spacing="2",
+                    justify="end",
+                    width="100%",
+                ),
+            ),
+            width="20em",
+            max_width="90vw",
+        ),
+        open=ManageExercisesState.edit_tag_dialog_is_open,
+        on_open_change=ManageExercisesState.set_edit_tag_dialog_is_open,
     )
 
 
@@ -813,17 +865,17 @@ def import_exercises_button() -> rx.Component:
     )
 
 
-def tags_button() -> rx.Component:
+def edit_tags_button() -> rx.Component:
     """Button for managing tags."""
     return rx.dialog.root(
         rx.dialog.trigger(
             rx.button(
                 rx.icon("tags"),
                 rx.desktop_only(
-                    rx.text(LanguageState.tags, size="3"),
+                    rx.text(LanguageState.edit_tags, size="3"),
                 ),
                 rx.mobile_and_tablet(
-                    rx.text(LanguageState.tags, size="3"),
+                    rx.text(LanguageState.edit_tags, size="3"),
                 ),
                 _hover={"cursor": "pointer"},
                 type="button",
@@ -832,7 +884,7 @@ def tags_button() -> rx.Component:
         rx.dialog.content(
             rx.vstack(
                 rx.heading(
-                    LanguageState.tags,
+                    LanguageState.edit_tags,
                 ),
                 rx.foreach(
                     ManageExercisesState.tag_list,
@@ -846,7 +898,9 @@ def tags_button() -> rx.Component:
                             size="2",
                             variant="ghost",
                             _hover={"cursor": "pointer"},
-                            # TODO: implement tag editing
+                            on_click=ManageExercisesState.open_edit_tag_dialog(
+                                tag.id, tag.name
+                            ),
                         ),
                         destructive_confirm(
                             title=LanguageState.delete_tag,
@@ -880,6 +934,7 @@ def tags_button() -> rx.Component:
                     justify="between",
                     width="100%",
                 ),
+                edit_tag_dialog(),
             ),
         ),
     )
