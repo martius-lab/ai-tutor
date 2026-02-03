@@ -73,7 +73,7 @@ def new_tag_dialog():
     )
 
 
-def edit_tag_dialog():
+def rename_tag_dialog():
     """Dialog for editing existing tags."""
     return rx.dialog.root(
         rx.dialog.content(
@@ -929,7 +929,7 @@ def edit_tags_button() -> rx.Component:
                     justify="between",
                     width="100%",
                 ),
-                edit_tag_dialog(),
+                rename_tag_dialog(),
             ),
         ),
     )
