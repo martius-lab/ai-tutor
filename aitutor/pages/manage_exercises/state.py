@@ -42,8 +42,6 @@ class ManageExercisesState(FilterMixin, SessionState):
     tag_names: list[str] = []
     # valid search keys. overrides the var from FilterMixin
     search_keys: list[str] = [gv.SEARCH_EXERCISE_KEY, gv.SEARCH_TAG_KEY]
-    #: the currently selected tag from the select window
-    current_tag: str = ""
     #: the current exercise to be edited
     current_exercise: Exercise = Exercise()
     #: List to store selected tags temporarily
@@ -96,9 +94,10 @@ class ManageExercisesState(FilterMixin, SessionState):
             self.new_renamed_tag_name = ""
 
     @rx.event
-    def set_current_tag(self, tag: str):
-        """Set the current tag."""
-        self.current_tag = tag
+    def add_to_selected_tags(self, tag: str):
+        """Add the tag to the selected tags list."""
+        if tag and tag not in self.selected_tags:
+            self.selected_tags.append(tag)
 
     @rx.event
     def set_lesson_context(self, context: str):
@@ -180,7 +179,6 @@ class ManageExercisesState(FilterMixin, SessionState):
         self.tag_list = []
         self.tag_names = []
         self.search_values = []  # from FilterMixin
-        self.current_tag = ""
         self.current_exercise = Exercise()
         self.selected_tags = []
         self.lesson_context = ""
@@ -523,16 +521,6 @@ class ManageExercisesState(FilterMixin, SessionState):
         return events
 
     @rx.event
-    def add_selected_tag(self):
-        """Add the currently selected tag to the list of selected tags."""
-        if not self.current_tag:
-            return rx.window_alert("Select a tag first.")
-        if self.current_tag and self.current_tag not in self.selected_tags:
-            self.selected_tags.append(self.current_tag)
-            # reset current tag after adding
-            self.current_tag = ""
-
-    @rx.event
     def remove_selected_tag(self, tag: str):
         """Remove a tag from the list of selected tags."""
         if tag in self.selected_tags:
@@ -748,39 +736,6 @@ class ManageExercisesState(FilterMixin, SessionState):
             )
 
     @rx.event
-    def delete_tag_(self):
-        """Delete a tag from the db."""
-        with rx.session() as session:
-            # fetch the tag by its name
-            tag_to_delete = session.exec(
-                select(Tag).where(Tag.name == self.current_tag)
-            ).first()
-
-            # no tag selected
-            if tag_to_delete is None:
-                return rx.window_alert("Tag not found. Please select a tag.")
-
-            # check if the tag has a valid id
-            if tag_to_delete.id is None:
-                return rx.window_alert("Tag has no valid id.")
-
-            # reset current tag, so that placeholder text reappears
-            self.current_tag = ""
-
-            # If tag is found and has a valid id, delete it
-            session.delete(tag_to_delete)
-            session.commit()
-            # reload tags
-            self.load_tags()
-
-            return rx.toast.success(
-                BT.tag_deleted(self.language),
-                duration=2500,
-                position="bottom-center",
-                invert=True,
-            )
-
-    @rx.event
     def delete_tag(self, tag_id):
         """Delete a tag from the db."""
         with rx.session() as session:
@@ -852,7 +807,6 @@ class ManageExercisesState(FilterMixin, SessionState):
         self.lesson_file_name = ""
         self.selected_tags = []
         self.current_prompt_name = ""
-        self.current_tag = ""
         self.current_hidden_state = False
         self.current_deadline = ""
         self.current_days_to_complete = ""

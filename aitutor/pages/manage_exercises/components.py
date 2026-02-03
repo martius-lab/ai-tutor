@@ -545,9 +545,9 @@ def select_prompt(mode: DialogMode) -> rx.Component:
     )  # type: ignore
 
 
-def tag_management() -> rx.Component:
+def tag_selection() -> rx.Component:
     """Tag selection component"""
-    return (
+    return rx.vstack(
         rx.text(
             LanguageState.tags + ":",
             size="3",
@@ -558,68 +558,45 @@ def tag_management() -> rx.Component:
             padding_bottom="0.5em",
         ),
         rx.hstack(
-            rx.center(
-                rx.select(
-                    items=ManageExercisesState.tag_names,
-                    placeholder=LanguageState.select_tag,
-                    value=ManageExercisesState.current_tag,
-                    on_change=ManageExercisesState.set_current_tag,
-                    multiple=True,
-                ),
-                rx.icon_button(
-                    rx.icon("circle-x"),
-                    on_click=ManageExercisesState.delete_tag_,
-                    size="2",
-                    variant="ghost",
-                    color_scheme="red",
-                    spacing="3",
-                    type="button",
-                    _hover={"cursor": "pointer"},
-                ),
-                spacing="3",
-                align="center",
-            ),
-            spacing="2",
-        ),
-        rx.vstack(
-            # a button to link the tags to the current exercise
-            rx.button(
-                LanguageState.link_tag_to_exercise,
-                type="button",
-                on_click=ManageExercisesState.add_selected_tag,
-                margin_top="0.5em",
-                _hover={"cursor": "pointer"},
-            ),
-            # show the linked tags visually
-            rx.hstack(
-                rx.foreach(
-                    ManageExercisesState.selected_tags,
-                    lambda tag: rx.badge(
-                        rx.hstack(
-                            rx.text(tag),
-                            rx.icon(
-                                "circle-x",
-                                size=16,
-                            ),
-                            spacing="1",
-                            align_items="center",
-                        ),
-                        on_click=ManageExercisesState.remove_selected_tag(tag),  # type: ignore
-                        cursor="pointer",
-                        size="3",
-                        style={
-                            "_hover": {
-                                "background_color": "red",
-                                "color": "black",
-                            }
-                        },
-                    ),
-                ),
-                margin_top="0.5em",
-                margin_bottom="0.5em",
+            rx.select(
+                items=ManageExercisesState.tag_names,
+                placeholder=LanguageState.select_tag,
+                value="",
+                on_change=ManageExercisesState.add_to_selected_tags,
             ),
             new_tag_dialog(),
+            align="center",
+            justify="between",
+            width="100%",
         ),
+        rx.hstack(
+            rx.foreach(
+                ManageExercisesState.selected_tags,
+                lambda tag: rx.badge(
+                    rx.hstack(
+                        rx.text(tag),
+                        rx.icon(
+                            "circle-x",
+                            size=16,
+                        ),
+                        spacing="1",
+                        align_items="center",
+                    ),
+                    on_click=ManageExercisesState.remove_selected_tag(tag),  # type: ignore
+                    cursor="pointer",
+                    size="3",
+                    style={
+                        "_hover": {
+                            "background_color": "red",
+                            "color": "black",
+                        }
+                    },
+                ),
+            ),
+            margin_top="0.5em",
+            margin_bottom="0.5em",
+        ),
+        spacing="1",
     )
 
 
@@ -760,7 +737,7 @@ def add_edit_exercise_form(mode: DialogMode) -> Sequence[rx.Component]:
             ),
         ),
         # tags
-        tag_management(),
+        tag_selection(),
         rx.hstack(
             rx.button(
                 LanguageState.cancel,

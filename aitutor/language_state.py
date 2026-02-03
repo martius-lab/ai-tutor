@@ -598,11 +598,6 @@ class LanguageState(SessionState):
         return self.translate(de="Tag auswählen", en="Select tag")
 
     @rx.var
-    def link_tag_to_exercise(self) -> str:
-        """Link tag to exercise string"""
-        return self.translate(de="Tag mit Übung verknüpfen", en="Link tag to exercise")
-
-    @rx.var
     def title(self) -> str:
         """Title string"""
         return self.translate(de="Titel:", en="Title:")
