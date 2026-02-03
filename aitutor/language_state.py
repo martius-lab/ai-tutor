@@ -445,6 +445,19 @@ class LanguageState(SessionState):
 
     # Manage Exercises Page Strings ----------------------------------------------------
     @rx.var
+    def delete_tag(self) -> str:
+        return self.translate(de="Tag löschen", en="Delete tag")
+
+    @rx.var
+    def delete_tag_info(self) -> str:
+        return self.translate(
+            de="Möchten Sie dieses Tag wirklich löschen? "
+            "Das Tag wird von allen Übungen entfernt.",
+            en="Are you sure you want to delete this tag? "
+            "The tag will be removed from all exercises.",
+        )
+
+    @rx.var
     def import_exercises(self) -> str:
         return self.translate(de="Übungen importieren", en="Import Exercises")
 

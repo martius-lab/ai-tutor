@@ -848,13 +848,19 @@ def tags_button() -> rx.Component:
                             _hover={"cursor": "pointer"},
                             # TODO: implement tag editing
                         ),
-                        rx.icon_button(
-                            rx.icon("trash"),
-                            size="2",
-                            variant="ghost",
-                            color_scheme="red",
-                            _hover={"cursor": "pointer"},
-                            # TODO: implement tag deletion
+                        destructive_confirm(
+                            title=LanguageState.delete_tag,
+                            description=LanguageState.delete_tag_info,
+                            confirm_text=LanguageState.delete,
+                            cancel_text=LanguageState.cancel,
+                            on_confirm=ManageExercisesState.delete_tag(tag.id),
+                            trigger=rx.icon_button(
+                                rx.icon("trash"),
+                                size="2",
+                                variant="ghost",
+                                color_scheme="red",
+                                _hover={"cursor": "pointer"},
+                            ),
                         ),
                         spacing="4",
                         align="center",

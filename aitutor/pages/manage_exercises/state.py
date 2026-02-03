@@ -757,6 +757,27 @@ class ManageExercisesState(FilterMixin, SessionState):
             )
 
     @rx.event
+    def delete_tag(self, tag_id):
+        """Delete a tag from the db."""
+        with rx.session() as session:
+            tag_to_delete = session.exec(select(Tag).where(Tag.id == tag_id)).first()
+
+            if tag_to_delete is None:
+                return rx.window_alert("Tag not found.")
+
+            session.delete(tag_to_delete)
+            session.commit()
+            self.load_tags()
+            self.load_exercises()
+
+            return rx.toast.success(
+                BT.tag_deleted(self.language),
+                duration=2500,
+                position="bottom-center",
+                invert=True,
+            )
+
+    @rx.event
     def reset_exercise_form(self):
         """Reset the exercise form."""
         self.lesson_context = ""
