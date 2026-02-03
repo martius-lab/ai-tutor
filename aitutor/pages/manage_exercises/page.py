@@ -54,8 +54,22 @@ def manage_exercises_page() -> rx.Component:
                     export_selected_exercises_button(),
                 ),
             ),
-            edit_tags_button(),
-            search_bar(ManageExercisesState),
+            rx.mobile_and_tablet(
+                edit_tags_button(),
+            ),
+            rx.mobile_and_tablet(
+                search_bar(ManageExercisesState),
+            ),
+            rx.desktop_only(
+                rx.hstack(
+                    search_bar(ManageExercisesState),
+                    edit_tags_button(),
+                    align="center",
+                    justify="between",
+                    width="100%",
+                ),
+                width="100%",
+            ),
             search_badges(ManageExercisesState),
             exercise_table(),
             spacing="3",
