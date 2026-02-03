@@ -881,40 +881,46 @@ def edit_tags_button() -> rx.Component:
                 rx.heading(
                     LanguageState.edit_tags,
                 ),
-                rx.foreach(
-                    ManageExercisesState.tag_list,
-                    lambda tag: rx.hstack(
-                        rx.badge(
-                            tag.name,
-                            variant="soft",
-                        ),
-                        rx.icon_button(
-                            rx.icon("pencil"),
-                            size="2",
-                            variant="ghost",
-                            _hover={"cursor": "pointer"},
-                            on_click=ManageExercisesState.open_edit_tag_dialog(
-                                tag.id, tag.name
+                rx.vstack(
+                    rx.foreach(
+                        ManageExercisesState.tag_list,
+                        lambda tag: rx.hstack(
+                            rx.badge(
+                                tag.name,
+                                variant="soft",
                             ),
-                        ),
-                        destructive_confirm(
-                            title=LanguageState.delete_tag,
-                            description=LanguageState.delete_tag_info,
-                            confirm_text=LanguageState.delete,
-                            cancel_text=LanguageState.cancel,
-                            on_confirm=ManageExercisesState.delete_tag(tag.id),
-                            trigger=rx.icon_button(
-                                rx.icon("trash"),
+                            rx.icon_button(
+                                rx.icon("pencil"),
                                 size="2",
                                 variant="ghost",
-                                color_scheme="red",
                                 _hover={"cursor": "pointer"},
+                                on_click=ManageExercisesState.open_edit_tag_dialog(
+                                    tag.id, tag.name
+                                ),
                             ),
+                            destructive_confirm(
+                                title=LanguageState.delete_tag,
+                                description=LanguageState.delete_tag_info,
+                                confirm_text=LanguageState.delete,
+                                cancel_text=LanguageState.cancel,
+                                on_confirm=ManageExercisesState.delete_tag(tag.id),
+                                trigger=rx.icon_button(
+                                    rx.icon("trash"),
+                                    size="2",
+                                    variant="ghost",
+                                    color_scheme="red",
+                                    _hover={"cursor": "pointer"},
+                                ),
+                            ),
+                            spacing="4",
+                            align="center",
+                            width="100%",
                         ),
-                        spacing="4",
-                        align="center",
-                        justify="between",
                     ),
+                    overflow_y="auto",
+                    spacing="2",
+                    width="100%",
+                    padding_right="0.5em",
                 ),
                 rx.hstack(
                     new_tag_dialog(),
@@ -930,6 +936,7 @@ def edit_tags_button() -> rx.Component:
                     width="100%",
                 ),
                 rename_tag_dialog(),
+                max_height="60vh",
             ),
         ),
     )
