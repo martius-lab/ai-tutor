@@ -43,10 +43,6 @@ class LanguageState(SessionState):
         return self.translate(de="Abbrechen", en="Cancel")
 
     @rx.var
-    def close(self) -> str:
-        return self.translate(de="Schließen", en="Close")
-
-    @rx.var
     def log_in(self) -> str:
         """Log in string"""
         return self.translate(de="Anmelden", en="Log in")

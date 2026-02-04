@@ -878,15 +878,27 @@ def edit_tags_button() -> rx.Component:
         ),
         rx.dialog.content(
             rx.vstack(
-                rx.heading(
-                    LanguageState.edit_tags,
+                rx.hstack(
+                    rx.heading(
+                        LanguageState.edit_tags,
+                    ),
+                    rx.dialog.close(
+                        rx.icon_button(
+                            rx.icon("x", size=20),
+                            size="2",
+                            variant="ghost",
+                            _hover={"cursor": "pointer"},
+                        ),
+                    ),
+                    justify="between",
+                    width="100%",
                 ),
                 rx.vstack(
                     rx.foreach(
                         ManageExercisesState.tag_list,
                         lambda tag: rx.hstack(
                             rx.badge(
-                                tag.name,
+                                rx.text(tag.name, size="2"),
                                 variant="soft",
                             ),
                             rx.icon_button(
@@ -921,20 +933,9 @@ def edit_tags_button() -> rx.Component:
                     spacing="2",
                     width="100%",
                     padding_right="0.5em",
+                    padding_bottom="0.5em",
                 ),
-                rx.hstack(
-                    new_tag_dialog(),
-                    rx.dialog.close(
-                        rx.button(
-                            rx.text(LanguageState.close),
-                            variant="outline",
-                            _hover={"cursor": "pointer"},
-                        ),
-                    ),
-                    align="center",
-                    justify="between",
-                    width="100%",
-                ),
+                new_tag_dialog(),
                 rename_tag_dialog(),
                 max_height="60vh",
             ),
