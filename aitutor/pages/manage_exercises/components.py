@@ -866,12 +866,7 @@ def edit_tags_button() -> rx.Component:
         rx.dialog.trigger(
             rx.button(
                 rx.icon("tags"),
-                rx.desktop_only(
-                    rx.text(LanguageState.edit_tags, size="3"),
-                ),
-                rx.mobile_and_tablet(
-                    rx.text(LanguageState.edit_tags, size="3"),
-                ),
+                rx.text(LanguageState.edit_tags, size="3"),
                 _hover={"cursor": "pointer"},
                 type="button",
             )

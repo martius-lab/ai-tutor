@@ -459,7 +459,7 @@ class LanguageState(SessionState):
 
     @rx.var
     def edit_tags(self) -> str:
-        return self.translate(de="Tags bearbeiten", en="Edit tags")
+        return self.translate(de="Tags bearbeiten", en="Edit Tags")
 
     @rx.var
     def import_exercises(self) -> str:
@@ -531,7 +531,7 @@ class LanguageState(SessionState):
     @rx.var
     def add_exercise(self) -> str:
         """Add exercise string"""
-        return self.translate(de="Übung hinzufügen", en="Add exercise")
+        return self.translate(de="Übung Hinzufügen", en="Add Exercise")
 
     @rx.var
     def add_exercise_description(self) -> str:
