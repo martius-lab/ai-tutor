@@ -34,8 +34,6 @@ class ManageExercisesState(FilterMixin, SessionState):
     # https://github.com/reflex-dev/reflex/issues/4221#issuecomment-2430197475
     add_exercise_dialog_is_open: bool = False
     edit_exercise_dialog_is_open: bool = False
-    add_tag_dialog_is_open: bool = False
-    edit_tag_dialog_is_open: bool = False
 
     exercises: list[Exercise] = []
     tag_list: list[Tag] = []
@@ -67,10 +65,6 @@ class ManageExercisesState(FilterMixin, SessionState):
     #: flag to control if the exercise should have a deadline
     use_deadline: bool = True
 
-    new_tag_name: str = ""
-    new_renamed_tag_name: str = ""
-    editing_tag_id: int | None = None
-
     # These dictionarys are needed because reflex does not accept propertys like
     # exercise.is_started or exercise.editing_period in the components.
     # So this is a workaround.
@@ -80,18 +74,6 @@ class ManageExercisesState(FilterMixin, SessionState):
     exercise_is_started: dict[int, bool] = {}
     #: dictionary to store which exercises are selected. Key is exercise id.
     exercise_is_selected: dict[int, bool] = {}
-
-    @rx.event
-    def set_add_tag_dialog_is_open(self, is_open: bool):
-        """Set the add tag dialog is open flag."""
-        self.add_tag_dialog_is_open = is_open
-
-    @rx.event
-    def set_edit_tag_dialog_is_open(self, is_open: bool):
-        """Set the edit tag dialog is open flag."""
-        self.edit_tag_dialog_is_open = is_open
-        if not is_open:
-            self.new_renamed_tag_name = ""
 
     @rx.event
     def add_to_selected_tags(self, tag: str):
@@ -141,16 +123,6 @@ class ManageExercisesState(FilterMixin, SessionState):
         self.exercise_is_selected[exercise_id] = is_selected  # type: ignore
 
     @rx.event
-    def set_new_tag_name(self, tag_name: str):
-        """Set the new tag name."""
-        self.new_tag_name = tag_name
-
-    @rx.event
-    def set_new_renamed_tag_name(self, tag_name: str):
-        """Set the renamed tag name."""
-        self.new_renamed_tag_name = tag_name
-
-    @rx.event
     @state_require_role_at_least(UserRole.ADMIN)
     def on_load(self):
         """Initialize the state"""
@@ -194,9 +166,6 @@ class ManageExercisesState(FilterMixin, SessionState):
         self.editing_periods = {}
         self.exercise_is_started = {}
         self.exercise_is_selected = {}
-        self.new_tag_name = ""
-        self.new_renamed_tag_name = ""
-        self.editing_tag_id = None
 
     @rx.var
     def selectable_tags(self) -> list[str]:
@@ -227,13 +196,6 @@ class ManageExercisesState(FilterMixin, SessionState):
             if prompt.name == self.current_prompt_name:
                 return prompt.prompt_template
         return "prompt selection error!"
-
-    @rx.event
-    def open_edit_tag_dialog(self, tag_id, current_name):
-        """Sets the tag to edit and opens the dialog"""
-        self.editing_tag_id = tag_id
-        self.new_renamed_tag_name = current_name
-        self.set_edit_tag_dialog_is_open(True)
 
     @rx.event
     def delete_selected_exercises(self):
@@ -707,103 +669,6 @@ class ManageExercisesState(FilterMixin, SessionState):
         )
 
     @rx.event
-    def add_new_tag(self):
-        """Add tags to db."""
-        if not self.new_tag_name:
-            return rx.window_alert("Please enter a tag name.")
-
-        with rx.session() as session:
-            existing_tag = session.exec(
-                select(Tag).where(Tag.name == self.new_tag_name)
-            ).one_or_none()
-
-            if existing_tag is not None:
-                return rx.window_alert("Tag exists already.")
-
-            new_tag = Tag(name=self.new_tag_name)
-            session.add(new_tag)
-            session.commit()
-            self.load_tags()
-
-            if self.add_exercise_dialog_is_open or self.edit_exercise_dialog_is_open:
-                self.selected_tags.append(self.new_tag_name)
-
-            self.add_tag_dialog_is_open = False
-
-            # Reset input field after success
-            self.new_tag_name = ""
-
-            return rx.toast.success(
-                BT.tag_was_added(self.language),
-                duration=2500,
-                position="bottom-center",
-                invert=True,
-            )
-
-    @rx.event
-    def delete_tag(self, tag_id):
-        """Delete a tag from the db."""
-        with rx.session() as session:
-            tag_to_delete = session.get(Tag, tag_id)
-
-            if tag_to_delete is None:
-                return rx.window_alert("Tag not found.")
-
-            session.delete(tag_to_delete)
-            session.commit()
-            self.load_tags()
-            self.load_exercises()
-
-            return rx.toast.success(
-                BT.tag_deleted(self.language),
-                duration=2500,
-                position="bottom-center",
-                invert=True,
-            )
-
-    @rx.event
-    def edit_tag_name(self):
-        """Edit a tag's name in the db."""
-        with rx.session() as session:
-            tag_to_edit = session.get(Tag, self.editing_tag_id)
-
-            if tag_to_edit is None:
-                return rx.window_alert("Tag not found.")
-
-            # check if new name already exists
-            existing_tag = session.exec(
-                select(Tag).where(
-                    Tag.name == self.new_renamed_tag_name, Tag.id != self.editing_tag_id
-                )
-            ).one_or_none()
-
-            if existing_tag is not None:
-                return rx.toast.error(
-                    BT.tagname_already_exists(self.language),
-                    duration=2500,
-                    position="bottom-center",
-                    invert=True,
-                )
-
-            tag_to_edit.name = self.new_renamed_tag_name
-            session.add(tag_to_edit)
-            session.commit()
-
-            # load tags and exercises again to update the tag names
-            self.load_tags()
-            self.load_exercises()
-
-            # close dialog
-            self.set_edit_tag_dialog_is_open(False)
-
-            return rx.toast.success(
-                BT.tag_renamed_successfully(self.language),
-                duration=2500,
-                position="bottom-center",
-                invert=True,
-            )
-
-    @rx.event
     def reset_exercise_form(self):
         """Reset the exercise form."""
         self.lesson_context = ""
@@ -895,3 +760,145 @@ class ManageExercisesState(FilterMixin, SessionState):
                     None,
                 )
         return None, deadline, days_to_complete
+
+
+class ManageTagsState(ManageExercisesState):
+    """State for the tags management."""
+
+    add_tag_dialog_is_open: bool = False
+    edit_tag_dialog_is_open: bool = False
+    new_tag_name: str = ""
+    new_renamed_tag_name: str = ""
+    editing_tag_id: int | None = None
+
+    @rx.event
+    def set_add_tag_dialog_is_open(self, is_open: bool):
+        """Set the add tag dialog is open flag."""
+        self.add_tag_dialog_is_open = is_open
+
+    @rx.event
+    def set_edit_tag_dialog_is_open(self, is_open: bool):
+        """Set the edit tag dialog is open flag."""
+        self.edit_tag_dialog_is_open = is_open
+        if not is_open:
+            self.new_renamed_tag_name = ""
+
+    @rx.event
+    def set_new_tag_name(self, tag_name: str):
+        """Set the new tag name."""
+        self.new_tag_name = tag_name
+
+    @rx.event
+    def set_new_renamed_tag_name(self, tag_name: str):
+        """Set the renamed tag name."""
+        self.new_renamed_tag_name = tag_name
+
+    def on_logout(self):
+        """Clears the state when the user logs out."""
+        self.new_tag_name = ""
+        self.new_renamed_tag_name = ""
+        self.editing_tag_id = None
+
+    @rx.event
+    def open_edit_tag_dialog(self, tag_id, current_name):
+        """Sets the tag to edit and opens the dialog"""
+        self.editing_tag_id = tag_id
+        self.new_renamed_tag_name = current_name
+        self.set_edit_tag_dialog_is_open(True)
+
+    @rx.event
+    def add_new_tag(self):
+        """Add tags to db."""
+        if not self.new_tag_name:
+            return rx.window_alert("Please enter a tag name.")
+
+        with rx.session() as session:
+            existing_tag = session.exec(
+                select(Tag).where(Tag.name == self.new_tag_name)
+            ).one_or_none()
+
+            if existing_tag is not None:
+                return rx.window_alert("Tag exists already.")
+
+            new_tag = Tag(name=self.new_tag_name)
+            session.add(new_tag)
+            session.commit()
+            self.load_tags()
+
+            if self.add_exercise_dialog_is_open or self.edit_exercise_dialog_is_open:
+                self.selected_tags.append(self.new_tag_name)
+
+            self.add_tag_dialog_is_open = False
+
+            # Reset input field after success
+            self.new_tag_name = ""
+
+            return rx.toast.success(
+                BT.tag_was_added(self.language),
+                duration=2500,
+                position="bottom-center",
+                invert=True,
+            )
+
+    @rx.event
+    def edit_tag_name(self):
+        """Edit a tag's name in the db."""
+        with rx.session() as session:
+            tag_to_edit = session.get(Tag, self.editing_tag_id)
+
+            if tag_to_edit is None:
+                return rx.window_alert("Tag not found.")
+
+            # check if new name already exists
+            existing_tag = session.exec(
+                select(Tag).where(
+                    Tag.name == self.new_renamed_tag_name, Tag.id != self.editing_tag_id
+                )
+            ).one_or_none()
+
+            if existing_tag is not None:
+                return rx.toast.error(
+                    BT.tagname_already_exists(self.language),
+                    duration=2500,
+                    position="bottom-center",
+                    invert=True,
+                )
+
+            tag_to_edit.name = self.new_renamed_tag_name
+            session.add(tag_to_edit)
+            session.commit()
+
+            # load tags and exercises again to update the tag names
+            self.load_tags()
+            self.load_exercises()
+
+            # close dialog
+            self.set_edit_tag_dialog_is_open(False)
+
+            return rx.toast.success(
+                BT.tag_renamed_successfully(self.language),
+                duration=2500,
+                position="bottom-center",
+                invert=True,
+            )
+
+    @rx.event
+    def delete_tag(self, tag_id):
+        """Delete a tag from the db."""
+        with rx.session() as session:
+            tag_to_delete = session.get(Tag, tag_id)
+
+            if tag_to_delete is None:
+                return rx.window_alert("Tag not found.")
+
+            session.delete(tag_to_delete)
+            session.commit()
+            self.load_tags()
+            self.load_exercises()
+
+            return rx.toast.success(
+                BT.tag_deleted(self.language),
+                duration=2500,
+                position="bottom-center",
+                invert=True,
+            )
