@@ -603,7 +603,9 @@ class ManageExercisesState(FilterMixin, SessionState):
         with rx.session() as session:
             # load tags
             query_tags = select(Tag)
-            self.tag_list = list(session.exec(query_tags).all())
+            self.tag_list = sorted(
+                session.exec(query_tags).all(), key=lambda tag: tag.name.lower()
+            )
             self.tag_names = [tag.name for tag in self.tag_list]
 
     @rx.event
