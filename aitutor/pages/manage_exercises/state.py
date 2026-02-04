@@ -744,7 +744,7 @@ class ManageExercisesState(FilterMixin, SessionState):
     def delete_tag(self, tag_id):
         """Delete a tag from the db."""
         with rx.session() as session:
-            tag_to_delete = session.exec(select(Tag).where(Tag.id == tag_id)).first()
+            tag_to_delete = session.get(Tag, tag_id)
 
             if tag_to_delete is None:
                 return rx.window_alert("Tag not found.")
@@ -765,9 +765,7 @@ class ManageExercisesState(FilterMixin, SessionState):
     def edit_tag_name(self):
         """Edit a tag's name in the db."""
         with rx.session() as session:
-            tag_to_edit = session.exec(
-                select(Tag).where(Tag.id == self.editing_tag_id)
-            ).first()
+            tag_to_edit = session.get(Tag, self.editing_tag_id)
 
             if tag_to_edit is None:
                 return rx.window_alert("Tag not found.")
