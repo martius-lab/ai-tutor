@@ -82,6 +82,7 @@ class SessionState(reflex_local_auth.LocalAuthState):
             pages.FinishedViewState,
             pages.FinishedViewTutorState,
             pages.ManageExercisesState,
+            pages.ManageTagsState,
             pages.SubmissionsState,
         ]
         for state in states:

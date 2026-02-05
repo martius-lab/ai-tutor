@@ -17,7 +17,7 @@ from aitutor.pages.login_and_registration.page import (
 )
 from aitutor.pages.login_and_registration.state import MyLoginState, MyRegisterState
 from aitutor.pages.manage_exercises.page import manage_exercises_page
-from aitutor.pages.manage_exercises.state import ManageExercisesState
+from aitutor.pages.manage_exercises.state import ManageExercisesState, ManageTagsState
 from aitutor.pages.manage_users.page import manage_users_page
 from aitutor.pages.manage_users.state import ManageUsersState
 from aitutor.pages.navbar import navbar
@@ -61,6 +61,7 @@ __all__ = [
     "FinishedViewState",
     "FinishedViewTutorState",
     "ManageExercisesState",
+    "ManageTagsState",
     "ManageUsersState",
     "SubmissionsState",
     "MyLoginState",

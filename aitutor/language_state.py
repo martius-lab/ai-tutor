@@ -441,6 +441,27 @@ class LanguageState(SessionState):
 
     # Manage Exercises Page Strings ----------------------------------------------------
     @rx.var
+    def delete_tag(self) -> str:
+        return self.translate(de="Tag löschen", en="Delete tag")
+
+    @rx.var
+    def delete_tag_info(self) -> str:
+        return self.translate(
+            de="Möchten Sie dieses Tag wirklich löschen? "
+            "Das Tag wird von allen Übungen entfernt.",
+            en="Are you sure you want to delete this tag? "
+            "The tag will be removed from all exercises.",
+        )
+
+    @rx.var
+    def rename_tag(self) -> str:
+        return self.translate(de="Tag umbenennen", en="Rename tag")
+
+    @rx.var
+    def edit_tags(self) -> str:
+        return self.translate(de="Tags bearbeiten", en="Edit Tags")
+
+    @rx.var
     def import_exercises(self) -> str:
         return self.translate(de="Übungen importieren", en="Import Exercises")
 
@@ -510,7 +531,7 @@ class LanguageState(SessionState):
     @rx.var
     def add_exercise(self) -> str:
         """Add exercise string"""
-        return self.translate(de="Übung hinzufügen", en="Add exercise")
+        return self.translate(de="Übung Hinzufügen", en="Add Exercise")
 
     @rx.var
     def add_exercise_description(self) -> str:
@@ -568,14 +589,8 @@ class LanguageState(SessionState):
         return self.translate(de="Prompt auswählen", en="Select prompt")
 
     @rx.var
-    def select_tag(self) -> str:
-        """Select tag string"""
-        return self.translate(de="Tag auswählen", en="Select tag")
-
-    @rx.var
-    def link_tag_to_exercise(self) -> str:
-        """Link tag to exercise string"""
-        return self.translate(de="Tag mit Übung verknüpfen", en="Link tag to exercise")
+    def select_tags(self) -> str:
+        return self.translate(de="Tags auswählen", en="Select tags")
 
     @rx.var
     def title(self) -> str:
@@ -1117,6 +1132,22 @@ class BackendTranslations:
 
     # ManageExercisesState -------------------------------------------------------------
     @staticmethod
+    def tagname_already_exists(language: Language) -> str:
+        return translate(
+            language,
+            de="Fehler: Dieser Tag Name existiert bereits.",
+            en="Error: This tag name already exists.",
+        )
+
+    @staticmethod
+    def tag_renamed_successfully(language: Language) -> str:
+        return translate(
+            language,
+            de="Tag erfolgreich umbenannt.",
+            en="Tag renamed successfully.",
+        )
+
+    @staticmethod
     def exercise_added(language: Language) -> str:
         return translate(
             language,
@@ -1128,8 +1159,8 @@ class BackendTranslations:
     def tag_was_added(language: Language) -> str:
         return translate(
             language,
-            de="Tag wurde hinzugefügt und kann jetzt ausgewählt werden.",
-            en="Tag has been added and can now be selected.",
+            de="Tag erfolgreich hinzugefügt.",
+            en="Tag has been added successfully.",
         )
 
     @staticmethod
