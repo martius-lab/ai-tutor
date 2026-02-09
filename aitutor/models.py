@@ -73,7 +73,7 @@ class Exercise(SQLModel, table=True):
     """Exercise model for storing exercises."""
 
     id: Optional[int] = Field(default=None, primary_key=True)
-    title: str = Field(nullable=False, default="")
+    title: str = Field(nullable=False, default="", unique=True)
     description: str = Field(nullable=False, default="")
     lesson_context: str = Field(nullable=False, default="")
     prompt_id: Optional[int] = Field(default=None, foreign_key="prompt.id")
