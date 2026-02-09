@@ -496,10 +496,15 @@ class ManageExercisesState(FilterMixin, SessionState):
     @rx.event
     def add_exercise(self, form_data: dict):
         """Add exercises to db."""
+        existing_titles = {exercise.title for exercise in self.exercises}
         with rx.session() as session:
-            # check if title is empty
             if not form_data["title"]:
                 return rx.window_alert("Please enter a title for the exercise.")
+            if form_data["title"] in existing_titles:
+                return rx.window_alert(
+                    f"The title '{form_data['title']}' is already used by another"
+                    + "exercise. Please choose a different title."
+                )
             if not form_data["description"]:
                 return rx.window_alert("Please enter a description for the exercise.")
             if self.lesson_context == "":
@@ -628,8 +633,18 @@ class ManageExercisesState(FilterMixin, SessionState):
     @rx.event
     def update_exercise(self, form_data: dict):
         """Update exercises in db."""
+        existing_titles = {
+            exercise.title
+            for exercise in self.exercises
+            if exercise.id != self.current_exercise.id
+        }
 
         with rx.session() as session:
+            if form_data["title"] in existing_titles:
+                return rx.window_alert(
+                    f"The title '{form_data['title']}' is already used by another"
+                    + "exercise. Please choose a different title."
+                )
             updated_exercise = session.exec(
                 select(Exercise).where(Exercise.id == self.current_exercise.id)
             ).one()
