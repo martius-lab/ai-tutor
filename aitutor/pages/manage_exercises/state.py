@@ -9,13 +9,13 @@ from typing import override
 import pdfplumber
 import reflex as rx
 from sqlalchemy.orm import selectinload
-from sqlmodel import and_, or_, select
+from sqlmodel import and_, func, or_, select
 
 import aitutor.global_vars as gv
 from aitutor.auth.protection import state_require_role_at_least
 from aitutor.auth.state import SessionState
 from aitutor.language_state import BackendTranslations as BT
-from aitutor.models import Exercise, Prompt, Tag, UserRole
+from aitutor.models import Exercise, ExerciseTagLink, Prompt, Tag, UserRole
 from aitutor.utilities.filtering_components import FilterMixin
 
 
@@ -815,6 +815,27 @@ class ManageTagsState(ManageExercisesState):
         self.new_tag_name = ""
         self.new_renamed_tag_name = ""
         self.editing_tag_id = None
+
+    @rx.var
+    def exercises_per_tag(self) -> dict[int, int]:
+        """
+        Return a dictionary with the number of exercises for each tag.
+        Format: {tag_id: number_of_exercises_with_tag}
+        """
+        with rx.session() as session:
+            stmt = select(ExerciseTagLink.tag_id, func.count()).group_by(
+                ExerciseTagLink.tag_id
+            )  # type: ignore
+
+            result = list(session.exec(stmt).all())
+
+            # append 0 for tags without exercises
+            tag_ids_with_counts = {tag_id for tag_id, _ in result}
+            for tag in self.tag_list:
+                if tag.id not in tag_ids_with_counts:
+                    result.append((tag.id, 0))  # type: ignore
+
+            return {tag_id: count for tag_id, count in result}  # type: ignore
 
     @rx.event
     def open_edit_tag_dialog(self, tag_id, current_name):
