@@ -824,8 +824,8 @@ class ManageTagsState(ManageExercisesState):
         """
         with rx.session() as session:
             stmt = select(ExerciseTagLink.tag_id, func.count()).group_by(
-                ExerciseTagLink.tag_id
-            )  # type: ignore
+                ExerciseTagLink.tag_id  # type: ignore
+            )
 
             result = list(session.exec(stmt).all())
 
