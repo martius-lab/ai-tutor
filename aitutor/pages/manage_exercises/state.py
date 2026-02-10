@@ -816,7 +816,7 @@ class ManageTagsState(ManageExercisesState):
         self.new_renamed_tag_name = ""
         self.editing_tag_id = None
 
-    @rx.var
+    @rx.var(initial_value={})
     def exercises_per_tag(self) -> dict[int, int]:
         """
         Return a dictionary with the number of exercises for each tag.
