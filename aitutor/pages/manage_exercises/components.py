@@ -154,10 +154,32 @@ def edit_tags_button() -> rx.Component:
                     justify="between",
                     width="100%",
                 ),
+                rx.hstack(
+                    rx.icon("book-copy", size=14, color="gray"),
+                    rx.text(
+                        "X  = " + LanguageState.exercise_count_info,
+                        size="2",
+                        color="gray",
+                        weight="medium",
+                    ),
+                    align="center",
+                    spacing="1",
+                ),
                 rx.vstack(
                     rx.foreach(
                         ManageExercisesState.tag_list,
                         lambda tag: rx.hstack(
+                            rx.hstack(
+                                rx.icon("book-copy", size=14, color="gray"),
+                                rx.text(
+                                    ManageTagsState.exercises_per_tag[tag.id],
+                                    size="2",
+                                    color="gray",
+                                    weight="medium",
+                                ),
+                                align="center",
+                                spacing="1",
+                            ),
                             rx.badge(
                                 rx.text(tag.name, size="2"),
                                 variant="soft",

@@ -441,6 +441,13 @@ class LanguageState(SessionState):
 
     # Manage Exercises Page Strings ----------------------------------------------------
     @rx.var
+    def exercise_count_info(self) -> str:
+        return self.translate(
+            de="Anzahl der Übungen mit diesem Tag",
+            en="Number of exercises with this tag",
+        )
+
+    @rx.var
     def delete_tag(self) -> str:
         return self.translate(de="Tag löschen", en="Delete tag")
 
