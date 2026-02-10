@@ -22,6 +22,9 @@ def upgrade() -> None:
     """Upgrade schema."""
     bind = op.get_bind()
 
+    if bind.dialect.name == 'sqlite':
+        bind.execute(sa.text("PRAGMA foreign_keys=OFF"))
+
     # minimal table structure for data manipulation
     exercise_table = sa.Table(
         "exercise",
