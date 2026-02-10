@@ -822,20 +822,18 @@ class ManageTagsState(ManageExercisesState):
         Return a dictionary with the number of exercises for each tag.
         Format: {tag_id: number_of_exercises_with_tag}
         """
+        update_variable = self.exercises  # update when exercises change # noqa: F841
         with rx.session() as session:
             stmt = select(ExerciseTagLink.tag_id, func.count()).group_by(
                 ExerciseTagLink.tag_id  # type: ignore
             )
 
-            result = list(session.exec(stmt).all())
-
             # append 0 for tags without exercises
-            tag_ids_with_counts = {tag_id for tag_id, _ in result}
-            for tag in self.tag_list:
-                if tag.id not in tag_ids_with_counts:
-                    result.append((tag.id, 0))  # type: ignore
+            counts = {tag.id: 0 for tag in self.tag_list}
+            for tag_id, c in list(session.exec(stmt).all()):
+                counts[tag_id] = c
 
-            return {tag_id: count for tag_id, count in result}  # type: ignore
+            return counts  # type: ignore
 
     @rx.event
     def open_edit_tag_dialog(self, tag_id, current_name):
