@@ -822,7 +822,7 @@ class ManageTagsState(ManageExercisesState):
         Return a dictionary with the number of exercises for each tag.
         Format: {tag_id: number_of_exercises_with_tag}
         """
-        update_variable = self.exercises  # update when exercises change # noqa: F841
+        self.exercises  # update when exercises change # noqa: B018
         with rx.session() as session:
             stmt = select(ExerciseTagLink.tag_id, func.count()).group_by(
                 ExerciseTagLink.tag_id  # type: ignore
