@@ -8,6 +8,7 @@ from aitutor.models import UserRole
 from aitutor.pages.exercises.components import render_exercises
 from aitutor.pages.exercises.state import ExercisesState
 from aitutor.pages.navbar import with_navbar
+from aitutor.utilities.filtering_components import search_badges, search_bar
 
 
 @with_navbar(routes.EXERCISES)
@@ -23,6 +24,11 @@ def exercises_page() -> rx.Component:
                     interval=1000,
                     on_change=ExercisesState.update_time_left_strings,
                 ),
+            ),
+            search_bar(ExercisesState),
+            rx.cond(
+                ExercisesState.search_values.length() > 0,  # type: ignore
+                search_badges(ExercisesState),
             ),
             render_exercises(),
             spacing="5",
