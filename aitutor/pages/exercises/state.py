@@ -23,7 +23,6 @@ class ExercisesState(SessionState):
     open_deadline_exercises: list[ExerciseWithResult] = []
     no_deadline_exercises: list[ExerciseWithResult] = []
     closed_deadline_exercises: list[ExerciseWithResult] = []
-    deadline_strings: dict[int, str] = {}  # (exercise_id, deadline_string)
     time_left_strings: dict[int, str] = {}  # (exercise_id, time_left_string)
 
     @rx.event
@@ -112,7 +111,6 @@ class ExercisesState(SessionState):
             )
 
             self.update_time_left_strings()
-            self.generate_deadline_strings()
 
     def on_logout(self):
         """Clears the state when the user logs out."""
@@ -120,7 +118,6 @@ class ExercisesState(SessionState):
         self.open_deadline_exercises = []
         self.no_deadline_exercises = []
         self.closed_deadline_exercises = []
-        self.deadline_strings = {}
         self.time_left_strings = {}
 
     @rx.var
@@ -138,6 +135,20 @@ class ExercisesState(SessionState):
             )
             for exercise_with_res in self.exercises_with_result
             if exercise_with_res[0].id is not None
+        }
+
+    @rx.var
+    def deadline_strings(self) -> dict[int, str]:
+        """
+        Dictionary to store deadline strings for exercises.
+        Key: Exercise ID, Value: Deadline as string.
+        """
+        return {
+            exercise.id: exercise.deadline.strftime("%d.%m.%Y, %H:%M")
+            if exercise.deadline is not None
+            else ""
+            for exercise, _ in self.exercises_with_result
+            if exercise.id is not None
         }
 
     @rx.event
