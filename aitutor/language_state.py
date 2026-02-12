@@ -266,6 +266,20 @@ class LanguageState(SessionState):
             en="No exercises available",
         )
 
+    @rx.var
+    def show_submitted_exercises(self) -> str:
+        return self.translate(
+            de="Abgegebene Übungen anzeigen",
+            en="Show submitted exercises",
+        )
+
+    @rx.var
+    def show_closed_exercises(self) -> str:
+        return self.translate(
+            de="Abgelaufene Übungen anzeigen",
+            en="Show closed exercises",
+        )
+
     # Chat Page Strings ----------------------------------------------------------------
     @rx.var
     def view_your_submission(self) -> str:

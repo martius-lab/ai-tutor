@@ -26,6 +26,8 @@ class ExercisesState(FilterMixin, SessionState):
     no_deadline_exercises: list[ExerciseWithResult] = []
     closed_deadline_exercises: list[ExerciseWithResult] = []
     time_left_strings: dict[int, str] = {}  # (exercise_id, time_left_string)
+    show_submitted_exercises: bool = True
+    show_closed_exercises: bool = True
 
     # valid search keys. overrides the var from FilterMixin
     search_keys: list[str] = [
@@ -33,6 +35,18 @@ class ExercisesState(FilterMixin, SessionState):
         gv.SEARCH_EXERCISE_DESCRIPTION_KEY,
         gv.SEARCH_TAG_KEY,
     ]
+
+    @rx.event
+    def toggle_show_submitted_exercises(self):
+        """Toggle the visibility of submitted exercises."""
+        self.show_submitted_exercises = not self.show_submitted_exercises
+        self.load_exercises()
+
+    @rx.event
+    def toggle_show_closed_exercises(self):
+        """Toggle the visibility of closed exercises."""
+        self.show_closed_exercises = not self.show_closed_exercises
+        self.load_exercises()
 
     @rx.event
     @state_require_role_at_least(UserRole.STUDENT)
@@ -185,6 +199,19 @@ class ExercisesState(FilterMixin, SessionState):
             self.closed_deadline_exercises = []
             for ex_wth_res in self.exercises_with_result:
                 exercise = ex_wth_res[0]
+                result = ex_wth_res[1]
+
+                # filter submitted exercises
+                is_submitted = (
+                    result is not None and result.submit_time_stamp is not None
+                )
+                if not self.show_submitted_exercises and is_submitted:
+                    continue
+
+                # filter closed exercises
+                if not self.show_closed_exercises and exercise.deadline_exceeded:
+                    continue
+
                 if exercise.deadline_exceeded:
                     self.closed_deadline_exercises.append(ex_wth_res)
                 elif exercise.deadline is None:
