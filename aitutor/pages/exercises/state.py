@@ -165,13 +165,3 @@ class ExercisesState(SessionState):
                     hours, remainder = divmod(time_left.seconds, 3600)
                     minutes, _ = divmod(remainder, 60)
                     self.time_left_strings[exercise.id] = f"{days}d {hours}h {minutes}m"  # type: ignore
-
-    def generate_deadline_strings(self):
-        """Get the deadline string for every exercise."""
-        for exercise, _ in self.exercises_with_result:
-            if exercise.deadline:
-                self.deadline_strings[exercise.id] = exercise.deadline.strftime(  # type: ignore
-                    "%d.%m.%Y, %H:%M"
-                )
-            else:
-                self.deadline_strings[exercise.id] = ""  # type: ignore
