@@ -150,6 +150,7 @@ class ExerciseResult(SQLModel, table=True):
         ),
         default=None,
     )
+    tokens_used: int = Field(default=0)
 
     # database relationships
     exercise_id: int = Field(foreign_key="exercise.id", ondelete="CASCADE")
