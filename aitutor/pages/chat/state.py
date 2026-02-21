@@ -160,6 +160,26 @@ class ChatState(SessionState):
     _userinfo_id: int = -1
     report_text: str = ""
     MAX_REPORT_LENGTH: int = 2000
+    current_tokens: int = 0
+    TOKEN_LIMIT: int = 3500
+    TOKEN_WARNING_THRESHOLD: float = 0.8  # Show warning at x% of limit
+
+    @rx.var
+    def token_limit_reached(self) -> bool:
+        """Check if token limit has been reached."""
+        return self.current_tokens >= self.TOKEN_LIMIT
+    
+    @rx.var
+    def token_warning_threshold_reached(self) -> bool:
+        """Check if token warning threshold has been reached."""
+        return self.current_tokens >= (self.TOKEN_LIMIT * self.TOKEN_WARNING_THRESHOLD)
+    
+    @rx.var
+    def token_usage_percentage(self) -> int:
+        """Get current token usage as percentage."""
+        if self.TOKEN_LIMIT == 0:
+            return 0
+        return int((self.current_tokens / self.TOKEN_LIMIT) * 100)
 
     @rx.event
     def set_report_text(self, value: str):
@@ -238,9 +258,11 @@ class ChatState(SessionState):
                     if exercise_result.submit_time_stamp
                     else ""
                 )
+                self.current_tokens = exercise_result.tokens_used
             else:
                 self.check_passed = False
                 self.conversation_is_submitted = False
+                self.current_tokens = 0
         if error_when_loading_prompt:
             yield rx.toast.error(
                 description=BT.prompt_loading_error(self.language),
@@ -559,6 +581,9 @@ class ChatState(SessionState):
                     # Accumulate tokens - add new tokens to existing count
                     exercise_result.tokens_used += tokens_to_add
                     session.commit()
+                    
+                # Update current_tokens from database
+                self.current_tokens = exercise_result.tokens_used
 
     def get_messages_dict_gpt(self):
         """

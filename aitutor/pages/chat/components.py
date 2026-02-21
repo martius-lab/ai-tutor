@@ -111,28 +111,38 @@ def chat_form() -> rx.Component:
             rows="4",
         )
 
-    return rx.form(
-        rx.vstack(
-            rx.desktop_only(
-                text_area_with_key_submit(True),
-                width="100%",
-            ),
-            rx.mobile_and_tablet(
-                text_area_with_key_submit(False),
-                width="100%",
-            ),
-            rx.hstack(
-                rx.hstack(
-                    reset_conversation_button(),
-                    check_conversation_button(),
-                ),
-                send_message_button(),
-                width="100%",
-                justify="between",
-            ),
+    return rx.cond(
+        ChatState.token_limit_reached,
+        # Show info box when limit reached
+        rx.callout(
+            "Your token limit has been reached for this exercise. You cannot send more messages or run checks.",
+            icon="triangle-alert",
+            color_scheme="red",
+            width="100%",
         ),
-        on_submit=ChatState.send_message,
-        reset_on_submit=True,
+        rx.form(
+            rx.vstack(
+                rx.desktop_only(
+                    text_area_with_key_submit(True),
+                    width="100%",
+                ),
+                rx.mobile_and_tablet(
+                    text_area_with_key_submit(False),
+                    width="100%",
+                ),
+                rx.hstack(
+                    rx.hstack(
+                        reset_conversation_button(),
+                        check_conversation_button(),
+                    ),
+                    send_message_button(),
+                    width="100%",
+                    justify="between",
+                ),
+            ),
+            on_submit=ChatState.send_message,
+            reset_on_submit=True,
+        ),
     )
 
 

@@ -65,6 +65,16 @@ def chat_page() -> rx.Component:
                         color_scheme="orange",
                     ),
                 ),
+                # Show token warning when threshold reached (but not at limit)
+                rx.cond(
+                    ChatState.token_warning_threshold_reached & ~ChatState.token_limit_reached,
+                    rx.callout(
+                        f"Token Usage Warning: You have used {ChatState.token_usage_percentage}% ({ChatState.current_tokens}/{ChatState.TOKEN_LIMIT}) of your token limit for this exercise.",
+                        icon="triangle-alert",
+                        width="100%",
+                        color_scheme="orange",
+                    ),
+                ),
                 show_messages(),
                 rx.cond(
                     ChatState.waiting_for_response,
