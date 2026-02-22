@@ -115,7 +115,7 @@ def chat_form() -> rx.Component:
         ChatState.token_limit_reached,
         # Show info box when limit reached
         rx.callout(
-            "Your token limit has been reached for this exercise. You cannot send more messages or run checks.",
+            LanguageState.token_limit_message,
             icon="triangle-alert",
             color_scheme="red",
             width="100%",

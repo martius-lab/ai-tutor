@@ -385,6 +385,20 @@ class LanguageState(SessionState):
             de="Ihre Antwort",
             en="Your answer",
         )
+    
+    @rx.var
+    def token_limit_message(self) -> str:
+        return self.translate(
+            de="Die maximale Anzahl an Tokens für diese Übung wurde erreicht. Sie können keine weiteren Nachrichten senden oder Überprüfungen durchführen.",
+            en="Your token limit has been reached for this exercise. You cannot send more messages or run checks.",
+        )
+    
+    @rx.var
+    def token_warning_message(self) -> str:
+        return self.translate(
+            de="Token-Nutzungswarnung: Für diese Übung wurde folgender Prozentsatz Ihrer Token-Zuteilung verwendet: ",
+            en="Token usage warning: You have used the following percentage of your token allocation for this exercise: ",
+        )
 
     # Finished View Page Strings -------------------------------------------------------
     @rx.var

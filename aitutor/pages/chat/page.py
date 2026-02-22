@@ -71,7 +71,7 @@ def chat_page() -> rx.Component:
                     rx.callout(
                         rx.box(
                             rx.tablet_and_desktop(
-                                f"Token Usage Warning: You have used {ChatState.token_usage_percentage}% ({ChatState.current_tokens}/{ChatState.TOKEN_LIMIT}) of your token limit for this exercise.",
+                                LanguageState.token_warning_message + f" {ChatState.token_usage_percentage}%.",
                             ),
                             rx.mobile_only(
                                 f"Token Warning: {ChatState.token_usage_percentage}% used",
