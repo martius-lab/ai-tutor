@@ -69,10 +69,18 @@ def chat_page() -> rx.Component:
                 rx.cond(
                     ChatState.token_warning_threshold_reached & ~ChatState.token_limit_reached,
                     rx.callout(
-                        f"Token Usage Warning: You have used {ChatState.token_usage_percentage}% ({ChatState.current_tokens}/{ChatState.TOKEN_LIMIT}) of your token limit for this exercise.",
+                        rx.box(
+                            rx.tablet_and_desktop(
+                                f"Token Usage Warning: You have used {ChatState.token_usage_percentage}% ({ChatState.current_tokens}/{ChatState.TOKEN_LIMIT}) of your token limit for this exercise.",
+                            ),
+                            rx.mobile_only(
+                                f"Token Warning: {ChatState.token_usage_percentage}% used",
+                            ),
+                        ),
                         icon="triangle-alert",
                         width="100%",
                         color_scheme="orange",
+                        size="1",  
                     ),
                 ),
                 show_messages(),
