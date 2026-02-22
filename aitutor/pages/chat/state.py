@@ -163,7 +163,7 @@ class ChatState(SessionState):
     current_tokens: int = 0
     TOKEN_LIMIT: int = 3500
     TOKEN_WARNING_THRESHOLD: float = 0.8  # Show warning at x% of limit
-    token_warning_callout_dismissed: bool = False
+    
 
     @rx.var
     def token_limit_reached(self) -> bool:
@@ -191,11 +191,8 @@ class ChatState(SessionState):
     def set_user_input(self, value: str):
         """Sets the user input value."""
         self.user_input = value
-    
-    @rx.event
-    def dismiss_token_warning_callout(self):
-        """Dismiss the token warning callout."""
-        self.token_warning_callout_dismissed = True
+
+   
 
     @rx.event
     @state_require_role_at_least(UserRole.STUDENT)

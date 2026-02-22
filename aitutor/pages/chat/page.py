@@ -60,13 +60,11 @@ def chat_page() -> rx.Component:
                     ChatState.is_overdue,
                     rx.callout(
                         rx.box(
-                           
                             rx.tablet_and_desktop(
                                 LanguageState.cannot_submit_anymore_info,
                             ),
-                            
                             rx.mobile_only(
-                                "Deadline passed",
+                               LanguageState.cannot_submit_anymore_info_mobile,
                             ),
                         ),
                         icon="info",
@@ -77,33 +75,23 @@ def chat_page() -> rx.Component:
                 ),
                 # Show token warning when threshold reached (but not at limit)
                 rx.cond(
-                    ChatState.token_warning_threshold_reached & ~ChatState.token_limit_reached & ~ChatState.token_warning_callout_dismissed,
-                    rx.hstack(
-                        rx.callout(
-                            rx.box(
-                                rx.tablet_and_desktop(
-                                    LanguageState.token_warning_message + f" {ChatState.token_usage_percentage}%.",
-                                ),
-                                rx.mobile_only(
-                                    f"Token Warning: {ChatState.token_usage_percentage}% used",
-                                ),
+                    ChatState.token_warning_threshold_reached
+                    & ~ChatState.token_limit_reached,
+                    rx.callout(
+                        rx.box(
+                            rx.tablet_and_desktop(
+                                LanguageState.token_warning_message
+                                + f" {ChatState.token_usage_percentage}%.",
                             ),
-                            icon="triangle-alert",
-                            width="100%",
-                            color_scheme="orange",
-                            size="1",  
+                            rx.mobile_only(
+                                LanguageState.token_warning_message_mobile
+                                + f" {ChatState.token_usage_percentage}%.",
+                            ),
                         ),
-                        rx.icon_button(
-                            rx.icon("x", size=16),
-                            on_click=ChatState.dismiss_token_warning_callout,
-                            size="1",
-                            variant="ghost",
-                            color_scheme="orange",
-                            _hover={"cursor": "pointer"},
-                        ),
+                        icon="triangle-alert",
                         width="100%",
-                        spacing="2",
-                        align="center",
+                        color_scheme="orange",
+                        size="1",
                     ),
                 ),
                 show_messages(),
