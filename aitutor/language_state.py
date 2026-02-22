@@ -352,7 +352,7 @@ class LanguageState(SessionState):
             "Die Frist ist abgelaufen.",
             en="This chat can no longer be submitted. The deadline has passed.",
         )
-    
+
     @rx.var
     def cannot_submit_anymore_info_mobile(self) -> str:
         """Cannot submit anymore info string for mobile"""
@@ -407,7 +407,7 @@ class LanguageState(SessionState):
             de="Token-Nutzungswarnung: Ihre aktuelle Token-Nutzung für diese Übung beträgt ",
             en="Token usage warning: Your current token usage for this exercise is ",
         )
-    
+
     @rx.var
     def token_warning_message_mobile(self) -> str:
         return self.translate(

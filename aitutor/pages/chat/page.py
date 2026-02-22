@@ -64,7 +64,7 @@ def chat_page() -> rx.Component:
                                 LanguageState.cannot_submit_anymore_info,
                             ),
                             rx.mobile_only(
-                               LanguageState.cannot_submit_anymore_info_mobile,
+                                LanguageState.cannot_submit_anymore_info_mobile,
                             ),
                         ),
                         icon="info",
