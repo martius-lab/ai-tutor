@@ -163,17 +163,18 @@ class ChatState(SessionState):
     current_tokens: int = 0
     TOKEN_LIMIT: int = 3500
     TOKEN_WARNING_THRESHOLD: float = 0.8  # Show warning at x% of limit
+    token_warning_callout_dismissed: bool = False
 
     @rx.var
     def token_limit_reached(self) -> bool:
         """Check if token limit has been reached."""
         return self.current_tokens >= self.TOKEN_LIMIT
-    
+
     @rx.var
     def token_warning_threshold_reached(self) -> bool:
         """Check if token warning threshold has been reached."""
         return self.current_tokens >= (self.TOKEN_LIMIT * self.TOKEN_WARNING_THRESHOLD)
-    
+
     @rx.var
     def token_usage_percentage(self) -> int:
         """Get current token usage as percentage."""
@@ -190,6 +191,11 @@ class ChatState(SessionState):
     def set_user_input(self, value: str):
         """Sets the user input value."""
         self.user_input = value
+    
+    @rx.event
+    def dismiss_token_warning_callout(self):
+        """Dismiss the token warning callout."""
+        self.token_warning_callout_dismissed = True
 
     @rx.event
     @state_require_role_at_least(UserRole.STUDENT)
@@ -581,7 +587,7 @@ class ChatState(SessionState):
                     # Accumulate tokens - add new tokens to existing count
                     exercise_result.tokens_used += tokens_to_add
                     session.commit()
-                    
+
                 # Update current_tokens from database
                 self.current_tokens = exercise_result.tokens_used
 
