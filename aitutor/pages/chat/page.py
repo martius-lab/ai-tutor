@@ -74,24 +74,39 @@ def chat_page() -> rx.Component:
                     ),
                 ),
                 # Show token warning when threshold reached (but not at limit)
-                rx.cond(
-                    ChatState.token_warning_threshold_reached
-                    & ~ChatState.token_limit_reached,
-                    rx.callout(
-                        rx.box(
-                            rx.tablet_and_desktop(
+                # Desktop/Tablet: always show when threshold reached
+                rx.tablet_and_desktop(
+                    rx.cond(
+                        ChatState.token_warning_threshold_reached
+                        & ~ChatState.token_limit_reached,
+                        rx.callout(
+                            rx.box(
                                 LanguageState.token_warning_message
                                 + f" {ChatState.token_usage_percentage}%.",
                             ),
-                            rx.mobile_only(
+                            icon="triangle-alert",
+                            width="100%",
+                            color_scheme="orange",
+                            size="1",
+                        ),
+                    ),
+                ),
+                # Mobile: only show when threshold reached AND deadline is NOT overdue
+                rx.mobile_only(
+                    rx.cond(
+                        ChatState.token_warning_threshold_reached
+                        & ~ChatState.token_limit_reached
+                        & ~ChatState.is_overdue,
+                        rx.callout(
+                            rx.box(
                                 LanguageState.token_warning_message_mobile
                                 + f" {ChatState.token_usage_percentage}%.",
                             ),
+                            icon="triangle-alert",
+                            width="100%",
+                            color_scheme="orange",
+                            size="1",
                         ),
-                        icon="triangle-alert",
-                        width="100%",
-                        color_scheme="orange",
-                        size="1",
                     ),
                 ),
                 show_messages(),
