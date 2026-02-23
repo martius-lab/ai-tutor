@@ -69,7 +69,11 @@ def show_table_row(table_row: TableRow) -> rx.Component:
                     ),
                     _hover={"cursor": "pointer"},
                 ),
-                LanguageState.no_submission,
+                rx.cond(
+                    table_row.token_limit_reached,
+                    "token limit reached",
+                    LanguageState.no_submission,
+                ),
             )
         ),
         style={"_hover": {"bg": rx.color("gray", 3)}},

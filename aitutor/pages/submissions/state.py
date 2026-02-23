@@ -12,6 +12,7 @@ from sqlmodel import and_, func, select
 import aitutor.global_vars as gv
 from aitutor.auth.protection import state_require_role_at_least
 from aitutor.auth.state import SessionState
+from aitutor.config import get_config
 from aitutor.models import Exercise, ExerciseResult, Tag, UserInfo, UserRole
 from aitutor.utilities.filtering_components import FilterMixin
 
@@ -23,6 +24,7 @@ class TableRow:
     username: str
     user_id: int | None
     has_submitted: bool
+    token_limit_reached: bool
     exercise_id: int | None
     exercise_title: str
     exercise_tags: list[str]
@@ -60,6 +62,7 @@ class SubmissionsState(FilterMixin, SessionState):
 
     def load_submissions(self):
         """Get submissions from db based on the current search values."""
+        token_limit = max(1, get_config().exercise_token_limit)
         with rx.session() as session:
             # statement to load all submissions
             stmt = (
@@ -75,10 +78,6 @@ class SubmissionsState(FilterMixin, SessionState):
                 .options(selectinload(Exercise.tags))  # type: ignore
                 .order_by(func.lower(Exercise.title), LocalUser.username)
             )
-
-            # filter only with submissions
-            # (comment out to test if everything is loaded correctly)
-            stmt = stmt.where(ExerciseResult.submit_time_stamp != None)  # noqa: E711
 
             # filter with search values
             if self.search_values:
@@ -116,6 +115,12 @@ class SubmissionsState(FilterMixin, SessionState):
                     exercise_title=exercise.title,
                     exercise_tags=[tag.name for tag in exercise.tags],
                     has_submitted=bool(result and result.finished_conversation),
+                    token_limit_reached=bool(result and result.tokens_used >= token_limit),
                 )
                 for user, _, exercise, result in session.exec(stmt).all()
+                if result
+                and (
+                    result.submit_time_stamp is not None
+                    or result.tokens_used >= token_limit
+                )
             ]

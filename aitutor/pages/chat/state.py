@@ -161,7 +161,7 @@ class ChatState(SessionState):
     report_text: str = ""
     MAX_REPORT_LENGTH: int = 2000
     current_tokens: int = 0
-    TOKEN_LIMIT: int = 3500
+    TOKEN_LIMIT: int = 30000
     TOKEN_WARNING_THRESHOLD: float = 0.8  # Show warning at x% of limit
 
     @rx.var
@@ -208,6 +208,8 @@ class ChatState(SessionState):
         self._userinfo_id = userinfo.id
 
         with rx.session() as session:
+            config = get_config()
+            self.TOKEN_LIMIT = max(1, config.exercise_token_limit)
             exercise = session.exec(
                 select(Exercise).where(Exercise.id == int(self.exercise_id))
             ).one_or_none()
@@ -288,6 +290,7 @@ class ChatState(SessionState):
         self.last_user_message_index = -1
         self.is_overdue = False
         self._userinfo_id = -1
+        self.TOKEN_LIMIT = 30000
 
     @rx.var
     def report_char_count(self) -> int:
@@ -404,6 +407,8 @@ class ChatState(SessionState):
         New messages get appended to list of ChatMessages.
         """
         async with self:
+            if self.token_limit_reached:
+                return
             if self.waiting_for_response:
                 # don't allow sending another message while waiting for a response
                 return
@@ -450,6 +455,8 @@ class ChatState(SessionState):
         Check the conversation of the user.
         """
         async with self:
+            if self.token_limit_reached:
+                return
             self.waiting_for_response = True
             conversation = self.get_messages_dict_gpt()
         yield

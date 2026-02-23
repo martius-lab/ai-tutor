@@ -45,6 +45,7 @@ class ConfigFile:
     course_name: str
     impressum_text: str
     registration_code: str
+    exercise_token_limit: int
     default_users: list[ConfigDefaultUser]
     exercise_prompts: list[ConfigExercisePrompt]
 
@@ -115,6 +116,7 @@ def initialize_config_db():
                 course_name=config_file.course_name,
                 impressum_text=config_file.impressum_text,
                 registration_code=config_file.registration_code,
+                exercise_token_limit=config_file.exercise_token_limit,
             )
             session.add(config)
             session.commit()
@@ -139,4 +141,5 @@ def get_config() -> Config:
             course_name=_config.course_name,
             impressum_text=_config.impressum_text,
             registration_code=_config.registration_code,
+            exercise_token_limit=_config.exercise_token_limit,
         )

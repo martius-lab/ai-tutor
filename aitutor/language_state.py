@@ -1056,6 +1056,27 @@ Please test the chat for functionality after changing the model.
             de="Der Standard Prompt wird beim Hinzufügen einer Übung automatisch vorausgewählt, was Ihnen Zeit spart.",
             en="The default prompt will be automatically pre-selected when adding an exercise, saving you time.",
         )
+    
+    @rx.var
+    def exercise_token_limit(self) -> str:
+        return self.translate(
+            de="Token-Limit pro Übung",
+            en="Token limit per exercise",
+        )
+
+    @rx.var
+    def exercise_token_limit_info(self) -> str:
+        return self.translate(
+            de=(
+                "Maximale Anzahl von Tokens, die ein Nutzer für eine einzelne Übung "
+                "verwenden darf. Bei Erreichen des Limits sind keine weiteren "
+                "Nachrichten oder Checks möglich."
+            ),
+            en=(
+                "Maximum number of tokens a user can spend on a single exercise. "
+                "Once the limit is reached, no more messages or checks are allowed."
+            ),
+        )
 
     # Report Strings -------------------------------------------------------------------
     @rx.var

@@ -18,6 +18,7 @@ empty_config: Config = Config(
     course_name="failed to load!",
     impressum_text="failed to load!",
     registration_code="failed to load!",
+    exercise_token_limit=30000,
 )
 
 
@@ -35,7 +36,13 @@ class ManageConfigState(SessionState):
     @rx.event
     def set_config_value(self, name: str, value: str):
         """Sets a configuration value in the current config."""
-        setattr(self.current_config, name, value)
+        if name == "exercise_token_limit":
+            try:
+                setattr(self.current_config, name, max(1, int(value)))
+            except ValueError:
+                setattr(self.current_config, name, 1)
+        else:
+            setattr(self.current_config, name, value)
         self.unsaved_changes = True
 
     @rx.event
@@ -76,6 +83,7 @@ class ManageConfigState(SessionState):
                 db_config.course_name = self.current_config.course_name
                 db_config.impressum_text = self.current_config.impressum_text
                 db_config.registration_code = self.current_config.registration_code
+                db_config.exercise_token_limit = self.current_config.exercise_token_limit
                 session.add(db_config)
                 session.commit()
 

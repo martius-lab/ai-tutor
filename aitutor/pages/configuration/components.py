@@ -128,6 +128,17 @@ def config_form() -> rx.Component:
                     ),
                     info=info_icon(LS.check_ai_model_info),
                 ),
+                input(
+                    name="exercise_token_limit",
+                    heading=LS.exercise_token_limit,
+                    value=str(ManageConfigState.current_config.exercise_token_limit),
+                    on_change=lambda value: ManageConfigState.set_config_value(
+                        "exercise_token_limit", value
+                    ),
+                    type="number",
+                    min="1",
+                    info=info_icon(LS.exercise_token_limit_info),
+                ),
                 text_area(
                     name="check_conversation_prompt",
                     heading=LS.check_conversation_prompt,
