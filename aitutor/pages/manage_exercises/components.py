@@ -5,7 +5,7 @@ from typing import Sequence
 import reflex as rx
 
 from aitutor.components.dialogs import destructive_confirm
-from aitutor.global_vars import TIME_ZONE
+from aitutor.global_vars import SEARCH_TAG_KEY, TIME_ZONE
 from aitutor.language_state import LanguageState
 from aitutor.models import Exercise
 from aitutor.pages.manage_exercises.state import (
@@ -269,7 +269,7 @@ def show_exercise(exercise: Exercise):
                         tag.name,
                         variant="soft",
                         on_click=ManageExercisesState.add_search_value(
-                            {"search_value": f'tag:"{tag.name}"'}
+                            {"search_value": f'{SEARCH_TAG_KEY}:"{tag.name}"'}
                         ),
                         _hover={"cursor": "pointer"},
                     ),

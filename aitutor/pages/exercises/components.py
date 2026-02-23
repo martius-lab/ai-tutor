@@ -9,6 +9,32 @@ from aitutor.pages.exercises.state import ExercisesState, ExerciseWithResult
 from aitutor.utilities.helper_functions import truncate_text_reflex_var
 
 
+def filter_options() -> rx.Component:
+    """Show filter options"""
+    return rx.fragment(
+        rx.hstack(
+            rx.icon("circle-check", size=20),
+            rx.text(LanguageState.show_submitted_exercises),
+            rx.switch(
+                checked=ExercisesState.show_submitted_exercises,
+                on_change=ExercisesState.toggle_show_submitted_exercises,
+            ),
+            align="center",
+            justify="center",
+        ),
+        rx.hstack(
+            rx.icon("timer_off", size=20),
+            rx.text(LanguageState.show_closed_exercises),
+            rx.switch(
+                checked=ExercisesState.show_closed_exercises,
+                on_change=ExercisesState.toggle_show_closed_exercises,
+            ),
+            align="center",
+            justify="center",
+        ),
+    )
+
+
 def render_exercise_card(exercise_with_res: ExerciseWithResult) -> rx.Component:
     """Render exercises as cards"""
     exercise: Exercise = exercise_with_res[0]

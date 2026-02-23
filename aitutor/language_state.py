@@ -86,20 +86,14 @@ class LanguageState(SessionState):
         return self.translate(de="Suche...", en="Search...")
 
     @rx.var
-    def search_info_one(self) -> str:
-        """Search info string part one"""
+    def search_info(self) -> str:
         return self.translate(
-            de="Suchen Sie mit 'key:Suchbegriff' oder 'key:\"Suchbegriff\"'",
-            en="Search with 'key:searchValue' or 'key:\"search value\"' "
-            "to search a specific column.",
-        )
-
-    @rx.var
-    def search_info_two(self) -> str:
-        """Search info string part two"""
-        return self.translate(
-            de="Ohne Verwendung von 'key:' wird in allen Spalten gesucht.",
-            en="Without using 'key:' it searches in all columns.",
+            de='Suchen Sie mit `key:Suchbegriff` oder `key:"Such Begriff"`, '
+            "um nach etwas Bestimmtem zu suchen.  \n"
+            "Ohne Verwendung von `key:` werden alle keys durchsucht.",
+            en='Search with `key:searchterm` or `key:"search term"` '
+            "to search for something specific.  \n"
+            "Without using `key:` every key will be searched.",
         )
 
     # Navigation Bar Strings -----------------------------------------------------------
@@ -270,6 +264,20 @@ class LanguageState(SessionState):
         return self.translate(
             de="Keine Übungen verfügbar",
             en="No exercises available",
+        )
+
+    @rx.var
+    def show_submitted_exercises(self) -> str:
+        return self.translate(
+            de="Abgegebene Übungen anzeigen",
+            en="Show submitted exercises",
+        )
+
+    @rx.var
+    def show_closed_exercises(self) -> str:
+        return self.translate(
+            de="Abgelaufene Übungen anzeigen",
+            en="Show closed exercises",
         )
 
     # Chat Page Strings ----------------------------------------------------------------

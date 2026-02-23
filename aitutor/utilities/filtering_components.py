@@ -5,7 +5,13 @@ from abc import abstractmethod
 
 import reflex as rx
 
-from aitutor.global_vars import SEARCH_EXERCISE_KEY, SEARCH_TAG_KEY, SEARCH_USER_KEY
+from aitutor.global_vars import (
+    SEARCH_EXERCISE_DESCRIPTION_KEY,
+    SEARCH_EXERCISE_KEY,
+    SEARCH_EXERCISE_TITLE_KEY,
+    SEARCH_TAG_KEY,
+    SEARCH_USER_KEY,
+)
 from aitutor.language_state import LanguageState
 from aitutor.utilities.parser import parse_query_keys
 
@@ -52,11 +58,16 @@ def search_bar(state: type[FilterMixin]) -> rx.Component:
                 ),
                 rx.dialog.content(
                     rx.vstack(
-                        rx.text(
-                            LanguageState.search_info_one,
+                        rx.markdown(
+                            LanguageState.search_info,
+                            style={
+                                "& p": {"margin": "0"},
+                            },
                         ),
-                        rx.text(f"keys: {state.search_keys}"),
-                        rx.text(LanguageState.search_info_two),
+                        rx.markdown(
+                            f"**Keys:** {state.search_keys}",
+                            style={"& p": {"margin": "1"}},
+                        ),
                     ),
                 ),
             ),
@@ -97,6 +108,14 @@ def search_badges(state: type[FilterMixin]) -> rx.Component:
                     rx.cond(
                         value[0] == SEARCH_TAG_KEY,
                         rx.icon("tag", size=18),
+                    ),
+                    rx.cond(
+                        value[0] == SEARCH_EXERCISE_TITLE_KEY,
+                        rx.icon("book", size=18),
+                    ),
+                    rx.cond(
+                        value[0] == SEARCH_EXERCISE_DESCRIPTION_KEY,
+                        rx.icon("text", size=18),
                     ),
                     rx.text(value[1]),
                     rx.icon(
