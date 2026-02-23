@@ -90,6 +90,7 @@ def chat_page() -> rx.Component:
                             size="1",
                         ),
                     ),
+                    width="100%",
                 ),
                 # Mobile: only show when threshold reached AND deadline is NOT overdue
                 rx.mobile_only(
@@ -108,6 +109,7 @@ def chat_page() -> rx.Component:
                             size="1",
                         ),
                     ),
+                    width="100%",
                 ),
                 show_messages(),
                 rx.cond(
