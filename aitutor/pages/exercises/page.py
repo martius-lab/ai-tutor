@@ -40,6 +40,7 @@ def exercises_page() -> rx.Component:
                 rx.mobile_and_tablet(
                     rx.vstack(
                         filter_options(),
+                        align="center",
                     ),
                 ),
                 align="center",
