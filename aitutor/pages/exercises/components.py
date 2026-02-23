@@ -15,7 +15,7 @@ def filter_options() -> rx.Component:
         rx.hstack(
             rx.icon("circle-check", size=20),
             rx.text(LanguageState.show_submitted_exercises),
-            rx.checkbox(
+            rx.switch(
                 checked=ExercisesState.show_submitted_exercises,
                 on_change=ExercisesState.toggle_show_submitted_exercises,
             ),
@@ -25,7 +25,7 @@ def filter_options() -> rx.Component:
         rx.hstack(
             rx.icon("timer_off", size=20),
             rx.text(LanguageState.show_closed_exercises),
-            rx.checkbox(
+            rx.switch(
                 checked=ExercisesState.show_closed_exercises,
                 on_change=ExercisesState.toggle_show_closed_exercises,
             ),
