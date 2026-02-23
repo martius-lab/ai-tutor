@@ -90,10 +90,10 @@ class LanguageState(SessionState):
         return self.translate(
             de='Suchen Sie mit `key:Suchbegriff` oder `key:"Such Begriff"`, '
             "um nach etwas Bestimmtem zu suchen.  \n"
-            "Ohne Verwendung von `key:` wird alles durchsucht.",
+            "Ohne Verwendung von `key:` werden alle keys durchsucht.",
             en='Search with `key:searchterm` or `key:"search term"` '
             "to search for something specific.  \n"
-            "Without using `key:` everything will be searched.",
+            "Without using `key:` every key will be searched.",
         )
 
     # Navigation Bar Strings -----------------------------------------------------------
