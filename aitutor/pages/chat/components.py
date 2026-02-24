@@ -109,6 +109,7 @@ def chat_form() -> rx.Component:
             enter_key_submit=with_key_submit,
             resize="vertical",
             rows="4",
+            max_length=ChatState.CHAT_MESSAGE_CHAR_LIMIT,
         )
 
     return rx.cond(

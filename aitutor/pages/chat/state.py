@@ -163,6 +163,7 @@ class ChatState(SessionState):
     current_tokens: int = 0
     TOKEN_LIMIT: int = 30000
     TOKEN_WARNING_THRESHOLD: float = 0.8  # Show warning at x% of limit
+    CHAT_MESSAGE_CHAR_LIMIT: int = 30000  
 
     @rx.var
     def token_limit_reached(self) -> bool:
@@ -188,8 +189,8 @@ class ChatState(SessionState):
 
     @rx.event
     def set_user_input(self, value: str):
-        """Sets the user input value."""
-        self.user_input = value
+        """Sets the user input value. Truncates if over character limit."""
+        self.user_input = value[: self.CHAT_MESSAGE_CHAR_LIMIT]
 
     @rx.event
     @state_require_role_at_least(UserRole.STUDENT)
@@ -411,6 +412,9 @@ class ChatState(SessionState):
                 return
             if self.waiting_for_response:
                 # don't allow sending another message while waiting for a response
+                return
+            if len(self.user_input) > self.CHAT_MESSAGE_CHAR_LIMIT:
+                self.user_input = self.user_input[: self.CHAT_MESSAGE_CHAR_LIMIT]
                 return
             self.waiting_for_response = True
 
