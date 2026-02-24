@@ -119,6 +119,7 @@ def chat_form() -> rx.Component:
             icon="triangle-alert",
             color_scheme="red",
             width="100%",
+            variant="surface",
         ),
         rx.form(
             rx.vstack(

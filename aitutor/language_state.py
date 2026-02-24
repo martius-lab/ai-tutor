@@ -461,6 +461,12 @@ class LanguageState(SessionState):
     def submission(self) -> str:
         """Submission string"""
         return self.translate(de="Abgabe", en="Submission")
+    
+    # Submission Page Strings --------------------------------------------------------
+    @rx.var
+    def token_limit_reached(self) -> str:
+        """Submission string"""
+        return self.translate(de="Token-Limit erreicht", en="Token limit reached")
 
     # Finished View Tutor Page Strings -----------------------------------------------
     @rx.var

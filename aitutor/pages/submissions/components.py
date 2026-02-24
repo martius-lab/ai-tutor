@@ -71,7 +71,7 @@ def show_table_row(table_row: TableRow) -> rx.Component:
                 ),
                 rx.cond(
                     table_row.token_limit_reached,
-                    "token limit reached",
+                    LanguageState.token_limit_reached,
                     LanguageState.no_submission,
                 ),
             )

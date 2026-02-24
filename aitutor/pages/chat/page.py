@@ -71,6 +71,7 @@ def chat_page() -> rx.Component:
                         width="100%",
                         color_scheme="orange",
                         size="1",
+                        variant="surface",
                     ),
                 ),
                 # Show token warning when threshold reached (but not at limit)
@@ -88,6 +89,7 @@ def chat_page() -> rx.Component:
                             width="100%",
                             color_scheme="orange",
                             size="1",
+                            variant="surface",
                         ),
                     ),
                     width="100%",
@@ -107,6 +109,7 @@ def chat_page() -> rx.Component:
                             width="100%",
                             color_scheme="orange",
                             size="1",
+                            variant="surface",
                         ),
                     ),
                     width="100%",
