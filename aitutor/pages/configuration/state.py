@@ -28,6 +28,11 @@ class ManageConfigState(SessionState):
     unsaved_changes: bool = False
     current_config: Config = empty_config
 
+    @rx.var
+    def exercise_token_limit_str(self) -> str:
+        """Returns the exercise token limit as a string for the input field."""
+        return str(self.current_config.exercise_token_limit)
+
     @rx.event
     def set_unsaved_changes(self, unsaved: bool):
         """Sets the unsaved changes flag."""

@@ -13,7 +13,7 @@ def input(
     *,
     name: str,
     heading: rx.Var[str],
-    value: str,
+    value: str | rx.Var[str],
     on_change,
     info: Optional[rx.Component] = None,
     **props,
@@ -131,7 +131,7 @@ def config_form() -> rx.Component:
                 input(
                     name="exercise_token_limit",
                     heading=LS.exercise_token_limit,
-                    value=str(ManageConfigState.current_config.exercise_token_limit),
+                    value=ManageConfigState.exercise_token_limit_str,
                     on_change=lambda value: ManageConfigState.set_config_value(
                         "exercise_token_limit", value
                     ),
