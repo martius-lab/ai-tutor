@@ -163,7 +163,7 @@ class ChatState(SessionState):
     current_tokens: int = 0
     TOKEN_LIMIT: int = 30000
     TOKEN_WARNING_THRESHOLD: float = 0.8  # Show warning at x% of limit
-    CHAT_MESSAGE_CHAR_LIMIT: int = 30000  
+    CHAT_MESSAGE_CHAR_LIMIT: int = 30000
 
     @rx.var
     def token_limit_reached(self) -> bool:

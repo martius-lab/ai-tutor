@@ -115,7 +115,9 @@ class SubmissionsState(FilterMixin, SessionState):
                     exercise_title=exercise.title,
                     exercise_tags=[tag.name for tag in exercise.tags],
                     has_submitted=bool(result and result.finished_conversation),
-                    token_limit_reached=bool(result and result.tokens_used >= token_limit),
+                    token_limit_reached=bool(
+                        result and result.tokens_used >= token_limit
+                    ),
                 )
                 for user, _, exercise, result in session.exec(stmt).all()
                 if result

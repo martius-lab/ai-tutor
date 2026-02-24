@@ -461,7 +461,7 @@ class LanguageState(SessionState):
     def submission(self) -> str:
         """Submission string"""
         return self.translate(de="Abgabe", en="Submission")
-    
+
     # Submission Page Strings --------------------------------------------------------
     @rx.var
     def token_limit_reached(self) -> str:
@@ -1062,7 +1062,7 @@ Please test the chat for functionality after changing the model.
             de="Der Standard Prompt wird beim Hinzufügen einer Übung automatisch vorausgewählt, was Ihnen Zeit spart.",
             en="The default prompt will be automatically pre-selected when adding an exercise, saving you time.",
         )
-    
+
     @rx.var
     def exercise_token_limit(self) -> str:
         return self.translate(
