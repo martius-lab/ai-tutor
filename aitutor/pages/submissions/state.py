@@ -7,7 +7,7 @@ import reflex as rx
 import sqlalchemy
 from reflex_local_auth.user import LocalUser
 from sqlalchemy.orm import selectinload
-from sqlmodel import and_, func, select
+from sqlmodel import and_, func, or_, select
 
 import aitutor.global_vars as gv
 from aitutor.auth.protection import state_require_role_at_least
@@ -61,7 +61,7 @@ class SubmissionsState(FilterMixin, SessionState):
 
     def load_submissions(self):
         """Get submissions from db based on the current search values."""
-        token_limit = max(1, get_config().exercise_token_limit)
+        token_limit = get_config().exercise_token_limit
         with rx.session() as session:
             # statement to load all submissions
             stmt = (
@@ -69,13 +69,21 @@ class SubmissionsState(FilterMixin, SessionState):
                 .select_from(LocalUser)
                 .join(UserInfo)
                 .join(Exercise, sqlalchemy.sql.true())  # cartesian product
-                .outerjoin(
+                .join(
                     ExerciseResult,
                     (ExerciseResult.exercise_id == Exercise.id)
                     & (ExerciseResult.userinfo_id == UserInfo.id),  # type: ignore
                 )
                 .options(selectinload(Exercise.tags))  # type: ignore
                 .order_by(func.lower(Exercise.title), LocalUser.username)
+            )
+
+            # filter only rows that are either submitted or hit token limit
+            stmt = stmt.where(
+                or_(
+                    ExerciseResult.submit_time_stamp != None,  # noqa: E711
+                    ExerciseResult.tokens_used >= token_limit,
+                )
             )
 
             # filter with search values
@@ -113,14 +121,7 @@ class SubmissionsState(FilterMixin, SessionState):
                     exercise_id=exercise.id,
                     exercise_title=exercise.title,
                     exercise_tags=[tag.name for tag in exercise.tags],
-                    token_limit_reached=bool(
-                        result and result.tokens_used >= token_limit
-                    ),
+                    token_limit_reached=result.tokens_used >= token_limit,
                 )
                 for user, _, exercise, result in session.exec(stmt).all()
-                if result
-                and (
-                    result.submit_time_stamp is not None
-                    or result.tokens_used >= token_limit
-                )
             ]
