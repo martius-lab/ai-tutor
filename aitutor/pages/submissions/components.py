@@ -60,8 +60,7 @@ def show_table_row(table_row: TableRow) -> rx.Component:
         ),
         rx.table.cell(
             rx.cond(
-                table_row.token_limit_reached,
-                LanguageState.token_limit_reached,
+                table_row.has_submitted,
                 rx.icon_button(
                     "search",
                     size="2",
@@ -69,6 +68,11 @@ def show_table_row(table_row: TableRow) -> rx.Component:
                         f"{routes.FINISHED_VIEW_TUTOR}/{table_row.exercise_id}/{table_row.user_id}"
                     ),
                     _hover={"cursor": "pointer"},
+                ),
+                rx.cond(
+                    table_row.token_limit_reached,
+                    rx.text(LanguageState.token_limit_reached),
+                    rx.fragment(),
                 ),
             )
         ),

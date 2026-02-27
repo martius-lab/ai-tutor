@@ -23,6 +23,7 @@ class TableRow:
 
     username: str
     user_id: int | None
+    has_submitted: bool
     token_limit_reached: bool
     exercise_id: int | None
     exercise_title: str
@@ -118,6 +119,7 @@ class SubmissionsState(FilterMixin, SessionState):
                 TableRow(
                     username=user.username,
                     user_id=user.id,
+                    has_submitted=result.submit_time_stamp is not None,
                     exercise_id=exercise.id,
                     exercise_title=exercise.title,
                     exercise_tags=[tag.name for tag in exercise.tags],
