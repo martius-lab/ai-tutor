@@ -45,7 +45,7 @@ class ManageConfigState(SessionState):
             try:
                 setattr(self.current_config, name, max(1, int(value)))
             except ValueError:
-                setattr(self.current_config, name, 1)
+                pass
         else:
             setattr(self.current_config, name, value)
         self.unsaved_changes = True

@@ -161,26 +161,26 @@ class ChatState(SessionState):
     report_text: str = ""
     MAX_REPORT_LENGTH: int = 2000
     current_tokens: int = 0
-    TOKEN_LIMIT: int = 30000
+    token_limit: int = 30000
     TOKEN_WARNING_THRESHOLD: float = 0.8  # Show warning at x% of limit
-    CHAT_MESSAGE_CHAR_LIMIT: int = 30000
+    CHAT_MESSAGE_CHAR_LIMIT: int = 15000
 
     @rx.var
     def token_limit_reached(self) -> bool:
         """Check if token limit has been reached."""
-        return self.current_tokens >= self.TOKEN_LIMIT
+        return self.current_tokens >= self.token_limit
 
     @rx.var
     def token_warning_threshold_reached(self) -> bool:
         """Check if token warning threshold has been reached."""
-        return self.current_tokens >= (self.TOKEN_LIMIT * self.TOKEN_WARNING_THRESHOLD)
+        return self.current_tokens >= (self.token_limit * self.TOKEN_WARNING_THRESHOLD)
 
     @rx.var
     def token_usage_percentage(self) -> int:
         """Get current token usage as percentage."""
-        if self.TOKEN_LIMIT == 0:
+        if self.token_limit == 0:
             return 0
-        return int((self.current_tokens / self.TOKEN_LIMIT) * 100)
+        return int((self.current_tokens / self.token_limit) * 100)
 
     @rx.event
     def set_report_text(self, value: str):
@@ -210,7 +210,7 @@ class ChatState(SessionState):
 
         with rx.session() as session:
             config = get_config()
-            self.TOKEN_LIMIT = max(1, config.exercise_token_limit)
+            self.token_limit = max(1, config.exercise_token_limit)
             exercise = session.exec(
                 select(Exercise).where(Exercise.id == int(self.exercise_id))
             ).one_or_none()
@@ -291,7 +291,6 @@ class ChatState(SessionState):
         self.last_user_message_index = -1
         self.is_overdue = False
         self._userinfo_id = -1
-        self.TOKEN_LIMIT = 30000
 
     @rx.var
     def report_char_count(self) -> int:
@@ -367,7 +366,9 @@ class ChatState(SessionState):
         self.update_last_user_message_index()
 
         # update db
-        self.save_conversation_to_db(conversation=self.get_messages_dict_gpt())
+        self.save_conversation_to_db(
+            conversation=self.get_messages_dict_gpt(), tokens_to_add=0
+        )
 
     @rx.event
     def reset_conversation(self):
@@ -553,7 +554,7 @@ class ChatState(SessionState):
             invert=True,
         )
 
-    def save_conversation_to_db(self, conversation: list[dict], tokens_to_add: int = 0):
+    def save_conversation_to_db(self, conversation: list[dict], tokens_to_add: int):
         """
         Saves the conversation to the database and accumulates token usage.
 
