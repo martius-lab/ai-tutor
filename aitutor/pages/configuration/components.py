@@ -132,9 +132,7 @@ def config_form() -> rx.Component:
                     name="exercise_token_limit",
                     heading=LS.exercise_token_limit,
                     value=ManageConfigState.exercise_token_limit_str,
-                    on_change=lambda value: ManageConfigState.set_config_value(
-                        "exercise_token_limit", value
-                    ),
+                    on_change=ManageConfigState.set_exercise_token_limit,
                     type="number",
                     min="1",
                     info=info_icon(LS.exercise_token_limit_info),

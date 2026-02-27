@@ -41,13 +41,16 @@ class ManageConfigState(SessionState):
     @rx.event
     def set_config_value(self, name: str, value: str):
         """Sets a configuration value in the current config."""
-        if name == "exercise_token_limit":
-            try:
-                setattr(self.current_config, name, max(1, int(value)))
-            except ValueError:
-                pass
-        else:
-            setattr(self.current_config, name, value)
+        setattr(self.current_config, name, value)
+        self.unsaved_changes = True
+
+    @rx.event
+    def set_exercise_token_limit(self, value: str):
+        """Sets exercise_token_limit while allowing transient invalid input states."""
+        try:
+            self.current_config.exercise_token_limit = max(1, int(value))
+        except ValueError:
+            pass
         self.unsaved_changes = True
 
     @rx.event
