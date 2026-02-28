@@ -112,39 +112,40 @@ def chat_form() -> rx.Component:
             max_length=ChatState.CHAT_MESSAGE_CHAR_LIMIT,
         )
 
-    return rx.cond(
-        ChatState.token_limit_reached,
-        # Show info box when limit reached
-        rx.callout(
-            LanguageState.token_limit_message,
-            icon="triangle-alert",
-            color_scheme="red",
-            width="100%",
-            variant="surface",
-        ),
-        rx.form(
-            rx.vstack(
-                rx.desktop_only(
-                    text_area_with_key_submit(True),
+    return rx.form(
+        rx.vstack(
+            rx.cond(
+                ChatState.token_limit_reached,
+                rx.callout(
+                    LanguageState.token_limit_message,
+                    icon="triangle-alert",
+                    color_scheme="red",
                     width="100%",
+                    variant="surface",
                 ),
-                rx.mobile_and_tablet(
-                    text_area_with_key_submit(False),
-                    width="100%",
-                ),
-                rx.hstack(
-                    rx.hstack(
-                        reset_conversation_button(),
-                        check_conversation_button(),
+                rx.fragment(
+                    rx.desktop_only(
+                        text_area_with_key_submit(True),
+                        width="100%",
                     ),
-                    send_message_button(),
-                    width="100%",
-                    justify="between",
+                    rx.mobile_and_tablet(
+                        text_area_with_key_submit(False),
+                        width="100%",
+                    ),
                 ),
             ),
-            on_submit=ChatState.send_message,
-            reset_on_submit=True,
+            rx.hstack(
+                rx.hstack(
+                    reset_conversation_button(),
+                    check_conversation_button(),
+                ),
+                send_message_button(),
+                width="100%",
+                justify="between",
+            ),
         ),
+        on_submit=ChatState.send_message,
+        reset_on_submit=True,
     )
 
 
@@ -190,11 +191,11 @@ def send_message_button() -> rx.Component:
         rx.icon("send-horizontal", size=20),
         type="submit",
         _hover=rx.cond(
-            ChatState.waiting_for_response,
+            ChatState.waiting_for_response | ChatState.token_limit_reached,
             {"cursor": "not-allowed"},
             {"cursor": "pointer"},
         ),
-        disabled=ChatState.waiting_for_response,
+        disabled=ChatState.waiting_for_response | ChatState.token_limit_reached,
     )
 
 
@@ -263,7 +264,7 @@ def check_conversation_button() -> rx.Component:
         ),
         # show Check Conversation button
         rx.cond(
-            ChatState.waiting_for_response,
+            ChatState.waiting_for_response | ChatState.token_limit_reached,
             rx.button(
                 rx.desktop_only(LanguageState.check_conversation),
                 rx.mobile_and_tablet(LanguageState.check),
@@ -284,12 +285,14 @@ def check_conversation_button() -> rx.Component:
                     color_scheme="yellow",
                     type="button",
                     _hover=rx.cond(
-                        ChatState.messages.length() < 2,  # type: ignore
+                        (ChatState.messages.length() < 2)  # type: ignore
+                        | ChatState.token_limit_reached,
                         {"cursor": "not-allowed"},
                         {"cursor": "pointer"},
                     ),
                     disabled=rx.cond(
-                        ChatState.messages.length() < 2,  # type: ignore
+                        (ChatState.messages.length() < 2)  # type: ignore
+                        | ChatState.token_limit_reached,
                         True,
                         False,
                     ),
