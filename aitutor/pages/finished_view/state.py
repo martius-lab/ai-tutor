@@ -77,7 +77,7 @@ class FinishedViewState(SessionState):
 
                 if exercise_result:
                     # Keep ExerciseResult row to preserve tokens_used.
-                    
+
                     exercise_result.finished_conversation = []
                     exercise_result.submit_time_stamp = None
                     session.commit()

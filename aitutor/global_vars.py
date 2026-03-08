@@ -9,7 +9,7 @@ SEARCH_EXERCISE_KEY = "exercise"
 SEARCH_TAG_KEY = "tag"
 
 # ---- Chat related global variables ----
-CHAT_TOKEN_WARNING_THRESHOLD = 0.8 # Show warning at x% of limit
+CHAT_TOKEN_WARNING_THRESHOLD = 0.8  # Show warning at x% of limit
 CHAT_MESSAGE_CHAR_LIMIT = 15000
 
 """colors"""

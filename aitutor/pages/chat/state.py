@@ -17,7 +17,11 @@ from aitutor.auth.state import SessionState
 from aitutor.config import get_config
 from aitutor.global_vars import (
     CHAT_MESSAGE_CHAR_LIMIT as GLOBAL_CHAT_MESSAGE_CHAR_LIMIT,
+)
+from aitutor.global_vars import (
     CHAT_TOKEN_WARNING_THRESHOLD as GLOBAL_CHAT_TOKEN_WARNING_THRESHOLD,
+)
+from aitutor.global_vars import (
     TIME_FORMAT,
     TIME_ZONE,
 )
