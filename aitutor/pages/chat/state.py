@@ -15,7 +15,12 @@ import aitutor.routes as routes
 from aitutor.auth.protection import state_require_role_at_least
 from aitutor.auth.state import SessionState
 from aitutor.config import get_config
-from aitutor.global_vars import TIME_FORMAT, TIME_ZONE
+from aitutor.global_vars import (
+    CHAT_MESSAGE_CHAR_LIMIT as GLOBAL_CHAT_MESSAGE_CHAR_LIMIT,
+    CHAT_TOKEN_WARNING_THRESHOLD as GLOBAL_CHAT_TOKEN_WARNING_THRESHOLD,
+    TIME_FORMAT,
+    TIME_ZONE,
+)
 from aitutor.language_state import BackendTranslations as BT
 from aitutor.models import Exercise, ExerciseResult, Report, UserRole
 
@@ -162,8 +167,8 @@ class ChatState(SessionState):
     MAX_REPORT_LENGTH: int = 2000
     current_tokens: int = 0
     token_limit: int = 30000
-    TOKEN_WARNING_THRESHOLD: float = 0.8  # Show warning at x% of limit
-    CHAT_MESSAGE_CHAR_LIMIT: int = 15000
+    TOKEN_WARNING_THRESHOLD: float = GLOBAL_CHAT_TOKEN_WARNING_THRESHOLD
+    CHAT_MESSAGE_CHAR_LIMIT: int = GLOBAL_CHAT_MESSAGE_CHAR_LIMIT
 
     @rx.var
     def token_limit_reached(self) -> bool:
