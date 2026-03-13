@@ -150,6 +150,7 @@ class ExerciseResult(SQLModel, table=True):
         ),
         default=None,
     )
+    tokens_used: int = Field(default=0)
 
     # database relationships
     exercise_id: int = Field(foreign_key="exercise.id", ondelete="CASCADE")
@@ -203,6 +204,7 @@ class Config(SQLModel, table=True):
     course_name: str
     impressum_text: str
     registration_code: str
+    exercise_token_limit: int = Field(default=30000)
 
     def __repr__(self):
         return f"<Config(id={self.id}, course_name='{self.course_name}')>"

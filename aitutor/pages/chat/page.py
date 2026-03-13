@@ -59,11 +59,60 @@ def chat_page() -> rx.Component:
                 rx.cond(
                     ChatState.is_overdue,
                     rx.callout(
-                        LanguageState.cannot_submit_anymore_info,
+                        rx.box(
+                            rx.tablet_and_desktop(
+                                LanguageState.cannot_submit_anymore_info,
+                            ),
+                            rx.mobile_only(
+                                LanguageState.cannot_submit_anymore_info_mobile,
+                            ),
+                        ),
                         icon="info",
                         width="100%",
                         color_scheme="orange",
+                        size="1",
+                        variant="surface",
                     ),
+                ),
+                # Show token warning when threshold reached (but not at limit)
+                # Desktop/Tablet: always show when threshold reached
+                rx.tablet_and_desktop(
+                    rx.cond(
+                        ChatState.token_warning_threshold_reached
+                        & ~ChatState.token_limit_reached,
+                        rx.callout(
+                            rx.box(
+                                LanguageState.token_warning_message
+                                + f" {ChatState.token_usage_percentage}%.",
+                            ),
+                            icon="triangle-alert",
+                            width="100%",
+                            color_scheme="orange",
+                            size="1",
+                            variant="surface",
+                        ),
+                    ),
+                    width="100%",
+                ),
+                # Mobile: only show when threshold reached AND deadline is NOT overdue
+                rx.mobile_only(
+                    rx.cond(
+                        ChatState.token_warning_threshold_reached
+                        & ~ChatState.token_limit_reached
+                        & ~ChatState.is_overdue,
+                        rx.callout(
+                            rx.box(
+                                LanguageState.token_warning_message_mobile
+                                + f" {ChatState.token_usage_percentage}%.",
+                            ),
+                            icon="triangle-alert",
+                            width="100%",
+                            color_scheme="orange",
+                            size="1",
+                            variant="surface",
+                        ),
+                    ),
+                    width="100%",
                 ),
                 show_messages(),
                 rx.cond(

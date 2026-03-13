@@ -13,7 +13,7 @@ def input(
     *,
     name: str,
     heading: rx.Var[str],
-    value: str,
+    value: str | rx.Var[str],
     on_change,
     info: Optional[rx.Component] = None,
     **props,
@@ -127,6 +127,15 @@ def config_form() -> rx.Component:
                         "check_ai_model", value
                     ),
                     info=info_icon(LS.check_ai_model_info),
+                ),
+                input(
+                    name="exercise_token_limit",
+                    heading=LS.exercise_token_limit,
+                    value=ManageConfigState.exercise_token_limit_str,
+                    on_change=ManageConfigState.set_exercise_token_limit,
+                    type="number",
+                    min="1",
+                    info=info_icon(LS.exercise_token_limit_info),
                 ),
                 text_area(
                     name="check_conversation_prompt",

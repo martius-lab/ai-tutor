@@ -76,12 +76,10 @@ class FinishedViewState(SessionState):
                 ).one_or_none()
 
                 if exercise_result:
-                    if exercise_result.conversation_text == []:
-                        # delete result if no conversation text is present
-                        session.delete(exercise_result)
-                    else:
-                        exercise_result.finished_conversation = []
-                        exercise_result.submit_time_stamp = None
+                    # Keep ExerciseResult row to preserve tokens_used.
+
+                    exercise_result.finished_conversation = []
+                    exercise_result.submit_time_stamp = None
                     session.commit()
 
                 yield rx.toast.success(

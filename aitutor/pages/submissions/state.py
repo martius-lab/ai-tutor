@@ -7,11 +7,12 @@ import reflex as rx
 import sqlalchemy
 from reflex_local_auth.user import LocalUser
 from sqlalchemy.orm import selectinload
-from sqlmodel import and_, func, select
+from sqlmodel import and_, func, or_, select
 
 import aitutor.global_vars as gv
 from aitutor.auth.protection import state_require_role_at_least
 from aitutor.auth.state import SessionState
+from aitutor.config import get_config
 from aitutor.models import Exercise, ExerciseResult, Tag, UserInfo, UserRole
 from aitutor.utilities.filtering_components import FilterMixin
 
@@ -23,6 +24,7 @@ class TableRow:
     username: str
     user_id: int | None
     has_submitted: bool
+    token_limit_reached: bool
     exercise_id: int | None
     exercise_title: str
     exercise_tags: list[str]
@@ -60,6 +62,7 @@ class SubmissionsState(FilterMixin, SessionState):
 
     def load_submissions(self):
         """Get submissions from db based on the current search values."""
+        token_limit = get_config().exercise_token_limit
         with rx.session() as session:
             # statement to load all submissions
             stmt = (
@@ -67,7 +70,7 @@ class SubmissionsState(FilterMixin, SessionState):
                 .select_from(LocalUser)
                 .join(UserInfo)
                 .join(Exercise, sqlalchemy.sql.true())  # cartesian product
-                .outerjoin(
+                .join(
                     ExerciseResult,
                     (ExerciseResult.exercise_id == Exercise.id)
                     & (ExerciseResult.userinfo_id == UserInfo.id),  # type: ignore
@@ -76,9 +79,13 @@ class SubmissionsState(FilterMixin, SessionState):
                 .order_by(func.lower(Exercise.title), LocalUser.username)
             )
 
-            # filter only with submissions
-            # (comment out to test if everything is loaded correctly)
-            stmt = stmt.where(ExerciseResult.submit_time_stamp != None)  # noqa: E711
+            # filter only rows that are either submitted or hit token limit
+            stmt = stmt.where(
+                or_(
+                    ExerciseResult.submit_time_stamp != None,  # noqa: E711
+                    ExerciseResult.tokens_used >= token_limit,
+                )
+            )
 
             # filter with search values
             if self.search_values:
@@ -112,10 +119,11 @@ class SubmissionsState(FilterMixin, SessionState):
                 TableRow(
                     username=user.username,
                     user_id=user.id,
+                    has_submitted=result.submit_time_stamp is not None,
                     exercise_id=exercise.id,
                     exercise_title=exercise.title,
                     exercise_tags=[tag.name for tag in exercise.tags],
-                    has_submitted=bool(result and result.finished_conversation),
+                    token_limit_reached=result.tokens_used >= token_limit,
                 )
                 for user, _, exercise, result in session.exec(stmt).all()
             ]

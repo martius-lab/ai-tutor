@@ -362,6 +362,14 @@ class LanguageState(SessionState):
         )
 
     @rx.var
+    def cannot_submit_anymore_info_mobile(self) -> str:
+        """Cannot submit anymore info string for mobile"""
+        return self.translate(
+            de="Die Frist ist abgelaufen.",
+            en="Deadline passed.",
+        )
+
+    @rx.var
     def deadline_has_passed_info(self) -> str:
         """Deadline has passed info string"""
         return self.translate(
@@ -392,6 +400,27 @@ class LanguageState(SessionState):
         return self.translate(
             de="Ihre Antwort",
             en="Your answer",
+        )
+
+    @rx.var
+    def token_limit_message(self) -> str:
+        return self.translate(
+            de="Die maximale Anzahl an Tokens für diese Übung wurde erreicht. Sie können keine weiteren Nachrichten senden oder Überprüfungen durchführen.",
+            en="Your token limit has been reached for this exercise. You cannot send more messages or run checks.",
+        )
+
+    @rx.var
+    def token_warning_message(self) -> str:
+        return self.translate(
+            de="Token-Nutzungswarnung: Ihre aktuelle Token-Nutzung für diese Übung beträgt ",
+            en="Token usage warning: Your current token usage for this exercise is ",
+        )
+
+    @rx.var
+    def token_warning_message_mobile(self) -> str:
+        return self.translate(
+            de="Token-Nutzungswarnung: ",
+            en="Token usage warning: ",
         )
 
     # Finished View Page Strings -------------------------------------------------------
@@ -440,6 +469,12 @@ class LanguageState(SessionState):
     def submission(self) -> str:
         """Submission string"""
         return self.translate(de="Abgabe", en="Submission")
+
+    # Submission Page Strings --------------------------------------------------------
+    @rx.var
+    def token_limit_reached(self) -> str:
+        """Submission string"""
+        return self.translate(de="Token-Limit erreicht", en="Token limit reached")
 
     # Finished View Tutor Page Strings -----------------------------------------------
     @rx.var
@@ -1034,6 +1069,27 @@ Please test the chat for functionality after changing the model.
         return self.translate(
             de="Der Standard Prompt wird beim Hinzufügen einer Übung automatisch vorausgewählt, was Ihnen Zeit spart.",
             en="The default prompt will be automatically pre-selected when adding an exercise, saving you time.",
+        )
+
+    @rx.var
+    def exercise_token_limit(self) -> str:
+        return self.translate(
+            de="Token-Limit pro Übung",
+            en="Token limit per exercise",
+        )
+
+    @rx.var
+    def exercise_token_limit_info(self) -> str:
+        return self.translate(
+            de=(
+                "Maximale Anzahl von Tokens, die ein Nutzer für eine einzelne Übung "
+                "verwenden darf. Bei Erreichen des Limits sind keine weiteren "
+                "Nachrichten oder Checks möglich."
+            ),
+            en=(
+                "Maximum number of tokens a user can spend on a single exercise. "
+                "Once the limit is reached, no more messages or checks are allowed."
+            ),
         )
 
     # Report Strings -------------------------------------------------------------------

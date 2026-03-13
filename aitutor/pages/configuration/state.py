@@ -18,6 +18,7 @@ empty_config: Config = Config(
     course_name="failed to load!",
     impressum_text="failed to load!",
     registration_code="failed to load!",
+    exercise_token_limit=30000,
 )
 
 
@@ -26,6 +27,11 @@ class ManageConfigState(SessionState):
 
     unsaved_changes: bool = False
     current_config: Config = empty_config
+
+    @rx.var
+    def exercise_token_limit_str(self) -> str:
+        """Returns the exercise token limit as a string for the input field."""
+        return str(self.current_config.exercise_token_limit)
 
     @rx.event
     def set_unsaved_changes(self, unsaved: bool):
@@ -36,6 +42,15 @@ class ManageConfigState(SessionState):
     def set_config_value(self, name: str, value: str):
         """Sets a configuration value in the current config."""
         setattr(self.current_config, name, value)
+        self.unsaved_changes = True
+
+    @rx.event
+    def set_exercise_token_limit(self, value: str):
+        """Sets exercise_token_limit while allowing transient invalid input states."""
+        try:
+            self.current_config.exercise_token_limit = max(1, int(value))
+        except ValueError:
+            pass
         self.unsaved_changes = True
 
     @rx.event
@@ -76,6 +91,9 @@ class ManageConfigState(SessionState):
                 db_config.course_name = self.current_config.course_name
                 db_config.impressum_text = self.current_config.impressum_text
                 db_config.registration_code = self.current_config.registration_code
+                db_config.exercise_token_limit = (
+                    self.current_config.exercise_token_limit
+                )
                 session.add(db_config)
                 session.commit()
 

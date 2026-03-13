@@ -25,6 +25,22 @@ response_ai_model = "gpt-4.1-mini"
 check_ai_model = "gpt-4.1"
 ```
 
+## exercise_token_limit
+
+This value defines the maximum number of tokens a student can spend on a single exercise.
+Token usage accumulates across chat messages and checks for that exercise.
+
+When the limit is reached:
+- sending new chat messages is blocked,
+- running new checks is blocked,
+- already available actions like submitting a successfully passed exercise remain possible.
+
+```toml
+exercise_token_limit = 30000
+```
+
+Choose a value that fits your expected exercise complexity and model cost.
+
 ## info text on the home page
 The homepage has 3 sections to display your information.
 - One section to explain how to use the AI Tutor
@@ -135,4 +151,5 @@ prompt = """
 useless prompt
 """
 ```
+
 

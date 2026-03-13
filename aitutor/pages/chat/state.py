@@ -15,7 +15,12 @@ import aitutor.routes as routes
 from aitutor.auth.protection import state_require_role_at_least
 from aitutor.auth.state import SessionState
 from aitutor.config import get_config
-from aitutor.global_vars import TIME_FORMAT, TIME_ZONE
+from aitutor.global_vars import (
+    CHAT_MESSAGE_CHAR_LIMIT,
+    CHAT_TOKEN_WARNING_THRESHOLD,
+    TIME_FORMAT,
+    TIME_ZONE,
+)
 from aitutor.language_state import BackendTranslations as BT
 from aitutor.models import Exercise, ExerciseResult, Report, UserRole
 
@@ -62,6 +67,9 @@ async def get_chat_response(conversation):
 
     conversation: Expects list of dictionaries of the previous messages between ChatGPT
     and the user.
+
+    Returns:
+        tuple: (response_text, tokens_used)
     """
     API_KEY = cast(str, decouple.config("OPENAI_API_KEY", cast=str, default=""))
     if API_KEY == "":
@@ -86,17 +94,24 @@ async def get_chat_response(conversation):
     response = session.choices[0].message.content
     if not isinstance(response, str):
         raise TypeError(f"Expected string but got {type(response)}: {response}")
-    return response
+
+    # Extract token usage from the response
+    tokens_used = session.usage.total_tokens if session.usage else 0
+
+    return response, tokens_used
 
 
 async def get_check_conversation_response(
     conversation,
-) -> CheckConversationResponse | None:
+) -> tuple[CheckConversationResponse | None, int]:
     """
     Sends request to OpenAI.
 
     conversation: Expects list of dictionaries of the previous messages between ChatGPT
     and the user.
+
+    Returns:
+        tuple: (CheckConversationResponse or None, tokens_used)
     """
     config = get_config()
     check_conversation_prompt = config.check_conversation_prompt
@@ -127,7 +142,10 @@ async def get_check_conversation_response(
         response_format=CheckConversationResponse,
     )
 
-    return completion.choices[0].message.parsed
+    # Extract token usage from the response
+    tokens_used = completion.usage.total_tokens if completion.usage else 0
+
+    return completion.choices[0].message.parsed, tokens_used
 
 
 class ChatState(SessionState):
@@ -147,6 +165,25 @@ class ChatState(SessionState):
     _userinfo_id: int = -1
     report_text: str = ""
     MAX_REPORT_LENGTH: int = 2000
+    current_tokens: int = 0
+    token_limit: int = 30000
+
+    @rx.var
+    def token_limit_reached(self) -> bool:
+        """Check if token limit has been reached."""
+        return self.current_tokens >= self.token_limit
+
+    @rx.var
+    def token_warning_threshold_reached(self) -> bool:
+        """Check if token warning threshold has been reached."""
+        return self.current_tokens >= (self.token_limit * CHAT_TOKEN_WARNING_THRESHOLD)
+
+    @rx.var
+    def token_usage_percentage(self) -> int:
+        """Get current token usage as percentage."""
+        if self.token_limit == 0:
+            return 0
+        return int((self.current_tokens / self.token_limit) * 100)
 
     @rx.event
     def set_report_text(self, value: str):
@@ -155,8 +192,8 @@ class ChatState(SessionState):
 
     @rx.event
     def set_user_input(self, value: str):
-        """Sets the user input value."""
-        self.user_input = value
+        """Sets the user input value. Truncates if over character limit."""
+        self.user_input = value[:CHAT_MESSAGE_CHAR_LIMIT]
 
     @rx.event
     @state_require_role_at_least(UserRole.STUDENT)
@@ -175,6 +212,8 @@ class ChatState(SessionState):
         self._userinfo_id = userinfo.id
 
         with rx.session() as session:
+            config = get_config()
+            self.token_limit = max(1, config.exercise_token_limit)
             exercise = session.exec(
                 select(Exercise).where(Exercise.id == int(self.exercise_id))
             ).one_or_none()
@@ -225,9 +264,11 @@ class ChatState(SessionState):
                     if exercise_result.submit_time_stamp
                     else ""
                 )
+                self.current_tokens = exercise_result.tokens_used
             else:
                 self.check_passed = False
                 self.conversation_is_submitted = False
+                self.current_tokens = 0
         if error_when_loading_prompt:
             yield rx.toast.error(
                 description=BT.prompt_loading_error(self.language),
@@ -328,12 +369,14 @@ class ChatState(SessionState):
         self.update_last_user_message_index()
 
         # update db
-        self.save_conversation_to_db(conversation=self.get_messages_dict_gpt())
+        self.save_conversation_to_db(
+            conversation=self.get_messages_dict_gpt(), tokens_to_add=0
+        )
 
     @rx.event
     def reset_conversation(self):
         """Resets conversation for current exercise."""
-        # delete conversation from database
+        # Clear conversation from database but keep tokens_used
         if self.current_exercise:
             with rx.session() as session:
                 exercise_result = session.exec(
@@ -344,16 +387,11 @@ class ChatState(SessionState):
                 ).one_or_none()
 
                 if exercise_result:
-                    if exercise_result.finished_conversation == []:
-                        # delete conversation from db if there is nothing submitted yet
-                        session.delete(exercise_result)
-                        session.commit()
-                    else:
-                        # only reset conversation_text and check_passed if there
-                        # is already a finished conversation
-                        exercise_result.conversation_text = []
-                        exercise_result.check_passed = False
-                        session.commit()
+                    # Clear conversation_text and check_passed, but keep tokens_used
+                    # This preserves token usage history even when conversation is reset
+                    exercise_result.conversation_text = []
+                    exercise_result.check_passed = False
+                    session.commit()
 
         # Only reset the conversation if there are messages beyond the initial message
         # by ChatGPT.
@@ -374,8 +412,13 @@ class ChatState(SessionState):
         New messages get appended to list of ChatMessages.
         """
         async with self:
+            if self.token_limit_reached:
+                return
             if self.waiting_for_response:
                 # don't allow sending another message while waiting for a response
+                return
+            if len(self.user_input) > CHAT_MESSAGE_CHAR_LIMIT:
+                self.user_input = self.user_input[:CHAT_MESSAGE_CHAR_LIMIT]
                 return
             self.waiting_for_response = True
 
@@ -393,7 +436,7 @@ class ChatState(SessionState):
             # the OpenAI API can handle the messages.
             messages = self.get_messages_dict_gpt()
             # Wait while OpenAI Response is generated.
-            llm_response = await get_chat_response(conversation=messages)
+            llm_response, tokens_used = await get_chat_response(conversation=messages)
 
             async with self:
                 # Append response generated by LLM to list of messages, set is_llm to
@@ -407,9 +450,11 @@ class ChatState(SessionState):
                 messages = self.get_messages_dict_gpt()
             yield
 
-            # Save conversation to database.
+            # Save conversation to database with accumulated tokens.
             async with self:
-                self.save_conversation_to_db(conversation=messages)
+                self.save_conversation_to_db(
+                    conversation=messages, tokens_to_add=tokens_used
+                )
                 self.waiting_for_response = False
 
     @rx.event(background=True)
@@ -418,12 +463,15 @@ class ChatState(SessionState):
         Check the conversation of the user.
         """
         async with self:
+            if self.token_limit_reached:
+                return
             self.waiting_for_response = True
             conversation = self.get_messages_dict_gpt()
         yield
-        check_conversation_response = await get_check_conversation_response(
-            conversation
-        )
+        (
+            check_conversation_response,
+            tokens_used,
+        ) = await get_check_conversation_response(conversation)
         async with self:
             self.waiting_for_response = False
             self.check_passed = (
@@ -446,7 +494,9 @@ class ChatState(SessionState):
                     check_passed=self.check_passed,
                 )
             conversation = self.get_messages_dict_gpt()
-            self.save_conversation_to_db(conversation=conversation)
+            self.save_conversation_to_db(
+                conversation=conversation, tokens_to_add=tokens_used
+            )
 
     @rx.event
     def submit_conversation(self):
@@ -507,9 +557,13 @@ class ChatState(SessionState):
             invert=True,
         )
 
-    def save_conversation_to_db(self, conversation: list[dict]):
+    def save_conversation_to_db(self, conversation: list[dict], tokens_to_add: int):
         """
-        Saves the conversation to the database.
+        Saves the conversation to the database and accumulates token usage.
+
+        Args:
+            conversation: The conversation history as a list of dictionaries
+            tokens_to_add: Number of tokens used in the current API call to accumulate
         """
         if self.current_exercise:
             with rx.session() as session:
@@ -531,6 +585,7 @@ class ChatState(SessionState):
                         userinfo_id=self._userinfo_id,
                         conversation_text=conversation,
                         check_passed=self.check_passed,
+                        tokens_used=tokens_to_add,
                     )
                     session.add(exercise_result)
                     session.commit()
@@ -538,7 +593,12 @@ class ChatState(SessionState):
                     # update existing ExerciseResult
                     exercise_result.conversation_text = conversation
                     exercise_result.check_passed = self.check_passed
+                    # Accumulate tokens - add new tokens to existing count
+                    exercise_result.tokens_used += tokens_to_add
                     session.commit()
+
+                # Update current_tokens from database
+                self.current_tokens = exercise_result.tokens_used
 
     def get_messages_dict_gpt(self):
         """
