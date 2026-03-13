@@ -16,12 +16,8 @@ from aitutor.auth.protection import state_require_role_at_least
 from aitutor.auth.state import SessionState
 from aitutor.config import get_config
 from aitutor.global_vars import (
-    CHAT_MESSAGE_CHAR_LIMIT as GLOBAL_CHAT_MESSAGE_CHAR_LIMIT,
-)
-from aitutor.global_vars import (
-    CHAT_TOKEN_WARNING_THRESHOLD as GLOBAL_CHAT_TOKEN_WARNING_THRESHOLD,
-)
-from aitutor.global_vars import (
+    CHAT_MESSAGE_CHAR_LIMIT,
+    CHAT_TOKEN_WARNING_THRESHOLD,
     TIME_FORMAT,
     TIME_ZONE,
 )
@@ -171,8 +167,6 @@ class ChatState(SessionState):
     MAX_REPORT_LENGTH: int = 2000
     current_tokens: int = 0
     token_limit: int = 30000
-    TOKEN_WARNING_THRESHOLD: float = GLOBAL_CHAT_TOKEN_WARNING_THRESHOLD
-    CHAT_MESSAGE_CHAR_LIMIT: int = GLOBAL_CHAT_MESSAGE_CHAR_LIMIT
 
     @rx.var
     def token_limit_reached(self) -> bool:
@@ -182,7 +176,7 @@ class ChatState(SessionState):
     @rx.var
     def token_warning_threshold_reached(self) -> bool:
         """Check if token warning threshold has been reached."""
-        return self.current_tokens >= (self.token_limit * self.TOKEN_WARNING_THRESHOLD)
+        return self.current_tokens >= (self.token_limit * CHAT_TOKEN_WARNING_THRESHOLD)
 
     @rx.var
     def token_usage_percentage(self) -> int:
@@ -199,7 +193,7 @@ class ChatState(SessionState):
     @rx.event
     def set_user_input(self, value: str):
         """Sets the user input value. Truncates if over character limit."""
-        self.user_input = value[: self.CHAT_MESSAGE_CHAR_LIMIT]
+        self.user_input = value[:CHAT_MESSAGE_CHAR_LIMIT]
 
     @rx.event
     @state_require_role_at_least(UserRole.STUDENT)
@@ -423,8 +417,8 @@ class ChatState(SessionState):
             if self.waiting_for_response:
                 # don't allow sending another message while waiting for a response
                 return
-            if len(self.user_input) > self.CHAT_MESSAGE_CHAR_LIMIT:
-                self.user_input = self.user_input[: self.CHAT_MESSAGE_CHAR_LIMIT]
+            if len(self.user_input) > CHAT_MESSAGE_CHAR_LIMIT:
+                self.user_input = self.user_input[:CHAT_MESSAGE_CHAR_LIMIT]
                 return
             self.waiting_for_response = True
 

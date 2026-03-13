@@ -4,6 +4,7 @@ import reflex as rx
 
 import aitutor.global_vars as gv
 from aitutor.components.dialogs import confirm, destructive_confirm
+from aitutor.global_vars import CHAT_MESSAGE_CHAR_LIMIT
 from aitutor.language_state import LanguageState
 from aitutor.pages.chat.state import ChatMessage, ChatState, Role
 
@@ -109,7 +110,7 @@ def chat_form() -> rx.Component:
             enter_key_submit=with_key_submit,
             resize="vertical",
             rows="4",
-            max_length=ChatState.CHAT_MESSAGE_CHAR_LIMIT,
+            max_length=CHAT_MESSAGE_CHAR_LIMIT,
         )
 
     return rx.form(
