@@ -87,6 +87,10 @@ app.add_page(
     route=routes.REPORTS,
     on_load=pages.ReportsState.on_load,
 )
+app.add_page(
+    pages.token_analyzer_page,
+    route=routes.TOKEN_ANALYZER,
+)
 
 # reflex_local_auth pages
 app.add_page(
