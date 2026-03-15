@@ -19,7 +19,11 @@ def lecture_has_role_at_least(role):
     Check if the user has the required role to access a specific feature.
     """
     user_role = SessionState.user_role
-    return user_role is not None and user_role >= role
+    return (
+        (user_role is not None and user_role >= role)
+        | SessionState.global_permissions.contains(GlobalRole.ADMIN)
+        | SessionState.global_permissions.contains(GlobalRole.MAINTAINER)
+    )
 
 
 def lecture_page_require_role_at_least(required_role: UserRole):
