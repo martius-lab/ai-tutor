@@ -508,6 +508,11 @@ class LanguageState(SessionState):
     def submitted_chat_tutor(self) -> str:
         """Submitted chat string"""
         return self.translate(de="Abgegebener Chat", en="Submitted chat")
+    
+    # Token Analyzer Page Strings ------------------------------------------------------
+    @rx.var
+    def token_usage(self) -> str:
+        return self.translate(de="Token-Nutzung", en="Token Usage")
 
     # Manage Exercises Page Strings ----------------------------------------------------
     @rx.var

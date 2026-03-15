@@ -1,23 +1,25 @@
-"""Token Analyzer page (placeholder)."""
+"""Token Analyzer page."""
 
 import reflex as rx
 
 from aitutor import routes
 from aitutor.auth.protection import page_require_role_at_least
+from aitutor.language_state import LanguageState
 from aitutor.models import UserRole
 from aitutor.pages.navbar import with_navbar
 from aitutor.pages.navbar_admin import with_admin_navbar
+from aitutor.pages.token_analyzer.components import token_analyzer_table
 
 
 @with_navbar(routes.ADMIN_SETTINGS)
 @with_admin_navbar(routes.TOKEN_ANALYZER)
 @page_require_role_at_least(UserRole.ADMIN)
 def token_analyzer_page() -> rx.Component:
-    """Placeholder page for the token analyzer feature."""
+    """Token analyzer page for user token usage overview."""
     return rx.center(
         rx.vstack(
-            rx.heading("Token Analyzer", size="6"),
-            rx.text("empty"),
+            rx.heading(LanguageState.token_analyzer, size="6"),
+            token_analyzer_table(),
             spacing="3",
             align="center",
             justify="center",

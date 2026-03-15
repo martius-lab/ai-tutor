@@ -90,6 +90,7 @@ app.add_page(
 app.add_page(
     pages.token_analyzer_page,
     route=routes.TOKEN_ANALYZER,
+    on_load=pages.TokenAnalyzerState.on_load,
 )
 
 # reflex_local_auth pages
