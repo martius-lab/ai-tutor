@@ -8,7 +8,10 @@ from aitutor.language_state import LanguageState
 from aitutor.models import UserRole
 from aitutor.pages.navbar import with_navbar
 from aitutor.pages.navbar_admin import with_admin_navbar
-from aitutor.pages.token_analyzer.components import token_analyzer_table
+from aitutor.pages.token_analyzer.components import (
+    token_analyzer_bar_chart,
+    token_analyzer_table,
+)
 
 
 @with_navbar(routes.ADMIN_SETTINGS)
@@ -19,6 +22,7 @@ def token_analyzer_page() -> rx.Component:
     return rx.center(
         rx.vstack(
             rx.heading(LanguageState.token_analyzer, size="6"),
+            token_analyzer_bar_chart(),
             token_analyzer_table(),
             spacing="3",
             align="center",

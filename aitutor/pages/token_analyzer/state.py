@@ -22,6 +22,18 @@ class TokenAnalyzerState(SessionState):
     """State for the token analyzer page."""
 
     table_rows: list[TableRow]
+    chart_data: list[dict[str, int]]
+    chart_ticks: list[int]
+
+    @rx.var
+    def chart_min_width(self) -> str:
+        """Minimum chart width to keep bars readable for many users."""
+        chart_count = len(self.chart_data)
+        if chart_count > 120:
+            return "1400px"
+        if chart_count > 80:
+            return "1000px"
+        return "700px"
 
     @rx.event
     @state_require_role_at_least(UserRole.ADMIN)
@@ -33,6 +45,8 @@ class TokenAnalyzerState(SessionState):
     def on_logout(self):
         """Clears the state when the user logs out."""
         self.table_rows = []
+        self.chart_data = []
+        self.chart_ticks = []
 
     @rx.event
     def load_token_rows(self):
@@ -58,3 +72,17 @@ class TokenAnalyzerState(SessionState):
                 TableRow(username=username, tokens_used=tokens_used)
                 for username, tokens_used in session.exec(stmt).all()
             ]
+
+            self.chart_data = [
+                {"rank": index + 1, "tokens_used": row.tokens_used}
+                for index, row in enumerate(self.table_rows)
+            ]
+
+            total_users = len(self.table_rows)
+            if total_users == 0:
+                self.chart_ticks = []
+                return
+
+            tick_set = {1, total_users}
+            tick_set.update(range(5, total_users + 1, 5))
+            self.chart_ticks = sorted(tick_set)
