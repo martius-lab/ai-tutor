@@ -11,8 +11,6 @@ from reflex_local_auth.login import LoginState
 from aitutor.auth.state import SessionState
 from aitutor.models import GlobalRole, UserRole
 
-# LECTURE SPECIFIC ROLES ---------------------------------------------------------------
-
 
 def lecture_has_role_at_least(role):
     """
@@ -24,27 +22,6 @@ def lecture_has_role_at_least(role):
         | SessionState.global_permissions.contains(GlobalRole.ADMIN)
         | SessionState.global_permissions.contains(GlobalRole.MAINTAINER)
     )
-
-
-def lecture_state_require_role_at_least(required_role):
-    """
-    Checks if the user is authenticated and has the required role (in the backend).
-    This decorator should be called with the on_load method of a state class.
-    It will prevent that data is loaded if the user does not have the required role.
-    """
-
-    def decorator(func):
-        @functools.wraps(func)
-        def wrapper(self: SessionState, *args, **kwargs):
-            if self.is_authenticated and self.user_role >= required_role:
-                return func(self, *args, **kwargs)
-
-        return wrapper
-
-    return decorator
-
-
-# CHECK FOR GLOBAL ROLES OR LECTURE ROLES ----------------------------------------------
 
 
 def page_require_role_or_permission(

@@ -4,7 +4,7 @@ import reflex as rx
 from sqlalchemy.orm import selectinload
 from sqlmodel import select
 
-from aitutor.auth.protection import lecture_state_require_role_at_least
+from aitutor.auth.protection import state_require_role_or_permission
 from aitutor.auth.state import SessionState
 from aitutor.models import Report, UserInfo, UserRole
 from aitutor.pages.chat.state import ChatMessage, Role
@@ -20,7 +20,7 @@ class ReportViewState(SessionState):
     messages: list[ChatMessage] = []
 
     @rx.event
-    @lecture_state_require_role_at_least(UserRole.TUTOR)
+    @state_require_role_or_permission(required_role=UserRole.ADMIN)
     def on_load(self):
         """Load report details when page opens."""
         self.global_load()
@@ -79,7 +79,7 @@ class ReportViewState(SessionState):
                 ]
 
     @rx.event
-    @lecture_state_require_role_at_least(UserRole.TUTOR)
+    @state_require_role_or_permission(required_role=UserRole.ADMIN)
     def toggle_looked_at(self):
         """Toggle the looked_at status of the report."""
         with rx.session() as session:

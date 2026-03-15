@@ -9,7 +9,7 @@ from sqlalchemy.orm import selectinload
 from sqlmodel import and_, func, or_, select
 
 import aitutor.global_vars as gv
-from aitutor.auth.protection import lecture_state_require_role_at_least
+from aitutor.auth.protection import state_require_role_or_permission
 from aitutor.auth.state import SessionState
 from aitutor.global_vars import TIME_FORMAT, TIME_ZONE
 from aitutor.models import Exercise, ExerciseResult, Tag, UserRole
@@ -49,7 +49,7 @@ class ExercisesState(FilterMixin, SessionState):
         self.load_exercises()
 
     @rx.event
-    @lecture_state_require_role_at_least(UserRole.STUDENT)
+    @state_require_role_or_permission(required_role=UserRole.STUDENT)
     def on_load(self):
         """
         Fetch exercises from database

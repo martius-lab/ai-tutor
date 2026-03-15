@@ -6,7 +6,7 @@ import reflex as rx
 from sqlmodel import select
 
 import aitutor.routes as routes
-from aitutor.auth.protection import lecture_state_require_role_at_least
+from aitutor.auth.protection import state_require_role_or_permission
 from aitutor.auth.state import SessionState
 from aitutor.language_state import BackendTranslations as BT
 from aitutor.models import Exercise, ExerciseResult, UserRole
@@ -21,7 +21,7 @@ class FinishedViewState(SessionState):
     exercise_title: str = "No Exercise Selected"
 
     @rx.event
-    @lecture_state_require_role_at_least(UserRole.STUDENT)
+    @state_require_role_or_permission(required_role=UserRole.STUDENT)
     def on_load(self):
         """Loads the finished exercise and conversation."""
 

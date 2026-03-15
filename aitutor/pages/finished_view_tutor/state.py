@@ -7,7 +7,7 @@ from reflex_local_auth import LocalUser
 from sqlmodel import select
 
 import aitutor.routes as routes
-from aitutor.auth.protection import lecture_state_require_role_at_least
+from aitutor.auth.protection import state_require_role_or_permission
 from aitutor.auth.state import SessionState
 from aitutor.models import Exercise, ExerciseResult, UserInfo, UserRole
 from aitutor.pages.chat.state import ChatMessage, Role
@@ -22,7 +22,7 @@ class FinishedViewTutorState(SessionState):
     exercise_title: str = "No Exercise Selected"
 
     @rx.event
-    @lecture_state_require_role_at_least(UserRole.TUTOR)
+    @state_require_role_or_permission(required_role=UserRole.TUTOR)
     def on_load(self):
         """Loads the finished exercise and user info."""
 

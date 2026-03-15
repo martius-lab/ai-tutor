@@ -7,7 +7,7 @@ from zoneinfo import ZoneInfo
 import reflex as rx
 from sqlmodel import and_, or_, select
 
-from aitutor.auth.protection import lecture_state_require_role_at_least
+from aitutor.auth.protection import state_require_role_or_permission
 from aitutor.auth.state import SessionState
 from aitutor.global_vars import TIME_ZONE
 from aitutor.models import Exercise, ExerciseResult, UserRole
@@ -19,7 +19,7 @@ class HomeState(SessionState):
     exercises_with_result: list[tuple[Exercise, Optional[ExerciseResult]]] = []
 
     @rx.event
-    @lecture_state_require_role_at_least(UserRole.STUDENT)
+    @state_require_role_or_permission(required_role=UserRole.STUDENT)
     def on_load(self):
         """Load exercises when the home page is loaded."""
         self.global_load()
