@@ -3,7 +3,7 @@
 import reflex as rx
 
 from aitutor import routes
-from aitutor.auth.protection import lecture_page_require_role_at_least
+from aitutor.auth.protection import page_require_role_or_permission
 from aitutor.models import UserRole
 from aitutor.pages.manage_exercises.components import (
     add_exercise_button,
@@ -21,7 +21,7 @@ from aitutor.utilities.filtering_components import search_badges, search_bar
 
 @with_navbar(routes.ADMIN_SETTINGS)
 @with_admin_navbar(routes.MANAGE_EXERCISES)
-@lecture_page_require_role_at_least(UserRole.ADMIN)
+@page_require_role_or_permission(required_role=UserRole.ADMIN)
 def manage_exercises_page() -> rx.Component:
     """Manage exercises page."""
     return rx.center(

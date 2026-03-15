@@ -3,7 +3,7 @@
 import reflex as rx
 
 from aitutor import routes
-from aitutor.auth.protection import lecture_page_require_role_at_least
+from aitutor.auth.protection import page_require_role_or_permission
 from aitutor.language_state import LanguageState
 from aitutor.models import UserRole
 from aitutor.pages.chat.components import message_box
@@ -12,7 +12,7 @@ from aitutor.pages.report_view.state import ReportViewState
 
 
 @with_navbar(routes.ADMIN_SETTINGS)
-@lecture_page_require_role_at_least(UserRole.TUTOR)
+@page_require_role_or_permission(required_role=UserRole.TUTOR)
 def report_view_page() -> rx.Component:
     """Renders the report view page."""
     return rx.container(
