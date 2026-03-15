@@ -11,7 +11,7 @@ from aitutor.auth.state import SessionState
 from aitutor.models import UserRole
 
 
-def has_role_at_least(role):
+def lecture_has_role_at_least(role):
     """
     Check if the user has the required role to access a specific feature.
     """
@@ -19,7 +19,7 @@ def has_role_at_least(role):
     return user_role is not None and user_role >= role
 
 
-def page_require_role_at_least(required_role: UserRole):
+def lecture_page_require_role_at_least(required_role: UserRole):
     """
     Checks if the user is authenticated and has the required role (in the frontend).
     This decorator should be called with the page function.
@@ -63,7 +63,7 @@ def page_require_role_at_least(required_role: UserRole):
     return decorator
 
 
-def state_require_role_at_least(required_role):
+def lecture_state_require_role_at_least(required_role):
     """
     Checks if the user is authenticated and has the required role (in the backend).
     This decorator should be called with the on_load method of a state class.

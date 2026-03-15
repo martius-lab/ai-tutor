@@ -12,7 +12,7 @@ from sqlalchemy.orm import selectinload
 from sqlmodel import and_, func, or_, select
 
 import aitutor.global_vars as gv
-from aitutor.auth.protection import state_require_role_at_least
+from aitutor.auth.protection import lecture_state_require_role_at_least
 from aitutor.auth.state import SessionState
 from aitutor.language_state import BackendTranslations as BT
 from aitutor.models import Exercise, ExerciseTagLink, Prompt, Tag, UserRole
@@ -123,7 +123,7 @@ class ManageExercisesState(FilterMixin, SessionState):
         self.exercise_is_selected[exercise_id] = is_selected  # type: ignore
 
     @rx.event
-    @state_require_role_at_least(UserRole.ADMIN)
+    @lecture_state_require_role_at_least(UserRole.ADMIN)
     def on_load(self):
         """Initialize the state"""
         with rx.session() as session:

@@ -4,7 +4,7 @@ import reflex as rx
 
 import aitutor.global_vars as gv
 from aitutor import routes
-from aitutor.auth.protection import page_require_role_at_least
+from aitutor.auth.protection import lecture_page_require_role_at_least
 from aitutor.language_state import LanguageState
 from aitutor.models import UserRole
 from aitutor.pages.chat.components import message_box
@@ -14,7 +14,7 @@ from aitutor.pages.navbar import with_navbar
 
 
 @with_navbar(routes.EXERCISES)
-@page_require_role_at_least(UserRole.STUDENT)
+@lecture_page_require_role_at_least(UserRole.STUDENT)
 def finished_view_page() -> rx.Component:
     """Renders the web page."""
     return rx.container(

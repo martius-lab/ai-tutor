@@ -8,7 +8,7 @@ import reflex as rx
 
 import aitutor.routes as routes
 from aitutor import DisplayConfigState
-from aitutor.auth.protection import has_role_at_least
+from aitutor.auth.protection import lecture_has_role_at_least
 from aitutor.auth.state import SessionState
 from aitutor.language_state import LanguageState
 from aitutor.models import UserRole
@@ -65,10 +65,10 @@ admin_links = [
 def get_links():
     """Returns the list of navigation links for the current user role."""
     return rx.cond(
-        has_role_at_least(UserRole.ADMIN),
+        lecture_has_role_at_least(UserRole.ADMIN),
         general_links + tutor_links + admin_links,
         rx.cond(
-            has_role_at_least(UserRole.TUTOR),
+            lecture_has_role_at_least(UserRole.TUTOR),
             general_links + tutor_links,
             general_links,
         ),

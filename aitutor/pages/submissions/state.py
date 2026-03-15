@@ -10,7 +10,7 @@ from sqlalchemy.orm import selectinload
 from sqlmodel import and_, func, or_, select
 
 import aitutor.global_vars as gv
-from aitutor.auth.protection import state_require_role_at_least
+from aitutor.auth.protection import lecture_state_require_role_at_least
 from aitutor.auth.state import SessionState
 from aitutor.config import get_config
 from aitutor.models import Exercise, ExerciseResult, Tag, UserInfo, UserRole
@@ -43,7 +43,7 @@ class SubmissionsState(FilterMixin, SessionState):
     ]
 
     @rx.event
-    @state_require_role_at_least(UserRole.TUTOR)
+    @lecture_state_require_role_at_least(UserRole.TUTOR)
     def on_load(self):
         """gets executed when the page loads."""
         self.global_load()

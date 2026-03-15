@@ -9,7 +9,7 @@ from sqlalchemy.orm import selectinload
 from sqlmodel import select
 
 import aitutor.global_vars as gv
-from aitutor.auth.protection import state_require_role_at_least
+from aitutor.auth.protection import lecture_state_require_role_at_least
 from aitutor.auth.state import SessionState
 from aitutor.models import (
     Exercise,
@@ -46,7 +46,7 @@ class ReportsState(FilterMixin, SessionState):
     ]
 
     @rx.event
-    @state_require_role_at_least(UserRole.TUTOR)
+    @lecture_state_require_role_at_least(UserRole.TUTOR)
     def on_load(self):
         """Load all reports when page opens."""
         self.global_load()
@@ -145,7 +145,7 @@ class ReportsState(FilterMixin, SessionState):
                 )
 
     @rx.event
-    @state_require_role_at_least(UserRole.TUTOR)
+    @lecture_state_require_role_at_least(UserRole.TUTOR)
     def toggle_looked_at(self, report_id: int):
         """Toggle the looked_at status of a report."""
         with rx.session() as session:
@@ -160,7 +160,7 @@ class ReportsState(FilterMixin, SessionState):
                 self.load_reports()
 
     @rx.event
-    @state_require_role_at_least(UserRole.TUTOR)
+    @lecture_state_require_role_at_least(UserRole.TUTOR)
     def delete_report(self, report_id: int):
         """Delete a report from the database."""
         with rx.session() as session:

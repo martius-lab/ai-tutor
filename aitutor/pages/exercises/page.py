@@ -3,7 +3,7 @@
 import reflex as rx
 
 from aitutor import routes
-from aitutor.auth.protection import page_require_role_at_least
+from aitutor.auth.protection import lecture_page_require_role_at_least
 from aitutor.models import UserRole
 from aitutor.pages.exercises.components import filter_options, render_exercises
 from aitutor.pages.exercises.state import ExercisesState
@@ -12,7 +12,7 @@ from aitutor.utilities.filtering_components import search_badges, search_bar
 
 
 @with_navbar(routes.EXERCISES)
-@page_require_role_at_least(UserRole.STUDENT)
+@lecture_page_require_role_at_least(UserRole.STUDENT)
 def exercises_page() -> rx.Component:
     """Default wrapper for exercises page"""
     return rx.center(

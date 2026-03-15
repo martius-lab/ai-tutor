@@ -2,7 +2,7 @@
 
 import reflex as rx
 
-from aitutor.auth.protection import state_require_role_at_least
+from aitutor.auth.protection import lecture_state_require_role_at_least
 from aitutor.auth.state import SessionState
 from aitutor.language_state import BackendTranslations as BT
 from aitutor.models import Config, UserRole
@@ -54,7 +54,7 @@ class ManageConfigState(SessionState):
         self.unsaved_changes = True
 
     @rx.event
-    @state_require_role_at_least(UserRole.TUTOR)
+    @lecture_state_require_role_at_least(UserRole.TUTOR)
     def on_load(self):
         """Initialization for the page."""
         with rx.session() as session:
