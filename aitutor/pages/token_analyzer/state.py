@@ -1,6 +1,7 @@
 """State for the token analyzer page."""
 
 from dataclasses import dataclass
+from math import floor, log10
 
 import reflex as rx
 from sqlmodel import func, select
@@ -22,7 +23,7 @@ class TokenAnalyzerState(SessionState):
     """State for the token analyzer page."""
 
     table_rows: list[TableRow]
-    chart_data: list[dict[str, int]]
+    chart_data: list[dict[str, int | float]]
     chart_ticks: list[int]
 
     @rx.var
@@ -74,7 +75,11 @@ class TokenAnalyzerState(SessionState):
             ]
 
             self.chart_data = [
-                {"rank": index + 1, "tokens_used": row.tokens_used}
+                {
+                    "rank": index + 1,
+                    "tokens_used": row.tokens_used,
+                    "tokens_used_k": round(row.tokens_used / 1000, 1),
+                }
                 for index, row in enumerate(self.table_rows)
             ]
 
@@ -83,6 +88,18 @@ class TokenAnalyzerState(SessionState):
                 self.chart_ticks = []
                 return
 
+            # Build mathematically "nice" x-axis ticks with roughly 8 markers.
+            # Always include first and last rank.
+            target_tick_count = 8
+            raw_step = max(1.0, (total_users - 1) / max(1, target_tick_count - 1))
+            magnitude = 10 ** floor(log10(raw_step))
+            step = magnitude
+            for multiplier in (1, 2, 5, 10):
+                candidate = multiplier * magnitude
+                if candidate >= raw_step:
+                    step = candidate
+                    break
+
             tick_set = {1, total_users}
-            tick_set.update(range(5, total_users + 1, 5))
+            tick_set.update(range(step, total_users, step))
             self.chart_ticks = sorted(tick_set)
