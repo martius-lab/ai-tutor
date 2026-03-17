@@ -13,7 +13,7 @@ def role_to_text(role: UserRole):
     """Convert a UserRole to string in a way that works for reflex."""
     return rx.match(
         role,
-        (UserRole.ADMIN, UserRole.ADMIN.name),
+        (UserRole.OWNER, UserRole.OWNER.name),
         (UserRole.TUTOR, UserRole.TUTOR.name),
         (UserRole.STUDENT, UserRole.STUDENT.name),
         "Unknown",
@@ -135,7 +135,7 @@ def edit_user_dialog() -> rx.Component:
                         rx.hstack(
                             rx.select(
                                 (
-                                    UserRole.ADMIN.name,
+                                    UserRole.OWNER.name,
                                     UserRole.TUTOR.name,
                                     UserRole.STUDENT.name,
                                 ),

@@ -21,7 +21,7 @@ from aitutor.utilities.filtering_components import search_badges, search_bar
 
 @with_navbar(routes.ADMIN_SETTINGS)
 @with_admin_navbar(routes.MANAGE_EXERCISES)
-@page_require_role_or_permission(required_role=UserRole.ADMIN)
+@page_require_role_or_permission(required_role=UserRole.OWNER)
 def manage_exercises_page() -> rx.Component:
     """Manage exercises page."""
     return rx.center(

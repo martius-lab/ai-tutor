@@ -123,7 +123,7 @@ class ManageExercisesState(FilterMixin, SessionState):
         self.exercise_is_selected[exercise_id] = is_selected  # type: ignore
 
     @rx.event
-    @state_require_role_or_permission(required_role=UserRole.ADMIN)
+    @state_require_role_or_permission(required_role=UserRole.OWNER)
     def on_load(self):
         """Initialize the state"""
         with rx.session() as session:

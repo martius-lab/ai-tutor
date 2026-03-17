@@ -13,7 +13,7 @@ from aitutor.pages.navbar_admin import with_admin_navbar
 @with_navbar(routes.ADMIN_SETTINGS)
 @with_admin_navbar(routes.MANAGE_USERS)
 @page_require_role_or_permission(
-    required_role=UserRole.ADMIN,
+    required_role=UserRole.OWNER,
     allowed_permissions=[GlobalRole.ADMIN, GlobalRole.MAINTAINER],
 )
 def manage_users_page() -> rx.Component:

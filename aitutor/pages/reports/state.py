@@ -46,7 +46,7 @@ class ReportsState(FilterMixin, SessionState):
     ]
 
     @rx.event
-    @state_require_role_or_permission(required_role=UserRole.ADMIN)
+    @state_require_role_or_permission(required_role=UserRole.OWNER)
     def on_load(self):
         """Load all reports when page opens."""
         self.global_load()
@@ -145,7 +145,7 @@ class ReportsState(FilterMixin, SessionState):
                 )
 
     @rx.event
-    @state_require_role_or_permission(required_role=UserRole.ADMIN)
+    @state_require_role_or_permission(required_role=UserRole.OWNER)
     def toggle_looked_at(self, report_id: int):
         """Toggle the looked_at status of a report."""
         with rx.session() as session:
@@ -160,7 +160,7 @@ class ReportsState(FilterMixin, SessionState):
                 self.load_reports()
 
     @rx.event
-    @state_require_role_or_permission(required_role=UserRole.ADMIN)
+    @state_require_role_or_permission(required_role=UserRole.OWNER)
     def delete_report(self, report_id: int):
         """Delete a report from the database."""
         with rx.session() as session:

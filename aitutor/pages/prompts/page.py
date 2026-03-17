@@ -13,7 +13,7 @@ from aitutor.pages.prompts.components import prompt_management
 @with_navbar(routes.ADMIN_SETTINGS)
 @with_admin_navbar(routes.PROMPTS)
 @page_require_role_or_permission(
-    required_role=UserRole.ADMIN,
+    required_role=UserRole.OWNER,
     allowed_permissions=[GlobalRole.ADMIN, GlobalRole.MAINTAINER],
 )
 def prompts_page() -> rx.Component:
