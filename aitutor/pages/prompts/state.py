@@ -6,7 +6,7 @@ from sqlmodel import select
 from aitutor.auth.protection import state_require_role_or_permission
 from aitutor.auth.state import SessionState
 from aitutor.language_state import BackendTranslations as BT
-from aitutor.models import Exercise, Prompt, UserRole
+from aitutor.models import Exercise, GlobalRole, Prompt, UserRole
 
 
 class ManagePromptsState(SessionState):
@@ -74,7 +74,10 @@ class ManagePromptsState(SessionState):
         self.unsaved_changes = True
 
     @rx.event
-    @state_require_role_or_permission(required_role=UserRole.TUTOR)
+    @state_require_role_or_permission(
+        required_role=UserRole.TUTOR,
+        allowed_permissions=[GlobalRole.ADMIN, GlobalRole.MAINTAINER],
+    )
     def on_load(self):
         """Initialization for the page."""
         self.global_load()

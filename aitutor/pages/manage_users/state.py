@@ -7,7 +7,7 @@ from sqlmodel import case, cast, select
 from aitutor.auth.protection import state_require_role_or_permission
 from aitutor.auth.state import SessionState
 from aitutor.language_state import BackendTranslations as BT
-from aitutor.models import LocalUser, UserInfo, UserRole
+from aitutor.models import GlobalRole, LocalUser, UserInfo, UserRole
 
 
 class ManageUsersState(SessionState):
@@ -18,7 +18,10 @@ class ManageUsersState(SessionState):
     edit_dialog_is_open: bool = False
 
     @rx.event
-    @state_require_role_or_permission(required_role=UserRole.ADMIN)
+    @state_require_role_or_permission(
+        required_role=UserRole.ADMIN,
+        allowed_permissions=[GlobalRole.ADMIN, GlobalRole.MAINTAINER],
+    )
     def on_load(self):
         """Initialize the state"""
         self.global_load()
