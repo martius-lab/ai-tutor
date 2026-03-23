@@ -10,6 +10,7 @@ from aitutor.pages.navbar import with_navbar
 from aitutor.pages.navbar_admin import with_admin_navbar
 from aitutor.pages.token_analyzer.components import (
     token_analyzer_bar_chart,
+    token_analyzer_exercise_selector,
     token_analyzer_table,
 )
 
@@ -22,6 +23,7 @@ def token_analyzer_page() -> rx.Component:
     return rx.center(
         rx.vstack(
             rx.heading(LanguageState.token_analyzer, size="6"),
+            token_analyzer_exercise_selector(),
             token_analyzer_bar_chart(),
             token_analyzer_table(),
             spacing="3",

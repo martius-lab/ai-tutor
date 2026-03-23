@@ -3,7 +3,11 @@
 import reflex as rx
 
 from aitutor.language_state import LanguageState
-from aitutor.pages.token_analyzer.state import TableRow, TokenAnalyzerState
+from aitutor.pages.token_analyzer.state import (
+    ALL_EXERCISES_OPTION,
+    TableRow,
+    TokenAnalyzerState,
+)
 
 
 def header_cell(text, icon: str):
@@ -25,6 +29,27 @@ def show_table_row(table_row: TableRow) -> rx.Component:
         rx.table.cell(table_row.tokens_used),
         style={"_hover": {"bg": rx.color("gray", 3)}},
         align="center",
+    )
+
+
+def token_analyzer_exercise_selector() -> rx.Component:
+    """Selector for filtering token analysis by exercise."""
+    return rx.hstack(
+        rx.text(
+            LanguageState.exercise + ":",
+            size="3",
+            weight="medium",
+        ),
+        rx.select(
+            items=TokenAnalyzerState.exercise_options,
+            value=TokenAnalyzerState.selected_exercise_name,
+            on_change=TokenAnalyzerState.set_selected_exercise_name,
+            placeholder=ALL_EXERCISES_OPTION,
+            width="320px",
+        ),
+        align="center",
+        width="85vw",
+        justify="start",
     )
 
 

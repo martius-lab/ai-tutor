@@ -8,7 +8,9 @@ from sqlmodel import func, select
 
 from aitutor.auth.protection import state_require_role_at_least
 from aitutor.auth.state import SessionState
-from aitutor.models import ExerciseResult, LocalUser, UserInfo, UserRole
+from aitutor.models import Exercise, ExerciseResult, LocalUser, UserInfo, UserRole
+
+ALL_EXERCISES_OPTION = "All"
 
 
 @dataclass
@@ -25,6 +27,8 @@ class TokenAnalyzerState(SessionState):
     table_rows: list[TableRow]
     chart_data: list[dict[str, int | float]]
     chart_ticks: list[int]
+    exercise_options: list[str]
+    selected_exercise_name: str = ALL_EXERCISES_OPTION
 
     @rx.var
     def chart_min_width(self) -> str:
@@ -41,6 +45,7 @@ class TokenAnalyzerState(SessionState):
     def on_load(self):
         """Gets executed when the page loads."""
         self.global_load()
+        self.load_exercise_options()
         self.load_token_rows()
 
     def on_logout(self):
@@ -48,6 +53,23 @@ class TokenAnalyzerState(SessionState):
         self.table_rows = []
         self.chart_data = []
         self.chart_ticks = []
+        self.exercise_options = []
+        self.selected_exercise_name = ALL_EXERCISES_OPTION
+
+    @rx.event
+    def load_exercise_options(self):
+        """Load selectable exercises for filtering."""
+        with rx.session() as session:
+            exercises = session.exec(
+                select(Exercise.title).order_by(func.lower(Exercise.title))
+            ).all()
+            self.exercise_options = [ALL_EXERCISES_OPTION, *exercises]
+
+    @rx.event
+    def set_selected_exercise_name(self, exercise_name: str):
+        """Set selected exercise filter and reload the token rows."""
+        self.selected_exercise_name = exercise_name
+        self.load_token_rows()
 
     @rx.event
     def load_token_rows(self):
@@ -60,13 +82,14 @@ class TokenAnalyzerState(SessionState):
         with rx.session() as session:
             total_tokens = func.sum(ExerciseResult.tokens_used)
 
-            stmt = (
-                select(LocalUser.username, total_tokens)
-                .select_from(LocalUser)
-                .join(UserInfo)
-                .join(ExerciseResult)
-                .group_by(LocalUser.username)
-                .order_by(total_tokens.desc(), func.lower(LocalUser.username))
+            stmt = select(LocalUser.username, total_tokens).select_from(LocalUser)
+            stmt = stmt.join(UserInfo).join(ExerciseResult)
+
+            if self.selected_exercise_name != ALL_EXERCISES_OPTION:
+                stmt = stmt.join(Exercise).where(Exercise.title == self.selected_exercise_name)
+
+            stmt = stmt.group_by(LocalUser.username).order_by(
+                total_tokens.desc(), func.lower(LocalUser.username)
             )
 
             self.table_rows = [
