@@ -11,7 +11,10 @@ from aitutor.pages.navbar_admin import with_admin_navbar
 from aitutor.pages.token_analyzer.components import (
     token_analyzer_bar_chart,
     token_analyzer_exercise_selector,
+    token_analyzer_exercise_bar_chart,
+    token_analyzer_exercise_table,
     token_analyzer_table,
+    token_analyzer_user_selector,
 )
 
 
@@ -26,6 +29,11 @@ def token_analyzer_page() -> rx.Component:
             token_analyzer_exercise_selector(),
             token_analyzer_bar_chart(),
             token_analyzer_table(),
+            rx.divider(width="85vw", margin_top="1em", margin_bottom="1em"),
+            rx.heading(LanguageState.exercise, size="5", width="85vw", text_align="left"),
+            token_analyzer_user_selector(),
+            token_analyzer_exercise_bar_chart(),
+            token_analyzer_exercise_table(),
             spacing="3",
             align="center",
             justify="center",
