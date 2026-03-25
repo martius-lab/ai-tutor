@@ -124,5 +124,5 @@ class SessionState(reflex_local_auth.LocalAuthState):
                     Permission.user_id == self.authenticated_user.id
                 )
             ).all()
-            # Cast each permission string to GlobalRole enum
+            # Cast each permission string to GlobalPermissions enum
             return [GlobalPermission(perm) for perm in permissions]

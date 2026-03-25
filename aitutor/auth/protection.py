@@ -31,7 +31,7 @@ def page_require_role_or_permission(
 ):
     """
     Protects a page. Allows access if the user has the required UserRole
-    OR at least one of the allowed GlobalRoles (ADMIN is always allowed).
+    OR at least one of the allowed GlobalPermissions (ADMIN is always allowed).
     """
     # copy the list to avoid modifying the original and ensure ADMIN is always included
     perms_to_check = list(allowed_permissions) if allowed_permissions else []
@@ -104,7 +104,7 @@ def state_require_role_or_permission(
 ):
     """
     Protects a state event. Allows execution if the user has the required UserRole
-    OR at least one of the allowed GlobalRoles (ADMIN is always allowed).
+    OR at least one of the allowed GlobalPermissions (ADMIN is always allowed).
     """
     # copy the list to avoid modifying the original and ensure ADMIN is always included
     perms_to_check = list(allowed_permissions) if allowed_permissions else []
