@@ -201,11 +201,14 @@ class Permission(SQLModel, table=True):
     Table for storing user permissions/global roles.
     """
 
-    id: Optional[int] = Field(default=None, primary_key=True)
     user_id: int = Field(
-        foreign_key="localuser.id", nullable=False, ondelete="CASCADE", index=True
+        foreign_key="localuser.id",
+        primary_key=True,
+        nullable=False,
+        ondelete="CASCADE",
+        index=True,
     )
-    permission: GlobalPermission
+    permission: GlobalPermission = Field(primary_key=True)
 
 
 class Config(SQLModel, table=True):

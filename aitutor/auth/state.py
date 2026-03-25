@@ -124,4 +124,4 @@ class SessionState(reflex_local_auth.LocalAuthState):
                     Permission.user_id == self.authenticated_user.id
                 )
             ).all()
-            return permissions # type: ignore
+            return permissions  # type: ignore
