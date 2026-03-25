@@ -14,7 +14,7 @@ from aitutor.pages.navbar_admin import with_admin_navbar
 @with_admin_navbar(routes.MANAGE_USERS)
 @page_require_role_or_permission(
     required_role=UserRole.ADMIN,
-    allowed_permissions=[GlobalPermission.ADMIN, GlobalPermission.MAINTAINER],
+    allowed_permissions=[GlobalPermission.MAINTAINER],
 )
 def manage_users_page() -> rx.Component:
     """Manage users page."""

@@ -76,7 +76,7 @@ class ManagePromptsState(SessionState):
     @rx.event
     @state_require_role_or_permission(
         required_role=UserRole.TUTOR,
-        allowed_permissions=[GlobalPermission.ADMIN, GlobalPermission.MAINTAINER],
+        allowed_permissions=[GlobalPermission.MAINTAINER],
     )
     def on_load(self):
         """Initialization for the page."""

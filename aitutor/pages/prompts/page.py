@@ -14,7 +14,7 @@ from aitutor.pages.prompts.components import prompt_management
 @with_admin_navbar(routes.PROMPTS)
 @page_require_role_or_permission(
     required_role=UserRole.ADMIN,
-    allowed_permissions=[GlobalPermission.ADMIN, GlobalPermission.MAINTAINER],
+    allowed_permissions=[GlobalPermission.MAINTAINER],
 )
 def prompts_page() -> rx.Component:
     """Prompts page."""
