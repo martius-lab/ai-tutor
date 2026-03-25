@@ -40,7 +40,7 @@ class UserRole(IntEnum):
     ADMIN = 3
 
 
-class GlobalRole(StrEnum):
+class GlobalPermission(StrEnum):
     """
     Enum for global roles that apply across all lectures.
     """
@@ -205,7 +205,7 @@ class Permission(SQLModel, table=True):
     user_id: int = Field(
         foreign_key="localuser.id", nullable=False, ondelete="CASCADE", index=True
     )
-    permission: GlobalRole
+    permission: GlobalPermission
 
 
 class Config(SQLModel, table=True):

@@ -10,7 +10,7 @@ from sqlmodel import select
 
 import aitutor.routes as routes
 from aitutor import pages
-from aitutor.models import GlobalRole, Language, Permission, UserInfo, UserRole
+from aitutor.models import GlobalPermission, Language, Permission, UserInfo, UserRole
 
 
 class SessionState(reflex_local_auth.LocalAuthState):
@@ -108,7 +108,7 @@ class SessionState(reflex_local_auth.LocalAuthState):
         return self.authenticated_user_info.role
 
     @rx.var(cache=True, initial_value=[])
-    def global_permissions(self) -> list[GlobalRole]:
+    def global_permissions(self) -> list[GlobalPermission]:
         """
         Retrieves a list of global permissions (Enums) for the authenticated user.
         """
@@ -125,4 +125,4 @@ class SessionState(reflex_local_auth.LocalAuthState):
                 )
             ).all()
             # Cast each permission string to GlobalRole enum
-            return [GlobalRole(perm) for perm in permissions]
+            return [GlobalPermission(perm) for perm in permissions]

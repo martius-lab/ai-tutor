@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: 4fd21c245fcd
+Revision ID: 6357fc1e0bd7
 Revises: 985c806b1347
-Create Date: 2026-03-14 18:43:24.482884
+Create Date: 2026-03-25 11:43:30.147103
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 import sqlmodel
 
 # revision identifiers, used by Alembic.
-revision: str = '4fd21c245fcd'
+revision: str = '6357fc1e0bd7'
 down_revision: Union[str, None] = '985c806b1347'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -24,7 +24,7 @@ def upgrade() -> None:
     op.create_table('permission',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('user_id', sa.Integer(), nullable=False),
-    sa.Column('permission', sa.Enum('LECTURER', 'MAINTAINER', 'ADMIN', name='globalrole'), nullable=False),
+    sa.Column('permission', sa.Enum('LECTURER', 'MAINTAINER', 'ADMIN', name='globalpermission'), nullable=False),
     sa.ForeignKeyConstraint(['user_id'], ['localuser.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id')
     )
@@ -32,7 +32,7 @@ def upgrade() -> None:
         batch_op.create_index(batch_op.f('ix_permission_user_id'), ['user_id'], unique=False)
 
     # ### end Alembic commands ###
-
+    
     # datamigration: assign all current ADMINs the global ADMIN role
     connection = op.get_bind()
     connection.execute(
@@ -43,6 +43,7 @@ def upgrade() -> None:
         WHERE role = 'ADMIN'
         """)
     )
+
 
 def downgrade() -> None:
     """Downgrade schema."""

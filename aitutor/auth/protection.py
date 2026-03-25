@@ -9,7 +9,7 @@ import reflex as rx
 from reflex_local_auth.login import LoginState
 
 from aitutor.auth.state import SessionState
-from aitutor.models import GlobalRole, UserRole
+from aitutor.models import GlobalPermission, UserRole
 
 
 def lecture_has_role_at_least(role):
@@ -19,15 +19,15 @@ def lecture_has_role_at_least(role):
     user_role = SessionState.user_role
     return (
         (user_role is not None and user_role >= role)
-        | SessionState.global_permissions.contains(GlobalRole.ADMIN)
-        | SessionState.global_permissions.contains(GlobalRole.MAINTAINER)
+        | SessionState.global_permissions.contains(GlobalPermission.ADMIN)
+        | SessionState.global_permissions.contains(GlobalPermission.MAINTAINER)
     )
 
 
 def page_require_role_or_permission(
     *,
     required_role: Optional[UserRole] = None,
-    allowed_permissions: Optional[list[GlobalRole]] = None,
+    allowed_permissions: Optional[list[GlobalPermission]] = None,
 ):
     """
     Protects a page. Allows access if the user has the required UserRole
@@ -35,8 +35,8 @@ def page_require_role_or_permission(
     """
     # copy the list to avoid modifying the original and ensure ADMIN is always included
     perms_to_check = list(allowed_permissions) if allowed_permissions else []
-    if GlobalRole.ADMIN not in perms_to_check:
-        perms_to_check.append(GlobalRole.ADMIN)
+    if GlobalPermission.ADMIN not in perms_to_check:
+        perms_to_check.append(GlobalPermission.ADMIN)
 
     def decorator(page: rx.app.ComponentCallable) -> rx.app.ComponentCallable:
         def protected_page():
@@ -100,7 +100,7 @@ def page_require_role_or_permission(
 def state_require_role_or_permission(
     *,
     required_role: Optional[UserRole] = None,
-    allowed_permissions: Optional[list[GlobalRole]] = None,
+    allowed_permissions: Optional[list[GlobalPermission]] = None,
 ):
     """
     Protects a state event. Allows execution if the user has the required UserRole
@@ -108,8 +108,8 @@ def state_require_role_or_permission(
     """
     # copy the list to avoid modifying the original and ensure ADMIN is always included
     perms_to_check = list(allowed_permissions) if allowed_permissions else []
-    if GlobalRole.ADMIN not in perms_to_check:
-        perms_to_check.append(GlobalRole.ADMIN)
+    if GlobalPermission.ADMIN not in perms_to_check:
+        perms_to_check.append(GlobalPermission.ADMIN)
 
     def decorator(func):
         @functools.wraps(func)
