@@ -65,7 +65,7 @@ admin_links = [
 def get_links():
     """Returns the list of navigation links for the current user role."""
     return rx.cond(
-        lecture_has_role_at_least(UserRole.OWNER),
+        lecture_has_role_at_least(UserRole.ADMIN),
         general_links + tutor_links + admin_links,
         rx.cond(
             lecture_has_role_at_least(UserRole.TUTOR),
@@ -90,7 +90,7 @@ def get_user_icon():
             userrole == UserRole.STUDENT,
             "user-round-check",
             rx.cond(
-                userrole == UserRole.OWNER,
+                userrole == UserRole.ADMIN,
                 "user-round-cog",
                 rx.cond(
                     userrole == UserRole.TUTOR,

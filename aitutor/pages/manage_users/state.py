@@ -19,7 +19,7 @@ class ManageUsersState(SessionState):
 
     @rx.event
     @state_require_role_or_permission(
-        required_role=UserRole.OWNER,
+        required_role=UserRole.ADMIN,
         allowed_permissions=[GlobalRole.ADMIN, GlobalRole.MAINTAINER],
     )
     def on_load(self):

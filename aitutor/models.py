@@ -37,7 +37,7 @@ class UserRole(IntEnum):
 
     STUDENT = 1
     TUTOR = 2
-    OWNER = 3
+    ADMIN = 3
 
 
 class GlobalRole(StrEnum):

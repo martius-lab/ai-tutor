@@ -12,7 +12,7 @@ from aitutor.pages.report_view.state import ReportViewState
 
 
 @with_navbar(routes.ADMIN_SETTINGS)
-@page_require_role_or_permission(required_role=UserRole.OWNER)
+@page_require_role_or_permission(required_role=UserRole.ADMIN)
 def report_view_page() -> rx.Component:
     """Renders the report view page."""
     return rx.container(

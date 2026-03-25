@@ -831,12 +831,12 @@ class LanguageState(SessionState):
             de=textwrap.dedent("""
                 - STUDENT: Kann Übungen ansehen und bearbeiten.
                 - TUTOR: Kann zusätzlich Abgaben aller Nutzer einsehen.
-                - OWNER: Kann alles (Übungen anlegen, Benutzer verwalten...).
+                - ADMIN: Kann alles (Übungen anlegen, Benutzer verwalten...).
             """),
             en=textwrap.dedent("""
                 - STUDENT: Can view and work on exercises.
                 - TUTOR: Can also view submissions by all users.
-                - OWNER: Can do everything (create exercises, manage users...).
+                - ADMIN: Can do everything (create exercises, manage users...).
             """),
         )
 

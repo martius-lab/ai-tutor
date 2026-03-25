@@ -20,7 +20,7 @@ class ReportViewState(SessionState):
     messages: list[ChatMessage] = []
 
     @rx.event
-    @state_require_role_or_permission(required_role=UserRole.OWNER)
+    @state_require_role_or_permission(required_role=UserRole.ADMIN)
     def on_load(self):
         """Load report details when page opens."""
         self.global_load()
@@ -79,7 +79,7 @@ class ReportViewState(SessionState):
                 ]
 
     @rx.event
-    @state_require_role_or_permission(required_role=UserRole.OWNER)
+    @state_require_role_or_permission(required_role=UserRole.ADMIN)
     def toggle_looked_at(self):
         """Toggle the looked_at status of the report."""
         with rx.session() as session:

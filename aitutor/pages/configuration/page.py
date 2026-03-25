@@ -12,7 +12,7 @@ from aitutor.pages.navbar_admin import with_admin_navbar
 
 @with_navbar(routes.ADMIN_SETTINGS)
 @with_admin_navbar(routes.CONFIGURATION)
-@page_require_role_or_permission(required_role=UserRole.OWNER)
+@page_require_role_or_permission(required_role=UserRole.ADMIN)
 def configuration_page() -> rx.Component:
     """Configuration page."""
     return rx.center(

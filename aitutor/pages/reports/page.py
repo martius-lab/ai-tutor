@@ -14,7 +14,7 @@ from aitutor.utilities.filtering_components import search_badges, search_bar
 
 @with_navbar(routes.ADMIN_SETTINGS)
 @with_admin_navbar(routes.REPORTS)
-@page_require_role_or_permission(required_role=UserRole.OWNER)
+@page_require_role_or_permission(required_role=UserRole.ADMIN)
 def reports_page() -> rx.Component:
     """Page for tutors/admins to see all reports."""
     return rx.center(

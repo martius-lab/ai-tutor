@@ -2,7 +2,7 @@
 #
 # Copy this file to `config.toml` and enter appropriate values for all fields
 # that are marked with "TODO" (mostly at the top of the file but don't miss the
-# initial owner account further down).
+# initial admin account further down).
 # Other fields may of course be adjusted as well, if you don't like the
 # defaults.
 
@@ -54,10 +54,10 @@ If the student answered correctly, you can write one sentence that the student a
 
 # TODO
 [[default_users]]
-role = "owner"
-name = "owner"
+role = "admin"
+name = "admin"
 password = "initial-password-to-be-changed-immediately"
-email = "owner@example.com"
+email = "admin@example.com"
 
 #[[default_users]]
 #role = "tutor"
