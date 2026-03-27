@@ -18,6 +18,7 @@ ALL_USERS_OPTION = "All"
 class TableRow:
     """A row in the token analyzer table."""
 
+    rank: int
     username: str
     tokens_used: int
 
@@ -26,6 +27,7 @@ class TableRow:
 class ExerciseTableRow:
     """A row in the exercise token analyzer table."""
 
+    rank: int
     exercise_title: str
     tokens_used: int
 
@@ -160,8 +162,10 @@ class TokenAnalyzerState(SessionState):
             )
 
             self.table_rows = [
-                TableRow(username=username, tokens_used=tokens_used)
-                for username, tokens_used in session.exec(stmt).all()
+                TableRow(rank=index, username=username, tokens_used=tokens_used)
+                for index, (username, tokens_used) in enumerate(
+                    session.exec(stmt).all(), start=1
+                )
             ]
 
             self.chart_data = [
@@ -196,8 +200,14 @@ class TokenAnalyzerState(SessionState):
             )
 
             self.exercise_table_rows = [
-                ExerciseTableRow(exercise_title=exercise_title, tokens_used=tokens_used)
-                for exercise_title, tokens_used in session.exec(stmt).all()
+                ExerciseTableRow(
+                    rank=index,
+                    exercise_title=exercise_title,
+                    tokens_used=tokens_used,
+                )
+                for index, (exercise_title, tokens_used) in enumerate(
+                    session.exec(stmt).all(), start=1
+                )
             ]
 
             self.exercise_chart_data = [

@@ -27,6 +27,7 @@ def header_cell(text, icon: str):
 def show_table_row(table_row: TableRow) -> rx.Component:
     """Show token usage in a table row."""
     return rx.table.row(
+        rx.table.cell(table_row.rank),
         rx.table.cell(table_row.username),
         rx.table.cell(table_row.tokens_used),
         style={"_hover": {"bg": rx.color("gray", 3)}},
@@ -175,6 +176,7 @@ def token_analyzer_table() -> rx.Component:
     return rx.table.root(
         rx.table.header(
             rx.table.row(
+                header_cell(LanguageState.rank, "hash"),
                 header_cell(LanguageState.user, "user-round"),
                 header_cell(LanguageState.token_usage, "chart-column"),
             ),
@@ -196,6 +198,7 @@ def token_analyzer_table() -> rx.Component:
 def show_exercise_table_row(table_row: ExerciseTableRow) -> rx.Component:
     """Show token usage in an exercise table row."""
     return rx.table.row(
+        rx.table.cell(table_row.rank),
         rx.table.cell(table_row.exercise_title),
         rx.table.cell(table_row.tokens_used),
         style={"_hover": {"bg": rx.color("gray", 3)}},
@@ -208,6 +211,7 @@ def token_analyzer_exercise_table() -> rx.Component:
     return rx.table.root(
         rx.table.header(
             rx.table.row(
+                header_cell(LanguageState.rank, "hash"),
                 header_cell(LanguageState.exercise, "book-open-check"),
                 header_cell(LanguageState.token_usage, "chart-column"),
             ),

@@ -511,6 +511,10 @@ class LanguageState(SessionState):
 
     # Token Analyzer Page Strings ------------------------------------------------------
     @rx.var
+    def rank(self) -> str:
+        return self.translate(de="Rang", en="Rank")
+
+    @rx.var
     def token_usage(self) -> str:
         return self.translate(de="Token-Nutzung", en="Token Usage")
 
