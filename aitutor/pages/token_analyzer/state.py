@@ -44,8 +44,10 @@ class TokenAnalyzerState(SessionState):
     exercise_table_rows: list[ExerciseTableRow]
     exercise_chart_data: list[dict[str, int | float]]
     exercise_chart_ticks: list[int]
+    exercise_bar_size: int = 3
     user_options: list[str]
     selected_user_name: str = ALL_USERS_OPTION
+    user_bar_size: int = 3
 
     @rx.var
     def chart_min_width(self) -> str:
@@ -67,6 +69,19 @@ class TokenAnalyzerState(SessionState):
             return "1000px"
         return "700px"
 
+    @staticmethod
+    def _get_dynamic_bar_size(chart_count: int) -> int:
+        """Dynamic chart bar size based on number of bars."""
+        if chart_count <= 20:
+            return 14
+        if chart_count <= 40:
+            return 10
+        if chart_count <= 70:
+            return 7
+        if chart_count <= 110:
+            return 5
+        return 3
+
     @rx.event
     @state_require_role_at_least(UserRole.ADMIN)
     def on_load(self):
@@ -87,8 +102,10 @@ class TokenAnalyzerState(SessionState):
         self.exercise_table_rows = []
         self.exercise_chart_data = []
         self.exercise_chart_ticks = []
+        self.exercise_bar_size = 3
         self.user_options = []
         self.selected_user_name = ALL_USERS_OPTION
+        self.user_bar_size = 3
 
     @rx.event
     def load_exercise_options(self):
@@ -177,6 +194,7 @@ class TokenAnalyzerState(SessionState):
                 for index, row in enumerate(self.table_rows)
             ]
             self.chart_ticks = self._build_rank_ticks(len(self.table_rows))
+            self.user_bar_size = self._get_dynamic_bar_size(len(self.table_rows))
 
     @rx.event
     def load_exercise_token_rows(self):
@@ -219,5 +237,8 @@ class TokenAnalyzerState(SessionState):
                 for index, row in enumerate(self.exercise_table_rows)
             ]
             self.exercise_chart_ticks = self._build_rank_ticks(
+                len(self.exercise_table_rows)
+            )
+            self.exercise_bar_size = self._get_dynamic_bar_size(
                 len(self.exercise_table_rows)
             )
