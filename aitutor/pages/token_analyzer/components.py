@@ -43,8 +43,24 @@ def token_analyzer_exercise_selector() -> rx.Component:
             size="3",
             weight="medium",
         ),
+        rx.input(
+            value=TokenAnalyzerState.exercise_filter_query,
+            on_change=TokenAnalyzerState.set_exercise_filter_query,
+            placeholder="Starts with...",
+            width="260px",
+        ),
+        rx.cond(
+            TokenAnalyzerState.exercise_filter_query != "",
+            rx.button(
+                "×",
+                on_click=TokenAnalyzerState.clear_exercise_filter_query,
+                variant="soft",
+                size="1",
+            ),
+            rx.box(width="26px"),
+        ),
         rx.select(
-            items=TokenAnalyzerState.exercise_options,
+            items=TokenAnalyzerState.filtered_exercise_options,
             value=TokenAnalyzerState.selected_exercise_name,
             on_change=TokenAnalyzerState.set_selected_exercise_name,
             placeholder=ALL_EXERCISES_OPTION,
@@ -64,8 +80,24 @@ def token_analyzer_user_selector() -> rx.Component:
             size="3",
             weight="medium",
         ),
+        rx.input(
+            value=TokenAnalyzerState.user_filter_query,
+            on_change=TokenAnalyzerState.set_user_filter_query,
+            placeholder="Starts with...",
+            width="260px",
+        ),
+        rx.cond(
+            TokenAnalyzerState.user_filter_query != "",
+            rx.button(
+                "×",
+                on_click=TokenAnalyzerState.clear_user_filter_query,
+                variant="soft",
+                size="1",
+            ),
+            rx.box(width="26px"),
+        ),
         rx.select(
-            items=TokenAnalyzerState.user_options,
+            items=TokenAnalyzerState.filtered_user_options,
             value=TokenAnalyzerState.selected_user_name,
             on_change=TokenAnalyzerState.set_selected_user_name,
             placeholder=ALL_USERS_OPTION,

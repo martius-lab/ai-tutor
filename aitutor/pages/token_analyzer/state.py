@@ -40,6 +40,7 @@ class TokenAnalyzerState(SessionState):
     chart_ticks: list[int]
     exercise_options: list[str]
     selected_exercise_name: str = ALL_EXERCISES_OPTION
+    exercise_filter_query: str = ""
 
     exercise_table_rows: list[ExerciseTableRow]
     exercise_chart_data: list[dict[str, int | float | str]]
@@ -47,7 +48,36 @@ class TokenAnalyzerState(SessionState):
     exercise_bar_size: int = 3
     user_options: list[str]
     selected_user_name: str = ALL_USERS_OPTION
+    user_filter_query: str = ""
     user_bar_size: int = 3
+
+    @rx.var
+    def filtered_exercise_options(self) -> list[str]:
+        """Exercise options filtered by the search query."""
+        query = self.exercise_filter_query.strip().lower()
+        if not query:
+            return self.exercise_options
+
+        filtered = [
+            option
+            for option in self.exercise_options
+            if option == ALL_EXERCISES_OPTION or option.lower().startswith(query)
+        ]
+        return filtered or [ALL_EXERCISES_OPTION]
+
+    @rx.var
+    def filtered_user_options(self) -> list[str]:
+        """User options filtered by the search query."""
+        query = self.user_filter_query.strip().lower()
+        if not query:
+            return self.user_options
+
+        filtered = [
+            option
+            for option in self.user_options
+            if option == ALL_USERS_OPTION or option.lower().startswith(query)
+        ]
+        return filtered or [ALL_USERS_OPTION]
 
     @rx.var
     def chart_min_width(self) -> str:
@@ -99,12 +129,14 @@ class TokenAnalyzerState(SessionState):
         self.chart_ticks = []
         self.exercise_options = []
         self.selected_exercise_name = ALL_EXERCISES_OPTION
+        self.exercise_filter_query = ""
         self.exercise_table_rows = []
         self.exercise_chart_data = []
         self.exercise_chart_ticks = []
         self.exercise_bar_size = 3
         self.user_options = []
         self.selected_user_name = ALL_USERS_OPTION
+        self.user_filter_query = ""
         self.user_bar_size = 3
 
     @rx.event
@@ -123,6 +155,16 @@ class TokenAnalyzerState(SessionState):
         self.load_token_rows()
 
     @rx.event
+    def set_exercise_filter_query(self, query: str):
+        """Set the exercise search query for the selector."""
+        self.exercise_filter_query = query
+
+    @rx.event
+    def clear_exercise_filter_query(self):
+        """Clear the exercise search query."""
+        self.exercise_filter_query = ""
+
+    @rx.event
     def load_user_options(self):
         """Load selectable users for filtering the exercise analysis."""
         with rx.session() as session:
@@ -137,25 +179,17 @@ class TokenAnalyzerState(SessionState):
         self.selected_user_name = user_name
         self.load_exercise_token_rows()
 
-    @staticmethod
-    def _build_rank_ticks(total_items: int) -> list[int]:
-        """Build mathematically nice rank ticks with roughly 8 markers."""
-        if total_items == 0:
-            return []
+    @rx.event
+    def set_user_filter_query(self, query: str):
+        """Set the user search query for the selector."""
+        self.user_filter_query = query
 
-        target_tick_count = 8
-        raw_step = max(1.0, (total_items - 1) / max(1, target_tick_count - 1))
-        magnitude = 10 ** floor(log10(raw_step))
-        step = magnitude
-        for multiplier in (1, 2, 5, 10):
-            candidate = multiplier * magnitude
-            if candidate >= raw_step:
-                step = candidate
-                break
+    @rx.event
+    def clear_user_filter_query(self):
+        """Clear the user search query."""
+        self.user_filter_query = ""
 
-        tick_set = {1, total_items}
-        tick_set.update(range(step, total_items, step))
-        return sorted(tick_set)
+
 
     @rx.event
     def load_token_rows(self):
@@ -244,3 +278,23 @@ class TokenAnalyzerState(SessionState):
             self.exercise_bar_size = self._get_dynamic_bar_size(
                 len(self.exercise_table_rows)
             )
+
+    @staticmethod
+    def _build_rank_ticks(total_items: int) -> list[int]:
+        """Build mathematically nice rank ticks with roughly 8 markers."""
+        if total_items == 0:
+            return []
+
+        target_tick_count = 8
+        raw_step = max(1.0, (total_items - 1) / max(1, target_tick_count - 1))
+        magnitude = 10 ** floor(log10(raw_step))
+        step = magnitude
+        for multiplier in (1, 2, 5, 10):
+            candidate = multiplier * magnitude
+            if candidate >= raw_step:
+                step = candidate
+                break
+
+        tick_set = {1, total_items}
+        tick_set.update(range(step, total_items, step))
+        return sorted(tick_set)
