@@ -36,13 +36,13 @@ class TokenAnalyzerState(SessionState):
     """State for the token analyzer page."""
 
     table_rows: list[TableRow]
-    chart_data: list[dict[str, int | float]]
+    chart_data: list[dict[str, int | float | str]]
     chart_ticks: list[int]
     exercise_options: list[str]
     selected_exercise_name: str = ALL_EXERCISES_OPTION
 
     exercise_table_rows: list[ExerciseTableRow]
-    exercise_chart_data: list[dict[str, int | float]]
+    exercise_chart_data: list[dict[str, int | float | str]]
     exercise_chart_ticks: list[int]
     exercise_bar_size: int = 3
     user_options: list[str]
@@ -188,6 +188,7 @@ class TokenAnalyzerState(SessionState):
             self.chart_data = [
                 {
                     "rank": index + 1,
+                    "username": row.username,
                     "tokens_used": row.tokens_used,
                     "tokens_used_k": round(row.tokens_used / 1000, 1),
                 }
@@ -231,6 +232,7 @@ class TokenAnalyzerState(SessionState):
             self.exercise_chart_data = [
                 {
                     "rank": index + 1,
+                    "exercise": row.exercise_title,
                     "tokens_used": row.tokens_used,
                     "tokens_used_k": round(row.tokens_used / 1000, 1),
                 }
