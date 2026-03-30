@@ -160,16 +160,16 @@ def token_analyzer_exercise_bar_chart() -> rx.Component:
                     separator=": ",
                 ),
                 rx.recharts.bar(
-                    data_key="tokens_used_k",
-                    name=LanguageState.token_usage,
-                    fill=rx.color("cyan", 8),
-                    bar_size=TokenAnalyzerState.exercise_bar_size,
-                ),
-                rx.recharts.bar(
                     data_key="exercise",
                     name=LanguageState.exercise,
                     fill="transparent",
                     bar_size=0,
+                ),
+                rx.recharts.bar(
+                    data_key="tokens_used_k",
+                    name=LanguageState.token_usage,
+                    fill=rx.color("cyan", 8),
+                    bar_size=TokenAnalyzerState.exercise_bar_size,
                 ),
                 data=TokenAnalyzerState.exercise_chart_data,
                 margin={"top": 8, "right": 16, "left": 56, "bottom": 24},
