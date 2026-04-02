@@ -13,6 +13,10 @@ from aitutor.pages.token_analyzer.state import (
     USER_ANALYSIS_VIEW,
 )
 
+# Invisible prefixes used only to keep tooltip row ordering stable across translations.
+TOOLTIP_PREFIX_PRIMARY = "\u200b"
+TOOLTIP_PREFIX_SECONDARY = "\u200c"
+
 
 def header_cell(text, icon: str):
     """Create header cells."""
@@ -47,7 +51,7 @@ def analyzer_filter_selector(
     on_select_change,
     placeholder,
 ) -> rx.Component:
-    """Reusable selector row for filtering token analysis by criteria with prefix search input and clear button."""
+    """Reusable selector row with prefix-search input and clear button."""
     return rx.hstack(
         rx.text(
             label_text + ":",
@@ -182,13 +186,13 @@ def token_analyzer_bar_chart() -> rx.Component:
                 ),
                 rx.recharts.bar(
                     data_key="tokens_used_k",
-                    name=f"\u200c{LanguageState.token_usage}",
+                    name=f"{TOOLTIP_PREFIX_SECONDARY}{LanguageState.token_usage}",
                     fill=rx.color("indigo", 8),
                     bar_size=TokenAnalyzerState.user_bar_size,
                 ),
                 rx.recharts.bar(
                     data_key="username",
-                    name=f"\u200b{LanguageState.user}",
+                    name=f"{TOOLTIP_PREFIX_PRIMARY}{LanguageState.user}",
                     fill="transparent",
                     bar_size=0,
                 ),
@@ -237,13 +241,13 @@ def token_analyzer_exercise_bar_chart() -> rx.Component:
                 ),
                 rx.recharts.bar(
                     data_key="exercise",
-                    name=f"\u200b{LanguageState.exercise}",
+                    name=f"{TOOLTIP_PREFIX_PRIMARY}{LanguageState.exercise}",
                     fill="transparent",
                     bar_size=0,
                 ),
                 rx.recharts.bar(
                     data_key="tokens_used_k",
-                    name=f"\u200c{LanguageState.token_usage}",
+                    name=f"{TOOLTIP_PREFIX_SECONDARY}{LanguageState.token_usage}",
                     fill=rx.color("cyan", 8),
                     bar_size=TokenAnalyzerState.exercise_bar_size,
                 ),
