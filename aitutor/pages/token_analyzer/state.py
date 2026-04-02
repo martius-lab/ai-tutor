@@ -12,6 +12,8 @@ from aitutor.models import Exercise, ExerciseResult, LocalUser, UserInfo, UserRo
 
 ALL_EXERCISES_OPTION = "All"
 ALL_USERS_OPTION = "All"
+USER_ANALYSIS_VIEW = "user"
+EXERCISE_ANALYSIS_VIEW = "exercise"
 
 
 @dataclass
@@ -38,6 +40,7 @@ class TokenAnalyzerState(SessionState):
     table_rows: list[TableRow]
     chart_data: list[dict[str, int | float | str]]
     chart_ticks: list[int]
+    active_analysis_view: str = USER_ANALYSIS_VIEW
     exercise_options: list[str]
     selected_exercise_name: str = ALL_EXERCISES_OPTION
     exercise_filter_query: str = ""
@@ -127,6 +130,7 @@ class TokenAnalyzerState(SessionState):
         self.table_rows = []
         self.chart_data = []
         self.chart_ticks = []
+        self.active_analysis_view = USER_ANALYSIS_VIEW
         self.exercise_options = []
         self.selected_exercise_name = ALL_EXERCISES_OPTION
         self.exercise_filter_query = ""
@@ -153,6 +157,12 @@ class TokenAnalyzerState(SessionState):
         """Set selected exercise filter and reload the token rows."""
         self.selected_exercise_name = exercise_name
         self.load_token_rows()
+
+    @rx.event
+    def set_active_analysis_view(self, view: str):
+        """Set which analysis block is visible on the page."""
+        if view in (USER_ANALYSIS_VIEW, EXERCISE_ANALYSIS_VIEW):
+            self.active_analysis_view = view
 
     @rx.event
     def set_exercise_filter_query(self, query: str):

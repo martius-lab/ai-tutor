@@ -6,9 +6,11 @@ from aitutor.language_state import LanguageState
 from aitutor.pages.token_analyzer.state import (
     ALL_EXERCISES_OPTION,
     ALL_USERS_OPTION,
+    EXERCISE_ANALYSIS_VIEW,
     ExerciseTableRow,
     TableRow,
     TokenAnalyzerState,
+    USER_ANALYSIS_VIEW,
 )
 
 
@@ -69,6 +71,44 @@ def token_analyzer_exercise_selector() -> rx.Component:
         align="center",
         width="85vw",
         justify="start",
+    )
+
+
+def token_analyzer_view_menu() -> rx.Component:
+    """Menu to switch between user and exercise analysis views."""
+    return rx.hstack(
+        rx.text("View:", size="3", weight="medium"),
+        rx.menu.root(
+            rx.menu.trigger(
+                rx.button(
+                    rx.cond(
+                        TokenAnalyzerState.active_analysis_view == USER_ANALYSIS_VIEW,
+                        "User Stats",
+                        "Exercise Stats",
+                    ),
+                    rx.icon("chevron-down", size=16),
+                    variant="outline",
+                    _hover={"cursor": "pointer"},
+                )
+            ),
+            rx.menu.content(
+                rx.menu.item(
+                    "User Stats",
+                    on_click=TokenAnalyzerState.set_active_analysis_view(
+                        USER_ANALYSIS_VIEW
+                    ),
+                ),
+                rx.menu.item(
+                    "Exercise Stats",
+                    on_click=TokenAnalyzerState.set_active_analysis_view(
+                        EXERCISE_ANALYSIS_VIEW
+                    ),
+                ),
+            ),
+        ),
+        width="85vw",
+        justify="start",
+        align="center",
     )
 
 
