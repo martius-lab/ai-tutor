@@ -182,13 +182,13 @@ def token_analyzer_bar_chart() -> rx.Component:
                 ),
                 rx.recharts.bar(
                     data_key="tokens_used_k",
-                    name=LanguageState.token_usage,
+                    name=f"\u200c{LanguageState.token_usage}",
                     fill=rx.color("indigo", 8),
                     bar_size=TokenAnalyzerState.user_bar_size,
                 ),
                 rx.recharts.bar(
                     data_key="username",
-                    name=LanguageState.user,
+                    name=f"\u200b{LanguageState.user}",
                     fill="transparent",
                     bar_size=0,
                 ),
@@ -237,13 +237,13 @@ def token_analyzer_exercise_bar_chart() -> rx.Component:
                 ),
                 rx.recharts.bar(
                     data_key="exercise",
-                    name=LanguageState.exercise,
+                    name=f"\u200b{LanguageState.exercise}",
                     fill="transparent",
                     bar_size=0,
                 ),
                 rx.recharts.bar(
                     data_key="tokens_used_k",
-                    name=LanguageState.token_usage,
+                    name=f"\u200c{LanguageState.token_usage}",
                     fill=rx.color("cyan", 8),
                     bar_size=TokenAnalyzerState.exercise_bar_size,
                 ),
