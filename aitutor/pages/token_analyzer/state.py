@@ -54,33 +54,25 @@ class TokenAnalyzerState(SessionState):
     user_filter_query: str = ""
     user_bar_size: int = 3
 
+
+
     @rx.var
     def filtered_exercise_options(self) -> list[str]:
         """Exercise options filtered by the search query."""
-        query = self.exercise_filter_query.strip().lower()
-        if not query:
-            return self.exercise_options
-
-        filtered = [
-            option
-            for option in self.exercise_options
-            if option == ALL_EXERCISES_OPTION or option.lower().startswith(query)
-        ]
-        return filtered or [ALL_EXERCISES_OPTION]
+        return self._filter_options_by_prefix(
+            self.exercise_options,
+            self.exercise_filter_query,
+            ALL_EXERCISES_OPTION,
+        )
 
     @rx.var
     def filtered_user_options(self) -> list[str]:
         """User options filtered by the search query."""
-        query = self.user_filter_query.strip().lower()
-        if not query:
-            return self.user_options
-
-        filtered = [
-            option
-            for option in self.user_options
-            if option == ALL_USERS_OPTION or option.lower().startswith(query)
-        ]
-        return filtered or [ALL_USERS_OPTION]
+        return self._filter_options_by_prefix(
+            self.user_options,
+            self.user_filter_query,
+            ALL_USERS_OPTION,
+        )
 
     @rx.var
     def chart_min_width(self) -> str:
@@ -102,18 +94,7 @@ class TokenAnalyzerState(SessionState):
             return "1000px"
         return "700px"
 
-    @staticmethod
-    def _get_dynamic_bar_size(chart_count: int) -> int:
-        """Dynamic chart bar size based on number of bars."""
-        if chart_count <= 20:
-            return 14
-        if chart_count <= 40:
-            return 10
-        if chart_count <= 70:
-            return 7
-        if chart_count <= 110:
-            return 5
-        return 3
+ 
 
     @rx.event
     @state_require_role_at_least(UserRole.ADMIN)
@@ -229,15 +210,7 @@ class TokenAnalyzerState(SessionState):
                 )
             ]
 
-            self.chart_data = [
-                {
-                    "rank": index + 1,
-                    "username": row.username,
-                    "tokens_used": row.tokens_used,
-                    "tokens_used_k": round(row.tokens_used / 1000, 1),
-                }
-                for index, row in enumerate(self.table_rows)
-            ]
+            self.chart_data = self._build_user_chart_data(self.table_rows)
             self.chart_ticks = self._build_rank_ticks(len(self.table_rows))
             self.user_bar_size = self._get_dynamic_bar_size(len(self.table_rows))
 
@@ -273,21 +246,74 @@ class TokenAnalyzerState(SessionState):
                 )
             ]
 
-            self.exercise_chart_data = [
-                {
-                    "rank": index + 1,
-                    "exercise": row.exercise_title,
-                    "tokens_used": row.tokens_used,
-                    "tokens_used_k": round(row.tokens_used / 1000, 1),
-                }
-                for index, row in enumerate(self.exercise_table_rows)
-            ]
+            self.exercise_chart_data = self._build_exercise_chart_data(
+                self.exercise_table_rows
+            )
             self.exercise_chart_ticks = self._build_rank_ticks(
                 len(self.exercise_table_rows)
             )
             self.exercise_bar_size = self._get_dynamic_bar_size(
                 len(self.exercise_table_rows)
             )
+
+    @staticmethod
+    def _filter_options_by_prefix(
+        options: list[str], query: str, all_option: str
+    ) -> list[str]:
+        """Filter option list by prefix (case-insensitive), keeping the all option."""
+        normalized_query = query.strip().lower()
+        if not normalized_query:
+            return options
+
+        filtered = [
+            option
+            for option in options
+            if option == all_option or option.lower().startswith(normalized_query)
+        ]
+        return filtered or [all_option]
+
+    @staticmethod
+    def _build_user_chart_data(rows: list[TableRow]) -> list[dict[str, int | float | str]]:
+        """Map user table rows to chart rows."""
+        return [
+            {
+                "rank": index + 1,
+                "username": row.username,
+                "tokens_used": row.tokens_used,
+                "tokens_used_k": round(row.tokens_used / 1000, 1),
+            }
+            for index, row in enumerate(rows)
+        ]
+
+    @staticmethod
+    def _build_exercise_chart_data(
+        rows: list[ExerciseTableRow],
+    ) -> list[dict[str, int | float | str]]:
+        """Map exercise table rows to chart rows."""
+        return [
+            {
+                "rank": index + 1,
+                "exercise": row.exercise_title,
+                "tokens_used": row.tokens_used,
+                "tokens_used_k": round(row.tokens_used / 1000, 1),
+            }
+            for index, row in enumerate(rows)
+        ]
+    
+
+    @staticmethod
+    def _get_dynamic_bar_size(chart_count: int) -> int:
+        """Dynamic chart bar size based on number of bars."""
+        if chart_count <= 20:
+            return 14
+        if chart_count <= 40:
+            return 10
+        if chart_count <= 70:
+            return 7
+        if chart_count <= 110:
+            return 5
+        return 3
+
 
     @staticmethod
     def _build_rank_ticks(total_items: int) -> list[int]:
