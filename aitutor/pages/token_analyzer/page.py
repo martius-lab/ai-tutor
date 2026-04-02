@@ -31,7 +31,6 @@ def token_analyzer_page() -> rx.Component:
     """Token analyzer page for user token usage overview."""
     return rx.center(
         rx.vstack(
-            rx.heading(LanguageState.token_analyzer, size="6"),
             token_analyzer_view_menu(),
             rx.cond(
                 TokenAnalyzerState.active_analysis_view == USER_ANALYSIS_VIEW,

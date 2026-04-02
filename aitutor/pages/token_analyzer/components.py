@@ -159,7 +159,7 @@ def token_analyzer_bar_chart() -> rx.Component:
                     data_key="rank",
                     ticks=TokenAnalyzerState.chart_ticks,
                     interval=0,
-                    label={"value": "User-Rank", "position": "insideBottom", "offset": -2},
+                    label={"value": "User-Rank", "position": "insideBottom", "offset": -12},
                     min_tick_gap=8,
                 ),
                 rx.recharts.y_axis(
@@ -213,7 +213,7 @@ def token_analyzer_exercise_bar_chart() -> rx.Component:
                     label={
                         "value": "Exercise-Rank",
                         "position": "insideBottom",
-                        "offset": -2,
+                        "offset": -12,
                     },
                     min_tick_gap=8,
                 ),
