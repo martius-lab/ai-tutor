@@ -8,12 +8,8 @@ from aitutor.models import UserRole
 from aitutor.pages.navbar import with_navbar
 from aitutor.pages.navbar_admin import with_admin_navbar
 from aitutor.pages.token_analyzer.components import (
-    token_analyzer_bar_chart,
-    token_analyzer_exercise_selector,
-    token_analyzer_exercise_bar_chart,
-    token_analyzer_exercise_table,
-    token_analyzer_table,
-    token_analyzer_user_selector,
+    token_analyzer_exercise_analysis_section,
+    token_analyzer_user_analysis_section,
     token_analyzer_view_menu,
 )
 from aitutor.pages.token_analyzer.state import (
@@ -32,24 +28,8 @@ def token_analyzer_page() -> rx.Component:
             token_analyzer_view_menu(),
             rx.cond(
                 TokenAnalyzerState.active_analysis_view == USER_ANALYSIS_VIEW,
-                rx.vstack(
-                    token_analyzer_exercise_selector(),
-                    token_analyzer_bar_chart(),
-                    token_analyzer_table(),
-                    spacing="3",
-                    align="center",
-                    justify="center",
-                    width="100%",
-                ),
-                rx.vstack(
-                    token_analyzer_user_selector(),
-                    token_analyzer_exercise_bar_chart(),
-                    token_analyzer_exercise_table(),
-                    spacing="3",
-                    align="center",
-                    justify="center",
-                    width="100%",
-                ),
+                token_analyzer_user_analysis_section(),
+                token_analyzer_exercise_analysis_section(),
             ),
             spacing="3",
             align="center",

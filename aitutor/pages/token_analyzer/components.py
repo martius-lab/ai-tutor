@@ -316,3 +316,29 @@ def token_analyzer_exercise_table() -> rx.Component:
         overflow_y="auto",
         max_height="60vh",
     )
+
+
+def token_analyzer_user_analysis_section() -> rx.Component:
+    """Complete section for user-focused analysis."""
+    return rx.vstack(
+        token_analyzer_exercise_selector(),
+        token_analyzer_bar_chart(),
+        token_analyzer_table(),
+        spacing="3",
+        align="center",
+        justify="center",
+        width="100%",
+    )
+
+
+def token_analyzer_exercise_analysis_section() -> rx.Component:
+    """Complete section for exercise-focused analysis."""
+    return rx.vstack(
+        token_analyzer_user_selector(),
+        token_analyzer_exercise_bar_chart(),
+        token_analyzer_exercise_table(),
+        spacing="3",
+        align="center",
+        justify="center",
+        width="100%",
+    )
