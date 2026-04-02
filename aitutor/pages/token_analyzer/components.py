@@ -37,40 +37,63 @@ def show_table_row(table_row: TableRow) -> rx.Component:
     )
 
 
-def token_analyzer_exercise_selector() -> rx.Component:
-    """Selector for filtering token analysis by exercise."""
+def analyzer_filter_selector(
+    label_text,
+    query_value,
+    on_query_change,
+    on_query_clear,
+    options,
+    selected_value,
+    on_select_change,
+    placeholder,
+) -> rx.Component:
+    """Reusable selector row for filtering token analysis by criteria with prefix search input and clear button."""
     return rx.hstack(
         rx.text(
-            LanguageState.exercise + ":",
+            label_text + ":",
             size="3",
             weight="medium",
         ),
         rx.input(
-            value=TokenAnalyzerState.exercise_filter_query,
-            on_change=TokenAnalyzerState.set_exercise_filter_query,
+            value=query_value,
+            on_change=on_query_change,
             placeholder=LanguageState.starts_with_placeholder,
             width="260px",
         ),
         rx.cond(
-            TokenAnalyzerState.exercise_filter_query != "",
+            query_value != "",
             rx.button(
                 "×",
-                on_click=TokenAnalyzerState.clear_exercise_filter_query,
+                on_click=on_query_clear,
                 variant="soft",
                 size="1",
             ),
             rx.box(width="26px"),
         ),
         rx.select(
-            items=TokenAnalyzerState.filtered_exercise_options,
-            value=TokenAnalyzerState.selected_exercise_name,
-            on_change=TokenAnalyzerState.set_selected_exercise_name,
-            placeholder=ALL_EXERCISES_OPTION,
+            items=options,
+            value=selected_value,
+            on_change=on_select_change,
+            placeholder=placeholder,
             width="320px",
         ),
         align="center",
         width="85vw",
         justify="start",
+    )
+
+
+def token_analyzer_exercise_selector() -> rx.Component:
+    """Selector for filtering token analysis by exercise."""
+    return analyzer_filter_selector(
+        label_text=LanguageState.exercise,
+        query_value=TokenAnalyzerState.exercise_filter_query,
+        on_query_change=TokenAnalyzerState.set_exercise_filter_query,
+        on_query_clear=TokenAnalyzerState.clear_exercise_filter_query,
+        options=TokenAnalyzerState.filtered_exercise_options,
+        selected_value=TokenAnalyzerState.selected_exercise_name,
+        on_select_change=TokenAnalyzerState.set_selected_exercise_name,
+        placeholder=ALL_EXERCISES_OPTION,
     )
 
 
@@ -114,38 +137,15 @@ def token_analyzer_view_menu() -> rx.Component:
 
 def token_analyzer_user_selector() -> rx.Component:
     """Selector for filtering exercise analysis by user."""
-    return rx.hstack(
-        rx.text(
-            LanguageState.user + ":",
-            size="3",
-            weight="medium",
-        ),
-        rx.input(
-            value=TokenAnalyzerState.user_filter_query,
-            on_change=TokenAnalyzerState.set_user_filter_query,
-            placeholder=LanguageState.starts_with_placeholder,
-            width="260px",
-        ),
-        rx.cond(
-            TokenAnalyzerState.user_filter_query != "",
-            rx.button(
-                "×",
-                on_click=TokenAnalyzerState.clear_user_filter_query,
-                variant="soft",
-                size="1",
-            ),
-            rx.box(width="26px"),
-        ),
-        rx.select(
-            items=TokenAnalyzerState.filtered_user_options,
-            value=TokenAnalyzerState.selected_user_name,
-            on_change=TokenAnalyzerState.set_selected_user_name,
-            placeholder=ALL_USERS_OPTION,
-            width="320px",
-        ),
-        align="center",
-        width="85vw",
-        justify="start",
+    return analyzer_filter_selector(
+        label_text=LanguageState.user,
+        query_value=TokenAnalyzerState.user_filter_query,
+        on_query_change=TokenAnalyzerState.set_user_filter_query,
+        on_query_clear=TokenAnalyzerState.clear_user_filter_query,
+        options=TokenAnalyzerState.filtered_user_options,
+        selected_value=TokenAnalyzerState.selected_user_name,
+        on_select_change=TokenAnalyzerState.set_selected_user_name,
+        placeholder=ALL_USERS_OPTION,
     )
 
 
