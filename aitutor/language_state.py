@@ -515,6 +515,31 @@ class LanguageState(SessionState):
         return self.translate(de="Rang", en="Rank")
 
     @rx.var
+    def view(self) -> str:
+        return self.translate(de="Ansicht", en="View")
+
+    @rx.var
+    def user_stats(self) -> str:
+        return self.translate(de="Benutzer-Statistik", en="User Stats")
+
+    @rx.var
+    def exercise_stats(self) -> str:
+        return self.translate(de="Übungs-Statistik", en="Exercise Stats")
+
+    @rx.var
+    def user_rank(self) -> str:
+        return self.translate(de="Benutzer-Rang", en="User Rank")
+
+    @rx.var
+    def exercise_rank(self) -> str:
+        return self.translate(de="Übungs-Rang", en="Exercise Rank")
+
+    @rx.var
+    def starts_with_placeholder(self) -> str:
+        return self.translate(de="Beginnt mit...", en="Starts with...")
+
+
+    @rx.var
     def token_usage(self) -> str:
         return self.translate(de="Token-Nutzung", en="Token Usage")
 

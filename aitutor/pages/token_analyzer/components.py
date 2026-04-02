@@ -48,7 +48,7 @@ def token_analyzer_exercise_selector() -> rx.Component:
         rx.input(
             value=TokenAnalyzerState.exercise_filter_query,
             on_change=TokenAnalyzerState.set_exercise_filter_query,
-            placeholder="Starts with...",
+            placeholder=LanguageState.starts_with_placeholder,
             width="260px",
         ),
         rx.cond(
@@ -77,14 +77,14 @@ def token_analyzer_exercise_selector() -> rx.Component:
 def token_analyzer_view_menu() -> rx.Component:
     """Menu to switch between user and exercise analysis views."""
     return rx.hstack(
-        rx.text("View:", size="3", weight="medium"),
+        rx.text(LanguageState.view + ":", size="3", weight="medium"),
         rx.menu.root(
             rx.menu.trigger(
                 rx.button(
                     rx.cond(
                         TokenAnalyzerState.active_analysis_view == USER_ANALYSIS_VIEW,
-                        "User Stats",
-                        "Exercise Stats",
+                        LanguageState.user_stats,
+                        LanguageState.exercise_stats,
                     ),
                     rx.icon("chevron-down", size=16),
                     variant="outline",
@@ -93,13 +93,13 @@ def token_analyzer_view_menu() -> rx.Component:
             ),
             rx.menu.content(
                 rx.menu.item(
-                    "User Stats",
+                    LanguageState.user_stats,
                     on_click=TokenAnalyzerState.set_active_analysis_view(
                         USER_ANALYSIS_VIEW
                     ),
                 ),
                 rx.menu.item(
-                    "Exercise Stats",
+                    LanguageState.exercise_stats,
                     on_click=TokenAnalyzerState.set_active_analysis_view(
                         EXERCISE_ANALYSIS_VIEW
                     ),
@@ -123,7 +123,7 @@ def token_analyzer_user_selector() -> rx.Component:
         rx.input(
             value=TokenAnalyzerState.user_filter_query,
             on_change=TokenAnalyzerState.set_user_filter_query,
-            placeholder="Starts with...",
+            placeholder=LanguageState.starts_with_placeholder,
             width="260px",
         ),
         rx.cond(
@@ -159,7 +159,11 @@ def token_analyzer_bar_chart() -> rx.Component:
                     data_key="rank",
                     ticks=TokenAnalyzerState.chart_ticks,
                     interval=0,
-                    label={"value": "User-Rank", "position": "insideBottom", "offset": -12},
+                    label={
+                        "value": LanguageState.user_rank,
+                        "position": "insideBottom",
+                        "offset": -12,
+                    },
                     min_tick_gap=8,
                 ),
                 rx.recharts.y_axis(
@@ -211,7 +215,7 @@ def token_analyzer_exercise_bar_chart() -> rx.Component:
                     ticks=TokenAnalyzerState.exercise_chart_ticks,
                     interval=0,
                     label={
-                        "value": "Exercise-Rank",
+                        "value": LanguageState.exercise_rank,
                         "position": "insideBottom",
                         "offset": -12,
                     },
