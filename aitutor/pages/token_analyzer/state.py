@@ -54,8 +54,6 @@ class TokenAnalyzerState(SessionState):
     user_filter_query: str = ""
     user_bar_size: int = 3
 
-
-
     @rx.var
     def filtered_exercise_options(self) -> list[str]:
         """Exercise options filtered by the search query."""
@@ -93,8 +91,6 @@ class TokenAnalyzerState(SessionState):
         if chart_count > 80:
             return "1000px"
         return "700px"
-
- 
 
     @rx.event
     @state_require_role_at_least(UserRole.ADMIN)
@@ -180,8 +176,6 @@ class TokenAnalyzerState(SessionState):
         """Clear the user search query."""
         self.user_filter_query = ""
 
-
-
     @rx.event
     def load_token_rows(self):
         """Load total token usage per user.
@@ -197,7 +191,9 @@ class TokenAnalyzerState(SessionState):
             stmt = stmt.join(UserInfo).join(ExerciseResult)
 
             if self.selected_exercise_name != ALL_EXERCISES_OPTION:
-                stmt = stmt.join(Exercise).where(Exercise.title == self.selected_exercise_name)
+                stmt = stmt.join(Exercise).where(
+                    Exercise.title == self.selected_exercise_name
+                )
 
             stmt = stmt.group_by(LocalUser.username).order_by(
                 total_tokens.desc(), func.lower(LocalUser.username)
@@ -273,7 +269,9 @@ class TokenAnalyzerState(SessionState):
         return filtered or [all_option]
 
     @staticmethod
-    def _build_user_chart_data(rows: list[TableRow]) -> list[dict[str, int | float | str]]:
+    def _build_user_chart_data(
+        rows: list[TableRow],
+    ) -> list[dict[str, int | float | str]]:
         """Map user table rows to chart rows."""
         return [
             {
@@ -299,7 +297,6 @@ class TokenAnalyzerState(SessionState):
             }
             for index, row in enumerate(rows)
         ]
-    
 
     @staticmethod
     def _get_dynamic_bar_size(chart_count: int) -> int:
@@ -313,7 +310,6 @@ class TokenAnalyzerState(SessionState):
         if chart_count <= 110:
             return 5
         return 3
-
 
     @staticmethod
     def _build_rank_ticks(total_items: int) -> list[int]:

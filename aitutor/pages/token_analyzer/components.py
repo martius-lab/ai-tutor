@@ -7,10 +7,10 @@ from aitutor.pages.token_analyzer.state import (
     ALL_EXERCISES_OPTION,
     ALL_USERS_OPTION,
     EXERCISE_ANALYSIS_VIEW,
+    USER_ANALYSIS_VIEW,
     ExerciseTableRow,
     TableRow,
     TokenAnalyzerState,
-    USER_ANALYSIS_VIEW,
 )
 
 # Invisible prefixes used only to keep tooltip row ordering stable across translations.

@@ -538,7 +538,6 @@ class LanguageState(SessionState):
     def starts_with_placeholder(self) -> str:
         return self.translate(de="Beginnt mit...", en="Starts with...")
 
-
     @rx.var
     def token_usage(self) -> str:
         return self.translate(de="Token-Nutzung", en="Token Usage")

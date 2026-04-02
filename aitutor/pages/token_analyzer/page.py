@@ -13,8 +13,8 @@ from aitutor.pages.token_analyzer.components import (
     token_analyzer_view_menu,
 )
 from aitutor.pages.token_analyzer.state import (
-    TokenAnalyzerState,
     USER_ANALYSIS_VIEW,
+    TokenAnalyzerState,
 )
 
 
