@@ -539,6 +539,10 @@ class LanguageState(SessionState):
         return self.translate(de="Beginnt mit...", en="Starts with...")
 
     @rx.var
+    def all_option(self) -> str:
+        return self.translate(de="Alle", en="All")
+
+    @rx.var
     def token_usage(self) -> str:
         return self.translate(de="Token-Nutzung", en="Token Usage")
 

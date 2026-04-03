@@ -7,7 +7,7 @@ import reflex as rx
 from sqlmodel import func, select
 
 from aitutor.auth.protection import state_require_role_at_least
-from aitutor.auth.state import SessionState
+from aitutor.auth.state import Language, SessionState
 from aitutor.models import Exercise, ExerciseResult, LocalUser, UserInfo, UserRole
 
 ALL_EXERCISES_OPTION = "All"
@@ -53,6 +53,45 @@ class TokenAnalyzerState(SessionState):
     selected_user_name: str = ALL_USERS_OPTION
     user_filter_query: str = ""
     user_bar_size: int = 3
+
+    @rx.var
+    def all_option_label(self) -> str:
+        """Localized label for the 'all' select option."""
+        return "Alle" if self.language == Language.DE else "All"
+
+    @rx.var
+    def displayed_filtered_exercise_options(self) -> list[str]:
+        """Exercise options for UI display with translated all label."""
+        return [
+            self.all_option_label if option == ALL_EXERCISES_OPTION else option
+            for option in self.filtered_exercise_options
+        ]
+
+    @rx.var
+    def displayed_filtered_user_options(self) -> list[str]:
+        """User options for UI display with translated all label."""
+        return [
+            self.all_option_label if option == ALL_USERS_OPTION else option
+            for option in self.filtered_user_options
+        ]
+
+    @rx.var
+    def displayed_selected_exercise_name(self) -> str:
+        """Selected exercise value translated for UI display."""
+        return (
+            self.all_option_label
+            if self.selected_exercise_name == ALL_EXERCISES_OPTION
+            else self.selected_exercise_name
+        )
+
+    @rx.var
+    def displayed_selected_user_name(self) -> str:
+        """Selected user value translated for UI display."""
+        return (
+            self.all_option_label
+            if self.selected_user_name == ALL_USERS_OPTION
+            else self.selected_user_name
+        )
 
     @rx.var
     def filtered_exercise_options(self) -> list[str]:
@@ -132,7 +171,11 @@ class TokenAnalyzerState(SessionState):
     @rx.event
     def set_selected_exercise_name(self, exercise_name: str):
         """Set selected exercise filter and reload the token rows."""
-        self.selected_exercise_name = exercise_name
+        self.selected_exercise_name = (
+            ALL_EXERCISES_OPTION
+            if exercise_name == self.all_option_label
+            else exercise_name
+        )
         self.load_token_rows()
 
     @rx.event
@@ -163,7 +206,9 @@ class TokenAnalyzerState(SessionState):
     @rx.event
     def set_selected_user_name(self, user_name: str):
         """Set selected user filter and reload exercise token rows."""
-        self.selected_user_name = user_name
+        self.selected_user_name = (
+            ALL_USERS_OPTION if user_name == self.all_option_label else user_name
+        )
         self.load_exercise_token_rows()
 
     @rx.event

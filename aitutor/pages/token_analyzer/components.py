@@ -4,8 +4,6 @@ import reflex as rx
 
 from aitutor.language_state import LanguageState
 from aitutor.pages.token_analyzer.state import (
-    ALL_EXERCISES_OPTION,
-    ALL_USERS_OPTION,
     EXERCISE_ANALYSIS_VIEW,
     USER_ANALYSIS_VIEW,
     ExerciseTableRow,
@@ -53,10 +51,13 @@ def analyzer_filter_selector(
 ) -> rx.Component:
     """Reusable selector row with prefix-search input and clear button."""
     return rx.hstack(
-        rx.text(
-            label_text + ":",
-            size="3",
-            weight="medium",
+        rx.box(
+            rx.text(
+                label_text + ":",
+                size="3",
+                weight="medium",
+            ),
+            width="80px",
         ),
         rx.input(
             value=query_value,
@@ -74,6 +75,7 @@ def analyzer_filter_selector(
             ),
             rx.box(width="26px"),
         ),
+        rx.box(width="10px"),
         rx.select(
             items=options,
             value=selected_value,
@@ -94,17 +96,20 @@ def token_analyzer_exercise_selector() -> rx.Component:
         query_value=TokenAnalyzerState.exercise_filter_query,
         on_query_change=TokenAnalyzerState.set_exercise_filter_query,
         on_query_clear=TokenAnalyzerState.clear_exercise_filter_query,
-        options=TokenAnalyzerState.filtered_exercise_options,
-        selected_value=TokenAnalyzerState.selected_exercise_name,
+        options=TokenAnalyzerState.displayed_filtered_exercise_options,
+        selected_value=TokenAnalyzerState.displayed_selected_exercise_name,
         on_select_change=TokenAnalyzerState.set_selected_exercise_name,
-        placeholder=ALL_EXERCISES_OPTION,
+        placeholder=LanguageState.all_option,
     )
 
 
 def token_analyzer_view_menu() -> rx.Component:
     """Menu to switch between user and exercise analysis views."""
     return rx.hstack(
-        rx.text(LanguageState.view + ":", size="3", weight="medium"),
+        rx.box(
+            rx.text(LanguageState.view + ":", size="3", weight="medium"),
+            width="80px",
+        ),
         rx.menu.root(
             rx.menu.trigger(
                 rx.button(
@@ -146,10 +151,10 @@ def token_analyzer_user_selector() -> rx.Component:
         query_value=TokenAnalyzerState.user_filter_query,
         on_query_change=TokenAnalyzerState.set_user_filter_query,
         on_query_clear=TokenAnalyzerState.clear_user_filter_query,
-        options=TokenAnalyzerState.filtered_user_options,
-        selected_value=TokenAnalyzerState.selected_user_name,
+        options=TokenAnalyzerState.displayed_filtered_user_options,
+        selected_value=TokenAnalyzerState.displayed_selected_user_name,
         on_select_change=TokenAnalyzerState.set_selected_user_name,
-        placeholder=ALL_USERS_OPTION,
+        placeholder=LanguageState.all_option,
     )
 
 
