@@ -203,6 +203,16 @@ class TokenAnalyzerState(SessionState):
             return "1000px"
         return "700px"
 
+    @rx.var
+    def total_user_tokens(self) -> int:
+        """Total tokens across all rows of the user analysis table."""
+        return sum(row.tokens_used for row in self.table_rows)
+
+    @rx.var
+    def total_exercise_tokens(self) -> int:
+        """Total tokens across all rows of the exercise analysis table."""
+        return sum(row.tokens_used for row in self.exercise_table_rows)
+
     @rx.event
     def load_exercise_options(self):
         """Load selectable exercises for filtering."""

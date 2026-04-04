@@ -546,6 +546,10 @@ class LanguageState(SessionState):
     def token_usage(self) -> str:
         return self.translate(de="Token-Nutzung", en="Token Usage")
 
+    @rx.var
+    def total_tokens(self) -> str:
+        return self.translate(de="Gesamt-Tokens", en="Total Tokens")
+
     # Manage Exercises Page Strings ----------------------------------------------------
     @rx.var
     def exercise_count_info(self) -> str:

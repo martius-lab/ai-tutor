@@ -268,6 +268,17 @@ def token_analyzer_exercise_bar_chart() -> rx.Component:
     )
 
 
+def token_analyzer_total_tokens_info(total_tokens) -> rx.Component:
+    """Compact row showing the total token sum for the current analysis."""
+    return rx.hstack(
+        rx.text(LanguageState.total_tokens + ":", weight="medium"),
+        rx.text(total_tokens, weight="bold"),
+        align="center",
+        justify="start",
+        width="85vw",
+    )
+
+
 def token_analyzer_table() -> rx.Component:
     """The main token analyzer table."""
     return rx.table.root(
@@ -332,6 +343,7 @@ def token_analyzer_user_analysis_section() -> rx.Component:
     return rx.vstack(
         token_analyzer_exercise_selector(),
         token_analyzer_bar_chart(),
+        token_analyzer_total_tokens_info(TokenAnalyzerState.total_user_tokens),
         token_analyzer_table(),
         spacing="3",
         align="center",
@@ -345,6 +357,7 @@ def token_analyzer_exercise_analysis_section() -> rx.Component:
     return rx.vstack(
         token_analyzer_user_selector(),
         token_analyzer_exercise_bar_chart(),
+        token_analyzer_total_tokens_info(TokenAnalyzerState.total_exercise_tokens),
         token_analyzer_exercise_table(),
         spacing="3",
         align="center",
