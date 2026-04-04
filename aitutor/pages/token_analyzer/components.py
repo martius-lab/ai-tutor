@@ -202,7 +202,7 @@ def token_analyzer_bar_chart() -> rx.Component:
                     bar_size=0,
                 ),
                 data=TokenAnalyzerState.chart_data,
-                margin={"top": 30, "right":45, "left": 6, "bottom": 24},
+                margin={"top": 30, "right": 45, "left": 6, "bottom": 24},
             ),
             width="100%",
             height=320,
