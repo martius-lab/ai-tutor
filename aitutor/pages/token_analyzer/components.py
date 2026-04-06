@@ -72,6 +72,7 @@ def analyzer_filter_selector(
                 on_click=on_query_clear,
                 variant="soft",
                 size="1",
+                _hover={"cursor": "pointer"},
             ),
             rx.box(width="26px"),
         ),
