@@ -840,6 +840,29 @@ class LanguageState(SessionState):
             """),
         )
 
+    @rx.var
+    def permissions(self) -> str:
+        return self.translate(de="Berechtigungen", en="Permissions")
+
+    @rx.var
+    def global_admin(self) -> str:
+        return self.translate(de="Global Admin", en="Global Admin")
+
+    @rx.var
+    def maintainer(self) -> str:
+        return self.translate(de="Maintainer", en="Maintainer")
+
+    @rx.var
+    def lecturer(self) -> str:
+        return self.translate(de="Lecturer", en="Lecturer")
+
+    @rx.var
+    def permissions_description(self) -> str:
+        return self.translate(
+            de="Mehrere globale Berechtigungen sind möglich. Diese sind unabhängig von der lokalen Rolle.",
+            en="Multiple global permissions can be selected. These are independent from the local role.",
+        )
+
     # user settings --------------------------------------------------------------------
     @rx.var
     def user_settings(self) -> str:

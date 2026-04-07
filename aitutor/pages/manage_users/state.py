@@ -7,7 +7,13 @@ from sqlmodel import case, cast, select
 from aitutor.auth.protection import state_require_role_or_permission
 from aitutor.auth.state import SessionState
 from aitutor.language_state import BackendTranslations as BT
-from aitutor.models import GlobalPermission, LocalUser, UserInfo, UserRole
+from aitutor.models import (
+    GlobalPermission,
+    LocalUser,
+    Permission,
+    UserInfo,
+    UserRole,
+)
 
 
 class ManageUsersState(SessionState):
@@ -15,6 +21,7 @@ class ManageUsersState(SessionState):
 
     users: list[tuple[LocalUser, UserInfo]] = []
     edited_user: tuple[LocalUser, UserInfo] | None = None
+    edited_user_permissions: list[GlobalPermission] = []
     edit_dialog_is_open: bool = False
 
     @rx.event
@@ -31,6 +38,7 @@ class ManageUsersState(SessionState):
         """Clears the state when the user logs out."""
         self.users = []
         self.edited_user = None
+        self.edited_user_permissions = []
         self.edit_dialog_is_open = False
 
     def load_users(self):
@@ -52,11 +60,27 @@ class ManageUsersState(SessionState):
             )
             self.users = [(lu, ui) for lu, ui in session.exec(query).all()]
 
+    @rx.var
+    def edited_user_has_global_admin(self) -> bool:
+        """Whether the edited user currently has global ADMIN permission."""
+        return GlobalPermission.ADMIN in self.edited_user_permissions
+
+    @rx.var
+    def edited_user_has_maintainer(self) -> bool:
+        """Whether the edited user currently has MAINTAINER permission."""
+        return GlobalPermission.MAINTAINER in self.edited_user_permissions
+
+    @rx.var
+    def edited_user_has_lecturer(self) -> bool:
+        """Whether the edited user currently has LECTURER permission."""
+        return GlobalPermission.LECTURER in self.edited_user_permissions
+
     @rx.event
     def close_edit_dialog(self):
         """Close the edit dialog."""
         self.edit_dialog_is_open = False
         self.edited_user = None
+        self.edited_user_permissions = []
 
     @rx.event
     def open_edit_dialog(self, user_id: int):
@@ -70,6 +94,10 @@ class ManageUsersState(SessionState):
             )
             row = session.exec(query).one_or_none()
 
+            permissions = session.exec(
+                select(Permission.permission).where(Permission.user_id == user_id)
+            ).all()
+
         if not row:
             return rx.toast.error(
                 BT.error_user_not_found(self.language),
@@ -80,6 +108,7 @@ class ManageUsersState(SessionState):
 
         # need to convert to proper tuple to avoid some weird type errors...
         self.edited_user = (row[0], row[1])
+        self.edited_user_permissions = permissions  # type: ignore
         self.edit_dialog_is_open = True
 
     @rx.event
@@ -93,6 +122,7 @@ class ManageUsersState(SessionState):
                 .where(LocalUser.id == self.edited_user[0].id)
             )
             local_user, user_info = session.exec(query).one()
+            assert local_user.id is not None
 
             local_user.username = form_data["username"]
             user_info.email = form_data["email"]
@@ -117,6 +147,23 @@ class ManageUsersState(SessionState):
                 ).all()
                 for us in user_sessions:
                     session.delete(us)
+
+            selected_permissions: list[GlobalPermission] = []
+            if form_data.get("permission_admin") == "on":
+                selected_permissions.append(GlobalPermission.ADMIN)
+            if form_data.get("permission_maintainer") == "on":
+                selected_permissions.append(GlobalPermission.MAINTAINER)
+            if form_data.get("permission_lecturer") == "on":
+                selected_permissions.append(GlobalPermission.LECTURER)
+
+            existing_permissions = session.exec(
+                select(Permission).where(Permission.user_id == local_user.id)
+            ).all()
+            for permission in existing_permissions:
+                session.delete(permission)
+
+            for permission in selected_permissions:
+                session.add(Permission(user_id=local_user.id, permission=permission))
 
             session.commit()
 

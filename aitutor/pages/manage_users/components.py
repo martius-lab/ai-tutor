@@ -151,6 +151,32 @@ def edit_user_dialog() -> rx.Component:
                             ),
                             align="center",
                         ),
+                        form_label(LS.permissions),
+                        rx.vstack(
+                            rx.checkbox(
+                                LS.global_admin,
+                                name="permission_admin",
+                                default_checked=ManageUsersState.edited_user_has_global_admin,
+                            ),
+                            rx.checkbox(
+                                LS.maintainer,
+                                name="permission_maintainer",
+                                default_checked=ManageUsersState.edited_user_has_maintainer,
+                            ),
+                            rx.checkbox(
+                                LS.lecturer,
+                                name="permission_lecturer",
+                                default_checked=ManageUsersState.edited_user_has_lecturer,
+                            ),
+                            rx.text(
+                                LS.permissions_description,
+                                size="2",
+                                color_scheme="gray",
+                            ),
+                            align="start",
+                            spacing="2",
+                            width="100%",
+                        ),
                         form_label(LS.enabled),
                         rx.checkbox(
                             name="enabled",
