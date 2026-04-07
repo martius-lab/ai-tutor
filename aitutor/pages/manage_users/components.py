@@ -168,11 +168,6 @@ def edit_user_dialog() -> rx.Component:
                                 name="permission_lecturer",
                                 default_checked=ManageUsersState.edited_user_has_lecturer,
                             ),
-                            rx.text(
-                                LS.permissions_description,
-                                size="2",
-                                color_scheme="gray",
-                            ),
                             align="start",
                             spacing="2",
                             width="100%",
