@@ -57,13 +57,13 @@ def analyzer_filter_selector(
                 size="3",
                 weight="medium",
             ),
-            width="80px",
+            width="5em",
         ),
         rx.input(
             value=query_value,
             on_change=on_query_change,
             placeholder=LanguageState.starts_with_placeholder,
-            width="260px",
+            width="16em",
         ),
         rx.cond(
             query_value != "",
@@ -74,15 +74,15 @@ def analyzer_filter_selector(
                 size="1",
                 _hover={"cursor": "pointer"},
             ),
-            rx.box(width="26px"),
+            rx.box(width="1.625em"),
         ),
-        rx.box(width="10px"),
+        rx.box(width="0.625em"),
         rx.select(
             items=options,
             value=selected_value,
             on_change=on_select_change,
             placeholder=placeholder,
-            width="320px",
+            width="20em",
         ),
         align="center",
         width="85vw",
@@ -109,7 +109,7 @@ def token_analyzer_view_menu() -> rx.Component:
     return rx.hstack(
         rx.box(
             rx.text(LanguageState.view + ":", size="3", weight="medium"),
-            width="80px",
+            width="5em",
         ),
         rx.menu.root(
             rx.menu.trigger(
