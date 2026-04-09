@@ -159,18 +159,28 @@ def token_analyzer_user_selector() -> rx.Component:
     )
 
 
-def token_analyzer_bar_chart() -> rx.Component:
-    """Bar chart showing token usage by user rank."""
+def token_analyzer_rank_bar_chart(
+    *,
+    ticks,
+    rank_label,
+    metadata_key: str,
+    metadata_label,
+    value_color,
+    value_bar_size,
+    chart_data,
+    chart_min_width,
+) -> rx.Component:
+    """Shared rank-based bar chart used for token analyzer views."""
     return rx.box(
         rx.recharts.responsive_container(
             rx.recharts.bar_chart(
                 rx.recharts.cartesian_grid(stroke_dasharray="3 3"),
                 rx.recharts.x_axis(
                     data_key="rank",
-                    ticks=TokenAnalyzerState.chart_ticks,
+                    ticks=ticks,
                     interval=0,
                     label={
-                        "value": LanguageState.user_rank,
+                        "value": rank_label,
                         "position": "insideBottom",
                         "offset": -12,
                     },
@@ -193,79 +203,52 @@ def token_analyzer_bar_chart() -> rx.Component:
                 rx.recharts.bar(
                     data_key="tokens_used_k",
                     name=f"{TOOLTIP_PREFIX_SECONDARY}{LanguageState.token_usage}",
-                    fill=rx.color("indigo", 8),
-                    bar_size=TokenAnalyzerState.user_bar_size,
+                    fill=value_color,
+                    bar_size=value_bar_size,
                 ),
                 rx.recharts.bar(
-                    data_key="username",
-                    name=f"{TOOLTIP_PREFIX_PRIMARY}{LanguageState.user}",
+                    data_key=metadata_key,
+                    name=f"{TOOLTIP_PREFIX_PRIMARY}{metadata_label}",
                     fill="transparent",
                     bar_size=0,
                 ),
-                data=TokenAnalyzerState.chart_data,
+                data=chart_data,
                 margin={"top": 30, "right": 45, "left": 6, "bottom": 24},
             ),
             width="100%",
             height=320,
-            min_width=TokenAnalyzerState.chart_min_width,
+            min_width=chart_min_width,
         ),
         width="85vw",
         overflow_x="auto",
     )
 
 
+def token_analyzer_bar_chart() -> rx.Component:
+    """Bar chart showing token usage by user rank."""
+    return token_analyzer_rank_bar_chart(
+        ticks=TokenAnalyzerState.chart_ticks,
+        rank_label=LanguageState.user_rank,
+        metadata_key="username",
+        metadata_label=LanguageState.user,
+        value_color=rx.color("indigo", 8),
+        value_bar_size=TokenAnalyzerState.user_bar_size,
+        chart_data=TokenAnalyzerState.chart_data,
+        chart_min_width=TokenAnalyzerState.chart_min_width,
+    )
+
+
 def token_analyzer_exercise_bar_chart() -> rx.Component:
     """Bar chart showing token usage by exercise rank."""
-    return rx.box(
-        rx.recharts.responsive_container(
-            rx.recharts.bar_chart(
-                rx.recharts.cartesian_grid(stroke_dasharray="3 3"),
-                rx.recharts.x_axis(
-                    data_key="rank",
-                    ticks=TokenAnalyzerState.exercise_chart_ticks,
-                    interval=0,
-                    label={
-                        "value": LanguageState.exercise_rank,
-                        "position": "insideBottom",
-                        "offset": -12,
-                    },
-                    min_tick_gap=8,
-                ),
-                rx.recharts.y_axis(
-                    data_key="tokens_used_k",
-                    width=100,
-                    tick_count=6,
-                    label={
-                        "value": f"{LanguageState.token_usage} (K)",
-                        "angle": -90,
-                        "position": "outsideLeft",
-                        "offset": 22,
-                    },
-                ),
-                rx.recharts.graphing_tooltip(
-                    separator=": ",
-                ),
-                rx.recharts.bar(
-                    data_key="exercise",
-                    name=f"{TOOLTIP_PREFIX_PRIMARY}{LanguageState.exercise}",
-                    fill="transparent",
-                    bar_size=0,
-                ),
-                rx.recharts.bar(
-                    data_key="tokens_used_k",
-                    name=f"{TOOLTIP_PREFIX_SECONDARY}{LanguageState.token_usage}",
-                    fill=rx.color("cyan", 8),
-                    bar_size=TokenAnalyzerState.exercise_bar_size,
-                ),
-                data=TokenAnalyzerState.exercise_chart_data,
-                margin={"top": 30, "right": 45, "left": 6, "bottom": 24},
-            ),
-            width="100%",
-            height=320,
-            min_width=TokenAnalyzerState.exercise_chart_min_width,
-        ),
-        width="85vw",
-        overflow_x="auto",
+    return token_analyzer_rank_bar_chart(
+        ticks=TokenAnalyzerState.exercise_chart_ticks,
+        rank_label=LanguageState.exercise_rank,
+        metadata_key="exercise",
+        metadata_label=LanguageState.exercise,
+        value_color=rx.color("cyan", 8),
+        value_bar_size=TokenAnalyzerState.exercise_bar_size,
+        chart_data=TokenAnalyzerState.exercise_chart_data,
+        chart_min_width=TokenAnalyzerState.exercise_chart_min_width,
     )
 
 
