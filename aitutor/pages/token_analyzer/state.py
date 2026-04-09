@@ -7,7 +7,8 @@ import reflex as rx
 from sqlmodel import func, select
 
 from aitutor.auth.protection import state_require_role_at_least
-from aitutor.auth.state import Language, SessionState
+from aitutor.auth.state import SessionState
+from aitutor.language_state import BackendTranslations as BT
 from aitutor.models import Exercise, ExerciseResult, LocalUser, UserInfo, UserRole
 
 ALL_EXERCISES_OPTION = "All"
@@ -129,7 +130,7 @@ class TokenAnalyzerState(SessionState):
     @rx.var
     def all_option_label(self) -> str:
         """Localized label for the 'all' select option."""
-        return "Alle" if self.language == Language.DE else "All"
+        return BT.all_option(self.language)
 
     @rx.var
     def displayed_filtered_exercise_options(self) -> list[str]:

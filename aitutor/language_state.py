@@ -1484,3 +1484,8 @@ class BackendTranslations:
             de="Fehler: Ersatzprompt nicht gefunden.",
             en="Error: Replacement prompt not found.",
         )
+
+    # TokenAnalyzerState ----------------------------------------------------------------
+    @staticmethod
+    def all_option(language: Language) -> str:
+        return translate(language, de="Alle", en="All")
