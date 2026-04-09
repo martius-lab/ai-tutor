@@ -206,6 +206,8 @@ def token_analyzer_rank_bar_chart(
                     fill=value_color,
                     bar_size=value_bar_size,
                 ),
+                # Invisible series used only to include metadata such as the
+                # username/exercise title in the tooltip payload.
                 rx.recharts.bar(
                     data_key=metadata_key,
                     name=f"{TOOLTIP_PREFIX_PRIMARY}{metadata_label}",
@@ -224,17 +226,17 @@ def token_analyzer_rank_bar_chart(
     )
 
 
-def token_analyzer_bar_chart() -> rx.Component:
+def token_analyzer_user_bar_chart() -> rx.Component:
     """Bar chart showing token usage by user rank."""
     return token_analyzer_rank_bar_chart(
-        ticks=TokenAnalyzerState.chart_ticks,
+        ticks=TokenAnalyzerState.user_chart_ticks,
         rank_label=LanguageState.user_rank,
         metadata_key="username",
         metadata_label=LanguageState.user,
         value_color=rx.color("indigo", 8),
         value_bar_size=TokenAnalyzerState.user_bar_size,
-        chart_data=TokenAnalyzerState.chart_data,
-        chart_min_width=TokenAnalyzerState.chart_min_width,
+        chart_data=TokenAnalyzerState.user_chart_data,
+        chart_min_width=TokenAnalyzerState.user_chart_min_width,
     )
 
 
@@ -263,7 +265,7 @@ def token_analyzer_total_tokens_info(total_tokens) -> rx.Component:
     )
 
 
-def token_analyzer_table() -> rx.Component:
+def token_analyzer_user_table() -> rx.Component:
     """The main token analyzer table."""
     return rx.table.root(
         rx.table.header(
@@ -275,7 +277,7 @@ def token_analyzer_table() -> rx.Component:
         ),
         rx.table.body(
             rx.foreach(
-                TokenAnalyzerState.table_rows,
+                TokenAnalyzerState.user_table_rows,
                 show_table_row,
             )
         ),
@@ -326,9 +328,9 @@ def token_analyzer_user_analysis_section() -> rx.Component:
     """Complete section for user-focused analysis."""
     return rx.vstack(
         token_analyzer_exercise_selector(),
-        token_analyzer_bar_chart(),
+        token_analyzer_user_bar_chart(),
         token_analyzer_total_tokens_info(TokenAnalyzerState.total_user_tokens),
-        token_analyzer_table(),
+        token_analyzer_user_table(),
         spacing="3",
         align="center",
         justify="center",

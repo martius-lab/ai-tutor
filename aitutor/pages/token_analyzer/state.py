@@ -38,9 +38,9 @@ class ExerciseTableRow:
 class TokenAnalyzerState(SessionState):
     """State for the token analyzer page."""
 
-    table_rows: list[TableRow]
-    chart_data: list[dict[str, int | float | str]]
-    chart_ticks: list[int]
+    user_table_rows: list[TableRow]
+    user_chart_data: list[dict[str, int | float | str]]
+    user_chart_ticks: list[int]
     active_analysis_view: str = USER_ANALYSIS_VIEW
     exercise_options: list[str]
     selected_exercise_name: str = ALL_EXERCISES_OPTION
@@ -63,7 +63,7 @@ class TokenAnalyzerState(SessionState):
             if exercise_name == self.all_option_label
             else exercise_name
         )
-        self.load_token_rows()
+        self.load_user_token_rows()
 
     @rx.event
     def set_active_analysis_view(self, view: str):
@@ -106,14 +106,14 @@ class TokenAnalyzerState(SessionState):
         self.global_load()
         self.load_exercise_options()
         self.load_user_options()
-        self.load_token_rows()
+        self.load_user_token_rows()
         self.load_exercise_token_rows()
 
     def on_logout(self):
         """Clears the state when the user logs out."""
-        self.table_rows = []
-        self.chart_data = []
-        self.chart_ticks = []
+        self.user_table_rows = []
+        self.user_chart_data = []
+        self.user_chart_ticks = []
         self.active_analysis_view = USER_ANALYSIS_VIEW
         self.exercise_options = []
         self.selected_exercise_name = ALL_EXERCISES_OPTION
@@ -185,9 +185,9 @@ class TokenAnalyzerState(SessionState):
         )
 
     @rx.var
-    def chart_min_width(self) -> str:
+    def user_chart_min_width(self) -> str:
         """Minimum chart width to keep bars readable for many users."""
-        chart_count = len(self.chart_data)
+        chart_count = len(self.user_chart_data)
         if chart_count > 120:
             return "1400px"
         if chart_count > 80:
@@ -207,7 +207,7 @@ class TokenAnalyzerState(SessionState):
     @rx.var
     def total_user_tokens(self) -> int:
         """Total tokens across all rows of the user analysis table."""
-        return sum(row.tokens_used for row in self.table_rows)
+        return sum(row.tokens_used for row in self.user_table_rows)
 
     @rx.var
     def total_exercise_tokens(self) -> int:
@@ -233,7 +233,7 @@ class TokenAnalyzerState(SessionState):
             self.user_options = [ALL_USERS_OPTION, *users]
 
     @rx.event
-    def load_token_rows(self):
+    def load_user_token_rows(self):
         """Load total token usage per user.
 
         Sort order:
@@ -255,16 +255,16 @@ class TokenAnalyzerState(SessionState):
                 total_tokens.desc(), func.lower(LocalUser.username)
             )
 
-            self.table_rows = [
+            self.user_table_rows = [
                 TableRow(rank=index, username=username, tokens_used=tokens_used)
                 for index, (username, tokens_used) in enumerate(
                     session.exec(stmt).all(), start=1
                 )
             ]
 
-            self.chart_data = self._build_user_chart_data(self.table_rows)
-            self.chart_ticks = self._build_rank_ticks(len(self.table_rows))
-            self.user_bar_size = self._get_dynamic_bar_size(len(self.table_rows))
+            self.user_chart_data = self._build_user_chart_data(self.user_table_rows)
+            self.user_chart_ticks = self._build_rank_ticks(len(self.user_table_rows))
+            self.user_bar_size = self._get_dynamic_bar_size(len(self.user_table_rows))
 
     @rx.event
     def load_exercise_token_rows(self):
