@@ -49,7 +49,7 @@ def analyzer_filter_selector(
     on_select_change,
     placeholder,
 ) -> rx.Component:
-    """Reusable selector row with prefix-search input and clear button."""
+    """Reusable selector row with text search input and clear button."""
     return rx.hstack(
         rx.box(
             rx.text(
@@ -62,7 +62,7 @@ def analyzer_filter_selector(
         rx.input(
             value=query_value,
             on_change=on_query_change,
-            placeholder=LanguageState.starts_with_placeholder,
+            placeholder=LanguageState.search_filter_placeholder,
             width="16em",
         ),
         rx.cond(

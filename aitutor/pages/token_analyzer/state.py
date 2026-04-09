@@ -169,7 +169,7 @@ class TokenAnalyzerState(SessionState):
     @rx.var
     def filtered_exercise_options(self) -> list[str]:
         """Exercise options filtered by the search query."""
-        return self._filter_options_by_prefix(
+        return self._filter_options_by_query(
             self.exercise_options,
             self.exercise_filter_query,
             ALL_EXERCISES_OPTION,
@@ -178,7 +178,7 @@ class TokenAnalyzerState(SessionState):
     @rx.var
     def filtered_user_options(self) -> list[str]:
         """User options filtered by the search query."""
-        return self._filter_options_by_prefix(
+        return self._filter_options_by_query(
             self.user_options,
             self.user_filter_query,
             ALL_USERS_OPTION,
@@ -309,10 +309,12 @@ class TokenAnalyzerState(SessionState):
             )
 
     @staticmethod
-    def _filter_options_by_prefix(
+    def _filter_options_by_query(
         options: list[str], query: str, all_option: str
     ) -> list[str]:
-        """Filter option list by prefix (case-insensitive), keeping the all option."""
+        """Filter option list by substring match (case-insensitive).
+        Keeps the "all" option in the filtered results.
+        """
         normalized_query = query.strip().lower()
         if not normalized_query:
             return options
@@ -320,7 +322,7 @@ class TokenAnalyzerState(SessionState):
         filtered = [
             option
             for option in options
-            if option == all_option or option.lower().startswith(normalized_query)
+            if option == all_option or normalized_query in option.lower()
         ]
         return filtered or [all_option]
 

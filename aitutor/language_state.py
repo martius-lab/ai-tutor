@@ -535,8 +535,8 @@ class LanguageState(SessionState):
         return self.translate(de="Übungs-Rang", en="Exercise Rank")
 
     @rx.var
-    def starts_with_placeholder(self) -> str:
-        return self.translate(de="Beginnt mit...", en="Starts with...")
+    def search_filter_placeholder(self) -> str:
+        return self.translate(de="Zum Suchen tippen...", en="Type to search...")
 
     @rx.var
     def all_option(self) -> str:
