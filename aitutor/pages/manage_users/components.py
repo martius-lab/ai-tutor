@@ -154,19 +154,19 @@ def edit_user_dialog() -> rx.Component:
                         form_label(LS.permissions),
                         rx.vstack(
                             rx.checkbox(
-                                LS.global_admin,
-                                name="permission_admin",
-                                default_checked=ManageUsersState.edited_user_has_global_admin,
+                                LS.admin_permission,
+                                name="global_permission_admin",
+                                default_checked=ManageUsersState.edited_user_has_admin_permission,
                             ),
                             rx.checkbox(
-                                LS.maintainer,
-                                name="permission_maintainer",
-                                default_checked=ManageUsersState.edited_user_has_maintainer,
+                                LS.maintainer_permission,
+                                name="global_permission_maintainer",
+                                default_checked=ManageUsersState.edited_user_has_maintainer_permission,
                             ),
                             rx.checkbox(
-                                LS.lecturer,
-                                name="permission_lecturer",
-                                default_checked=ManageUsersState.edited_user_has_lecturer,
+                                LS.lecturer_permission,
+                                name="global_permission_lecturer",
+                                default_checked=ManageUsersState.edited_user_has_lecturer_permission,
                             ),
                             align="start",
                             spacing="2",

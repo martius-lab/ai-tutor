@@ -61,17 +61,17 @@ class ManageUsersState(SessionState):
             self.users = [(lu, ui) for lu, ui in session.exec(query).all()]
 
     @rx.var
-    def edited_user_has_global_admin(self) -> bool:
+    def edited_user_has_admin_permission(self) -> bool:
         """Whether the edited user currently has global ADMIN permission."""
         return GlobalPermission.ADMIN in self.edited_user_permissions
 
     @rx.var
-    def edited_user_has_maintainer(self) -> bool:
+    def edited_user_has_maintainer_permission(self) -> bool:
         """Whether the edited user currently has MAINTAINER permission."""
         return GlobalPermission.MAINTAINER in self.edited_user_permissions
 
     @rx.var
-    def edited_user_has_lecturer(self) -> bool:
+    def edited_user_has_lecturer_permission(self) -> bool:
         """Whether the edited user currently has LECTURER permission."""
         return GlobalPermission.LECTURER in self.edited_user_permissions
 
@@ -149,11 +149,11 @@ class ManageUsersState(SessionState):
                     session.delete(us)
 
             selected_permissions: list[GlobalPermission] = []
-            if form_data.get("permission_admin") == "on":
+            if form_data.get("global_permission_admin") == "on":
                 selected_permissions.append(GlobalPermission.ADMIN)
-            if form_data.get("permission_maintainer") == "on":
+            if form_data.get("global_permission_maintainer") == "on":
                 selected_permissions.append(GlobalPermission.MAINTAINER)
-            if form_data.get("permission_lecturer") == "on":
+            if form_data.get("global_permission_lecturer") == "on":
                 selected_permissions.append(GlobalPermission.LECTURER)
 
             existing_permissions = session.exec(
