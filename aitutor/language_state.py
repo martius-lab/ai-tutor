@@ -117,11 +117,6 @@ class LanguageState(SessionState):
         return self.translate(de="Admin Einstellungen", en="Admin Settings")
 
     @rx.var
-    def manage_exercises_link(self) -> str:
-        """The string for the 'Manage Exercises' link."""
-        return self.translate(de="Übungsverwaltung", en="Manage Exercises")
-
-    @rx.var
     def language_string(self) -> str:
         """The current language as a string."""
         return self.translate(de="Deutsch", en="English")
@@ -130,6 +125,38 @@ class LanguageState(SessionState):
     def log_out(self) -> str:
         """Log out string"""
         return self.translate(de="Abmelden", en="Log out")
+
+    # Admin Settings Navbar Strings ---------------------------------------------------
+    @rx.var
+    def manage_exercises_link(self) -> str:
+        """The string for the 'Manage Exercises' link."""
+        return self.translate(de="Übungsverwaltung", en="Manage Exercises")
+
+    @rx.var
+    def manage_users(self) -> str:
+        return self.translate(de="Benutzerverwaltung", en="Manage Users")
+
+    @rx.var
+    def reports(self) -> str:
+        return self.translate(de="Meldungen", en="Reports")
+
+    @rx.var
+    def manage_prompts(self) -> str:
+        return self.translate(
+            de="Prompts verwalten",
+            en="Manage Prompts",
+        )
+
+    @rx.var
+    def configuration(self) -> str:
+        return self.translate(de="Konfiguration", en="Configuration")
+
+    @rx.var
+    def token_analyzer(self) -> str:
+        return self.translate(
+            de="Tokenverbrauch",
+            en="Token Analyzer",
+        )
 
     # Home Page Strings ----------------------------------------------------------------
     @rx.var
@@ -482,6 +509,47 @@ class LanguageState(SessionState):
         """Submitted chat string"""
         return self.translate(de="Abgegebener Chat", en="Submitted chat")
 
+    # Token Analyzer Page Strings ------------------------------------------------------
+    @rx.var
+    def rank(self) -> str:
+        return self.translate(de="Rang", en="Rank")
+
+    @rx.var
+    def view(self) -> str:
+        return self.translate(de="Ansicht", en="View")
+
+    @rx.var
+    def user_stats(self) -> str:
+        return self.translate(de="Benutzer-Statistik", en="User Stats")
+
+    @rx.var
+    def exercise_stats(self) -> str:
+        return self.translate(de="Übungs-Statistik", en="Exercise Stats")
+
+    @rx.var
+    def user_rank(self) -> str:
+        return self.translate(de="Benutzer-Rang", en="User Rank")
+
+    @rx.var
+    def exercise_rank(self) -> str:
+        return self.translate(de="Übungs-Rang", en="Exercise Rank")
+
+    @rx.var
+    def search_filter_placeholder(self) -> str:
+        return self.translate(de="Zum Suchen tippen...", en="Type to search...")
+
+    @rx.var
+    def all_option(self) -> str:
+        return self.translate(de="Alle", en="All")
+
+    @rx.var
+    def token_usage(self) -> str:
+        return self.translate(de="Token-Nutzung", en="Token Usage")
+
+    @rx.var
+    def total_tokens(self) -> str:
+        return self.translate(de="Gesamt-Tokens", en="Total Tokens")
+
     # Manage Exercises Page Strings ----------------------------------------------------
     @rx.var
     def exercise_count_info(self) -> str:
@@ -775,9 +843,6 @@ class LanguageState(SessionState):
         )
 
     # Manage Users Page Strings --------------------------------------------------------
-    @rx.var
-    def manage_users(self) -> str:
-        return self.translate(de="Benutzerverwaltung", en="Manage Users")
 
     @rx.var
     def edit_user(self) -> str:
@@ -854,9 +919,6 @@ class LanguageState(SessionState):
         return self.translate(de="Aktuelles Passwort", en="Current Password")
 
     # configuration page ---------------------------------------------------------------
-    @rx.var
-    def configuration(self) -> str:
-        return self.translate(de="Konfiguration", en="Configuration")
 
     @rx.var
     def unsaved_changes_info(self) -> str:
@@ -989,13 +1051,6 @@ Please test the chat for functionality after changing the model.
         )
 
     @rx.var
-    def manage_prompts(self) -> str:
-        return self.translate(
-            de="Prompts verwalten",
-            en="Manage Prompts",
-        )
-
-    @rx.var
     def prompt_variables_info(self) -> str:
         return self.translate(
             de="Sie können in Ihrem Prompt folgende Variablen verwenden: "
@@ -1106,10 +1161,6 @@ Please test the chat for functionality after changing the model.
         return self.translate(
             de="Problematischen Chat melden", en="Report problematic chat"
         )
-
-    @rx.var
-    def reports(self) -> str:
-        return self.translate(de="Meldungen", en="Reports")
 
     @rx.var
     def report_placeholder(self) -> str:
@@ -1433,3 +1484,8 @@ class BackendTranslations:
             de="Fehler: Ersatzprompt nicht gefunden.",
             en="Error: Replacement prompt not found.",
         )
+
+    # TokenAnalyzerState ----------------------------------------------------------------
+    @staticmethod
+    def all_option(language: Language) -> str:
+        return translate(language, de="Alle", en="All")

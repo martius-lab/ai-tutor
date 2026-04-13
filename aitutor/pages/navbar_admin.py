@@ -11,6 +11,7 @@ admin_links = [
     (LanguageState.reports, routes.REPORTS, "flag"),
     (LanguageState.manage_prompts, routes.PROMPTS, "text-search"),
     (LanguageState.configuration, routes.CONFIGURATION, "file-sliders"),
+    (LanguageState.token_analyzer, routes.TOKEN_ANALYZER, "chart-column"),
 ]
 
 
