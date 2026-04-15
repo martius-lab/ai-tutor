@@ -27,6 +27,9 @@ REPORT_VIEW = REPORTS + "/report_view"
 
 USER_SETTINGS = "/user_settings"
 
+LECTURES = "/lectures"
+EDIT_LECTURE = LECTURES + "/edit_lecture"
+
 NOT_FOUND = "/404"
 
 

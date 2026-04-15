@@ -117,9 +117,16 @@ class LanguageState(SessionState):
         return self.translate(de="Admin Einstellungen", en="Admin Settings")
 
     @rx.var
+    def lectures_link(self) -> str:
+        """The string for the 'Lectures' link."""
+        return self.translate(de="Vorlesungen", en="Lectures")
+
+    @rx.var
     def manage_exercises_link(self) -> str:
         """The string for the 'Manage Exercises' link."""
         return self.translate(de="Übungsverwaltung", en="Manage Exercises")
+
+
 
     @rx.var
     def language_string(self) -> str:
@@ -1195,6 +1202,24 @@ Please test the chat for functionality after changing the model.
     @rx.var
     def report_submitted_conversation(self) -> str:
         return self.translate(de="Eingereichter Chat:", en="Submitted Conversation:")
+    
+    # EditLecture Strings -------------------------------------------------------------------------
+    @rx.var
+    def edit_lecture(self) -> str:
+        """The string for the 'Edit Lecture' tab."""
+        return self.translate(de="Vorlesung bearbeiten", en="Edit Lecture")
+
+    @rx.var
+    def edit_lecture_placeholder(self) -> str:
+        """Placeholder text for the lecture edit page skeleton."""
+        return self.translate(
+            de=(
+                "hi"
+            ),
+            en=(
+                "hih"
+            ),
+        )    
 
 
 class BackendTranslations:
