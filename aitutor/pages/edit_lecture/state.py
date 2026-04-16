@@ -6,7 +6,7 @@ from sqlmodel import select
 import aitutor.routes as routes
 from aitutor.auth.protection import state_require_role_or_permission
 from aitutor.auth.state import SessionState
-from aitutor.language_state import BackendTranslations as BT, translate
+from aitutor.language_state import BackendTranslations as BT
 from aitutor.models import GlobalPermission, Lecture, LectureRole, LinkUserLecture
 
 
@@ -27,13 +27,6 @@ class EditLectureState(SessionState):
         """Update one lecture field in the page state."""
         setattr(self, name, value)
         self.unsaved_changes = True
-
-    @rx.var
-    def submit_text(self) -> str:
-        """Return the correct submit button label for the current mode."""
-        if self.is_new:
-            return translate(self.language, de="Vorlesung erstellen", en="Create Lecture")
-        return translate(self.language, de="Vorlesung speichern", en="Save Lecture")
 
     def _user_may_edit_existing_lecture(self, lecture_id: int) -> bool:
         """Check whether the current user may edit an existing lecture."""
