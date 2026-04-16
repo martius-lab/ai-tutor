@@ -1221,6 +1221,21 @@ Please test the chat for functionality after changing the model.
             ),
         )    
 
+    @rx.var
+    def lecture_name(self) -> str:
+        """Lecture name string."""
+        return self.translate(de="Vorlesungsname", en="Lecture Name")
+
+    @rx.var
+    def create_lecture(self) -> str:
+        """Create lecture button/title string."""
+        return self.translate(de="Vorlesung erstellen", en="Create Lecture")
+
+    @rx.var
+    def save_lecture(self) -> str:
+        """Save lecture button/title string."""
+        return self.translate(de="Vorlesung speichern", en="Save Lecture")
+
 
 class BackendTranslations:
     """Translations for use in the backend (where LanguageState is not available)."""

@@ -66,7 +66,8 @@ def with_lectures_navbar(tab_to_highlight: str):
             spacing="0",
             padding="0",
             align="center",
-            width="90%",
+            width="100%",
+            max_width="100%",
         )
 
     return decorator
