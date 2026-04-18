@@ -1281,7 +1281,7 @@ class BackendTranslations:
         return translate(
             language,
             de="Änderungen erfolgreich gespeichert.",
-            en="Exercise updated successfully.",
+            en="Changes saved successfully.",
         )
 
     @staticmethod
