@@ -1,14 +1,16 @@
 """State for the my lectures page."""
 
-from typing import Any
-
 import reflex as rx
 from sqlmodel import select
 
 from aitutor.auth.protection import state_require_role_or_permission
 from aitutor.auth.state import SessionState
-from aitutor.models import GlobalPermission, Lecture, LectureRole, LinkUserLecture, UserRole
-
+from aitutor.models import (
+    GlobalPermission,
+    Lecture,
+    LinkUserLecture,
+    UserRole,
+)
 
 LectureWithRole = tuple[Lecture, int]
 
@@ -52,5 +54,6 @@ class MyLecturesState(SessionState):
             ).all()
 
         self.joined_lectures = [
-            (lecture, int(role)) for lecture, role in joined  # type: ignore[arg-type]
+            (lecture, int(role))
+            for lecture, role in joined  # type: ignore[arg-type]
         ]

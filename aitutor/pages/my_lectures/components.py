@@ -46,7 +46,12 @@ def lecture_row(joined_lecture: LectureWithRole) -> rx.Component:
                 role == LectureRole.OWNER.value,
                 rx.link(
                     rx.button(
-                        rx.flex(rx.icon("pen", size=15), LS.edit, gap="0.5em", align="center"),
+                        rx.flex(
+                            rx.icon("pen", size=15),
+                            LS.edit,
+                            gap="0.5em",
+                            align="center",
+                        ),
                         _hover={"cursor": "pointer"},
                     ),
                     href=f"{routes.EDIT_LECTURE}/{lecture.id}",
