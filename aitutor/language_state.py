@@ -1208,6 +1208,27 @@ Please test the chat for functionality after changing the model.
         return self.translate(de="Vorlesung bearbeiten", en="Edit Lecture")
 
     @rx.var
+    def my_lectures(self) -> str:
+        """The string for the 'My Lectures' tab/page."""
+        return self.translate(de="Meine Vorlesungen", en="My Lectures")
+
+    @rx.var
+    def my_lectures_placeholder(self) -> str:
+        """Placeholder text for the my lectures page skeleton."""
+        return self.translate(
+            de="Hier wird als Nächstes die Liste der Vorlesungen angezeigt, bei denen Sie Mitglied sind.",
+            en="This page will next show the list of lectures you are a member of.",
+        )
+
+    @rx.var
+    def no_joined_lectures(self) -> str:
+        """Message shown when the user has not joined any lectures yet."""
+        return self.translate(
+            de="Sie sind aktuell in keiner Vorlesung Mitglied.",
+            en="You have not joined any lectures yet.",
+        )
+
+    @rx.var
     def lecture_name(self) -> str:
         """Lecture name string."""
         return self.translate(de="Vorlesungsname", en="Lecture Name")

@@ -22,6 +22,8 @@ from aitutor.pages.manage_exercises.page import manage_exercises_page
 from aitutor.pages.manage_exercises.state import ManageExercisesState, ManageTagsState
 from aitutor.pages.manage_users.page import manage_users_page
 from aitutor.pages.manage_users.state import ManageUsersState
+from aitutor.pages.my_lectures.page import my_lectures_page
+from aitutor.pages.my_lectures.state import MyLecturesState
 from aitutor.pages.navbar import navbar
 from aitutor.pages.not_found.page import not_found_page
 from aitutor.pages.prompts.page import prompts_page
@@ -41,6 +43,7 @@ __all__ = [
     "home_page",
     "manage_exercises_page",
     "manage_users_page",
+    "my_lectures_page",
     "exercises_page",
     "navbar",
     "not_found_page",
@@ -66,6 +69,7 @@ __all__ = [
     "ManageExercisesState",
     "ManageTagsState",
     "ManageUsersState",
+    "MyLecturesState",
     "SubmissionsState",
     "MyLoginState",
     "MyRegisterState",

@@ -61,7 +61,7 @@ admin_links = [
     (LanguageState.admin_settings_link, routes.MANAGE_EXERCISES, "shield-check"),
 ]
 lecture_links = [
-    (LanguageState.lectures_link, routes.EDIT_LECTURE + "/new", "graduation-cap"),
+    (LanguageState.lectures_link, routes.MY_LECTURES, "graduation-cap"),
 ]
 
 

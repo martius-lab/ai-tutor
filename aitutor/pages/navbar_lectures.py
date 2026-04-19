@@ -6,6 +6,7 @@ import aitutor.routes as routes
 from aitutor.language_state import LanguageState
 
 lecture_links = [
+    (LanguageState.my_lectures, routes.MY_LECTURES, "book-open"),
     (LanguageState.edit_lecture, routes.EDIT_LECTURE + "/new", "book-marked"),
 ]
 

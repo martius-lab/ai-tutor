@@ -44,6 +44,11 @@ app.add_page(
     on_load=pages.FinishedViewState.on_load,
 )
 app.add_page(
+    pages.my_lectures_page,
+    route=routes.MY_LECTURES,
+    on_load=pages.MyLecturesState.on_load,
+)
+app.add_page(
     pages.edit_lecture_page,
     route=routes.EDIT_LECTURE + "/[lecture_id]",
     on_load=pages.EditLectureState.on_load,
