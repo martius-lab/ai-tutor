@@ -1264,6 +1264,14 @@ class BackendTranslations:
             en=f"User '{username}' has been deleted.",
         )
 
+    @staticmethod
+    def lecture_name_already_exists(language: Language) -> str:
+        return translate(
+            language,
+            de="Fehler: Dieser Vorlesungsname existiert bereits.",
+            en="Error: This lecture name already exists.",
+        )
+
     # ManageExercisesState -------------------------------------------------------------
     @staticmethod
     def tagname_already_exists(language: Language) -> str:

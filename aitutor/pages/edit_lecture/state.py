@@ -110,7 +110,19 @@ class EditLectureState(SessionState):
             return rx.redirect(routes.LOGIN)
 
         with rx.session() as session:
+            existing_lecture = session.exec(
+                select(Lecture).where(Lecture.lecture_name == self.lecture_name)
+            ).one_or_none()
+
             if self.is_new:
+                if existing_lecture is not None:
+                    return rx.toast.error(
+                        description=BT.lecture_name_already_exists(self.language),
+                        duration=5000,
+                        position="bottom-center",
+                        invert=True,
+                    )
+
                 lecture = Lecture(
                     lecture_name=self.lecture_name,
                     registration_code=self.registration_code,
@@ -152,6 +164,14 @@ class EditLectureState(SessionState):
             lecture_id = self.current_lecture_id
             if lecture_id is None:
                 return rx.redirect(routes.NOT_FOUND)
+
+            if existing_lecture is not None and existing_lecture.id != lecture_id:
+                return rx.toast.error(
+                    description=BT.lecture_name_already_exists(self.language),
+                    duration=5000,
+                    position="bottom-center",
+                    invert=True,
+                )
 
             if not self._user_may_edit_existing_lecture(lecture_id):
                 return rx.redirect(routes.HOME)
