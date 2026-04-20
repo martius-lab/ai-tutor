@@ -1,24 +1,69 @@
 """State for the my lectures page."""
 
 import reflex as rx
-from sqlmodel import select
+from sqlmodel import and_, select
 
 from aitutor.auth.protection import state_require_role_or_permission
 from aitutor.auth.state import SessionState
 from aitutor.models import (
     GlobalPermission,
     Lecture,
+    LectureRole,
     LinkUserLecture,
     UserRole,
 )
 
-LectureWithRole = tuple[Lecture, int]
+LectureWithRole = tuple[Lecture, int | None]
 
 
 class MyLecturesState(SessionState):
     """State for the my lectures page."""
 
     joined_lectures: list[LectureWithRole] = []
+    search_text: str = ""
+    role_filter: str = "all"
+
+    @rx.var
+    def is_global_admin(self) -> bool:
+        """Whether the current user is a global admin."""
+        return GlobalPermission.ADMIN in self.global_permissions
+
+    @rx.var
+    def filtered_lectures(self) -> list[LectureWithRole]:
+        """Return lectures filtered by search text and role."""
+        lectures = self.joined_lectures
+
+        if self.search_text.strip():
+            search_text = self.search_text.strip().lower()
+            lectures = [
+                (lecture, role)
+                for lecture, role in lectures
+                if search_text in lecture.lecture_name.lower()
+            ]
+
+        if self.role_filter == "all":
+            return lectures
+        if self.role_filter == "owner":
+            return [
+                (lecture, role)
+                for lecture, role in lectures
+                if role == LectureRole.OWNER.value
+            ]
+        if self.role_filter == "tutor":
+            return [
+                (lecture, role)
+                for lecture, role in lectures
+                if role == LectureRole.TUTOR.value
+            ]
+        if self.role_filter == "student":
+            return [
+                (lecture, role)
+                for lecture, role in lectures
+                if role == LectureRole.STUDENT.value
+            ]
+        if self.role_filter == "not_joined":
+            return [(lecture, role) for lecture, role in lectures if role is None]
+        return lectures
 
     @rx.var
     def can_create_lectures(self) -> bool:
@@ -38,22 +83,48 @@ class MyLecturesState(SessionState):
     def on_logout(self):
         """Clear page-specific state on logout."""
         self.joined_lectures = []
+        self.search_text = ""
+        self.role_filter = "all"
+
+    @rx.event
+    def update_search_text(self, value: str):
+        """Update the lecture name search text."""
+        self.search_text = value
+
+    @rx.event
+    def set_role_filter(self, value: str):
+        """Set the role filter."""
+        self.role_filter = value
 
     def load_joined_lectures(self):
-        """Load all lectures the current user is a member of."""
+        """Load all lectures visible to the current user."""
         if self.authenticated_user is None or self.authenticated_user.id is None:
             self.joined_lectures = []
             return
 
         with rx.session() as session:
-            joined = session.exec(
-                select(Lecture, LinkUserLecture.role)
-                .join(LinkUserLecture)
-                .where(LinkUserLecture.user_id == self.authenticated_user.id)
-                .order_by(Lecture.lecture_name)
-            ).all()
+            if self.is_global_admin:
+                joined = session.exec(
+                    select(Lecture, LinkUserLecture.role)
+                    .join(
+                        LinkUserLecture,
+                        and_(
+                            LinkUserLecture.lecture_id == Lecture.id,
+                            LinkUserLecture.user_id == self.authenticated_user.id,
+                        ),
+                        isouter=True,
+                    )
+                    .order_by(Lecture.lecture_name)
+                ).all()
+            else:
+                joined = session.exec(
+                    select(Lecture, LinkUserLecture.role)
+                    .join(LinkUserLecture)
+                    .where(LinkUserLecture.user_id == self.authenticated_user.id)
+                    .order_by(Lecture.lecture_name)
+                ).all()
 
         self.joined_lectures = [
-            (lecture, int(role))
+            (lecture, int(role) if role is not None else None)
             for lecture, role in joined  # type: ignore[arg-type]
         ]

@@ -1229,6 +1229,24 @@ Please test the chat for functionality after changing the model.
         )
 
     @rx.var
+    def no_matching_lectures(self) -> str:
+        """Message shown when no lectures match the current filter."""
+        return self.translate(
+            de="Keine Vorlesungen entsprechen dem aktuellen Filter.",
+            en="No lectures match the current filter.",
+        )
+
+    @rx.var
+    def all(self) -> str:
+        """Label for all items."""
+        return self.translate(de="Alle", en="All")
+
+    @rx.var
+    def not_joined(self) -> str:
+        """Label for lectures without membership."""
+        return self.translate(de="Nicht beigetreten", en="Not joined")
+
+    @rx.var
     def lecture_name(self) -> str:
         """Lecture name string."""
         return self.translate(de="Vorlesungsname", en="Lecture Name")
