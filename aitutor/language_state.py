@@ -1247,6 +1247,21 @@ Please test the chat for functionality after changing the model.
         return self.translate(de="Nicht beigetreten", en="Not joined")
 
     @rx.var
+    def owner_role(self) -> str:
+        """Localized owner role label."""
+        return self.translate(de="Besitzer", en="Owner")
+
+    @rx.var
+    def tutor_role(self) -> str:
+        """Localized tutor role label."""
+        return self.translate(de="Tutor", en="Tutor")
+
+    @rx.var
+    def student_role(self) -> str:
+        """Localized student role label."""
+        return self.translate(de="Student", en="Student")
+
+    @rx.var
     def lecture_name(self) -> str:
         """Lecture name string."""
         return self.translate(de="Vorlesungsname", en="Lecture Name")

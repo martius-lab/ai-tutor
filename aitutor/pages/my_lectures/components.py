@@ -15,10 +15,10 @@ def lecture_role_text(role: int | None):
         LS.not_joined,
         rx.match(
             role,
-            (LectureRole.OWNER.value, LectureRole.OWNER.name),
-            (LectureRole.TUTOR.value, LectureRole.TUTOR.name),
-            (LectureRole.STUDENT.value, LectureRole.STUDENT.name),
-            "Unknown",
+            (LectureRole.OWNER.value, LS.owner_role),
+            (LectureRole.TUTOR.value, LS.tutor_role),
+            (LectureRole.STUDENT.value, LS.student_role),
+            LS.not_joined,
         ),
     )
 
@@ -119,9 +119,9 @@ def my_lectures_table() -> rx.Component:
                 max_width="100%",
             ),
             role_filter_button(LS.all, "all"),
-            role_filter_button("OWNER", "owner"),
-            role_filter_button("TUTOR", "tutor"),
-            role_filter_button("STUDENT", "student"),
+            role_filter_button(LS.owner_role, "owner"),
+            role_filter_button(LS.tutor_role, "tutor"),
+            role_filter_button(LS.student_role, "student"),
             rx.cond(
                 MyLecturesState.is_global_admin,
                 role_filter_button(LS.not_joined, "not_joined"),
