@@ -13,7 +13,7 @@ registration_code = "<Enter some code which users need to know to register>"
 
 response_ai_model = "gpt-4.1-mini"
 check_ai_model = "gpt-4.1"
-exercise_token_limit = 30000
+exercise_token_limit = 100000
 
 # TODO
 impressum_text = """
