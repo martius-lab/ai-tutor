@@ -6,7 +6,7 @@ from math import floor, log10
 import reflex as rx
 from sqlmodel import func, select
 
-from aitutor.auth.protection import state_require_role_at_least
+from aitutor.auth.protection import state_require_role_or_permission
 from aitutor.auth.state import SessionState
 from aitutor.language_state import BackendTranslations as BT
 from aitutor.models import Exercise, ExerciseResult, LocalUser, UserInfo, UserRole
@@ -100,7 +100,7 @@ class TokenAnalyzerState(SessionState):
         self.user_filter_query = ""
 
     @rx.event
-    @state_require_role_at_least(UserRole.ADMIN)
+    @state_require_role_or_permission(required_role=UserRole.ADMIN)
     def on_load(self):
         """Gets executed when the page loads."""
         self.global_load()
