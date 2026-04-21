@@ -14,7 +14,7 @@ from aitutor.pages.navbar_lectures import with_lectures_navbar
 @with_lectures_navbar(routes.MY_LECTURES)
 @page_require_role_or_permission(required_role=UserRole.STUDENT)
 def my_lectures_page() -> rx.Component:
-    """Lecture landing page showing the current user's lectures."""
+    """Show the lectures visible to the current user."""
     return rx.center(
         my_lectures_content(),
         margin_top="2em",

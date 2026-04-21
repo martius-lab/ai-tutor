@@ -1,5 +1,7 @@
 """State for the my lectures page."""
 
+from collections.abc import Sequence
+
 import reflex as rx
 from sqlmodel import and_, select
 
@@ -23,6 +25,44 @@ class MyLecturesState(SessionState):
     search_text: str = ""
     role_filter: str = "all"
 
+    def _reset_filters(self) -> None:
+        """Reset the local filters and loaded lectures."""
+        self.joined_lectures = []
+        self.search_text = ""
+        self.role_filter = "all"
+
+    def _normalized_search_text(self) -> str:
+        """Return the normalized search text used for lecture filtering."""
+        return self.search_text.strip().lower()
+
+    def _matches_search_text(self, lecture: Lecture, search_text: str) -> bool:
+        """Return whether a lecture matches the current search text."""
+        return search_text in lecture.lecture_name.lower()
+
+    def _matches_role_filter(self, role: int | None) -> bool:
+        """Return whether a lecture role matches the selected role filter."""
+        if self.role_filter == "all":
+            return True
+        if self.role_filter == "owner":
+            return role == LectureRole.OWNER.value
+        if self.role_filter == "tutor":
+            return role == LectureRole.TUTOR.value
+        if self.role_filter == "student":
+            return role == LectureRole.STUDENT.value
+        if self.role_filter == "not_joined":
+            return role is None
+        return True
+
+    def _serialize_joined_lectures(
+        self,
+        joined: Sequence[tuple[Lecture, int | LectureRole | None]],
+    ) -> list[LectureWithRole]:
+        """Convert raw query results to the state-friendly lecture/role tuples."""
+        return [
+            (lecture, int(role) if role is not None else None)
+            for lecture, role in joined
+        ]
+
     @rx.var
     def is_global_admin(self) -> bool:
         """Whether the current user is a global admin."""
@@ -31,39 +71,21 @@ class MyLecturesState(SessionState):
     @rx.var
     def filtered_lectures(self) -> list[LectureWithRole]:
         """Return lectures filtered by search text and role."""
+        search_text = self._normalized_search_text()
         lectures = self.joined_lectures
 
-        if self.search_text.strip():
-            search_text = self.search_text.strip().lower()
+        if search_text:
             lectures = [
                 (lecture, role)
                 for lecture, role in lectures
-                if search_text in lecture.lecture_name.lower()
+                if self._matches_search_text(lecture, search_text)
             ]
 
-        if self.role_filter == "all":
-            return lectures
-        if self.role_filter == "owner":
-            return [
-                (lecture, role)
-                for lecture, role in lectures
-                if role == LectureRole.OWNER.value
-            ]
-        if self.role_filter == "tutor":
-            return [
-                (lecture, role)
-                for lecture, role in lectures
-                if role == LectureRole.TUTOR.value
-            ]
-        if self.role_filter == "student":
-            return [
-                (lecture, role)
-                for lecture, role in lectures
-                if role == LectureRole.STUDENT.value
-            ]
-        if self.role_filter == "not_joined":
-            return [(lecture, role) for lecture, role in lectures if role is None]
-        return lectures
+        return [
+            (lecture, role)
+            for lecture, role in lectures
+            if self._matches_role_filter(role)
+        ]
 
     @rx.var
     def can_create_lectures(self) -> bool:
@@ -82,9 +104,7 @@ class MyLecturesState(SessionState):
 
     def on_logout(self):
         """Clear page-specific state on logout."""
-        self.joined_lectures = []
-        self.search_text = ""
-        self.role_filter = "all"
+        self._reset_filters()
 
     @rx.event
     def update_search_text(self, value: str):
@@ -124,7 +144,4 @@ class MyLecturesState(SessionState):
                     .order_by(Lecture.lecture_name)
                 ).all()
 
-        self.joined_lectures = [
-            (lecture, int(role) if role is not None else None)
-            for lecture, role in joined  # type: ignore[arg-type]
-        ]
+        self.joined_lectures = self._serialize_joined_lectures(joined)

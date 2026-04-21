@@ -74,6 +74,41 @@ def add_lecture_button() -> rx.Component:
     )
 
 
+def lectures_toolbar() -> rx.Component:
+    """Render the toolbar with search, role filters and the add button."""
+    return rx.hstack(
+        rx.hstack(
+            rx.input(
+                value=MyLecturesState.search_text,
+                placeholder=LS.search_placeholder,
+                on_change=MyLecturesState.update_search_text,
+                width="22em",
+                max_width="100%",
+            ),
+            role_filter_button(LS.all, "all"),
+            role_filter_button(LS.owner_role, "owner"),
+            role_filter_button(LS.tutor_role, "tutor"),
+            role_filter_button(LS.student_role, "student"),
+            rx.cond(
+                MyLecturesState.is_global_admin,
+                role_filter_button(LS.not_joined, "not_joined"),
+            ),
+            wrap="wrap",
+            flex="1",
+            min_width="0",
+        ),
+        rx.cond(
+            MyLecturesState.can_create_lectures,
+            rx.box(add_lecture_button(), flex_shrink="0"),
+        ),
+        justify="between",
+        align="center",
+        gap="1rem",
+        width="85vw",
+        max_width="100%",
+    )
+
+
 def lecture_row(joined_lecture: LectureWithRole) -> rx.Component:
     """Render a single joined lecture row."""
     lecture: Lecture = joined_lecture[0]
@@ -110,37 +145,7 @@ def lecture_row(joined_lecture: LectureWithRole) -> rx.Component:
 def my_lectures_table() -> rx.Component:
     """Table of all lectures joined by the current user."""
     return rx.vstack(
-        rx.hstack(
-            rx.hstack(
-                rx.input(
-                    value=MyLecturesState.search_text,
-                    placeholder=LS.search_placeholder,
-                    on_change=MyLecturesState.update_search_text,
-                    width="22em",
-                    max_width="100%",
-                ),
-                role_filter_button(LS.all, "all"),
-                role_filter_button(LS.owner_role, "owner"),
-                role_filter_button(LS.tutor_role, "tutor"),
-                role_filter_button(LS.student_role, "student"),
-                rx.cond(
-                    MyLecturesState.is_global_admin,
-                    role_filter_button(LS.not_joined, "not_joined"),
-                ),
-                wrap="wrap",
-                flex="1",
-                min_width="0",
-            ),
-            rx.cond(
-                MyLecturesState.can_create_lectures,
-                rx.box(add_lecture_button(), flex_shrink="0"),
-            ),
-            justify="between",
-            align="center",
-            gap="1rem",
-            width="85vw",
-            max_width="100%",
-        ),
+        lectures_toolbar(),
         rx.cond(
             MyLecturesState.filtered_lectures,
             rx.table.root(
