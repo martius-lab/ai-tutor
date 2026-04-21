@@ -12,7 +12,7 @@ from pydantic import BaseModel
 from sqlmodel import select
 
 import aitutor.routes as routes
-from aitutor.auth.protection import state_require_role_at_least
+from aitutor.auth.protection import state_require_role_or_permission
 from aitutor.auth.state import SessionState
 from aitutor.config import get_config
 from aitutor.global_vars import (
@@ -196,7 +196,7 @@ class ChatState(SessionState):
         self.user_input = value[:CHAT_MESSAGE_CHAR_LIMIT]
 
     @rx.event
-    @state_require_role_at_least(UserRole.STUDENT)
+    @state_require_role_or_permission(required_role=UserRole.STUDENT)
     def on_load(self):
         """
         Loads the exercise with exercise_id from the database.

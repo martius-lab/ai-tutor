@@ -10,7 +10,7 @@ from sqlmodel import select
 
 import aitutor.routes as routes
 from aitutor import pages
-from aitutor.models import Language, UserInfo, UserRole
+from aitutor.models import GlobalPermission, Language, Permission, UserInfo, UserRole
 
 
 class SessionState(reflex_local_auth.LocalAuthState):
@@ -106,3 +106,22 @@ class SessionState(reflex_local_auth.LocalAuthState):
         if self.authenticated_user_info is None:
             return None
         return self.authenticated_user_info.role
+
+    @rx.var(cache=True, initial_value=[])
+    def global_permissions(self) -> list[GlobalPermission]:
+        """
+        Retrieves a list of global permissions (Enums) for the authenticated user.
+        """
+        if (
+            self.authenticated_user is None
+            or self.authenticated_user.id is None
+            or self.authenticated_user.id < 0
+        ):
+            return []
+        with rx.session() as session:
+            permissions = session.exec(
+                select(Permission.permission).where(
+                    Permission.user_id == self.authenticated_user.id
+                )
+            ).all()
+            return permissions  # type: ignore

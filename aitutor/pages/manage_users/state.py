@@ -4,10 +4,10 @@ import reflex as rx
 from reflex_local_auth.auth_session import LocalAuthSession
 from sqlmodel import case, cast, select
 
-from aitutor.auth.protection import state_require_role_at_least
+from aitutor.auth.protection import state_require_role_or_permission
 from aitutor.auth.state import SessionState
 from aitutor.language_state import BackendTranslations as BT
-from aitutor.models import LocalUser, UserInfo, UserRole
+from aitutor.models import GlobalPermission, LocalUser, UserInfo, UserRole
 
 
 class ManageUsersState(SessionState):
@@ -18,7 +18,10 @@ class ManageUsersState(SessionState):
     edit_dialog_is_open: bool = False
 
     @rx.event
-    @state_require_role_at_least(UserRole.ADMIN)
+    @state_require_role_or_permission(
+        required_role=UserRole.ADMIN,
+        allowed_permissions=[GlobalPermission.MAINTAINER],
+    )
     def on_load(self):
         """Initialize the state"""
         self.global_load()

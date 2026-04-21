@@ -40,6 +40,16 @@ class UserRole(IntEnum):
     ADMIN = 3
 
 
+class GlobalPermission(StrEnum):
+    """
+    Enum for global roles that apply across all lectures.
+    """
+
+    LECTURER = "lecturer"
+    MAINTAINER = "maintainer"
+    ADMIN = "admin"
+
+
 class ExerciseTagLink(SQLModel, table=True):
     """
     Link table for many-to-many relationship between Exercise and Tag.
@@ -184,6 +194,21 @@ class UserInfo(SQLModel, table=True):
         back_populates="user", sa_relationship_kwargs={"passive_deletes": True}
     )
     local_user: "LocalUser" = Relationship()
+
+
+class Permission(SQLModel, table=True):
+    """
+    Table for storing user permissions/global roles.
+    """
+
+    user_id: int = Field(
+        foreign_key="localuser.id",
+        primary_key=True,
+        nullable=False,
+        ondelete="CASCADE",
+        index=True,
+    )
+    permission: GlobalPermission = Field(primary_key=True)
 
 
 class Config(SQLModel, table=True):

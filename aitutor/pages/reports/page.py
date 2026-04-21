@@ -3,7 +3,7 @@
 import reflex as rx
 
 from aitutor import routes
-from aitutor.auth.protection import page_require_role_at_least
+from aitutor.auth.protection import page_require_role_or_permission
 from aitutor.models import UserRole
 from aitutor.pages.navbar import with_navbar
 from aitutor.pages.navbar_admin import with_admin_navbar
@@ -14,7 +14,7 @@ from aitutor.utilities.filtering_components import search_badges, search_bar
 
 @with_navbar(routes.ADMIN_SETTINGS)
 @with_admin_navbar(routes.REPORTS)
-@page_require_role_at_least(UserRole.TUTOR)
+@page_require_role_or_permission(required_role=UserRole.ADMIN)
 def reports_page() -> rx.Component:
     """Page for tutors/admins to see all reports."""
     return rx.center(
