@@ -6,6 +6,7 @@ from sqlmodel import select
 import aitutor.routes as routes
 from aitutor.auth.protection import state_require_role_or_permission
 from aitutor.auth.state import SessionState
+from aitutor.global_vars import DEFAULT_CHECK_CONVERSATION_PROMPT
 from aitutor.language_state import BackendTranslations as BT
 from aitutor.models import GlobalPermission, Lecture, LectureRole, LinkUserLecture
 
@@ -64,7 +65,7 @@ class EditLectureState(SessionState):
             self.lecture_name = ""
             self.registration_code = ""
             self.lecture_information_text = ""
-            self.check_conversation_prompt = ""
+            self.check_conversation_prompt = DEFAULT_CHECK_CONVERSATION_PROMPT
             self.is_new = True
             return
 
@@ -104,7 +105,7 @@ class EditLectureState(SessionState):
     def save_lecture(self):
         """Create a new lecture or save changes to an existing one."""
         if not self.lecture_name.strip():
-            return rx.window_alert("Please enter a lecture name.")
+            return rx.window_alert(BT.enter_lecture_name(self.language))
 
         if self.authenticated_user is None or self.authenticated_user.id is None:
             return rx.redirect(routes.LOGIN)
