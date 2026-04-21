@@ -25,9 +25,47 @@ class EditLectureState(SessionState):
 
     @rx.event
     def set_lecture_value(self, name: str, value: str):
-        """Update one lecture field in the page state."""
+        """Update one editable lecture field and mark the form as changed."""
         setattr(self, name, value)
         self.unsaved_changes = True
+
+    def _reset_form(self, *, check_conversation_prompt: str = "") -> None:
+        """Reset the editable form fields to their default values."""
+        self.current_lecture_id = None
+        self.lecture_name = ""
+        self.registration_code = ""
+        self.lecture_information_text = ""
+        self.check_conversation_prompt = check_conversation_prompt
+        self.is_new = True
+        self.unsaved_changes = False
+
+    def _apply_lecture_to_state(self, lecture: Lecture) -> None:
+        """Copy persisted lecture values into the page state."""
+        self.current_lecture_id = lecture.id
+        self.lecture_name = lecture.lecture_name
+        self.registration_code = lecture.registration_code
+        self.lecture_information_text = lecture.lecture_information_text
+        self.check_conversation_prompt = lecture.check_conversation_prompt
+        self.is_new = False
+        self.unsaved_changes = False
+
+    def _apply_state_to_lecture(self, lecture: Lecture, *, lecture_name: str) -> None:
+        """Write the current form values into a Lecture model instance."""
+        lecture.lecture_name = lecture_name
+        lecture.registration_code = self.registration_code
+        lecture.lecture_information_text = self.lecture_information_text
+        lecture.check_conversation_prompt = self.check_conversation_prompt
+
+    def _get_route_lecture_id_param(self) -> str:
+        """Return the lecture id route segment or 'new' for the create page."""
+        lecture_id_param = self.router.url.path.rstrip("/").split("/")[-1]
+        if lecture_id_param == routes.EDIT_LECTURE.split("/")[-1]:
+            return "new"
+        return str(lecture_id_param)
+
+    def _normalized_lecture_name(self) -> str:
+        """Return the trimmed lecture name used for validation and persistence."""
+        return self.lecture_name.strip()
 
     def _user_may_edit_existing_lecture(self, lecture_id: int) -> bool:
         """Check whether the current user may edit an existing lecture."""
@@ -53,20 +91,13 @@ class EditLectureState(SessionState):
     def on_load(self):
         """Initialize the page state."""
         self.global_load()
-        self.unsaved_changes = False
-
-        lecture_id_param = self.router.url.path.rstrip("/").split("/")[-1]
-        if lecture_id_param == routes.EDIT_LECTURE.split("/")[-1]:
-            lecture_id_param = "new"
-        self.lecture_id_param = str(lecture_id_param)
+        lecture_id_param = self._get_route_lecture_id_param()
+        self.lecture_id_param = lecture_id_param
 
         if lecture_id_param == "new":
-            self.current_lecture_id = None
-            self.lecture_name = ""
-            self.registration_code = ""
-            self.lecture_information_text = ""
-            self.check_conversation_prompt = DEFAULT_CHECK_CONVERSATION_PROMPT
-            self.is_new = True
+            self._reset_form(
+                check_conversation_prompt=DEFAULT_CHECK_CONVERSATION_PROMPT,
+            )
             return
 
         try:
@@ -81,30 +112,19 @@ class EditLectureState(SessionState):
             lecture = session.get(Lecture, lecture_id)
             if lecture is None:
                 return rx.redirect(routes.NOT_FOUND)
-            self.current_lecture_id = lecture.id
-            self.lecture_name = lecture.lecture_name
-            self.registration_code = lecture.registration_code
-            self.lecture_information_text = lecture.lecture_information_text
-            self.check_conversation_prompt = lecture.check_conversation_prompt
-        self.is_new = False
-        self.unsaved_changes = False
+            self._apply_lecture_to_state(lecture)
 
     def on_logout(self):
         """Clear lecture-specific state on logout."""
-        self.current_lecture_id = None
-        self.lecture_name = ""
-        self.registration_code = ""
-        self.lecture_information_text = ""
-        self.check_conversation_prompt = ""
-        self.unsaved_changes = False
-        self.is_new = True
+        self._reset_form()
         self.lecture_id_param = "new"
 
     @rx.event
     @state_require_role_or_permission(allowed_permissions=[GlobalPermission.LECTURER])
     def save_lecture(self):
         """Create a new lecture or save changes to an existing one."""
-        if not self.lecture_name.strip():
+        lecture_name = self._normalized_lecture_name()
+        if not lecture_name:
             return rx.window_alert(BT.enter_lecture_name(self.language))
 
         if self.authenticated_user is None or self.authenticated_user.id is None:
@@ -112,7 +132,7 @@ class EditLectureState(SessionState):
 
         with rx.session() as session:
             existing_lecture = session.exec(
-                select(Lecture).where(Lecture.lecture_name == self.lecture_name)
+                select(Lecture).where(Lecture.lecture_name == lecture_name)
             ).one_or_none()
 
             if self.is_new:
@@ -125,7 +145,7 @@ class EditLectureState(SessionState):
                     )
 
                 lecture = Lecture(
-                    lecture_name=self.lecture_name,
+                    lecture_name=lecture_name,
                     registration_code=self.registration_code,
                     lecture_information_text=self.lecture_information_text,
                     check_conversation_prompt=self.check_conversation_prompt,
@@ -143,14 +163,8 @@ class EditLectureState(SessionState):
                 )
                 session.commit()
 
-                self.current_lecture_id = lecture.id
-                self.lecture_name = lecture.lecture_name
-                self.registration_code = lecture.registration_code
-                self.lecture_information_text = lecture.lecture_information_text
-                self.check_conversation_prompt = lecture.check_conversation_prompt
-                self.is_new = False
+                self._apply_lecture_to_state(lecture)
                 self.lecture_id_param = str(lecture.id)
-                self.unsaved_changes = False
 
                 return [
                     rx.toast.success(
@@ -181,18 +195,11 @@ class EditLectureState(SessionState):
             if lecture is None:
                 return rx.redirect(routes.NOT_FOUND)
 
-            lecture.lecture_name = self.lecture_name
-            lecture.registration_code = self.registration_code
-            lecture.lecture_information_text = self.lecture_information_text
-            lecture.check_conversation_prompt = self.check_conversation_prompt
+            self._apply_state_to_lecture(lecture, lecture_name=lecture_name)
             session.add(lecture)
             session.commit()
             session.refresh(lecture)
-            self.current_lecture_id = lecture.id
-            self.lecture_name = lecture.lecture_name
-            self.registration_code = lecture.registration_code
-            self.lecture_information_text = lecture.lecture_information_text
-            self.check_conversation_prompt = lecture.check_conversation_prompt
+            self._apply_lecture_to_state(lecture)
 
         self.unsaved_changes = False
         return rx.toast.success(

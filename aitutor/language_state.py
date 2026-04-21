@@ -1201,12 +1201,28 @@ Please test the chat for functionality after changing the model.
     def report_submitted_conversation(self) -> str:
         return self.translate(de="Eingereichter Chat:", en="Submitted Conversation:")
 
-    # EditLecture Strings -------------------------------------------------------------------------
+    # Edit Lecture Strings ------------------------------------------------------------------------
     @rx.var
     def edit_lecture(self) -> str:
         """The string for the 'Edit Lecture' tab."""
         return self.translate(de="Vorlesung bearbeiten", en="Edit Lecture")
 
+    @rx.var
+    def lecture_name(self) -> str:
+        """Lecture name string."""
+        return self.translate(de="Vorlesungsname", en="Lecture Name")
+
+    @rx.var
+    def create_lecture(self) -> str:
+        """Create lecture button/title string."""
+        return self.translate(de="Vorlesung erstellen", en="Create Lecture")
+
+    @rx.var
+    def save_lecture(self) -> str:
+        """Save lecture button/title string."""
+        return self.translate(de="Vorlesung speichern", en="Save Lecture")
+
+    # My Lectures Strings -------------------------------------------------------------------------
     @rx.var
     def my_lectures(self) -> str:
         """The string for the 'My Lectures' tab/page."""
@@ -1260,21 +1276,6 @@ Please test the chat for functionality after changing the model.
     def student_role(self) -> str:
         """Localized student role label."""
         return self.translate(de="Student", en="Student")
-
-    @rx.var
-    def lecture_name(self) -> str:
-        """Lecture name string."""
-        return self.translate(de="Vorlesungsname", en="Lecture Name")
-
-    @rx.var
-    def create_lecture(self) -> str:
-        """Create lecture button/title string."""
-        return self.translate(de="Vorlesung erstellen", en="Create Lecture")
-
-    @rx.var
-    def save_lecture(self) -> str:
-        """Save lecture button/title string."""
-        return self.translate(de="Vorlesung speichern", en="Save Lecture")
 
 
 class BackendTranslations:

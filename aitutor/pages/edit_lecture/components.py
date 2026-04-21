@@ -7,42 +7,63 @@ from aitutor.pages.configuration.components import input, text_area
 from aitutor.pages.edit_lecture.state import EditLectureState
 
 
+def lecture_input_field(
+    name: str, heading: rx.Var[str], value: str | rx.Var[str]
+) -> rx.Component:
+    """Render a standard one-line input for the edit lecture form."""
+    return input(
+        name=name,
+        heading=heading,
+        value=value,
+        on_change=lambda value: EditLectureState.set_lecture_value(name, value),
+    )
+
+
+def lecture_text_area_field(
+    name: str,
+    heading: rx.Var[str],
+    value: str,
+) -> rx.Component:
+    """Render a standard textarea for the edit lecture form."""
+    return text_area(
+        name=name,
+        heading=heading,
+        value=value,
+        on_change=lambda value: EditLectureState.set_lecture_value(name, value),
+    )
+
+
 def edit_lecture_form() -> rx.Component:
     """Form for creating or editing lectures."""
+    buttons_enabled = EditLectureState.unsaved_changes
+    button_hover_style = rx.cond(
+        buttons_enabled,
+        {"cursor": "pointer"},
+        {"cursor": "not-allowed"},
+    )
+
     return rx.card(
         rx.form(
             rx.vstack(
-                input(
+                lecture_input_field(
                     name="lecture_name",
                     heading=LS.lecture_name,
                     value=EditLectureState.lecture_name,
-                    on_change=lambda value: EditLectureState.set_lecture_value(
-                        "lecture_name", value
-                    ),
                 ),
-                input(
+                lecture_input_field(
                     name="registration_code",
                     heading=LS.registration_code,
                     value=EditLectureState.registration_code,
-                    on_change=lambda value: EditLectureState.set_lecture_value(
-                        "registration_code", value
-                    ),
                 ),
-                text_area(
+                lecture_text_area_field(
                     name="lecture_information_text",
                     heading=LS.lecture_info_text,
                     value=EditLectureState.lecture_information_text,
-                    on_change=lambda value: EditLectureState.set_lecture_value(
-                        "lecture_information_text", value
-                    ),
                 ),
-                text_area(
+                lecture_text_area_field(
                     name="check_conversation_prompt",
                     heading=LS.check_conversation_prompt,
                     value=EditLectureState.check_conversation_prompt,
-                    on_change=lambda value: EditLectureState.set_lecture_value(
-                        "check_conversation_prompt", value
-                    ),
                 ),
                 rx.cond(
                     EditLectureState.unsaved_changes,
@@ -59,12 +80,8 @@ def edit_lecture_form() -> rx.Component:
                         color_scheme="red",
                         type="button",
                         on_click=EditLectureState.on_load(),
-                        disabled=~EditLectureState.unsaved_changes,  # type: ignore
-                        _hover=rx.cond(
-                            EditLectureState.unsaved_changes,
-                            {"cursor": "pointer"},
-                            {"cursor": "not-allowed"},
-                        ),
+                        disabled=~buttons_enabled,  # type: ignore
+                        _hover=button_hover_style,
                     ),
                     rx.button(
                         rx.cond(
@@ -73,12 +90,8 @@ def edit_lecture_form() -> rx.Component:
                             LS.save,
                         ),
                         type="submit",
-                        disabled=~EditLectureState.unsaved_changes,  # type: ignore
-                        _hover=rx.cond(
-                            EditLectureState.unsaved_changes,
-                            {"cursor": "pointer"},
-                            {"cursor": "not-allowed"},
-                        ),
+                        disabled=~buttons_enabled,  # type: ignore
+                        _hover=button_hover_style,
                     ),
                     justify="end",
                     width="100%",
