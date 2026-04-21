@@ -29,61 +29,6 @@ class EditLectureState(SessionState):
         setattr(self, name, value)
         self.unsaved_changes = True
 
-    def _reset_form(self, *, check_conversation_prompt: str = "") -> None:
-        """Reset the editable form fields to their default values."""
-        self.current_lecture_id = None
-        self.lecture_name = ""
-        self.registration_code = ""
-        self.lecture_information_text = ""
-        self.check_conversation_prompt = check_conversation_prompt
-        self.is_new = True
-        self.unsaved_changes = False
-
-    def _apply_lecture_to_state(self, lecture: Lecture) -> None:
-        """Copy persisted lecture values into the page state."""
-        self.current_lecture_id = lecture.id
-        self.lecture_name = lecture.lecture_name
-        self.registration_code = lecture.registration_code
-        self.lecture_information_text = lecture.lecture_information_text
-        self.check_conversation_prompt = lecture.check_conversation_prompt
-        self.is_new = False
-        self.unsaved_changes = False
-
-    def _apply_state_to_lecture(self, lecture: Lecture, *, lecture_name: str) -> None:
-        """Write the current form values into a Lecture model instance."""
-        lecture.lecture_name = lecture_name
-        lecture.registration_code = self.registration_code
-        lecture.lecture_information_text = self.lecture_information_text
-        lecture.check_conversation_prompt = self.check_conversation_prompt
-
-    def _get_route_lecture_id_param(self) -> str:
-        """Return the lecture id route segment or 'new' for the create page."""
-        lecture_id_param = self.router.url.path.rstrip("/").split("/")[-1]
-        if lecture_id_param == routes.EDIT_LECTURE.split("/")[-1]:
-            return "new"
-        return str(lecture_id_param)
-
-    def _normalized_lecture_name(self) -> str:
-        """Return the trimmed lecture name used for validation and persistence."""
-        return self.lecture_name.strip()
-
-    def _user_may_edit_existing_lecture(self, lecture_id: int) -> bool:
-        """Check whether the current user may edit an existing lecture."""
-        if self.authenticated_user is None or self.authenticated_user.id is None:
-            return False
-        if GlobalPermission.ADMIN in self.global_permissions:
-            return True
-
-        with rx.session() as session:
-            link = session.exec(
-                select(LinkUserLecture).where(
-                    LinkUserLecture.lecture_id == lecture_id,
-                    LinkUserLecture.user_id == self.authenticated_user.id,
-                    LinkUserLecture.role == LectureRole.OWNER,
-                )
-            ).one_or_none()
-        return link is not None
-
     @rx.event
     @state_require_role_or_permission(
         allowed_permissions=[GlobalPermission.LECTURER],
@@ -208,3 +153,58 @@ class EditLectureState(SessionState):
             position="bottom-center",
             invert=True,
         )
+
+    def _reset_form(self, *, check_conversation_prompt: str = "") -> None:
+        """Reset the editable form fields to their default values."""
+        self.current_lecture_id = None
+        self.lecture_name = ""
+        self.registration_code = ""
+        self.lecture_information_text = ""
+        self.check_conversation_prompt = check_conversation_prompt
+        self.is_new = True
+        self.unsaved_changes = False
+
+    def _apply_lecture_to_state(self, lecture: Lecture) -> None:
+        """Copy persisted lecture values into the page state."""
+        self.current_lecture_id = lecture.id
+        self.lecture_name = lecture.lecture_name
+        self.registration_code = lecture.registration_code
+        self.lecture_information_text = lecture.lecture_information_text
+        self.check_conversation_prompt = lecture.check_conversation_prompt
+        self.is_new = False
+        self.unsaved_changes = False
+
+    def _apply_state_to_lecture(self, lecture: Lecture, *, lecture_name: str) -> None:
+        """Write the current form values into a Lecture model instance."""
+        lecture.lecture_name = lecture_name
+        lecture.registration_code = self.registration_code
+        lecture.lecture_information_text = self.lecture_information_text
+        lecture.check_conversation_prompt = self.check_conversation_prompt
+
+    def _get_route_lecture_id_param(self) -> str:
+        """Return the lecture id route segment or 'new' for the create page."""
+        lecture_id_param = self.router.url.path.rstrip("/").split("/")[-1]
+        if lecture_id_param == routes.EDIT_LECTURE.split("/")[-1]:
+            return "new"
+        return str(lecture_id_param)
+
+    def _normalized_lecture_name(self) -> str:
+        """Return the trimmed lecture name used for validation and persistence."""
+        return self.lecture_name.strip()
+
+    def _user_may_edit_existing_lecture(self, lecture_id: int) -> bool:
+        """Check whether the current user may edit an existing lecture."""
+        if self.authenticated_user is None or self.authenticated_user.id is None:
+            return False
+        if GlobalPermission.ADMIN in self.global_permissions:
+            return True
+
+        with rx.session() as session:
+            link = session.exec(
+                select(LinkUserLecture).where(
+                    LinkUserLecture.lecture_id == lecture_id,
+                    LinkUserLecture.user_id == self.authenticated_user.id,
+                    LinkUserLecture.role == LectureRole.OWNER,
+                )
+            ).one_or_none()
+        return link is not None

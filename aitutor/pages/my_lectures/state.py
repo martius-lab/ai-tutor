@@ -25,6 +25,59 @@ class MyLecturesState(SessionState):
     search_text: str = ""
     role_filter: str = "all"
 
+    @rx.event
+    def update_search_text(self, value: str):
+        """Update the lecture name search text."""
+        self.search_text = value
+
+    @rx.event
+    def set_role_filter(self, value: str):
+        """Set the role filter."""
+        self.role_filter = value
+
+    @rx.event
+    @state_require_role_or_permission(required_role=UserRole.STUDENT)
+    def on_load(self):
+        """Initialize the page state."""
+        self.global_load()
+        self.load_joined_lectures()
+
+    def on_logout(self):
+        """Clear page-specific state on logout."""
+        self._reset_filters()
+
+    @rx.var
+    def is_global_admin(self) -> bool:
+        """Whether the current user is a global admin."""
+        return GlobalPermission.ADMIN in self.global_permissions
+
+    @rx.var
+    def filtered_lectures(self) -> list[LectureWithRole]:
+        """Return lectures filtered by search text and role."""
+        search_text = self._normalized_search_text()
+        lectures = self.joined_lectures
+
+        if search_text:
+            lectures = [
+                (lecture, role)
+                for lecture, role in lectures
+                if self._matches_search_text(lecture, search_text)
+            ]
+
+        return [
+            (lecture, role)
+            for lecture, role in lectures
+            if self._matches_role_filter(role)
+        ]
+
+    @rx.var
+    def can_create_lectures(self) -> bool:
+        """Whether the current user may create new lectures."""
+        return (
+            GlobalPermission.LECTURER in self.global_permissions
+            or GlobalPermission.ADMIN in self.global_permissions
+        )
+
     def _reset_filters(self) -> None:
         """Reset the local filters and loaded lectures."""
         self.joined_lectures = []
@@ -62,59 +115,6 @@ class MyLecturesState(SessionState):
             (lecture, int(role) if role is not None else None)
             for lecture, role in joined
         ]
-
-    @rx.var
-    def is_global_admin(self) -> bool:
-        """Whether the current user is a global admin."""
-        return GlobalPermission.ADMIN in self.global_permissions
-
-    @rx.var
-    def filtered_lectures(self) -> list[LectureWithRole]:
-        """Return lectures filtered by search text and role."""
-        search_text = self._normalized_search_text()
-        lectures = self.joined_lectures
-
-        if search_text:
-            lectures = [
-                (lecture, role)
-                for lecture, role in lectures
-                if self._matches_search_text(lecture, search_text)
-            ]
-
-        return [
-            (lecture, role)
-            for lecture, role in lectures
-            if self._matches_role_filter(role)
-        ]
-
-    @rx.var
-    def can_create_lectures(self) -> bool:
-        """Whether the current user may create new lectures."""
-        return (
-            GlobalPermission.LECTURER in self.global_permissions
-            or GlobalPermission.ADMIN in self.global_permissions
-        )
-
-    @rx.event
-    @state_require_role_or_permission(required_role=UserRole.STUDENT)
-    def on_load(self):
-        """Initialize the page state."""
-        self.global_load()
-        self.load_joined_lectures()
-
-    def on_logout(self):
-        """Clear page-specific state on logout."""
-        self._reset_filters()
-
-    @rx.event
-    def update_search_text(self, value: str):
-        """Update the lecture name search text."""
-        self.search_text = value
-
-    @rx.event
-    def set_role_filter(self, value: str):
-        """Set the role filter."""
-        self.role_filter = value
 
     def load_joined_lectures(self):
         """Load all lectures visible to the current user."""
