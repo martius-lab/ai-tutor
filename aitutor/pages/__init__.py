@@ -1,3 +1,5 @@
+from aitutor.pages.all_lectures.page import all_lectures_page
+from aitutor.pages.all_lectures.state import AllLecturesState
 from aitutor.pages.chat.page import chat_page
 from aitutor.pages.chat.state import ChatState
 from aitutor.pages.configuration.page import configuration_page
@@ -44,6 +46,7 @@ __all__ = [
     "manage_exercises_page",
     "manage_users_page",
     "my_lectures_page",
+    "all_lectures_page",
     "exercises_page",
     "navbar",
     "not_found_page",
@@ -70,6 +73,7 @@ __all__ = [
     "ManageTagsState",
     "ManageUsersState",
     "MyLecturesState",
+    "AllLecturesState",
     "SubmissionsState",
     "MyLoginState",
     "MyRegisterState",

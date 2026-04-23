@@ -1229,6 +1229,11 @@ Please test the chat for functionality after changing the model.
         return self.translate(de="Meine Vorlesungen", en="My Lectures")
 
     @rx.var
+    def all_lectures(self) -> str:
+        """The string for the 'All Lectures' tab/page."""
+        return self.translate(de="Alle Vorlesungen", en="All Lectures")
+
+    @rx.var
     def my_lectures_placeholder(self) -> str:
         """Placeholder text for the my lectures page skeleton."""
         return self.translate(

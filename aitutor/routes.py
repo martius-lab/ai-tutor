@@ -29,6 +29,7 @@ USER_SETTINGS = "/user_settings"
 
 LECTURES = "/lectures"
 MY_LECTURES = LECTURES + "/my_lectures"
+ALL_LECTURES = LECTURES + "/all_lectures"
 EDIT_LECTURE = LECTURES + "/edit_lecture"
 
 NOT_FOUND = "/404"
