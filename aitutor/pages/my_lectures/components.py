@@ -74,6 +74,18 @@ def add_lecture_button() -> rx.Component:
     )
 
 
+def browse_lectures_button() -> rx.Component:
+    """Button for navigating to all lectures."""
+    return rx.link(
+        rx.button(
+            rx.flex(rx.icon("book", size=15), LS.join_lecture, gap="0.5em", align="center"),
+            variant="outline",
+            _hover={"cursor": "pointer"},
+        ),
+        href=routes.ALL_LECTURES,
+    )
+
+
 def lectures_toolbar() -> rx.Component:
     """Render the toolbar with search, role filters and the add button."""
     return rx.hstack(
@@ -97,9 +109,13 @@ def lectures_toolbar() -> rx.Component:
             flex="1",
             min_width="0",
         ),
-        rx.cond(
-            MyLecturesState.can_create_lectures,
-            rx.box(add_lecture_button(), flex_shrink="0"),
+        rx.hstack(
+            rx.box(browse_lectures_button(), flex_shrink="0"),
+            rx.cond(
+                MyLecturesState.can_create_lectures,
+                rx.box(add_lecture_button(), flex_shrink="0"),
+            ),
+            spacing="2",
         ),
         justify="between",
         align="center",

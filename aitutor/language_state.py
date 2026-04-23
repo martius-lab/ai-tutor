@@ -1234,6 +1234,45 @@ Please test the chat for functionality after changing the model.
         return self.translate(de="Alle Vorlesungen", en="All Lectures")
 
     @rx.var
+    def join(self) -> str:
+        """Join button label."""
+        return self.translate(de="Beitreten", en="Join")
+
+    @rx.var
+    def join_lecture(self) -> str:
+        """Join lecture dialog title."""
+        return self.translate(de="Vorlesung beitreten", en="Join Lecture")
+
+    @rx.var
+    def already_joined(self) -> str:
+        """Label for already joined lectures."""
+        return self.translate(de="Bereits beigetreten", en="Already joined")
+
+    @rx.var
+    def enter_registration_code(self) -> str:
+        """Prompt to enter a lecture registration code."""
+        return self.translate(
+            de="Bitte geben Sie den Registrierungscode für diese Vorlesung ein.",
+            en="Please enter the registration code for this lecture.",
+        )
+
+    @rx.var
+    def no_registration_code_required(self) -> str:
+        """Message when no lecture registration code is required."""
+        return self.translate(
+            de="Für diese Vorlesung ist kein Registrierungscode erforderlich.",
+            en="No registration code is required for this lecture.",
+        )
+
+    @rx.var
+    def no_lecture_details(self) -> str:
+        """Message when no lecture details are available."""
+        return self.translate(
+            de="Für diese Vorlesung sind keine zusätzlichen Informationen hinterlegt.",
+            en="No additional information is available for this lecture.",
+        )
+
+    @rx.var
     def my_lectures_placeholder(self) -> str:
         """Placeholder text for the my lectures page skeleton."""
         return self.translate(
@@ -1319,6 +1358,38 @@ class BackendTranslations:
             language,
             de="Bitte geben Sie einen Vorlesungsnamen ein.",
             en="Please enter a lecture name.",
+        )
+
+    @staticmethod
+    def lecture_not_found(language: Language) -> str:
+        return translate(
+            language,
+            de="Fehler: Vorlesung nicht gefunden.",
+            en="Error: Lecture not found.",
+        )
+
+    @staticmethod
+    def already_joined_lecture(language: Language) -> str:
+        return translate(
+            language,
+            de="Sie sind dieser Vorlesung bereits beigetreten.",
+            en="You have already joined this lecture.",
+        )
+
+    @staticmethod
+    def invalid_lecture_registration_code(language: Language) -> str:
+        return translate(
+            language,
+            de="Fehler: Der Registrierungscode für diese Vorlesung ist falsch.",
+            en="Error: The registration code for this lecture is incorrect.",
+        )
+
+    @staticmethod
+    def joined_lecture_successfully(language: Language) -> str:
+        return translate(
+            language,
+            de="Vorlesung erfolgreich beigetreten.",
+            en="Joined lecture successfully.",
         )
 
     # ManageExercisesState -------------------------------------------------------------
