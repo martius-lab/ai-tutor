@@ -11,7 +11,7 @@ from aitutor.auth.state import SessionState
 from aitutor.language_state import BackendTranslations as BT
 from aitutor.models import Lecture, LectureRole, LinkUserLecture, UserRole
 
-LectureWithRole = tuple[Lecture, int | None]
+LectureWithRole = tuple[Lecture, int | None, str]
 
 
 class AllLecturesState(SessionState):
@@ -24,6 +24,7 @@ class AllLecturesState(SessionState):
     selected_lecture_id: int | None = None
     selected_lecture_name: str = ""
     selected_lecture_registration_code: str = ""
+    selected_lecture_owner_name: str = ""
     entered_registration_code: str = ""
     lecture_id_param: str = ""
 
@@ -50,7 +51,11 @@ class AllLecturesState(SessionState):
     def open_join_dialog(self, lecture_id: int):
         """Open the join dialog for a lecture."""
         lecture = next(
-            (lecture for lecture, _role in self.lectures if lecture.id == lecture_id),
+            (
+                lecture
+                for lecture, _role, _owner_name in self.lectures
+                if lecture.id == lecture_id
+            ),
             None,
         )
         if lecture is None:
@@ -64,6 +69,7 @@ class AllLecturesState(SessionState):
         self.selected_lecture_id = lecture_id
         self.selected_lecture_name = lecture.lecture_name
         self.selected_lecture_registration_code = lecture.registration_code
+        self.selected_lecture_owner_name = self._owner_name_for_lecture(lecture_id)
         self.entered_registration_code = ""
         self.join_dialog_is_open = True
 
@@ -74,6 +80,7 @@ class AllLecturesState(SessionState):
         self.selected_lecture_id = None
         self.selected_lecture_name = ""
         self.selected_lecture_registration_code = ""
+        self.selected_lecture_owner_name = ""
         self.entered_registration_code = ""
 
     @rx.event
@@ -81,6 +88,9 @@ class AllLecturesState(SessionState):
     def on_load(self):
         """Initialize the page state."""
         self.global_load()
+        self.search_text = ""
+        self.expanded_lecture_id = None
+        self.close_join_dialog()
         self.load_lectures()
 
         lecture_id_param = self._get_route_lecture_id_param()
@@ -110,8 +120,8 @@ class AllLecturesState(SessionState):
             return self.lectures
 
         return [
-            (lecture, role)
-            for lecture, role in self.lectures
+            (lecture, role, owner_name)
+            for lecture, role, owner_name in self.lectures
             if search_text in lecture.lecture_name.lower()
         ]
 
@@ -135,9 +145,32 @@ class AllLecturesState(SessionState):
     ) -> list[LectureWithRole]:
         """Convert raw query results to state-friendly tuples."""
         return [
-            (lecture, int(role) if role is not None else None)
+            (
+                lecture,
+                int(role) if role is not None else None,
+                self._owner_name_for_lecture(lecture.id),
+            )
             for lecture, role in lectures
         ]
+
+    def _owner_name_for_lecture(self, lecture_id: int | None) -> str:
+        """Return the username of the first owner for a lecture."""
+        if lecture_id is None:
+            return ""
+
+        with rx.session() as session:
+            owner_link = session.exec(
+                select(LinkUserLecture)
+                .where(
+                    LinkUserLecture.lecture_id == lecture_id,
+                    LinkUserLecture.role == LectureRole.OWNER,
+                )
+            ).first()
+
+            if owner_link is None or owner_link.user is None:
+                return ""
+
+            return owner_link.user.username
 
     def load_lectures(self):
         """Load all lectures and the current user's role for each lecture."""

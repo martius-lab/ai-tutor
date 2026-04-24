@@ -4,13 +4,13 @@ import reflex as rx
 
 from aitutor.language_state import LanguageState as LS
 from aitutor.pages.all_lectures.state import AllLecturesState, LectureWithRole
-from aitutor.pages.my_lectures.components import lecture_role_text
 
 
 def lecture_row(lecture_with_role: LectureWithRole) -> rx.Component:
     """Render a single lecture row."""
     lecture = lecture_with_role[0]
     role = lecture_with_role[1]
+    owner_name = lecture_with_role[2]
     lecture_id = rx.cond(lecture.id != None, lecture.id, 0)  # noqa: E711
 
     return rx.fragment(
@@ -33,7 +33,7 @@ def lecture_row(lecture_with_role: LectureWithRole) -> rx.Component:
                     spacing="2",
                 ),
             ),
-            rx.table.cell(lecture_role_text(role)),
+            rx.table.cell(rx.cond(owner_name, owner_name, LS.no_owner_information)),
             rx.table.cell(
                 rx.cond(
                     role == None,  # noqa: E711
@@ -70,6 +70,16 @@ def join_lecture_dialog() -> rx.Component:
             rx.vstack(
                 rx.dialog.title(LS.join_lecture),
                 rx.text(AllLecturesState.selected_lecture_name, weight="medium"),
+                rx.cond(
+                    AllLecturesState.selected_lecture_owner_name,
+                    rx.vstack(
+                        rx.text(LS.lecture_owner, weight="medium"),
+                        rx.text(AllLecturesState.selected_lecture_owner_name),
+                        spacing="1",
+                        align="start",
+                        width="100%",
+                    ),
+                ),
                 rx.cond(
                     AllLecturesState.selected_lecture_requires_code,
                     rx.vstack(
@@ -131,7 +141,7 @@ def all_lectures_table() -> rx.Component:
                 rx.table.header(
                     rx.table.row(
                         rx.table.column_header_cell(LS.lecture_name),
-                        rx.table.column_header_cell(LS.role),
+                        rx.table.column_header_cell(LS.lecture_owner),
                         rx.table.column_header_cell(""),
                     )
                 ),

@@ -1244,6 +1244,16 @@ Please test the chat for functionality after changing the model.
         return self.translate(de="Vorlesung beitreten", en="Join Lecture")
 
     @rx.var
+    def lecture_owner(self) -> str:
+        """Label for the lecture owner."""
+        return self.translate(de="Ersteller", en="Owner")
+
+    @rx.var
+    def no_owner_information(self) -> str:
+        """Fallback when no owner information is available."""
+        return self.translate(de="Keine Angabe", en="No information")
+
+    @rx.var
     def already_joined(self) -> str:
         """Label for already joined lectures."""
         return self.translate(de="Bereits beigetreten", en="Already joined")

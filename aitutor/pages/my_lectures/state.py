@@ -40,6 +40,7 @@ class MyLecturesState(SessionState):
     def on_load(self):
         """Initialize the page state."""
         self.global_load()
+        self._reset_filters()
         self.load_joined_lectures()
 
     def on_logout(self):
