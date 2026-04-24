@@ -1330,6 +1330,14 @@ Please test the chat for functionality after changing the model.
     def student_role(self) -> str:
         """Localized student role label."""
         return self.translate(de="Student", en="Student")
+    
+    @rx.var
+    def no_available_lectures(self) -> str:
+        """Message shown when there are no lectures to display."""
+        return self.translate(
+            de="Keine Vorlesung vorhanden.",
+            en="No lectures available.",
+        )
 
 
 class BackendTranslations:

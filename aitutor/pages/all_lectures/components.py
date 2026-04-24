@@ -158,7 +158,7 @@ def all_lectures_table() -> rx.Component:
             rx.cond(
                 AllLecturesState.lectures,
                 rx.text(LS.no_matching_lectures, size="4"),
-                rx.text(LS.no_joined_lectures, size="4"),
+                rx.text(LS.no_available_lectures, size="4"),
             ),
         ),
         spacing="3",
