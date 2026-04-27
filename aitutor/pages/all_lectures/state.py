@@ -177,7 +177,9 @@ class AllLecturesState(SessionState):
                 .order_by(Lecture.lecture_name)
             ).all()
 
-            lecture_ids = [lecture.id for lecture, _role in lectures if lecture.id is not None]
+            lecture_ids = [
+                lecture.id for lecture, _role in lectures if lecture.id is not None
+            ]
             owner_names_by_lecture_id: dict[int, str] = {}
 
             if lecture_ids:
@@ -188,7 +190,9 @@ class AllLecturesState(SessionState):
                         sa.cast(LinkUserLecture.user_id, sa.Integer) == LocalUser.id,
                     )
                     .where(
-                        sa.cast(LinkUserLecture.lecture_id, sa.Integer).in_(lecture_ids),
+                        sa.cast(LinkUserLecture.lecture_id, sa.Integer).in_(
+                            lecture_ids
+                        ),
                         LinkUserLecture.role == LectureRole.OWNER,
                     )
                 ).all()

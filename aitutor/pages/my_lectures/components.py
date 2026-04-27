@@ -78,7 +78,9 @@ def browse_lectures_button() -> rx.Component:
     """Button for navigating to all lectures."""
     return rx.link(
         rx.button(
-            rx.flex(rx.icon("book", size=15), LS.join_lecture, gap="0.5em", align="center"),
+            rx.flex(
+                rx.icon("book", size=15), LS.join_lecture, gap="0.5em", align="center"
+            ),
             variant="outline",
             _hover={"cursor": "pointer"},
         ),

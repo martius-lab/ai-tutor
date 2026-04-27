@@ -69,7 +69,12 @@ def join_lecture_dialog() -> rx.Component:
         rx.dialog.content(
             rx.vstack(
                 rx.dialog.title(LS.join_lecture),
-                rx.text(AllLecturesState.selected_lecture_name, weight="medium"),
+                rx.text(
+                    AllLecturesState.selected_lecture_name,
+                    size="4",
+                    weight="bold",
+                    line_height="1.3",
+                ),
                 rx.cond(
                     AllLecturesState.selected_lecture_owner_name,
                     rx.vstack(

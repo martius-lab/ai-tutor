@@ -1222,6 +1222,19 @@ Please test the chat for functionality after changing the model.
         """Save lecture button/title string."""
         return self.translate(de="Vorlesung speichern", en="Save Lecture")
 
+    @rx.var
+    def copy_join_link(self) -> str:
+        """Copy lecture join link button string."""
+        return self.translate(de="Beitrittslink kopieren", en="Copy join link")
+
+    @rx.var
+    def join_link_copied(self) -> str:
+        """Lecture join link copied toast string."""
+        return self.translate(
+            de="Beitrittslink wurde in die Zwischenablage kopiert.",
+            en="Join link copied to clipboard.",
+        )
+
     # My Lectures Strings -------------------------------------------------------------------------
     @rx.var
     def my_lectures(self) -> str:
@@ -1330,7 +1343,7 @@ Please test the chat for functionality after changing the model.
     def student_role(self) -> str:
         """Localized student role label."""
         return self.translate(de="Student", en="Student")
-    
+
     @rx.var
     def no_available_lectures(self) -> str:
         """Message shown when there are no lectures to display."""

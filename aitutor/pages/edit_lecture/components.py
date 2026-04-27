@@ -2,6 +2,7 @@
 
 import reflex as rx
 
+import aitutor.routes as routes
 from aitutor.language_state import LanguageState as LS
 from aitutor.pages.configuration.components import input, text_area
 from aitutor.pages.edit_lecture.state import EditLectureState
@@ -30,6 +31,34 @@ def lecture_text_area_field(
         heading=heading,
         value=value,
         on_change=lambda value: EditLectureState.set_lecture_value(name, value),
+    )
+
+
+def copy_join_link_button() -> rx.Component:
+    """Render a button that copies the direct lecture join link."""
+    return rx.cond(
+        ~EditLectureState.is_new,
+        rx.button(
+            rx.icon("copy", size=16),
+            LS.copy_join_link,
+            type="button",
+            variant="outline",
+            on_click=[
+                rx.call_script(
+                    "navigator.clipboard.writeText("
+                    f"window.location.origin + '{routes.ALL_LECTURES}/' + "
+                    f"{EditLectureState.current_lecture_id}"
+                    ")"
+                ),
+                rx.toast.success(
+                    description=LS.join_link_copied,
+                    duration=4000,
+                    position="bottom-center",
+                    invert=True,
+                ),
+            ],
+            _hover={"cursor": "pointer"},
+        ),
     )
 
 
@@ -75,6 +104,8 @@ def edit_lecture_form() -> rx.Component:
                     ),
                 ),
                 rx.hstack(
+                    copy_join_link_button(),
+                    rx.spacer(),
                     rx.button(
                         LS.discard_changes,
                         color_scheme="red",
@@ -93,7 +124,6 @@ def edit_lecture_form() -> rx.Component:
                         disabled=~buttons_enabled,  # type: ignore
                         _hover=button_hover_style,
                     ),
-                    justify="end",
                     width="100%",
                 ),
                 spacing="3",
