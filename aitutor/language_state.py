@@ -1235,6 +1235,35 @@ Please test the chat for functionality after changing the model.
             en="Join link copied to clipboard.",
         )
 
+    @rx.var
+    def delete_lecture(self) -> str:
+        """Delete lecture button/title string."""
+        return self.translate(de="Vorlesung löschen", en="Delete lecture")
+
+    @rx.var
+    def delete_lecture_description(self) -> str:
+        """Delete lecture confirmation description."""
+        return self.translate(
+            de=(
+                "Diese Aktion kann nicht rückgängig gemacht werden. Die Vorlesung "
+                "und alle Mitgliedschaften in dieser Vorlesung werden gelöscht. "
+                "Bitte geben Sie Ihr Passwort ein, um die Löschung zu bestätigen."
+            ),
+            en=(
+                "This action cannot be undone. The lecture and all memberships in "
+                "this lecture will be deleted. Please enter your password to confirm "
+                "the deletion."
+            ),
+        )
+
+    @rx.var
+    def password_to_confirm_deletion(self) -> str:
+        """Password prompt for destructive confirmations."""
+        return self.translate(
+            de="Passwort zur Bestätigung",
+            en="Password to confirm",
+        )
+
     # My Lectures Strings -------------------------------------------------------------------------
     @rx.var
     def my_lectures(self) -> str:
@@ -1421,6 +1450,22 @@ class BackendTranslations:
             language,
             de="Vorlesung erfolgreich beigetreten.",
             en="Joined lecture successfully.",
+        )
+
+    @staticmethod
+    def lecture_deleted_successfully(language: Language) -> str:
+        return translate(
+            language,
+            de="Vorlesung erfolgreich gelöscht.",
+            en="Lecture deleted successfully.",
+        )
+
+    @staticmethod
+    def invalid_password(language: Language) -> str:
+        return translate(
+            language,
+            de="Fehler: Das eingegebene Passwort ist falsch.",
+            en="Error: The entered password is incorrect.",
         )
 
     # ManageExercisesState -------------------------------------------------------------

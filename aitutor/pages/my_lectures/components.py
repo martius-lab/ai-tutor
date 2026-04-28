@@ -184,13 +184,19 @@ def my_lectures_table() -> rx.Component:
                 overflow_y="auto",
                 max_height="66vh",
             ),
-            rx.cond(
-                MyLecturesState.joined_lectures,
-                rx.text(LS.no_matching_lectures, size="4"),
-                rx.text(LS.no_joined_lectures, size="4"),
+            rx.center(
+                rx.cond(
+                    MyLecturesState.joined_lectures,
+                    rx.text(LS.no_matching_lectures, size="4"),
+                    rx.text(LS.no_joined_lectures, size="4"),
+                ),
+                width="85vw",
+                max_width="100%",
             ),
         ),
         spacing="3",
+        align="center",
+        width="100%",
     )
 
 

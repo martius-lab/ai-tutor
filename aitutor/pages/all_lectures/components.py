@@ -65,10 +65,10 @@ def lecture_row(lecture_with_role: LectureWithRole) -> rx.Component:
 
 def join_lecture_dialog() -> rx.Component:
     """Dialog for joining a lecture."""
-    return rx.dialog.root(
-        rx.dialog.content(
+    return rx.alert_dialog.root(
+        rx.alert_dialog.content(
             rx.vstack(
-                rx.dialog.title(LS.join_lecture),
+                rx.alert_dialog.title(LS.join_lecture),
                 rx.text(
                     AllLecturesState.selected_lecture_name,
                     size="4",
@@ -102,11 +102,13 @@ def join_lecture_dialog() -> rx.Component:
                     rx.text(LS.no_registration_code_required),
                 ),
                 rx.hstack(
-                    rx.button(
-                        LS.cancel,
-                        variant="outline",
-                        on_click=AllLecturesState.close_join_dialog,
-                        _hover={"cursor": "pointer"},
+                    rx.alert_dialog.cancel(
+                        rx.button(
+                            LS.cancel,
+                            variant="outline",
+                            on_click=AllLecturesState.close_join_dialog,
+                            _hover={"cursor": "pointer"},
+                        ),
                     ),
                     rx.button(
                         LS.join,
@@ -123,6 +125,7 @@ def join_lecture_dialog() -> rx.Component:
             ),
         ),
         open=AllLecturesState.join_dialog_is_open,
+        on_open_change=AllLecturesState.set_join_dialog_is_open,
     )
 
 

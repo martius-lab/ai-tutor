@@ -3,8 +3,7 @@
 from collections.abc import Sequence
 
 import reflex as rx
-import sqlalchemy as sa
-from sqlmodel import and_, select
+from sqlmodel import and_, col, select
 
 import aitutor.routes as routes
 from aitutor.auth.protection import state_require_role_or_permission
@@ -85,6 +84,15 @@ class AllLecturesState(SessionState):
         self.selected_lecture_registration_code = ""
         self.selected_lecture_owner_name = ""
         self.entered_registration_code = ""
+
+    @rx.event
+    def set_join_dialog_is_open(self, value: bool):
+        """Open or close the join dialog from the dialog component."""
+        if value:
+            self.join_dialog_is_open = True
+            return
+
+        self.close_join_dialog()
 
     @rx.event
     @state_require_role_or_permission(required_role=UserRole.STUDENT)
@@ -183,24 +191,32 @@ class AllLecturesState(SessionState):
             owner_names_by_lecture_id: dict[int, str] = {}
 
             if lecture_ids:
-                owner_rows = session.exec(
-                    select(LinkUserLecture.lecture_id, LocalUser.username)
-                    .join(
-                        LocalUser,
-                        sa.cast(LinkUserLecture.user_id, sa.Integer) == LocalUser.id,
-                    )
-                    .where(
-                        sa.cast(LinkUserLecture.lecture_id, sa.Integer).in_(
-                            lecture_ids
-                        ),
+                owner_links = session.exec(
+                    select(LinkUserLecture).where(
+                        col(LinkUserLecture.lecture_id).in_(lecture_ids),
                         LinkUserLecture.role == LectureRole.OWNER,
                     )
                 ).all()
 
+                owner_user_ids = [
+                    link.user_id for link in owner_links if link.user_id is not None
+                ]
+
+                owner_usernames_by_user_id: dict[int, str] = {}
+                if owner_user_ids:
+                    owners = session.exec(
+                        select(LocalUser).where(col(LocalUser.id).in_(owner_user_ids))
+                    ).all()
+                    owner_usernames_by_user_id = {
+                        owner.id: owner.username
+                        for owner in owners
+                        if owner.id is not None
+                    }
+
                 owner_names_by_lecture_id = {
-                    lecture_id: username
-                    for lecture_id, username in owner_rows
-                    if lecture_id is not None
+                    link.lecture_id: owner_usernames_by_user_id.get(link.user_id, "")
+                    for link in owner_links
+                    if link.lecture_id is not None and link.user_id is not None
                 }
 
         self.lectures = self._serialize_lectures(lectures, owner_names_by_lecture_id)

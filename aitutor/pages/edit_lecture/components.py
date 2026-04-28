@@ -3,6 +3,7 @@
 import reflex as rx
 
 import aitutor.routes as routes
+from aitutor.components import password_input
 from aitutor.language_state import LanguageState as LS
 from aitutor.pages.configuration.components import input, text_area
 from aitutor.pages.edit_lecture.state import EditLectureState
@@ -62,6 +63,71 @@ def copy_join_link_button() -> rx.Component:
     )
 
 
+def delete_lecture_dialog() -> rx.Component:
+    """Render the password-confirmed delete lecture dialog."""
+    delete_password_is_empty = EditLectureState.delete_confirmation_password == ""
+    return rx.alert_dialog.root(
+        rx.alert_dialog.trigger(
+            rx.button(
+                rx.icon("trash-2", size=16),
+                LS.delete_lecture,
+                type="button",
+                color_scheme="red",
+                variant="outline",
+                disabled=EditLectureState.is_new,
+                _hover=rx.cond(
+                    EditLectureState.is_new,
+                    {"cursor": "not-allowed"},
+                    {"cursor": "pointer"},
+                ),
+            ),
+        ),
+        rx.alert_dialog.content(
+            rx.vstack(
+                rx.alert_dialog.title(LS.delete_lecture),
+                rx.alert_dialog.description(LS.delete_lecture_description),
+                password_input(
+                    id="delete_lecture_confirmation_password",
+                    placeholder=LS.password_to_confirm_deletion,
+                    value=EditLectureState.delete_confirmation_password,
+                    on_change=EditLectureState.set_delete_confirmation_password,
+                    width="100%",
+                ),
+                rx.hstack(
+                    rx.alert_dialog.cancel(
+                        rx.button(
+                            LS.cancel,
+                            type="button",
+                            variant="outline",
+                            on_click=EditLectureState.clear_delete_confirmation_password,
+                            _hover={"cursor": "pointer"},
+                        ),
+                    ),
+                    rx.alert_dialog.action(
+                        rx.button(
+                            LS.delete_lecture,
+                            type="button",
+                            color_scheme="red",
+                            on_click=EditLectureState.delete_current_lecture,
+                            disabled=delete_password_is_empty,
+                            _hover=rx.cond(
+                                delete_password_is_empty,
+                                {"cursor": "not-allowed"},
+                                {"cursor": "pointer"},
+                            ),
+                        ),
+                    ),
+                    justify="end",
+                    width="100%",
+                ),
+                spacing="4",
+                align="start",
+                width="100%",
+            )
+        ),
+    )
+
+
 def edit_lecture_form() -> rx.Component:
     """Form for creating or editing lectures."""
     buttons_enabled = EditLectureState.unsaved_changes
@@ -105,6 +171,10 @@ def edit_lecture_form() -> rx.Component:
                 ),
                 rx.hstack(
                     copy_join_link_button(),
+                    rx.cond(
+                        ~EditLectureState.is_new,
+                        delete_lecture_dialog(),
+                    ),
                     rx.spacer(),
                     rx.button(
                         LS.discard_changes,
