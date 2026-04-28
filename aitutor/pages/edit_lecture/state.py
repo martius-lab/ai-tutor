@@ -12,7 +12,7 @@ from aitutor.models import GlobalPermission, Lecture, LectureRole, LinkUserLectu
 
 
 class EditLectureState(SessionState):
-    """State for the edit lecture page skeleton."""
+    """State for the edit lecture page."""
 
     current_lecture_id: int | None = None
     lecture_name: str = ""

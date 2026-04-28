@@ -1225,7 +1225,7 @@ Please test the chat for functionality after changing the model.
     @rx.var
     def copy_join_link(self) -> str:
         """Copy lecture join link button string."""
-        return self.translate(de="Beitrittslink kopieren", en="Copy join link")
+        return self.translate(de="Link kopieren", en="Copy join link")
 
     @rx.var
     def join_link_copied(self) -> str:

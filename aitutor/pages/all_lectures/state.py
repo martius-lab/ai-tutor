@@ -148,7 +148,7 @@ class AllLecturesState(SessionState):
             return False
         if not self.selected_lecture_requires_code:
             return True
-        return bool(self.entered_registration_code.strip())
+        return bool(self.entered_registration_code)
 
     def _serialize_lectures(
         self,
@@ -270,7 +270,7 @@ class AllLecturesState(SessionState):
                 )
 
             if lecture.registration_code and (
-                self.entered_registration_code.strip() != lecture.registration_code
+                self.entered_registration_code != lecture.registration_code
             ):
                 return rx.toast.error(
                     description=BT.invalid_lecture_registration_code(self.language),
