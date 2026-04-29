@@ -166,7 +166,7 @@ class ChatState(SessionState):
     report_text: str = ""
     MAX_REPORT_LENGTH: int = 2000
     current_tokens: int = 0
-    token_limit: int = 30000
+    token_limit: int = 0
 
     @rx.var
     def token_limit_reached(self) -> bool:
