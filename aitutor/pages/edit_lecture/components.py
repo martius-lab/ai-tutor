@@ -10,7 +10,7 @@ from aitutor.pages.edit_lecture.state import EditLectureState
 
 
 def lecture_input_field(
-    name: str, heading: rx.Var[str], value: str | rx.Var[str]
+    name: str, heading: rx.Var[str], value: str | rx.Var[str], **props
 ) -> rx.Component:
     """Render a standard one-line input for the edit lecture form."""
     return input(
@@ -18,6 +18,7 @@ def lecture_input_field(
         heading=heading,
         value=value,
         on_change=lambda value: EditLectureState.set_lecture_value(name, value),
+        **props,
     )
 
 
@@ -144,6 +145,13 @@ def edit_lecture_form() -> rx.Component:
                     name="lecture_name",
                     heading=LS.lecture_name,
                     value=EditLectureState.lecture_name,
+                    required=True,
+                ),
+                lecture_input_field(
+                    name="lecturer_name",
+                    heading=LS.lecture_lecturer,
+                    value=EditLectureState.lecturer_name,
+                    required=True,
                 ),
                 lecture_input_field(
                     name="registration_code",

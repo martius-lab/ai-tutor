@@ -10,7 +10,7 @@ def lecture_row(lecture_with_role: LectureWithRole) -> rx.Component:
     """Render a single lecture row."""
     lecture = lecture_with_role[0]
     role = lecture_with_role[1]
-    owner_name = lecture_with_role[2]
+    lecturer_name = lecture_with_role[2]
     lecture_id = rx.cond(lecture.id != None, lecture.id, 0)  # noqa: E711
 
     return rx.fragment(
@@ -33,7 +33,9 @@ def lecture_row(lecture_with_role: LectureWithRole) -> rx.Component:
                     spacing="2",
                 ),
             ),
-            rx.table.cell(rx.cond(owner_name, owner_name, LS.no_owner_information)),
+            rx.table.cell(
+                rx.cond(lecturer_name, lecturer_name, LS.no_lecturer_information)
+            ),
             rx.table.cell(
                 rx.cond(
                     role == None,  # noqa: E711
@@ -76,10 +78,10 @@ def join_lecture_dialog() -> rx.Component:
                     line_height="1.3",
                 ),
                 rx.cond(
-                    AllLecturesState.selected_lecture_owner_name,
+                    AllLecturesState.selected_lecture_lecturer_name,
                     rx.vstack(
-                        rx.text(LS.lecture_owner, weight="medium"),
-                        rx.text(AllLecturesState.selected_lecture_owner_name),
+                        rx.text(LS.lecture_lecturer, weight="medium"),
+                        rx.text(AllLecturesState.selected_lecture_lecturer_name),
                         spacing="1",
                         align="start",
                         width="100%",
@@ -149,7 +151,7 @@ def all_lectures_table() -> rx.Component:
                 rx.table.header(
                     rx.table.row(
                         rx.table.column_header_cell(LS.lecture_name),
-                        rx.table.column_header_cell(LS.lecture_owner),
+                        rx.table.column_header_cell(LS.lecture_lecturer),
                         rx.table.column_header_cell(""),
                     )
                 ),

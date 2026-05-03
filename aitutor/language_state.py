@@ -1213,6 +1213,11 @@ Please test the chat for functionality after changing the model.
         return self.translate(de="Vorlesungsname", en="Lecture Name")
 
     @rx.var
+    def lecture_lecturer(self) -> str:
+        """Lecture lecturer string."""
+        return self.translate(de="Dozent/-in", en="Lecturer")
+
+    @rx.var
     def create_lecture(self) -> str:
         """Create lecture button/title string."""
         return self.translate(de="Vorlesung erstellen", en="Create Lecture")
@@ -1288,11 +1293,16 @@ Please test the chat for functionality after changing the model.
     @rx.var
     def lecture_owner(self) -> str:
         """Label for the lecture owner."""
-        return self.translate(de="Ersteller", en="Owner")
+        return self.translate(de="Dozent/-in", en="Lecturer")
 
     @rx.var
     def no_owner_information(self) -> str:
         """Fallback when no owner information is available."""
+        return self.translate(de="Keine Angabe", en="No information")
+
+    @rx.var
+    def no_lecturer_information(self) -> str:
+        """Fallback when no lecturer information is available."""
         return self.translate(de="Keine Angabe", en="No information")
 
     @rx.var
@@ -1418,6 +1428,14 @@ class BackendTranslations:
             language,
             de="Bitte geben Sie einen Vorlesungsnamen ein.",
             en="Please enter a lecture name.",
+        )
+
+    @staticmethod
+    def enter_lecturer_name(language: Language) -> str:
+        return translate(
+            language,
+            de="Bitte geben Sie den Dozenten/die Dozentin ein.",
+            en="Please enter the lecturer.",
         )
 
     @staticmethod

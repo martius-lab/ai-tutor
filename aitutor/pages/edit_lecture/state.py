@@ -16,6 +16,7 @@ class EditLectureState(SessionState):
 
     current_lecture_id: int | None = None
     lecture_name: str = ""
+    lecturer_name: str = ""
     registration_code: str = ""
     lecture_information_text: str = ""
     check_conversation_prompt: str = ""
@@ -84,6 +85,10 @@ class EditLectureState(SessionState):
         if not lecture_name:
             return rx.window_alert(BT.enter_lecture_name(self.language))
 
+        lecturer_name = self._normalized_lecturer_name()
+        if not lecturer_name:
+            return rx.window_alert(BT.enter_lecturer_name(self.language))
+
         if self.authenticated_user is None or self.authenticated_user.id is None:
             return rx.redirect(routes.LOGIN)
 
@@ -103,6 +108,7 @@ class EditLectureState(SessionState):
 
                 lecture = Lecture(
                     lecture_name=lecture_name,
+                    lecturer_name=lecturer_name,
                     registration_code=self.registration_code,
                     lecture_information_text=self.lecture_information_text,
                     check_conversation_prompt=self.check_conversation_prompt,
@@ -152,7 +158,11 @@ class EditLectureState(SessionState):
             if lecture is None:
                 return rx.redirect(routes.NOT_FOUND)
 
-            self._apply_state_to_lecture(lecture, lecture_name=lecture_name)
+            self._apply_state_to_lecture(
+                lecture,
+                lecture_name=lecture_name,
+                lecturer_name=lecturer_name,
+            )
             session.add(lecture)
             session.commit()
             session.refresh(lecture)
@@ -214,6 +224,7 @@ class EditLectureState(SessionState):
         """Reset the editable form fields to their default values."""
         self.current_lecture_id = None
         self.lecture_name = ""
+        self.lecturer_name = ""
         self.registration_code = ""
         self.lecture_information_text = ""
         self.check_conversation_prompt = check_conversation_prompt
@@ -225,15 +236,23 @@ class EditLectureState(SessionState):
         """Copy persisted lecture values into the page state."""
         self.current_lecture_id = lecture.id
         self.lecture_name = lecture.lecture_name
+        self.lecturer_name = lecture.lecturer_name
         self.registration_code = lecture.registration_code
         self.lecture_information_text = lecture.lecture_information_text
         self.check_conversation_prompt = lecture.check_conversation_prompt
         self.is_new = False
         self.unsaved_changes = False
 
-    def _apply_state_to_lecture(self, lecture: Lecture, *, lecture_name: str) -> None:
+    def _apply_state_to_lecture(
+        self,
+        lecture: Lecture,
+        *,
+        lecture_name: str,
+        lecturer_name: str,
+    ) -> None:
         """Write the current form values into a Lecture model instance."""
         lecture.lecture_name = lecture_name
+        lecture.lecturer_name = lecturer_name
         lecture.registration_code = self.registration_code
         lecture.lecture_information_text = self.lecture_information_text
         lecture.check_conversation_prompt = self.check_conversation_prompt
@@ -248,6 +267,10 @@ class EditLectureState(SessionState):
     def _normalized_lecture_name(self) -> str:
         """Return the trimmed lecture name used for validation and persistence."""
         return self.lecture_name.strip()
+
+    def _normalized_lecturer_name(self) -> str:
+        """Return the trimmed lecturer name used for validation and persistence."""
+        return self.lecturer_name.strip()
 
     def _user_may_edit_existing_lecture(self, lecture_id: int) -> bool:
         """Check whether the current user may edit an existing lecture."""

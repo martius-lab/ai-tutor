@@ -3,13 +3,13 @@
 from collections.abc import Sequence
 
 import reflex as rx
-from sqlmodel import and_, col, select
+from sqlmodel import and_, select
 
 import aitutor.routes as routes
 from aitutor.auth.protection import state_require_role_or_permission
 from aitutor.auth.state import SessionState
 from aitutor.language_state import BackendTranslations as BT
-from aitutor.models import Lecture, LectureRole, LinkUserLecture, LocalUser, UserRole
+from aitutor.models import Lecture, LectureRole, LinkUserLecture, UserRole
 
 LectureWithRole = tuple[Lecture, int | None, str]
 
@@ -24,7 +24,7 @@ class AllLecturesState(SessionState):
     selected_lecture_id: int | None = None
     selected_lecture_name: str = ""
     selected_lecture_registration_code: str = ""
-    selected_lecture_owner_name: str = ""
+    selected_lecture_lecturer_name: str = ""
     entered_registration_code: str = ""
     lecture_id_param: str = ""
 
@@ -52,8 +52,8 @@ class AllLecturesState(SessionState):
         """Open the join dialog for a lecture."""
         lecture_with_role = next(
             (
-                (lecture, role, owner_name)
-                for lecture, role, owner_name in self.lectures
+                (lecture, role, lecturer_name)
+                for lecture, role, lecturer_name in self.lectures
                 if lecture.id == lecture_id
             ),
             None,
@@ -66,12 +66,12 @@ class AllLecturesState(SessionState):
                 invert=True,
             )
 
-        lecture, _role, owner_name = lecture_with_role
+        lecture, _role, lecturer_name = lecture_with_role
 
         self.selected_lecture_id = lecture_id
         self.selected_lecture_name = lecture.lecture_name
         self.selected_lecture_registration_code = lecture.registration_code
-        self.selected_lecture_owner_name = owner_name
+        self.selected_lecture_lecturer_name = lecturer_name
         self.entered_registration_code = ""
         self.join_dialog_is_open = True
 
@@ -82,7 +82,7 @@ class AllLecturesState(SessionState):
         self.selected_lecture_id = None
         self.selected_lecture_name = ""
         self.selected_lecture_registration_code = ""
-        self.selected_lecture_owner_name = ""
+        self.selected_lecture_lecturer_name = ""
         self.entered_registration_code = ""
 
     @rx.event
@@ -131,8 +131,8 @@ class AllLecturesState(SessionState):
             return self.lectures
 
         return [
-            (lecture, role, owner_name)
-            for lecture, role, owner_name in self.lectures
+            (lecture, role, lecturer_name)
+            for lecture, role, lecturer_name in self.lectures
             if search_text in lecture.lecture_name.lower()
         ]
 
@@ -153,14 +153,13 @@ class AllLecturesState(SessionState):
     def _serialize_lectures(
         self,
         lectures: Sequence[tuple[Lecture, int | None]],
-        owner_names_by_lecture_id: dict[int, str],
     ) -> list[LectureWithRole]:
         """Convert raw query results to state-friendly tuples."""
         return [
             (
                 lecture,
                 int(role) if role is not None else None,
-                owner_names_by_lecture_id.get(lecture.id or 0, ""),
+                lecture.lecturer_name,
             )
             for lecture, role in lectures
         ]
@@ -185,41 +184,7 @@ class AllLecturesState(SessionState):
                 .order_by(Lecture.lecture_name)
             ).all()
 
-            lecture_ids = [
-                lecture.id for lecture, _role in lectures if lecture.id is not None
-            ]
-            owner_names_by_lecture_id: dict[int, str] = {}
-
-            if lecture_ids:
-                owner_links = session.exec(
-                    select(LinkUserLecture).where(
-                        col(LinkUserLecture.lecture_id).in_(lecture_ids),
-                        LinkUserLecture.role == LectureRole.OWNER,
-                    )
-                ).all()
-
-                owner_user_ids = [
-                    link.user_id for link in owner_links if link.user_id is not None
-                ]
-
-                owner_usernames_by_user_id: dict[int, str] = {}
-                if owner_user_ids:
-                    owners = session.exec(
-                        select(LocalUser).where(col(LocalUser.id).in_(owner_user_ids))
-                    ).all()
-                    owner_usernames_by_user_id = {
-                        owner.id: owner.username
-                        for owner in owners
-                        if owner.id is not None
-                    }
-
-                owner_names_by_lecture_id = {
-                    link.lecture_id: owner_usernames_by_user_id.get(link.user_id, "")
-                    for link in owner_links
-                    if link.lecture_id is not None and link.user_id is not None
-                }
-
-        self.lectures = self._serialize_lectures(lectures, owner_names_by_lecture_id)
+        self.lectures = self._serialize_lectures(lectures)
 
     def _get_route_lecture_id_param(self) -> str:
         """Return the lecture id route segment or an empty string."""

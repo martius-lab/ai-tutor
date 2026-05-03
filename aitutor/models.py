@@ -67,6 +67,7 @@ class Lecture(SQLModel, table=True):
     check_conversation_prompt: str = Field(nullable=False, default="")
     lecture_information_text: str = Field(nullable=False, default="")
     lecture_name: str = Field(nullable=False, default="", unique=True)
+    lecturer_name: str = Field(nullable=False, default="")
     registration_code: str = Field(nullable=False, default="")
 
     # ORM relationships
