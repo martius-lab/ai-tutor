@@ -1201,12 +1201,7 @@ Please test the chat for functionality after changing the model.
     def report_submitted_conversation(self) -> str:
         return self.translate(de="Eingereichter Chat:", en="Submitted Conversation:")
 
-    # Edit Lecture Strings ------------------------------------------------------------------------
-    @rx.var
-    def edit_lecture(self) -> str:
-        """The string for the 'Edit Lecture' tab."""
-        return self.translate(de="Vorlesung bearbeiten", en="Edit Lecture")
-
+    # Lecture Strings -----------------------------------------------------------------------------
     @rx.var
     def lecture_name(self) -> str:
         """Lecture name string."""
@@ -1218,14 +1213,9 @@ Please test the chat for functionality after changing the model.
         return self.translate(de="Dozent/-in", en="Lecturer")
 
     @rx.var
-    def create_lecture(self) -> str:
-        """Create lecture button/title string."""
-        return self.translate(de="Vorlesung erstellen", en="Create Lecture")
-
-    @rx.var
-    def save_lecture(self) -> str:
-        """Save lecture button/title string."""
-        return self.translate(de="Vorlesung speichern", en="Save Lecture")
+    def edit_lecture(self) -> str:
+        """The string for the 'Edit Lecture' tab."""
+        return self.translate(de="Vorlesung bearbeiten", en="Edit Lecture")
 
     @rx.var
     def copy_join_link(self) -> str:
@@ -1276,73 +1266,6 @@ Please test the chat for functionality after changing the model.
         return self.translate(de="Meine Vorlesungen", en="My Lectures")
 
     @rx.var
-    def all_lectures(self) -> str:
-        """The string for the 'All Lectures' tab/page."""
-        return self.translate(de="Alle Vorlesungen", en="All Lectures")
-
-    @rx.var
-    def join(self) -> str:
-        """Join button label."""
-        return self.translate(de="Beitreten", en="Join")
-
-    @rx.var
-    def join_lecture(self) -> str:
-        """Join lecture dialog title."""
-        return self.translate(de="Vorlesung beitreten", en="Join Lecture")
-
-    @rx.var
-    def lecture_owner(self) -> str:
-        """Label for the lecture owner."""
-        return self.translate(de="Dozent/-in", en="Lecturer")
-
-    @rx.var
-    def no_owner_information(self) -> str:
-        """Fallback when no owner information is available."""
-        return self.translate(de="Keine Angabe", en="No information")
-
-    @rx.var
-    def no_lecturer_information(self) -> str:
-        """Fallback when no lecturer information is available."""
-        return self.translate(de="Keine Angabe", en="No information")
-
-    @rx.var
-    def already_joined(self) -> str:
-        """Label for already joined lectures."""
-        return self.translate(de="Bereits beigetreten", en="Already joined")
-
-    @rx.var
-    def enter_registration_code(self) -> str:
-        """Prompt to enter a lecture registration code."""
-        return self.translate(
-            de="Bitte geben Sie den Registrierungscode für diese Vorlesung ein.",
-            en="Please enter the registration code for this lecture.",
-        )
-
-    @rx.var
-    def no_registration_code_required(self) -> str:
-        """Message when no lecture registration code is required."""
-        return self.translate(
-            de="Für diese Vorlesung ist kein Registrierungscode erforderlich.",
-            en="No registration code is required for this lecture.",
-        )
-
-    @rx.var
-    def no_lecture_details(self) -> str:
-        """Message when no lecture details are available."""
-        return self.translate(
-            de="Für diese Vorlesung sind keine zusätzlichen Informationen hinterlegt.",
-            en="No additional information is available for this lecture.",
-        )
-
-    @rx.var
-    def my_lectures_placeholder(self) -> str:
-        """Placeholder text for the my lectures page skeleton."""
-        return self.translate(
-            de="Hier wird als Nächstes die Liste der Vorlesungen angezeigt, bei denen Sie Mitglied sind.",
-            en="This page will next show the list of lectures you are a member of.",
-        )
-
-    @rx.var
     def no_joined_lectures(self) -> str:
         """Message shown when the user has not joined any lectures yet."""
         return self.translate(
@@ -1383,6 +1306,56 @@ Please test the chat for functionality after changing the model.
         """Localized student role label."""
         return self.translate(de="Student", en="Student")
 
+    # All Lectures Strings ------------------------------------------------------------------------
+    @rx.var
+    def all_lectures(self) -> str:
+        """The string for the 'All Lectures' tab/page."""
+        return self.translate(de="Alle Vorlesungen", en="All Lectures")
+
+    @rx.var
+    def join(self) -> str:
+        """Join button label."""
+        return self.translate(de="Beitreten", en="Join")
+
+    @rx.var
+    def join_lecture(self) -> str:
+        """Join lecture dialog title."""
+        return self.translate(de="Vorlesung beitreten", en="Join Lecture")
+
+    @rx.var
+    def no_lecturer_information(self) -> str:
+        """Fallback when no lecturer information is available."""
+        return self.translate(de="Keine Angabe", en="No information")
+
+    @rx.var
+    def already_joined(self) -> str:
+        """Label for already joined lectures."""
+        return self.translate(de="Bereits beigetreten", en="Already joined")
+
+    @rx.var
+    def enter_registration_code(self) -> str:
+        """Prompt to enter a lecture registration code."""
+        return self.translate(
+            de="Bitte geben Sie den Registrierungscode für diese Vorlesung ein.",
+            en="Please enter the registration code for this lecture.",
+        )
+
+    @rx.var
+    def no_registration_code_required(self) -> str:
+        """Message when no lecture registration code is required."""
+        return self.translate(
+            de="Für diese Vorlesung ist kein Registrierungscode erforderlich.",
+            en="No registration code is required for this lecture.",
+        )
+
+    @rx.var
+    def no_lecture_details(self) -> str:
+        """Message when no lecture details are available."""
+        return self.translate(
+            de="Für diese Vorlesung sind keine zusätzlichen Informationen hinterlegt.",
+            en="No additional information is available for this lecture.",
+        )
+
     @rx.var
     def no_available_lectures(self) -> str:
         """Message shown when there are no lectures to display."""
@@ -1412,7 +1385,7 @@ class BackendTranslations:
             en=f"User '{username}' has been deleted.",
         )
 
-    # MyLecturesState -------------------------------------------------------------
+    # Lecture states -------------------------------------------------------------------
 
     @staticmethod
     def lecture_name_already_exists(language: Language) -> str:
