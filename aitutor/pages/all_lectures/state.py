@@ -270,4 +270,3 @@ class AllLecturesState(SessionState):
         if last_segment == routes.ALL_LECTURES.split("/")[-1]:
             return ""
         return str(last_segment)
-
