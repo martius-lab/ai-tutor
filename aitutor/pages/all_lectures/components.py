@@ -195,7 +195,7 @@ def lectures_table() -> rx.Component:
 
 
 def empty_lectures_message() -> rx.Component:
-    """Render the appropriate empty state for the all lectures table."""
+    """Distinguish between no matches and no available lectures."""
     return rx.cond(
         AllLecturesState.lectures,
         rx.text(LS.no_matching_lectures, size="4"),
