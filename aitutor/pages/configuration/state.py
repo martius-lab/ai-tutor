@@ -18,7 +18,7 @@ empty_config: Config = Config(
     course_name="failed to load!",
     impressum_text="failed to load!",
     registration_code="failed to load!",
-    exercise_token_limit=30000,
+    exercise_token_limit=0,
 )
 
 

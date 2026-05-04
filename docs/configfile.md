@@ -36,7 +36,7 @@ When the limit is reached:
 - already available actions like submitting a successfully passed exercise remain possible.
 
 ```toml
-exercise_token_limit = 30000
+exercise_token_limit = 100_000
 ```
 
 Choose a value that fits your expected exercise complexity and model cost.
