@@ -11,7 +11,7 @@ from aitutor.auth.state import SessionState
 from aitutor.language_state import BackendTranslations as BT
 from aitutor.models import Lecture, LectureRole, LinkUserLecture, UserRole
 
-LectureWithRole = tuple[Lecture, int | None, str]
+LectureWithRole = tuple[Lecture, int | None]
 
 
 class AllLecturesState(SessionState):
@@ -50,14 +50,7 @@ class AllLecturesState(SessionState):
     @rx.event
     def open_join_dialog(self, lecture_id: int):
         """Open the join dialog for a lecture."""
-        lecture_with_role = next(
-            (
-                (lecture, role, lecturer_name)
-                for lecture, role, lecturer_name in self.lectures
-                if lecture.id == lecture_id
-            ),
-            None,
-        )
+        lecture_with_role = self._find_loaded_lecture(lecture_id)
         if lecture_with_role is None:
             return rx.toast.error(
                 description=BT.lecture_not_found(self.language),
@@ -66,24 +59,19 @@ class AllLecturesState(SessionState):
                 invert=True,
             )
 
-        lecture, _role, lecturer_name = lecture_with_role
+        lecture = lecture_with_role[0]
 
         self.selected_lecture_id = lecture_id
         self.selected_lecture_name = lecture.lecture_name
         self.selected_lecture_registration_code = lecture.registration_code
-        self.selected_lecture_lecturer_name = lecturer_name
+        self.selected_lecture_lecturer_name = lecture.lecturer_name
         self.entered_registration_code = ""
         self.join_dialog_is_open = True
 
     @rx.event
     def close_join_dialog(self):
         """Close the join dialog and clear its local state."""
-        self.join_dialog_is_open = False
-        self.selected_lecture_id = None
-        self.selected_lecture_name = ""
-        self.selected_lecture_registration_code = ""
-        self.selected_lecture_lecturer_name = ""
-        self.entered_registration_code = ""
+        self._reset_join_dialog()
 
     @rx.event
     def set_join_dialog_is_open(self, value: bool):
@@ -99,9 +87,7 @@ class AllLecturesState(SessionState):
     def on_load(self):
         """Initialize the page state."""
         self.global_load()
-        self.search_text = ""
-        self.expanded_lecture_id = None
-        self.close_join_dialog()
+        self._reset_page_state()
         self.load_lectures()
 
         lecture_id_param = self._get_route_lecture_id_param()
@@ -119,9 +105,7 @@ class AllLecturesState(SessionState):
     def on_logout(self):
         """Clear page-specific state on logout."""
         self.lectures = []
-        self.search_text = ""
-        self.expanded_lecture_id = None
-        self.close_join_dialog()
+        self._reset_page_state()
 
     @rx.var
     def filtered_lectures(self) -> list[LectureWithRole]:
@@ -131,8 +115,8 @@ class AllLecturesState(SessionState):
             return self.lectures
 
         return [
-            (lecture, role, lecturer_name)
-            for lecture, role, lecturer_name in self.lectures
+            (lecture, role)
+            for lecture, role in self.lectures
             if search_text in lecture.lecture_name.lower()
         ]
 
@@ -150,6 +134,32 @@ class AllLecturesState(SessionState):
             return True
         return bool(self.entered_registration_code)
 
+    def _reset_page_state(self) -> None:
+        """Reset local page UI state without clearing loaded lectures."""
+        self.search_text = ""
+        self.expanded_lecture_id = None
+        self._reset_join_dialog()
+
+    def _reset_join_dialog(self) -> None:
+        """Reset the join dialog and its selected lecture data."""
+        self.join_dialog_is_open = False
+        self.selected_lecture_id = None
+        self.selected_lecture_name = ""
+        self.selected_lecture_registration_code = ""
+        self.selected_lecture_lecturer_name = ""
+        self.entered_registration_code = ""
+
+    def _find_loaded_lecture(self, lecture_id: int) -> LectureWithRole | None:
+        """Find a lecture in the currently loaded lecture list."""
+        return next(
+            (
+                lecture_with_role
+                for lecture_with_role in self.lectures
+                if lecture_with_role[0].id == lecture_id
+            ),
+            None,
+        )
+
     def _serialize_lectures(
         self,
         lectures: Sequence[tuple[Lecture, int | None]],
@@ -159,7 +169,6 @@ class AllLecturesState(SessionState):
             (
                 lecture,
                 int(role) if role is not None else None,
-                lecture.lecturer_name,
             )
             for lecture, role in lectures
         ]
