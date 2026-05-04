@@ -141,20 +141,36 @@ def lecture_row(joined_lecture: LectureWithRole) -> rx.Component:
             )
         ),
         rx.table.cell(
-            rx.cond(
-                (role == LectureRole.OWNER.value) | MyLecturesState.is_global_admin,
+            rx.hstack(
                 rx.link(
                     rx.button(
                         rx.flex(
-                            rx.icon("pen", size=15),
-                            LS.edit,
+                            rx.icon("log-in", size=15),
+                            "Enter",
                             gap="0.5em",
                             align="center",
                         ),
                         _hover={"cursor": "pointer"},
                     ),
-                    href=f"{routes.EDIT_LECTURE}/{lecture.id}",
+                    href=f"{routes.LECTURE_OVERVIEW}/{lecture.id}",
                 ),
+                rx.cond(
+                    (role == LectureRole.OWNER.value) | MyLecturesState.is_global_admin,
+                    rx.link(
+                        rx.button(
+                            rx.flex(
+                                rx.icon("pen", size=15),
+                                LS.edit,
+                                gap="0.5em",
+                                align="center",
+                            ),
+                            _hover={"cursor": "pointer"},
+                        ),
+                        href=f"{routes.EDIT_LECTURE}/{lecture.id}",
+                    ),
+                ),
+                spacing="2",
+                wrap="wrap",
             )
         ),
     )
