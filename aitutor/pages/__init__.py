@@ -36,6 +36,8 @@ from aitutor.pages.reports.page import reports_page
 from aitutor.pages.reports.state import ReportsState
 from aitutor.pages.submissions.page import submissions_page
 from aitutor.pages.submissions.state import SubmissionsState
+from aitutor.pages.token_analyzer.page import token_analyzer_page
+from aitutor.pages.token_analyzer.state import TokenAnalyzerState
 from aitutor.pages.user_settings.page import user_settings_page
 from aitutor.pages.user_settings.state import UserSettingsState
 
@@ -61,6 +63,7 @@ __all__ = [
     "user_settings_page",
     "configuration_page",
     "edit_lecture_page",
+    "token_analyzer_page",
     "reports_page",
     "report_view_page",
     # states
@@ -83,4 +86,5 @@ __all__ = [
     "ReportsState",
     "ReportViewState",
     "ManagePromptsState",
+    "TokenAnalyzerState",
 ]

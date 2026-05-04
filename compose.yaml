@@ -15,8 +15,19 @@ services:
       - db-data:/app/data
       - upload-data:/app/uploaded_files
       # mount config files, so we can change config without rebuilding the container
-      - ./config.toml:/app/config.toml
-      - ./.env:/app/.env
+      - type: bind
+        source: ./config.toml
+        target: /app/config.toml
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ./.env
+        target: /app/.env
+        read_only: true
+        bind:
+          create_host_path: false
+
     restart: always
 
   webserver:

@@ -25,7 +25,7 @@ def upgrade() -> None:
     bind = op.get_bind()
     if bind.engine.name == 'postgresql':
         # Skip this for SQLite, which doesn't have a custom type for this
-        op.execute("ALTER TYPE userrole ADD VALUE 'TUTOR'")
+        op.execute("ALTER TYPE userrole ADD VALUE IF NOT EXISTS 'TUTOR'")
         op.execute("COMMIT")
     op.execute("UPDATE userinfo SET role = 'TUTOR' WHERE role = 'TEACHER'")
 

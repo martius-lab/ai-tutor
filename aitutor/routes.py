@@ -22,6 +22,7 @@ MANAGE_USERS = ADMIN_SETTINGS + "/manage_users"
 CONFIGURATION = ADMIN_SETTINGS + "/configuration"
 PROMPTS = ADMIN_SETTINGS + "/prompts"
 REPORTS = ADMIN_SETTINGS + "/reports"
+TOKEN_ANALYZER = ADMIN_SETTINGS + "/token_analyzer"
 # needs to be .../report_view/[report_id]
 REPORT_VIEW = REPORTS + "/report_view"
 
