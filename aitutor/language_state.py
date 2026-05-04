@@ -905,6 +905,22 @@ class LanguageState(SessionState):
             """),
         )
 
+    @rx.var
+    def permissions(self) -> str:
+        return self.translate(de="Berechtigungen", en="Permissions")
+
+    @rx.var
+    def admin_permission(self) -> str:
+        return self.translate(de="Admin", en="Admin")
+
+    @rx.var
+    def maintainer_permission(self) -> str:
+        return self.translate(de="Maintainer", en="Maintainer")
+
+    @rx.var
+    def lecturer_permission(self) -> str:
+        return self.translate(de="Lecturer", en="Lecturer")
+
     # user settings --------------------------------------------------------------------
     @rx.var
     def user_settings(self) -> str:
