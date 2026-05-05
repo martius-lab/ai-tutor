@@ -52,6 +52,7 @@ def navbar_link(text: str, url: str, route_to_highlight: Optional[str]) -> rx.Co
 general_links = [
     (LanguageState.home_link, routes.HOME, "house"),
     (LanguageState.exercises_link, routes.EXERCISES, "book"),
+    ("Beta AI", routes.BETA_AI_EXERCISES, "sparkles"),
 ]
 tutor_links = [
     (LanguageState.submissions_link, routes.SUBMISSIONS, "search-check"),

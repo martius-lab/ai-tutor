@@ -1,5 +1,7 @@
 from aitutor.pages.all_lectures.page import all_lectures_page
 from aitutor.pages.all_lectures.state import AllLecturesState
+from aitutor.pages.beta_ai_exercises.page import beta_ai_exercises_page
+from aitutor.pages.beta_ai_exercises.state import BetaAIExercisesState
 from aitutor.pages.chat.page import chat_page
 from aitutor.pages.chat.state import ChatState
 from aitutor.pages.configuration.page import configuration_page
@@ -46,6 +48,7 @@ from aitutor.pages.user_settings.state import UserSettingsState
 __all__ = [
     # pages
     "chat_page",
+    "beta_ai_exercises_page",
     "home_page",
     "manage_exercises_page",
     "manage_users_page",
@@ -71,6 +74,7 @@ __all__ = [
     "report_view_page",
     # states
     "ChatState",
+    "BetaAIExercisesState",
     "HomeState",
     "ExercisesState",
     "FinishedViewState",

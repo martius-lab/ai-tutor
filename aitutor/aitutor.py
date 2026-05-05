@@ -104,6 +104,11 @@ app.add_page(
     on_load=pages.ExercisesState.on_load,
 )
 app.add_page(
+    pages.beta_ai_exercises_page,
+    route=routes.BETA_AI_EXERCISES,
+    on_load=pages.BetaAIExercisesState.on_load,
+)
+app.add_page(
     pages.user_settings_page,
     route=routes.USER_SETTINGS,
 )

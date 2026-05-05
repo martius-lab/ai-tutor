@@ -28,6 +28,9 @@ REPORT_VIEW = REPORTS + "/report_view"
 
 USER_SETTINGS = "/user_settings"
 
+BETA_AI = "/beta_ai"
+BETA_AI_EXERCISES = BETA_AI + "/exercises"
+
 LECTURES = "/lectures"
 MY_LECTURES = LECTURES + "/my_lectures"
 ALL_LECTURES = LECTURES + "/all_lectures"
