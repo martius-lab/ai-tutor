@@ -127,12 +127,12 @@ class TokenAnalyzerState(SessionState):
         self.user_filter_query = ""
         self.user_bar_size = 3
 
-    @rx.var
+    @rx.var(initial_value="All")
     def all_option_label(self) -> str:
         """Localized label for the 'all' select option."""
         return BT.all_option(self.language)
 
-    @rx.var
+    @rx.var(initial_value=[])
     def displayed_filtered_exercise_options(self) -> list[str]:
         """Exercise options for UI display with translated all label."""
         return [
@@ -140,7 +140,7 @@ class TokenAnalyzerState(SessionState):
             for option in self.filtered_exercise_options
         ]
 
-    @rx.var
+    @rx.var(initial_value=[])
     def displayed_filtered_user_options(self) -> list[str]:
         """User options for UI display with translated all label."""
         return [
@@ -148,7 +148,7 @@ class TokenAnalyzerState(SessionState):
             for option in self.filtered_user_options
         ]
 
-    @rx.var
+    @rx.var(initial_value="All")
     def displayed_selected_exercise_name(self) -> str:
         """Selected exercise value translated for UI display."""
         return (
@@ -157,7 +157,7 @@ class TokenAnalyzerState(SessionState):
             else self.selected_exercise_name
         )
 
-    @rx.var
+    @rx.var(initial_value="All")
     def displayed_selected_user_name(self) -> str:
         """Selected user value translated for UI display."""
         return (
@@ -166,7 +166,7 @@ class TokenAnalyzerState(SessionState):
             else self.selected_user_name
         )
 
-    @rx.var
+    @rx.var(initial_value=[])
     def filtered_exercise_options(self) -> list[str]:
         """Exercise options filtered by the search query."""
         return self._filter_options_by_query(
@@ -175,7 +175,7 @@ class TokenAnalyzerState(SessionState):
             ALL_EXERCISES_OPTION,
         )
 
-    @rx.var
+    @rx.var(initial_value=[])
     def filtered_user_options(self) -> list[str]:
         """User options filtered by the search query."""
         return self._filter_options_by_query(
@@ -184,7 +184,7 @@ class TokenAnalyzerState(SessionState):
             ALL_USERS_OPTION,
         )
 
-    @rx.var
+    @rx.var(initial_value="700px")
     def user_chart_min_width(self) -> str:
         """Minimum chart width to keep bars readable for many users."""
         chart_count = len(self.user_chart_data)
@@ -194,7 +194,7 @@ class TokenAnalyzerState(SessionState):
             return "1000px"
         return "700px"
 
-    @rx.var
+    @rx.var(initial_value="700px")
     def exercise_chart_min_width(self) -> str:
         """Minimum chart width to keep bars readable for many exercises."""
         chart_count = len(self.exercise_chart_data)
@@ -204,12 +204,12 @@ class TokenAnalyzerState(SessionState):
             return "1000px"
         return "700px"
 
-    @rx.var
+    @rx.var(initial_value=0)
     def total_user_tokens(self) -> int:
         """Total tokens across all rows of the user analysis table."""
         return sum(row.tokens_used for row in self.user_table_rows)
 
-    @rx.var
+    @rx.var(initial_value=0)
     def total_exercise_tokens(self) -> int:
         """Total tokens across all rows of the exercise analysis table."""
         return sum(row.tokens_used for row in self.exercise_table_rows)

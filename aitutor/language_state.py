@@ -117,6 +117,11 @@ class LanguageState(SessionState):
         return self.translate(de="Admin Einstellungen", en="Admin Settings")
 
     @rx.var
+    def lectures_link(self) -> str:
+        """The string for the 'Lectures' link."""
+        return self.translate(de="Vorlesungen", en="Lectures")
+
+    @rx.var
     def language_string(self) -> str:
         """The current language as a string."""
         return self.translate(de="Deutsch", en="English")
@@ -1247,6 +1252,169 @@ Please test the chat for functionality after changing the model.
     def report_submitted_conversation(self) -> str:
         return self.translate(de="Eingereichter Chat:", en="Submitted Conversation:")
 
+    # Lecture Strings -----------------------------------------------------------------------------
+    @rx.var
+    def lecture_name(self) -> str:
+        """Lecture name string."""
+        return self.translate(de="Vorlesungsname", en="Lecture Name")
+
+    @rx.var
+    def lecture_lecturer(self) -> str:
+        """Lecture lecturer string."""
+        return self.translate(de="Dozent/-in", en="Lecturer")
+
+    @rx.var
+    def edit_lecture(self) -> str:
+        """The string for the 'Edit Lecture' tab."""
+        return self.translate(de="Vorlesung bearbeiten", en="Edit Lecture")
+
+    @rx.var
+    def copy_join_link(self) -> str:
+        """Copy lecture join link button string."""
+        return self.translate(de="Link kopieren", en="Copy join link")
+
+    @rx.var
+    def join_link_copied(self) -> str:
+        """Lecture join link copied toast string."""
+        return self.translate(
+            de="Beitrittslink wurde in die Zwischenablage kopiert.",
+            en="Join link copied to clipboard.",
+        )
+
+    @rx.var
+    def delete_lecture(self) -> str:
+        """Delete lecture button/title string."""
+        return self.translate(de="Vorlesung löschen", en="Delete lecture")
+
+    @rx.var
+    def delete_lecture_description(self) -> str:
+        """Delete lecture confirmation description."""
+        return self.translate(
+            de=(
+                "Diese Aktion kann nicht rückgängig gemacht werden. Die Vorlesung "
+                "und alle Mitgliedschaften in dieser Vorlesung werden gelöscht. "
+                "Bitte geben Sie Ihr Passwort ein, um die Löschung zu bestätigen."
+            ),
+            en=(
+                "This action cannot be undone. The lecture and all memberships in "
+                "this lecture will be deleted. Please enter your password to confirm "
+                "the deletion."
+            ),
+        )
+
+    @rx.var
+    def password_to_confirm_deletion(self) -> str:
+        """Password prompt for destructive confirmations."""
+        return self.translate(
+            de="Passwort zur Bestätigung",
+            en="Password to confirm",
+        )
+
+    # My Lectures Strings -------------------------------------------------------------------------
+    @rx.var
+    def my_lectures(self) -> str:
+        """The string for the 'My Lectures' tab/page."""
+        return self.translate(de="Meine Vorlesungen", en="My Lectures")
+
+    @rx.var
+    def no_joined_lectures(self) -> str:
+        """Message shown when the user has not joined any lectures yet."""
+        return self.translate(
+            de="Sie sind aktuell in keiner Vorlesung Mitglied.",
+            en="You have not joined any lectures yet.",
+        )
+
+    @rx.var
+    def no_matching_lectures(self) -> str:
+        """Message shown when no lectures match the current filter."""
+        return self.translate(
+            de="Keine Vorlesungen entsprechen dem aktuellen Filter.",
+            en="No lectures match the current filter.",
+        )
+
+    @rx.var
+    def all(self) -> str:
+        """Label for all items."""
+        return self.translate(de="Alle", en="All")
+
+    @rx.var
+    def not_joined(self) -> str:
+        """Label for lectures without membership."""
+        return self.translate(de="Nicht beigetreten", en="Not joined")
+
+    @rx.var
+    def owner_role(self) -> str:
+        """Localized owner role label."""
+        return self.translate(de="Besitzer", en="Owner")
+
+    @rx.var
+    def tutor_role(self) -> str:
+        """Localized tutor role label."""
+        return self.translate(de="Tutor", en="Tutor")
+
+    @rx.var
+    def student_role(self) -> str:
+        """Localized student role label."""
+        return self.translate(de="Student", en="Student")
+
+    # All Lectures Strings ------------------------------------------------------------------------
+    @rx.var
+    def all_lectures(self) -> str:
+        """The string for the 'All Lectures' tab/page."""
+        return self.translate(de="Alle Vorlesungen", en="All Lectures")
+
+    @rx.var
+    def join(self) -> str:
+        """Join button label."""
+        return self.translate(de="Beitreten", en="Join")
+
+    @rx.var
+    def join_lecture(self) -> str:
+        """Join lecture dialog title."""
+        return self.translate(de="Vorlesung beitreten", en="Join Lecture")
+
+    @rx.var
+    def no_lecturer_information(self) -> str:
+        """Fallback when no lecturer information is available."""
+        return self.translate(de="Keine Angabe", en="No information")
+
+    @rx.var
+    def already_joined(self) -> str:
+        """Label for already joined lectures."""
+        return self.translate(de="Bereits beigetreten", en="Already joined")
+
+    @rx.var
+    def enter_registration_code(self) -> str:
+        """Prompt to enter a lecture registration code."""
+        return self.translate(
+            de="Bitte geben Sie den Registrierungscode für diese Vorlesung ein.",
+            en="Please enter the registration code for this lecture.",
+        )
+
+    @rx.var
+    def no_registration_code_required(self) -> str:
+        """Message when no lecture registration code is required."""
+        return self.translate(
+            de="Für diese Vorlesung ist kein Registrierungscode erforderlich.",
+            en="No registration code is required for this lecture.",
+        )
+
+    @rx.var
+    def no_lecture_details(self) -> str:
+        """Message when no lecture details are available."""
+        return self.translate(
+            de="Für diese Vorlesung sind keine zusätzlichen Informationen hinterlegt.",
+            en="No additional information is available for this lecture.",
+        )
+
+    @rx.var
+    def no_available_lectures(self) -> str:
+        """Message shown when there are no lectures to display."""
+        return self.translate(
+            de="Keine Vorlesung vorhanden.",
+            en="No lectures available.",
+        )
+
 
 class BackendTranslations:
     """Translations for use in the backend (where LanguageState is not available)."""
@@ -1266,6 +1434,80 @@ class BackendTranslations:
             language,
             de=f"Benutzer '{username}' wurde gelöscht.",
             en=f"User '{username}' has been deleted.",
+        )
+
+    # Lecture states -------------------------------------------------------------------
+
+    @staticmethod
+    def lecture_name_already_exists(language: Language) -> str:
+        return translate(
+            language,
+            de="Fehler: Dieser Vorlesungsname existiert bereits.",
+            en="Error: This lecture name already exists.",
+        )
+
+    @staticmethod
+    def enter_lecture_name(language: Language) -> str:
+        return translate(
+            language,
+            de="Bitte geben Sie einen Vorlesungsnamen ein.",
+            en="Please enter a lecture name.",
+        )
+
+    @staticmethod
+    def enter_lecturer_name(language: Language) -> str:
+        return translate(
+            language,
+            de="Bitte geben Sie den Dozenten/die Dozentin ein.",
+            en="Please enter the lecturer.",
+        )
+
+    @staticmethod
+    def lecture_not_found(language: Language) -> str:
+        return translate(
+            language,
+            de="Fehler: Vorlesung nicht gefunden.",
+            en="Error: Lecture not found.",
+        )
+
+    @staticmethod
+    def already_joined_lecture(language: Language) -> str:
+        return translate(
+            language,
+            de="Sie sind dieser Vorlesung bereits beigetreten.",
+            en="You have already joined this lecture.",
+        )
+
+    @staticmethod
+    def invalid_lecture_registration_code(language: Language) -> str:
+        return translate(
+            language,
+            de="Fehler: Der Registrierungscode für diese Vorlesung ist falsch.",
+            en="Error: The registration code for this lecture is incorrect.",
+        )
+
+    @staticmethod
+    def joined_lecture_successfully(language: Language) -> str:
+        return translate(
+            language,
+            de="Vorlesung erfolgreich beigetreten.",
+            en="Joined lecture successfully.",
+        )
+
+    @staticmethod
+    def lecture_deleted_successfully(language: Language) -> str:
+        return translate(
+            language,
+            de="Vorlesung erfolgreich gelöscht.",
+            en="Lecture deleted successfully.",
+        )
+
+    @staticmethod
+    def invalid_password(language: Language) -> str:
+        return translate(
+            language,
+            de="Fehler: Das eingegebene Passwort ist falsch.",
+            en="Error: The entered password is incorrect.",
         )
 
     # ManageExercisesState -------------------------------------------------------------
@@ -1306,7 +1548,7 @@ class BackendTranslations:
         return translate(
             language,
             de="Änderungen erfolgreich gespeichert.",
-            en="Exercise updated successfully.",
+            en="Changes saved successfully.",
         )
 
     @staticmethod

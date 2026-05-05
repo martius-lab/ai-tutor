@@ -50,6 +50,53 @@ class GlobalPermission(StrEnum):
     ADMIN = "admin"
 
 
+class LectureRole(IntEnum):
+    """
+    Enum for roles a user can have inside one specific lecture.
+    """
+
+    STUDENT = 1
+    TUTOR = 2
+    OWNER = 3
+
+
+class Lecture(SQLModel, table=True):
+    """Lecture model for storing lecture-specific settings."""
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    check_conversation_prompt: str = Field(nullable=False, default="")
+    lecture_information_text: str = Field(nullable=False, default="")
+    lecture_name: str = Field(nullable=False, default="", unique=True)
+    lecturer_name: str = Field(nullable=False, default="")
+    registration_code: str = Field(nullable=False, default="")
+
+    # ORM relationships
+    user_links: List["LinkUserLecture"] = Relationship(
+        back_populates="lecture", sa_relationship_kwargs={"passive_deletes": True}
+    )
+
+
+class LinkUserLecture(SQLModel, table=True):
+    """
+    Link table between users and lectures.
+
+    Each row describes that one user is a member of one lecture and stores the
+    lecture-specific role of that user.
+    """
+
+    lecture_id: Optional[int] = Field(
+        foreign_key="lecture.id", primary_key=True, ondelete="CASCADE"
+    )
+    user_id: Optional[int] = Field(
+        foreign_key="localuser.id", primary_key=True, ondelete="CASCADE"
+    )
+    role: LectureRole = Field(nullable=False)
+
+    # ORM relationships
+    lecture: Optional[Lecture] = Relationship(back_populates="user_links")
+    user: Optional["LocalUser"] = Relationship()
+
+
 class ExerciseTagLink(SQLModel, table=True):
     """
     Link table for many-to-many relationship between Exercise and Tag.

@@ -1,7 +1,11 @@
+from aitutor.pages.all_lectures.page import all_lectures_page
+from aitutor.pages.all_lectures.state import AllLecturesState
 from aitutor.pages.chat.page import chat_page
 from aitutor.pages.chat.state import ChatState
 from aitutor.pages.configuration.page import configuration_page
 from aitutor.pages.configuration.state import ManageConfigState
+from aitutor.pages.edit_lecture.page import edit_lecture_page
+from aitutor.pages.edit_lecture.state import EditLectureState
 from aitutor.pages.exercises.page import exercises_page
 from aitutor.pages.exercises.state import ExercisesState
 from aitutor.pages.finished_view.page import finished_view_page
@@ -20,6 +24,8 @@ from aitutor.pages.manage_exercises.page import manage_exercises_page
 from aitutor.pages.manage_exercises.state import ManageExercisesState, ManageTagsState
 from aitutor.pages.manage_users.page import manage_users_page
 from aitutor.pages.manage_users.state import ManageUsersState
+from aitutor.pages.my_lectures.page import my_lectures_page
+from aitutor.pages.my_lectures.state import MyLecturesState
 from aitutor.pages.navbar import navbar
 from aitutor.pages.not_found.page import not_found_page
 from aitutor.pages.prompts.page import prompts_page
@@ -41,6 +47,8 @@ __all__ = [
     "home_page",
     "manage_exercises_page",
     "manage_users_page",
+    "my_lectures_page",
+    "all_lectures_page",
     "exercises_page",
     "navbar",
     "not_found_page",
@@ -54,6 +62,7 @@ __all__ = [
     "privacy_notice_page",
     "user_settings_page",
     "configuration_page",
+    "edit_lecture_page",
     "token_analyzer_page",
     "reports_page",
     "report_view_page",
@@ -66,11 +75,14 @@ __all__ = [
     "ManageExercisesState",
     "ManageTagsState",
     "ManageUsersState",
+    "MyLecturesState",
+    "AllLecturesState",
     "SubmissionsState",
     "MyLoginState",
     "MyRegisterState",
     "UserSettingsState",
     "ManageConfigState",
+    "EditLectureState",
     "ReportsState",
     "ReportViewState",
     "ManagePromptsState",
