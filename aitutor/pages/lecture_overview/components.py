@@ -134,6 +134,16 @@ def lecture_legal_info_links() -> rx.Component:
 def lecture_overview_content() -> rx.Component:
     """Main content for the lecture overview page."""
     return rx.vstack(
+        rx.hstack(
+            rx.button(
+                rx.icon("arrow-left", size=20),
+                LS.my_lectures,
+                on_click=rx.redirect(routes.MY_LECTURES),
+                _hover={"cursor": "pointer"},
+            ),
+            width="85vw",
+            max_width="100%",
+        ),
         lecture_dashboard_card(),
         lecture_info_accordion(),
         lecture_legal_info_links(),

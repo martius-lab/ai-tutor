@@ -9,6 +9,26 @@ from aitutor.pages.configuration.components import input, text_area
 from aitutor.pages.edit_lecture.state import EditLectureState
 
 
+def back_to_my_lectures_button() -> rx.Component:
+    """Render the button for navigating back to my lectures."""
+    return rx.button(
+        rx.icon("arrow-left", size=20),
+        LS.my_lectures,
+        on_click=rx.redirect(routes.MY_LECTURES),
+        _hover={"cursor": "pointer"},
+    )
+
+
+def edit_lecture_header() -> rx.Component:
+    """Render the edit lecture page header."""
+    return rx.hstack(
+        back_to_my_lectures_button(),
+        align="center",
+        width="40em",
+        max_width="90vw",
+    )
+
+
 def lecture_input_field(
     name: str,
     heading: rx.Var[str],
@@ -219,4 +239,15 @@ def edit_lecture_form() -> rx.Component:
             "none",
         ),
         variant="ghost",
+    )
+
+
+def edit_lecture_content() -> rx.Component:
+    """Main content for the edit lecture page."""
+    return rx.vstack(
+        edit_lecture_header(),
+        edit_lecture_form(),
+        spacing="3",
+        align="center",
+        width="100%",
     )

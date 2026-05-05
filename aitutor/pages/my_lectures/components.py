@@ -219,6 +219,7 @@ def my_lectures_table() -> rx.Component:
 def my_lectures_content() -> rx.Component:
     """Main content for the my lectures page."""
     return rx.vstack(
+        rx.heading(LS.my_lectures, size="5", width="85vw", max_width="100%"),
         my_lectures_table(),
         spacing="3",
         align="center",
