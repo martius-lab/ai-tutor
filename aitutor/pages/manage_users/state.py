@@ -63,17 +63,17 @@ class ManageUsersState(SessionState):
             )
             self.users = [(lu, ui) for lu, ui in session.exec(query).all()]
 
-    @rx.var
+    @rx.var(initial_value=False)
     def edited_user_has_admin_permission(self) -> bool:
         """Whether the edited user currently has global ADMIN permission."""
         return GlobalPermission.ADMIN in self.edited_user_permissions
 
-    @rx.var
+    @rx.var(initial_value=False)
     def edited_user_has_maintainer_permission(self) -> bool:
         """Whether the edited user currently has MAINTAINER permission."""
         return GlobalPermission.MAINTAINER in self.edited_user_permissions
 
-    @rx.var
+    @rx.var(initial_value=False)
     def edited_user_has_lecturer_permission(self) -> bool:
         """Whether the edited user currently has LECTURER permission."""
         return GlobalPermission.LECTURER in self.edited_user_permissions

@@ -47,12 +47,12 @@ class MyLecturesState(SessionState):
         """Clear page-specific state on logout."""
         self._reset_filters()
 
-    @rx.var
+    @rx.var(initial_value=False)
     def is_global_admin(self) -> bool:
         """Whether the current user is a global admin."""
         return GlobalPermission.ADMIN in self.global_permissions
 
-    @rx.var
+    @rx.var(initial_value=[])
     def filtered_lectures(self) -> list[LectureWithRole]:
         """Return lectures filtered by search text and role."""
         search_text = self._normalized_search_text()
@@ -71,7 +71,7 @@ class MyLecturesState(SessionState):
             if self._matches_role_filter(role)
         ]
 
-    @rx.var
+    @rx.var(initial_value=False)
     def can_create_lectures(self) -> bool:
         """Whether the current user may create new lectures."""
         return (

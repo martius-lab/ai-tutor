@@ -175,7 +175,7 @@ class AllLecturesState(SessionState):
         self.lectures = []
         self._reset_page_state()
 
-    @rx.var
+    @rx.var(initial_value=[])
     def filtered_lectures(self) -> list[LectureWithRole]:
         """Return loaded lectures filtered locally by the search text."""
         search_text = self.search_text.strip().lower()
@@ -188,12 +188,12 @@ class AllLecturesState(SessionState):
             if search_text in lecture.lecture_name.lower()
         ]
 
-    @rx.var
+    @rx.var(initial_value=False)
     def selected_lecture_requires_code(self) -> bool:
         """Whether the currently selected lecture requires a registration code."""
         return bool(self.selected_lecture_registration_code)
 
-    @rx.var
+    @rx.var(initial_value=False)
     def can_join_selected_lecture(self) -> bool:
         """Whether the user has entered all required join information."""
         if self.selected_lecture_id is None:
