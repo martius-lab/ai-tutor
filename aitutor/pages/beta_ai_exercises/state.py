@@ -104,8 +104,7 @@ class BetaAIExercisesState(SessionState):
         with rx.session() as session:
             self.beta_exercises = list(
                 session.exec(
-                    select(BetaExercise)
-                    .order_by(BetaExercise.id.desc())  # type: ignore
+                    select(BetaExercise).order_by(BetaExercise.id.desc())  # type: ignore
                 ).all()
             )
 
@@ -190,9 +189,13 @@ class BetaAIExercisesState(SessionState):
         self.generated_concepts[concept_index].description = value
 
     @rx.event
-    def set_core_point_text(self, concept_index: int, core_point_index: int, value: str):
+    def set_core_point_text(
+        self, concept_index: int, core_point_index: int, value: str
+    ):
         """Set core point text."""
-        self.generated_concepts[concept_index].core_points[core_point_index].text = value
+        self.generated_concepts[concept_index].core_points[
+            core_point_index
+        ].text = value
 
     @rx.event
     def set_core_point_required(

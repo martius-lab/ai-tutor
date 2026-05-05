@@ -345,8 +345,7 @@ class BetaMisconception(SQLModel, table=True):
 
     def __repr__(self):
         return (
-            "<BetaMisconception("
-            f"id={self.id}, beta_concept_id={self.beta_concept_id})>"
+            f"<BetaMisconception(id={self.id}, beta_concept_id={self.beta_concept_id})>"
         )
 
 

@@ -4,7 +4,6 @@ import reflex as rx
 
 import aitutor.routes as routes
 
-
 beta_ai_links = [
     ("Beta AI Exercises", routes.BETA_AI_EXERCISES, "sparkles"),
 ]

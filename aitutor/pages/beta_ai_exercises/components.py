@@ -36,7 +36,9 @@ def saved_exercises_table() -> rx.Component:
             rx.heading("Saved Beta AI Exercises", size="4"),
             rx.cond(
                 BetaAIExercisesState.beta_exercises.length() == 0,  # type: ignore
-                rx.callout("No Beta AI exercises saved yet.", icon="info", width="100%"),
+                rx.callout(
+                    "No Beta AI exercises saved yet.", icon="info", width="100%"
+                ),
                 rx.table.root(
                     rx.table.header(
                         rx.table.row(
@@ -192,7 +194,9 @@ def core_point_row(concept_index, core_point, core_point_index) -> rx.Component:
     )
 
 
-def misconception_row(concept_index, misconception, misconception_index) -> rx.Component:
+def misconception_row(
+    concept_index, misconception, misconception_index
+) -> rx.Component:
     """Render one editable misconception."""
     return rx.hstack(
         rx.input(
