@@ -10,16 +10,12 @@ from aitutor.pages.my_lectures.state import LectureWithRole, MyLecturesState
 
 def lecture_role_text(role: int | None):
     """Convert a LectureRole to text in a way that works for Reflex."""
-    return rx.cond(
-        role is None,
+    return rx.match(
+        role,
+        (LectureRole.OWNER.value, LS.owner_role),
+        (LectureRole.TUTOR.value, LS.tutor_role),
+        (LectureRole.STUDENT.value, LS.student_role),
         LS.not_joined,
-        rx.match(
-            role,
-            (LectureRole.OWNER.value, LS.owner_role),
-            (LectureRole.TUTOR.value, LS.tutor_role),
-            (LectureRole.STUDENT.value, LS.student_role),
-            LS.not_joined,
-        ),
     )
 
 
@@ -45,18 +41,12 @@ def role_filter_text(label, value) -> rx.Component:
 
 def role_filter_value(role: int | None):
     """Return the filter value for a role."""
-    return rx.cond(
-        role == LectureRole.OWNER.value,
-        "owner",
-        rx.cond(
-            role == LectureRole.TUTOR.value,
-            "tutor",
-            rx.cond(
-                role == LectureRole.STUDENT.value,
-                "student",
-                "not_joined",
-            ),
-        ),
+    return rx.match(
+        role,
+        (LectureRole.OWNER.value, "owner"),
+        (LectureRole.TUTOR.value, "tutor"),
+        (LectureRole.STUDENT.value, "student"),
+        "not_joined",
     )
 
 
