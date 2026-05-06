@@ -12,16 +12,24 @@ from aitutor.auth.state import SessionState
 from aitutor.models import GlobalPermission, UserRole
 
 
-def lecture_has_role_at_least(role):
+def lecture_has_role_at_least(role) -> rx.vars.Var[bool]:
+    """Check if the user has the specified role.
+
+    Result is also positive if the user doesn't have the specified role but the global
+    ADMIN permission.
     """
-    Check if the user has the required role to access a specific feature.
-    """
-    user_role = SessionState.user_role
     return (
-        (user_role is not None and user_role >= role)
-        | SessionState.global_permissions.contains(GlobalPermission.ADMIN)
-        | SessionState.global_permissions.contains(GlobalPermission.MAINTAINER)
-    )
+        SessionState.user_role is not None and SessionState.user_role >= role
+    ) | SessionState.global_permissions.contains(GlobalPermission.ADMIN)
+
+
+def has_permission(
+    permission: GlobalPermission,
+) -> rx.vars.Var[bool]:
+    """Check if the user has the specified global permission."""
+    okay = SessionState.global_permissions.contains(GlobalPermission.ADMIN)
+    okay |= SessionState.global_permissions.contains(permission)
+    return okay
 
 
 def page_require_role_or_permission(
