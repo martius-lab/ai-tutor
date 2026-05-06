@@ -40,7 +40,7 @@ class HomeState(SessionState):
                 # or the deadline is in the future
                 .where(
                     or_(
-                        Exercise.deadline == None,  # noqa: E711
+                        Exercise.deadline == None,
                         Exercise.deadline > datetime.now(ZoneInfo(TIME_ZONE)),  # type: ignore
                     )
                 )
