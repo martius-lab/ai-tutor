@@ -2,16 +2,64 @@
 This module defines the navbar components for the Reflex application.
 """
 
+from dataclasses import dataclass
 from typing import Optional
 
 import reflex as rx
 
 import aitutor.routes as routes
 from aitutor import DisplayConfigState
-from aitutor.auth.protection import lecture_has_role_at_least
+from aitutor.auth.protection import has_permission, lecture_has_role_at_least
 from aitutor.auth.state import SessionState
 from aitutor.language_state import LanguageState
-from aitutor.models import UserRole
+from aitutor.models import GlobalPermission, UserRole
+
+
+@dataclass
+class NavbarLink:
+    """Represents a navigation link in the navbar.
+
+    Attributes:
+        label: The display text for the link.
+        route: The URL route the link points to.
+        icon: The name of the icon to display alongside the link.
+    """
+
+    label: rx.vars.StringVar[str] | str
+    route: str
+    icon: str
+
+
+def get_links():
+    """Returns the list of navigation links for the current user.
+
+    Which links are included depends on the user's permissions.
+
+    Returns:
+        list[tuple[str, str, str]]: A list of tuples each representing one link.  Tuple
+            items are (label, route, icon).
+    """
+    return [
+        NavbarLink(LanguageState.home_link, routes.HOME, "house"),
+        NavbarLink(LanguageState.exercises_link, routes.EXERCISES, "book"),
+        rx.cond(
+            lecture_has_role_at_least(UserRole.TUTOR),
+            NavbarLink(
+                LanguageState.submissions_link, routes.SUBMISSIONS, "search-check"
+            ),
+            None,
+        ),
+        rx.cond(
+            lecture_has_role_at_least(UserRole.ADMIN)
+            | has_permission(GlobalPermission.MAINTAINER),
+            NavbarLink(
+                LanguageState.admin_settings_link,
+                routes.MANAGE_EXERCISES,
+                "shield-check",
+            ),
+            None,
+        ),
+    ]
 
 
 def is_highlighted(route_to_highlight: Optional[str], url: str) -> rx.Var[bool]:
@@ -29,49 +77,65 @@ def is_highlighted(route_to_highlight: Optional[str], url: str) -> rx.Var[bool]:
     )
 
 
-def navbar_link(text: str, url: str, route_to_highlight: Optional[str]) -> rx.Component:
-    """
-    Creates a navigation link component.
+def navbar_link_desktop(
+    link: NavbarLink, route_to_highlight: Optional[str]
+) -> rx.Component:
+    """Creates a navigation link component for the desktop menu.
+
+    Args:
+        link: Information about the link to create.
+        route_to_highlight:  The route that should be highlighted as selected.
     """
     return rx.cond(
-        is_highlighted(route_to_highlight, url),
+        is_highlighted(route_to_highlight, link.route),
         rx.link(
             rx.button(
-                rx.text(text, size="4", weight="medium"), _hover={"cursor": "pointer"}
+                rx.text(link.label, size="4", weight="medium"),
+                _hover={"cursor": "pointer"},
             ),
-            href=url,
+            href=link.route,
         ),
         rx.link(
-            rx.text(text, size="4", weight="medium"),
-            href=url,
+            rx.text(link.label, size="4", weight="medium"),
+            href=link.route,
         ),
     )
 
 
-# (label, route, icon)
-general_links = [
-    (LanguageState.home_link, routes.HOME, "house"),
-    (LanguageState.exercises_link, routes.EXERCISES, "book"),
-]
-tutor_links = [
-    (LanguageState.submissions_link, routes.SUBMISSIONS, "search-check"),
-]
-admin_links = [
-    # navigate to any admin settings page to show the admin settings navbar
-    (LanguageState.admin_settings_link, routes.MANAGE_EXERCISES, "shield-check"),
-]
+def navbar_link_mobile(link: NavbarLink, route_to_highlight: Optional[str]):
+    """Creates a navigation link component for the mobile menu.
 
-
-def get_links():
-    """Returns the list of navigation links for the current user role."""
-    return rx.cond(
-        lecture_has_role_at_least(UserRole.ADMIN),
-        general_links + tutor_links + admin_links,
+    Args:
+        link: Information about the link to create.
+        route_to_highlight:  The route that should be highlighted as selected.
+    """
+    return rx.menu.item(
         rx.cond(
-            lecture_has_role_at_least(UserRole.TUTOR),
-            general_links + tutor_links,
-            general_links,
+            # check if the link should be highlighted
+            is_highlighted(route_to_highlight, link.route),
+            rx.hstack(
+                # highlighted link
+                rx.icon(
+                    link.icon,
+                    size=15,
+                    color=rx.color("accent", 9),
+                ),
+                rx.text(
+                    link.label,
+                    weight="bold",
+                    color=rx.color("accent", 9),
+                ),
+                align="center",
+            ),
+            rx.hstack(
+                # non-highlighted link
+                rx.icon(link.icon, size=15),
+                rx.text(link.label),
+                align="center",
+            ),
         ),
+        on_click=rx.redirect(link.route),
+        _hover={"cursor": "pointer"},
     )
 
 
@@ -220,7 +284,6 @@ def navbar(route_to_highlight: Optional[str]) -> rx.Component:
     Returns:
         rx.Component: A Reflex box component containing the navigation bar.
     """
-    links = get_links()
     return rx.box(
         rx.desktop_only(
             rx.hstack(
@@ -240,9 +303,10 @@ def navbar(route_to_highlight: Optional[str]) -> rx.Component:
                     rx.text(DisplayConfigState.course_name, weight="bold"),
                     rx.hstack(
                         rx.foreach(
-                            links,
-                            lambda link: navbar_link(
-                                link[0], link[1], route_to_highlight
+                            get_links(),
+                            lambda link: rx.cond(
+                                link != None,
+                                navbar_link_desktop(link, route_to_highlight),
                             ),
                         ),
                         spacing="5",
@@ -291,34 +355,10 @@ def navbar(route_to_highlight: Optional[str]) -> rx.Component:
                             ),
                             rx.separator(),
                             rx.foreach(
-                                links,
-                                lambda link: rx.menu.item(
-                                    rx.cond(
-                                        # check if the link should be highlighted
-                                        is_highlighted(route_to_highlight, link[1]),
-                                        rx.hstack(
-                                            # highlighted link
-                                            rx.icon(
-                                                link[2],
-                                                size=15,
-                                                color=rx.color("accent", 9),
-                                            ),
-                                            rx.text(
-                                                link[0],
-                                                weight="bold",
-                                                color=rx.color("accent", 9),
-                                            ),
-                                            align="center",
-                                        ),
-                                        rx.hstack(
-                                            # non-highlighted link
-                                            rx.icon(link[2], size=15),
-                                            rx.text(link[0]),
-                                            align="center",
-                                        ),
-                                    ),
-                                    on_click=rx.redirect(link[1]),
-                                    _hover={"cursor": "pointer"},
+                                get_links(),
+                                lambda link: rx.cond(
+                                    link != None,
+                                    navbar_link_mobile(link, route_to_highlight),
                                 ),
                             ),
                             max_width="90vw",
