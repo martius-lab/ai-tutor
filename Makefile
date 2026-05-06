@@ -11,4 +11,4 @@ down:
 	docker compose -f compose.yaml -f compose.prod.yaml down
 
 logs:
-	docker compose -f compose.yaml -f compose.prod.yaml logs
+	docker compose -f compose.yaml -f compose.prod.yaml logs -ft
