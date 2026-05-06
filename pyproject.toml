@@ -11,7 +11,7 @@ authors = [
     {name = "AL Group", email = "georg.martius@uni-tuebingen.de"},
 ]
 
-requires-python = ">=3.13"
+requires-python = ">=3.14"
 dependencies = [
     "reflex[db]",
     "pytest",
