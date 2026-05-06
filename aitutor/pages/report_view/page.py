@@ -58,7 +58,7 @@ def report_view_page() -> rx.Component:
                     rx.icon("book", size=18),
                     rx.text(LanguageState.exercise + ":", weight="bold"),
                     rx.cond(
-                        ReportViewState.exercise_title == None,  # noqa: E711
+                        ReportViewState.exercise_title == None,
                         rx.text(LanguageState.deleted_report_title, color="red"),
                         rx.text(ReportViewState.exercise_title),
                     ),
