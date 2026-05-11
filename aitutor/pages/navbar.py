@@ -52,6 +52,7 @@ def navbar_link(text: str, url: str, route_to_highlight: Optional[str]) -> rx.Co
 general_links = [
     (LanguageState.home_link, routes.HOME, "house"),
     (LanguageState.exercises_link, routes.EXERCISES, "book"),
+    (LanguageState.lectures_link, routes.MY_LECTURES, "graduation-cap"),
 ]
 tutor_links = [
     (LanguageState.submissions_link, routes.SUBMISSIONS, "search-check"),
@@ -59,9 +60,6 @@ tutor_links = [
 admin_links = [
     # navigate to any admin settings page to show the admin settings navbar
     (LanguageState.admin_settings_link, routes.MANAGE_EXERCISES, "shield-check"),
-]
-lecture_links = [
-    (LanguageState.lectures_link, routes.MY_LECTURES, "graduation-cap"),
 ]
 
 
@@ -72,11 +70,11 @@ def get_links():
         | SessionState.global_permissions.contains(GlobalPermission.LECTURER),
         rx.cond(
             lecture_has_role_at_least(UserRole.ADMIN),
-            general_links + tutor_links + admin_links + lecture_links,
+            general_links + tutor_links + admin_links,
             rx.cond(
                 lecture_has_role_at_least(UserRole.TUTOR),
-                general_links + tutor_links + lecture_links,
-                general_links + lecture_links,
+                general_links + tutor_links,
+                general_links,
             ),
         ),
         rx.cond(

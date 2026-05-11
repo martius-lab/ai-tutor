@@ -107,6 +107,11 @@ class SessionState(reflex_local_auth.LocalAuthState):
             return None
         return self.authenticated_user_info.role
 
+    @rx.var(cache=True, initial_value=False)
+    def is_global_admin(self) -> bool:
+        """Whether the current user has global ADMIN permission."""
+        return GlobalPermission.ADMIN in self.global_permissions
+
     @rx.var(cache=True, initial_value=[])
     def global_permissions(self) -> list[GlobalPermission]:
         """

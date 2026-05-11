@@ -1503,6 +1503,14 @@ class BackendTranslations:
         )
 
     @staticmethod
+    def cannot_delete_sole_lecture_owner(language: Language) -> str:
+        return translate(
+            language,
+            de="Fehler: Der Benutzer kann nicht gelöscht werden, da er der einzige Besitzer mindestens einer Vorlesung ist. Bitte weisen Sie zuerst einen anderen Besitzer zu oder löschen Sie die Vorlesung.",
+            en="Error: Cannot delete user because they are the sole owner of at least one lecture. Please assign another owner or delete the lecture first.",
+        )
+
+    @staticmethod
     def invalid_password(language: Language) -> str:
         return translate(
             language,

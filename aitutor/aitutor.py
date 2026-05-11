@@ -50,12 +50,12 @@ app.add_page(
 )
 app.add_page(
     pages.all_lectures_page,
-    route=routes.ALL_LECTURES,
+    route=routes.ALL_LECTURES + "/[lecture_id]",
     on_load=pages.AllLecturesState.on_load,
 )
 app.add_page(
     pages.all_lectures_page,
-    route=routes.ALL_LECTURES + "/[lecture_id]",
+    route=routes.ALL_LECTURES,
     on_load=pages.AllLecturesState.on_load,
 )
 app.add_page(
