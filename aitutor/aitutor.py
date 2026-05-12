@@ -54,6 +54,11 @@ app.add_page(
     on_load=pages.LectureOverviewState.on_load,
 )
 app.add_page(
+    pages.lecture_members_page,
+    route=routes.LECTURE_MEMBERS + "/[lecture_id]",
+    on_load=pages.LectureMembersState.on_load,
+)
+app.add_page(
     pages.all_lectures_page,
     route=routes.ALL_LECTURES,
     on_load=pages.AllLecturesState.on_load,
