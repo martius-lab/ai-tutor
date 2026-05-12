@@ -9,7 +9,13 @@ from sqlmodel import select
 import aitutor.routes as routes
 from aitutor.auth.protection import state_require_role_or_permission
 from aitutor.auth.state import SessionState
-from aitutor.models import GlobalPermission, Lecture, LectureRole, LinkUserLecture, UserRole
+from aitutor.models import (
+    GlobalPermission,
+    Lecture,
+    LectureRole,
+    LinkUserLecture,
+    UserRole,
+)
 
 
 class LectureMemberRow(TypedDict):
@@ -35,7 +41,9 @@ class LectureMembersState(SessionState):
         self.members = [
             {
                 **member,
-                "selected_role": role_name if member["user_id"] == user_id else member["selected_role"],
+                "selected_role": role_name
+                if member["user_id"] == user_id
+                else member["selected_role"],
             }
             for member in self.members
         ]
@@ -46,7 +54,9 @@ class LectureMembersState(SessionState):
         self.members = [
             {
                 **member,
-                "selected_role": member["role"] if member["user_id"] == user_id else member["selected_role"],
+                "selected_role": member["role"]
+                if member["user_id"] == user_id
+                else member["selected_role"],
             }
             for member in self.members
         ]
@@ -59,7 +69,10 @@ class LectureMembersState(SessionState):
             return
 
         changed_member = self._find_member(user_id)
-        if changed_member is None or changed_member["role"] == changed_member["selected_role"]:
+        if (
+            changed_member is None
+            or changed_member["role"] == changed_member["selected_role"]
+        ):
             return
 
         with rx.session() as session:
@@ -73,6 +86,35 @@ class LectureMembersState(SessionState):
                 return
 
             link.role = LectureRole[changed_member["selected_role"]]
+            session.commit()
+
+        self.load_members()
+
+    @rx.event
+    @state_require_role_or_permission(required_role=UserRole.STUDENT)
+    def kick_member(self, user_id: int):
+        """Remove one member from the current lecture."""
+        if not self.is_owner or self.current_lecture_id is None:
+            return
+
+        member = self._find_member(user_id)
+        if member is None:
+            return
+
+        if member["role"] == LectureRole.OWNER.name and self._owner_count() <= 1:
+            return
+
+        with rx.session() as session:
+            link = session.exec(
+                select(LinkUserLecture).where(
+                    LinkUserLecture.lecture_id == self.current_lecture_id,
+                    LinkUserLecture.user_id == user_id,
+                )
+            ).one_or_none()
+            if link is None:
+                return
+
+            session.delete(link)
             session.commit()
 
         self.load_members()
@@ -181,4 +223,10 @@ class LectureMembersState(SessionState):
         return next(
             (member for member in self.members if member["user_id"] == user_id),
             None,
+        )
+
+    def _owner_count(self) -> int:
+        """Return the number of loaded owners."""
+        return sum(
+            1 for member in self.members if member["role"] == LectureRole.OWNER.name
         )

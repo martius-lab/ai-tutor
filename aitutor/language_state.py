@@ -73,6 +73,11 @@ class LanguageState(SessionState):
         return self.translate(de="Löschen", en="Delete")
 
     @rx.var
+    def kick(self) -> str:
+        """Kick/remove member string."""
+        return self.translate(de="Rauswerfen", en="Kick")
+
+    @rx.var
     def prompt(self) -> str:
         return self.translate(
             de="Prompt",
@@ -1413,6 +1418,15 @@ Please test the chat for functionality after changing the model.
         return self.translate(
             de="Keine Vorlesung vorhanden.",
             en="No lectures available.",
+        )
+
+    # Member Strings --------------------------------------------------------------------------------
+    @rx.var
+    def kick_member_description(self) -> str:
+        """Kick member confirmation description."""
+        return self.translate(
+            de="Diese Person wird aus der Vorlesung entfernt.",
+            en="This person will be removed from the lecture.",
         )
 
 

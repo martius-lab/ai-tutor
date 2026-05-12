@@ -2,7 +2,7 @@
 
 import reflex as rx
 
-import aitutor.routes as routes
+from aitutor.components.dialogs import destructive_confirm
 from aitutor.language_state import LanguageState as LS
 from aitutor.models import LectureRole
 from aitutor.pages.lecture_members.state import LectureMemberRow, LectureMembersState
@@ -61,26 +61,9 @@ def editable_role_cell(member: LectureMemberRow) -> rx.Component:
     )
 
 
-def back_to_overview_button() -> rx.Component:
-    """Render a back button to the current lecture overview."""
-    return rx.button(
-        rx.icon("arrow-left", size=20),
-        "Lecture Overview",
-        on_click=rx.redirect(
-            f"{routes.LECTURE_OVERVIEW}/{LectureMembersState.current_lecture_id}"
-        ),
-        _hover={"cursor": "pointer"},
-    )
-
-
 def members_header() -> rx.Component:
     """Render the members page header."""
     return rx.vstack(
-        rx.hstack(
-            back_to_overview_button(),
-            width="85vw",
-            max_width="100%",
-        ),
         rx.hstack(
             rx.heading("Members", size="5"),
             rx.cond(
@@ -97,6 +80,28 @@ def members_header() -> rx.Component:
     )
 
 
+def kick_member_button(member: LectureMemberRow) -> rx.Component:
+    """Render the kick button with a destructive confirmation dialog."""
+    return destructive_confirm(
+        title=LS.kick + ": " + member["username"],
+        description=LS.kick_member_description,
+        confirm_text=LS.kick,
+        cancel_text=LS.cancel,
+        on_confirm=LectureMembersState.kick_member(member["user_id"]),
+        trigger=rx.button(
+            rx.flex(
+                LS.kick,
+                gap="0.5em",
+                align="center",
+            ),
+            color_scheme="red",
+            variant="outline",
+            size="2",
+            _hover={"cursor": "pointer"},
+        ),
+    )
+
+
 def member_row(member: LectureMemberRow) -> rx.Component:
     """Render one lecture member row."""
     return rx.table.row(
@@ -107,6 +112,10 @@ def member_row(member: LectureMemberRow) -> rx.Component:
                 editable_role_cell(member),
                 rx.text(lecture_role_text(member["role"])),
             )
+        ),
+        rx.cond(
+            LectureMembersState.is_owner,
+            rx.table.cell(kick_member_button(member)),
         ),
     )
 
@@ -120,6 +129,10 @@ def members_table() -> rx.Component:
                 rx.table.row(
                     rx.table.column_header_cell(LS.username),
                     rx.table.column_header_cell(LS.role),
+                    rx.cond(
+                        LectureMembersState.is_owner,
+                        rx.table.column_header_cell(""),
+                    ),
                 )
             ),
             rx.table.body(rx.foreach(LectureMembersState.members, member_row)),
