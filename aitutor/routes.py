@@ -28,6 +28,13 @@ REPORT_VIEW = REPORTS + "/report_view"
 
 USER_SETTINGS = "/user_settings"
 
+BETA_AI = "/beta_ai"
+BETA_AI_EXERCISES = BETA_AI + "/exercises"
+BETA_AI_DIAGNOSIS_LAB = BETA_AI + "/diagnosis_lab"
+BETA_AI_STUDENT_EXERCISES = BETA_AI + "/student_exercises"
+BETA_AI_CHAT = BETA_AI + "/chat"
+BETA_AI_TRACE_LOGS = BETA_AI + "/trace_logs"
+
 NOT_FOUND = "/404"
 
 
