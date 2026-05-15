@@ -44,13 +44,17 @@ def editable_role_cell(member: LectureMemberRow) -> rx.Component:
                     LS.cancel,
                     size="1",
                     variant="outline",
-                    on_click=LectureMembersState.cancel_member_role_change(member["user_id"]),
+                    on_click=LectureMembersState.cancel_member_role_change(
+                        member["user_id"]
+                    ),
                     _hover={"cursor": "pointer"},
                 ),
                 rx.button(
                     LS.save,
                     size="1",
-                    on_click=LectureMembersState.save_member_role_change(member["user_id"]),
+                    on_click=LectureMembersState.save_member_role_change(
+                        member["user_id"]
+                    ),
                     _hover={"cursor": "pointer"},
                 ),
                 spacing="2",

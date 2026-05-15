@@ -17,13 +17,19 @@ from aitutor.models import (
 
 LectureWithRole = tuple[Lecture, int | None]
 
+ROLE_FILTER_ALL = "all"
+ROLE_FILTER_OWNER = "owner"
+ROLE_FILTER_TUTOR = "tutor"
+ROLE_FILTER_STUDENT = "student"
+ROLE_FILTER_NOT_JOINED = "not_joined"
+
 
 class MyLecturesState(SessionState):
     """State for the my lectures page."""
 
     joined_lectures: list[LectureWithRole] = []
     search_text: str = ""
-    role_filter: str = "all"
+    role_filter: str = ROLE_FILTER_ALL
 
     @rx.event
     def update_search_text(self, value: str):
@@ -46,11 +52,6 @@ class MyLecturesState(SessionState):
     def on_logout(self):
         """Clear page-specific state on logout."""
         self._reset_filters()
-
-    @rx.var
-    def is_global_admin(self) -> bool:
-        """Whether the current user is a global admin."""
-        return GlobalPermission.ADMIN in self.global_permissions
 
     @rx.var
     def filtered_lectures(self) -> list[LectureWithRole]:
@@ -83,7 +84,7 @@ class MyLecturesState(SessionState):
         """Reset the local filters and loaded lectures."""
         self.joined_lectures = []
         self.search_text = ""
-        self.role_filter = "all"
+        self.role_filter = ROLE_FILTER_ALL
 
     def _normalized_search_text(self) -> str:
         """Return the normalized search text used for lecture filtering."""
@@ -95,15 +96,15 @@ class MyLecturesState(SessionState):
 
     def _matches_role_filter(self, role: int | None) -> bool:
         """Return whether a lecture role matches the selected role filter."""
-        if self.role_filter == "all":
+        if self.role_filter == ROLE_FILTER_ALL:
             return True
-        if self.role_filter == "owner":
+        if self.role_filter == ROLE_FILTER_OWNER:
             return role == LectureRole.OWNER.value
-        if self.role_filter == "tutor":
+        if self.role_filter == ROLE_FILTER_TUTOR:
             return role == LectureRole.TUTOR.value
-        if self.role_filter == "student":
+        if self.role_filter == ROLE_FILTER_STUDENT:
             return role == LectureRole.STUDENT.value
-        if self.role_filter == "not_joined":
+        if self.role_filter == ROLE_FILTER_NOT_JOINED:
             return role is None
         return True
 

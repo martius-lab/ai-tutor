@@ -9,7 +9,6 @@ from aitutor.auth.state import SessionState
 from aitutor.language_state import BackendTranslations as BT
 from aitutor.models import (
     GlobalPermission,
-    Lecture,
     LectureRole,
     LinkUserLecture,
     LocalUser,
@@ -195,15 +194,24 @@ class ManageUsersState(SessionState):
                     )
                 ).all()
 
-                lecture_ids_to_delete: list[int] = []
+                # Block deletion if the user is the sole owner of any lecture.
                 for owner_link in owner_links:
-                    if owner_link.lecture_id is not None:
-                        lecture_ids_to_delete.append(owner_link.lecture_id)
-
-                for lecture_id in lecture_ids_to_delete:
-                    lecture = session.get(Lecture, lecture_id)
-                    if lecture is not None:
-                        session.delete(lecture)
+                    if owner_link.lecture_id is None:
+                        continue
+                    other_owner = session.exec(
+                        select(LinkUserLecture).where(
+                            LinkUserLecture.lecture_id == owner_link.lecture_id,
+                            LinkUserLecture.user_id != local_user.id,
+                            LinkUserLecture.role == LectureRole.OWNER,
+                        )
+                    ).first()
+                    if other_owner is None:
+                        return rx.toast.error(
+                            BT.cannot_delete_sole_lecture_owner(self.language),
+                            duration=7000,
+                            position="bottom-center",
+                            invert=True,
+                        )
 
                 # NOTE: The deletions below could be reduced to a single delete of
                 # LocalUser if delete cascades where set up properly.  However, since

@@ -26,7 +26,6 @@ class AllLecturesState(SessionState):
     selected_lecture_registration_code: str = ""
     selected_lecture_lecturer_name: str = ""
     entered_registration_code: str = ""
-    lecture_id_param: str = ""
 
     @rx.event
     def update_search_text(self, value: str):
@@ -159,7 +158,6 @@ class AllLecturesState(SessionState):
         self.load_lectures()
 
         lecture_id_param = self._get_route_lecture_id_param()
-        self.lecture_id_param = lecture_id_param
         if not lecture_id_param:
             return
 
@@ -264,9 +262,5 @@ class AllLecturesState(SessionState):
         self.lectures = self._serialize_lectures(lectures)
 
     def _get_route_lecture_id_param(self) -> str:
-        """Return the lecture id route segment or an empty string."""
-        path_segments = self.router.url.path.rstrip("/").split("/")
-        last_segment = path_segments[-1]
-        if last_segment == routes.ALL_LECTURES.split("/")[-1]:
-            return ""
-        return str(last_segment)
+        """Return the lecture id route parameter or an empty string."""
+        return str(self.lecture_id)

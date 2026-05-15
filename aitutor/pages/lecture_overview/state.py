@@ -63,8 +63,8 @@ class LectureOverviewState(SessionState):
         self.lecture_information_text = lecture.lecture_information_text
 
     def _get_route_lecture_id_param(self) -> str:
-        """Return the lecture id route segment."""
-        return str(self.router.url.path.rstrip("/").split("/")[-1])
+        """Return the lecture id route parameter."""
+        return str(self.lecture_id)
 
     def _user_may_view_lecture(self, lecture_id: int) -> bool:
         """Check whether the current user may open this lecture."""

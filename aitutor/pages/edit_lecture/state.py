@@ -58,7 +58,7 @@ class EditLectureState(SessionState):
             return
 
         try:
-            lecture_id = int(str(lecture_id_param))
+            lecture_id = int(lecture_id_param)
         except ValueError:
             return rx.redirect(routes.NOT_FOUND)
 
@@ -81,6 +81,9 @@ class EditLectureState(SessionState):
     @state_require_role_or_permission(allowed_permissions=[GlobalPermission.LECTURER])
     def save_lecture(self):
         """Create a new lecture or save changes to an existing one."""
+        if self.authenticated_user is None or self.authenticated_user.id is None:
+            return rx.redirect(routes.LOGIN)
+
         lecture_name = self._normalized_lecture_name()
         if not lecture_name:
             return rx.window_alert(BT.enter_lecture_name(self.language))
@@ -88,9 +91,6 @@ class EditLectureState(SessionState):
         lecturer_name = self._normalized_lecturer_name()
         if not lecturer_name:
             return rx.window_alert(BT.enter_lecturer_name(self.language))
-
-        if self.authenticated_user is None or self.authenticated_user.id is None:
-            return rx.redirect(routes.LOGIN)
 
         with rx.session() as session:
             existing_lecture = session.exec(
@@ -258,11 +258,8 @@ class EditLectureState(SessionState):
         lecture.check_conversation_prompt = self.check_conversation_prompt
 
     def _get_route_lecture_id_param(self) -> str:
-        """Return the lecture id route segment or 'new' for the create page."""
-        lecture_id_param = self.router.url.path.rstrip("/").split("/")[-1]
-        if lecture_id_param == routes.EDIT_LECTURE.split("/")[-1]:
-            return "new"
-        return str(lecture_id_param)
+        """Return the lecture id route parameter or 'new' for the create page."""
+        return str(self.lecture_id or "new")
 
     def _normalized_lecture_name(self) -> str:
         """Return the trimmed lecture name used for validation and persistence."""
