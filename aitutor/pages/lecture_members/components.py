@@ -27,8 +27,8 @@ def role_select(member: LectureMemberRow) -> rx.Component:
             LectureRole.TUTOR.name,
             LectureRole.OWNER.name,
         ),
-        value=member["selected_role"],
-        on_change=LectureMembersState.set_member_role(member["user_id"]),
+        value=member.selected_role,
+        on_change=LectureMembersState.set_member_role(member.user_id),
         size="2",
     )
 
@@ -38,14 +38,14 @@ def editable_role_cell(member: LectureMemberRow) -> rx.Component:
     return rx.vstack(
         role_select(member),
         rx.cond(
-            member["role"] != member["selected_role"],
+            member.role != member.selected_role,
             rx.hstack(
                 rx.button(
                     LS.cancel,
                     size="1",
                     variant="outline",
                     on_click=LectureMembersState.cancel_member_role_change(
-                        member["user_id"]
+                        member.user_id
                     ),
                     _hover={"cursor": "pointer"},
                 ),
@@ -53,7 +53,7 @@ def editable_role_cell(member: LectureMemberRow) -> rx.Component:
                     LS.save,
                     size="1",
                     on_click=LectureMembersState.save_member_role_change(
-                        member["user_id"]
+                        member.user_id
                     ),
                     _hover={"cursor": "pointer"},
                 ),
@@ -87,11 +87,11 @@ def members_header() -> rx.Component:
 def kick_member_button(member: LectureMemberRow) -> rx.Component:
     """Render the kick button with a destructive confirmation dialog."""
     return destructive_confirm(
-        title=LS.kick + ": " + member["username"],
+        title=LS.kick + ": " + member.username,
         description=LS.kick_member_description,
         confirm_text=LS.kick,
         cancel_text=LS.cancel,
-        on_confirm=LectureMembersState.kick_member(member["user_id"]),
+        on_confirm=LectureMembersState.kick_member(member.user_id),
         trigger=rx.button(
             rx.flex(
                 LS.kick,
@@ -109,16 +109,16 @@ def kick_member_button(member: LectureMemberRow) -> rx.Component:
 def member_row(member: LectureMemberRow) -> rx.Component:
     """Render one lecture member row."""
     return rx.table.row(
-        rx.table.cell(member["username"]),
+        rx.table.cell(member.username),
         rx.table.cell(
             rx.cond(
-                LectureMembersState.is_owner,
+                LectureMembersState.can_manage_members,
                 editable_role_cell(member),
-                rx.text(lecture_role_text(member["role"])),
+                rx.text(lecture_role_text(member.role)),
             )
         ),
         rx.cond(
-            LectureMembersState.is_owner,
+            LectureMembersState.can_manage_members,
             rx.table.cell(kick_member_button(member)),
         ),
     )
@@ -134,7 +134,7 @@ def members_table() -> rx.Component:
                     rx.table.column_header_cell(LS.username),
                     rx.table.column_header_cell(LS.role),
                     rx.cond(
-                        LectureMembersState.is_owner,
+                        LectureMembersState.can_manage_members,
                         rx.table.column_header_cell(""),
                     ),
                 )

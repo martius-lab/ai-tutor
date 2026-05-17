@@ -1338,6 +1338,19 @@ Please test the chat for functionality after changing the model.
         )
 
     @rx.var
+    def leave_lecture(self) -> str:
+        """Leave lecture button/title string."""
+        return self.translate(de="Vorlesung verlassen", en="Leave lecture")
+
+    @rx.var
+    def leave_lecture_description(self) -> str:
+        """Leave lecture confirmation description."""
+        return self.translate(
+            de="Sie verlassen diese Vorlesung und verlieren den Zugriff darauf.",
+            en="You will leave this lecture and lose access to it.",
+        )
+
+    @rx.var
     def all(self) -> str:
         """Label for all items."""
         return self.translate(de="Alle", en="All")
@@ -1509,6 +1522,22 @@ class BackendTranslations:
         )
 
     @staticmethod
+    def left_lecture_successfully(language: Language) -> str:
+        return translate(
+            language,
+            de="Vorlesung erfolgreich verlassen.",
+            en="Left lecture successfully.",
+        )
+
+    @staticmethod
+    def not_joined_lecture(language: Language) -> str:
+        return translate(
+            language,
+            de="Sie sind dieser Vorlesung nicht beigetreten.",
+            en="You have not joined this lecture.",
+        )
+
+    @staticmethod
     def lecture_deleted_successfully(language: Language) -> str:
         return translate(
             language,
@@ -1522,6 +1551,14 @@ class BackendTranslations:
             language,
             de="Fehler: Der Benutzer kann nicht gelöscht werden, da er der einzige Besitzer mindestens einer Vorlesung ist. Bitte weisen Sie zuerst einen anderen Besitzer zu oder löschen Sie die Vorlesung.",
             en="Error: Cannot delete user because they are the sole owner of at least one lecture. Please assign another owner or delete the lecture first.",
+        )
+
+    @staticmethod
+    def cannot_remove_sole_lecture_owner(language: Language) -> str:
+        return translate(
+            language,
+            de="Fehler: Diese Aktion ist nicht möglich, da jede Vorlesung mindestens einen Besitzer behalten muss.",
+            en="Error: This action is not possible because every lecture must keep at least one owner.",
         )
 
     @staticmethod

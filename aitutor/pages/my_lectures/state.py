@@ -3,10 +3,11 @@
 from collections.abc import Sequence
 
 import reflex as rx
-from sqlmodel import and_, select
+from sqlmodel import and_, func, select
 
 from aitutor.auth.protection import state_require_role_or_permission
 from aitutor.auth.state import SessionState
+from aitutor.language_state import BackendTranslations as BT
 from aitutor.models import (
     GlobalPermission,
     Lecture,
@@ -40,6 +41,53 @@ class MyLecturesState(SessionState):
     def set_role_filter(self, value: str):
         """Set the role filter."""
         self.role_filter = value
+
+    @rx.event
+    @state_require_role_or_permission(required_role=UserRole.STUDENT)
+    def leave_lecture(self, lecture_id: int):
+        """Leave a joined lecture while ensuring every lecture keeps an owner."""
+        if self.authenticated_user is None or self.authenticated_user.id is None:
+            return
+
+        user_id = self.authenticated_user.id
+
+        with rx.session() as session:
+            link = session.exec(
+                select(LinkUserLecture).where(
+                    LinkUserLecture.lecture_id == lecture_id,
+                    LinkUserLecture.user_id == user_id,
+                )
+            ).one_or_none()
+
+            if link is None:
+                return rx.toast.error(
+                    description=BT.not_joined_lecture(self.language),
+                    duration=5000,
+                    position="bottom-center",
+                    invert=True,
+                )
+
+            if (
+                int(link.role) == LectureRole.OWNER.value
+                and self._owner_count(session, lecture_id) <= 1
+            ):
+                return rx.toast.error(
+                    description=BT.cannot_remove_sole_lecture_owner(self.language),
+                    duration=7000,
+                    position="bottom-center",
+                    invert=True,
+                )
+
+            session.delete(link)
+            session.commit()
+
+        self.load_joined_lectures()
+        return rx.toast.success(
+            description=BT.left_lecture_successfully(self.language),
+            duration=5000,
+            position="bottom-center",
+            invert=True,
+        )
 
     @rx.event
     @state_require_role_or_permission(required_role=UserRole.STUDENT)
@@ -107,6 +155,15 @@ class MyLecturesState(SessionState):
         if self.role_filter == ROLE_FILTER_NOT_JOINED:
             return role is None
         return True
+
+    def _owner_count(self, session, lecture_id: int) -> int:
+        """Return the number of owners for one lecture."""
+        return session.exec(
+            select(func.count()).where(
+                LinkUserLecture.lecture_id == lecture_id,
+                LinkUserLecture.role == LectureRole.OWNER,
+            )
+        ).one()
 
     def _serialize_joined_lectures(
         self,

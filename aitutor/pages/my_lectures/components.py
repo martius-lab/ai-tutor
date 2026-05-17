@@ -1,8 +1,11 @@
 """Components for the my lectures page."""
 
+from typing import cast
+
 import reflex as rx
 
 import aitutor.routes as routes
+from aitutor.components.dialogs import destructive_confirm
 from aitutor.language_state import LanguageState as LS
 from aitutor.models import Lecture, LectureRole
 from aitutor.pages.my_lectures.state import (
@@ -140,6 +143,29 @@ def browse_lectures_button() -> rx.Component:
     )
 
 
+def leave_lecture_button(lecture: Lecture, *, width: str | None = None) -> rx.Component:
+    """Render the leave lecture button with a destructive confirmation dialog."""
+    return destructive_confirm(
+        title=LS.leave_lecture + ": " + lecture.lecture_name,
+        description=LS.leave_lecture_description,
+        confirm_text=LS.leave_lecture,
+        cancel_text=LS.cancel,
+        on_confirm=MyLecturesState.leave_lecture(cast(int, lecture.id)),
+        trigger=rx.button(
+            rx.flex(
+                rx.icon("log-out", size=15),
+                LS.leave_lecture,
+                gap="0.5em",
+                align="center",
+            ),
+            color_scheme="red",
+            variant="outline",
+            width=width,
+            _hover={"cursor": "pointer"},
+        ),
+    )
+
+
 def lectures_toolbar() -> rx.Component:
     """Render the toolbar with search, role filters and the add button."""
     search_input = rx.input(
@@ -241,6 +267,10 @@ def lecture_row(joined_lecture: LectureWithRole) -> rx.Component:
                         href=f"{routes.EDIT_LECTURE}/{lecture.id}",
                     ),
                 ),
+                rx.cond(
+                    role != None,
+                    leave_lecture_button(lecture),
+                ),
                 spacing="2",
                 wrap="wrap",
             )
@@ -295,6 +325,10 @@ def lecture_card(joined_lecture: LectureWithRole) -> rx.Component:
                     href=f"{routes.EDIT_LECTURE}/{lecture.id}",
                     width="100%",
                 ),
+            ),
+            rx.cond(
+                role != None,
+                leave_lecture_button(lecture, width="100%"),
             ),
             spacing="3",
             align="start",
