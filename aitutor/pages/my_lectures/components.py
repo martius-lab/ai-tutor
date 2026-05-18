@@ -172,6 +172,75 @@ def leave_lecture_button(lecture: Lecture, *, width: str | None = None) -> rx.Co
     )
 
 
+def enter_lecture_button(lecture: Lecture, *, width: str | None = None) -> rx.Component:
+    """Render the button for entering a lecture."""
+    return rx.link(
+        rx.button(
+            rx.flex(
+                rx.icon("log-in", size=15),
+                LS.enter,
+                gap="0.5em",
+                align="center",
+            ),
+            width=width,
+            _hover={"cursor": "pointer"},
+        ),
+        href=f"{routes.LECTURE_OVERVIEW}/{lecture.id}",
+        width=width,
+    )
+
+
+def edit_lecture_button(lecture: Lecture, *, width: str | None = None) -> rx.Component:
+    """Render the button for editing a lecture."""
+    return rx.link(
+        rx.button(
+            rx.flex(
+                rx.icon("pen", size=15),
+                LS.edit,
+                gap="0.5em",
+                align="center",
+            ),
+            width=width,
+            _hover={"cursor": "pointer"},
+        ),
+        href=f"{routes.EDIT_LECTURE}/{lecture.id}",
+        width=width,
+    )
+
+
+def lecture_role_filter_text(role: int | None) -> rx.Component:
+    """Render the clickable role label that also applies the role filter."""
+    return role_filter_text(
+        lecture_role_text(role),
+        role_filter_value(role),
+    )
+
+
+def lecture_action_buttons(
+    lecture: Lecture,
+    role: int | None,
+    *,
+    full_width: bool = False,
+) -> rx.Component:
+    """Render the shared enter/edit/leave actions for one lecture."""
+    button_width = "100%" if full_width else None
+
+    return rx.hstack(
+        enter_lecture_button(lecture, width=button_width),
+        rx.cond(
+            (role == LectureRole.OWNER.value) | MyLecturesState.is_global_admin,
+            edit_lecture_button(lecture, width=button_width),
+        ),
+        rx.cond(
+            role is not None,
+            leave_lecture_button(lecture, width=button_width),
+        ),
+        spacing="2",
+        wrap="wrap",
+        width=button_width,
+    )
+
+
 def lectures_toolbar() -> rx.Component:
     """Render the toolbar with search, role filters and the add button."""
     search_input = rx.input(
@@ -238,49 +307,8 @@ def lecture_row(joined_lecture: LectureWithRole) -> rx.Component:
 
     return rx.table.row(
         rx.table.cell(lecture.lecture_name),
-        rx.table.cell(
-            role_filter_text(
-                lecture_role_text(role),
-                role_filter_value(role),
-            )
-        ),
-        rx.table.cell(
-            rx.hstack(
-                rx.link(
-                    rx.button(
-                        rx.flex(
-                            rx.icon("log-in", size=15),
-                            "Enter",
-                            gap="0.5em",
-                            align="center",
-                        ),
-                        _hover={"cursor": "pointer"},
-                    ),
-                    href=f"{routes.LECTURE_OVERVIEW}/{lecture.id}",
-                ),
-                rx.cond(
-                    (role == LectureRole.OWNER.value) | MyLecturesState.is_global_admin,
-                    rx.link(
-                        rx.button(
-                            rx.flex(
-                                rx.icon("pen", size=15),
-                                LS.edit,
-                                gap="0.5em",
-                                align="center",
-                            ),
-                            _hover={"cursor": "pointer"},
-                        ),
-                        href=f"{routes.EDIT_LECTURE}/{lecture.id}",
-                    ),
-                ),
-                rx.cond(
-                    role != None,
-                    leave_lecture_button(lecture),
-                ),
-                spacing="2",
-                wrap="wrap",
-            )
-        ),
+        rx.table.cell(lecture_role_filter_text(role)),
+        rx.table.cell(lecture_action_buttons(lecture, role)),
     )
 
 
@@ -294,48 +322,11 @@ def lecture_card(joined_lecture: LectureWithRole) -> rx.Component:
             rx.text(lecture.lecture_name, weight="bold", size="4", width="100%"),
             rx.hstack(
                 rx.text(LS.role + ":", weight="medium"),
-                role_filter_text(
-                    lecture_role_text(role),
-                    role_filter_value(role),
-                ),
+                lecture_role_filter_text(role),
                 wrap="wrap",
                 width="100%",
             ),
-            rx.link(
-                rx.button(
-                    rx.flex(
-                        rx.icon("log-in", size=15),
-                        "Enter",
-                        gap="0.5em",
-                        align="center",
-                    ),
-                    width="100%",
-                    _hover={"cursor": "pointer"},
-                ),
-                href=f"{routes.LECTURE_OVERVIEW}/{lecture.id}",
-                width="100%",
-            ),
-            rx.cond(
-                (role == LectureRole.OWNER.value) | MyLecturesState.is_global_admin,
-                rx.link(
-                    rx.button(
-                        rx.flex(
-                            rx.icon("pen", size=15),
-                            LS.edit,
-                            gap="0.5em",
-                            align="center",
-                        ),
-                        width="100%",
-                        _hover={"cursor": "pointer"},
-                    ),
-                    href=f"{routes.EDIT_LECTURE}/{lecture.id}",
-                    width="100%",
-                ),
-            ),
-            rx.cond(
-                role != None,
-                leave_lecture_button(lecture, width="100%"),
-            ),
+            lecture_action_buttons(lecture, role, full_width=True),
             spacing="3",
             align="start",
             width="100%",

@@ -4,18 +4,17 @@ from dataclasses import dataclass
 
 import reflex as rx
 from reflex_local_auth.user import LocalUser
-from sqlmodel import select
+from sqlmodel import func, select
 
 import aitutor.routes as routes
 from aitutor.auth.protection import state_require_role_or_permission
 from aitutor.auth.state import SessionState
 from aitutor.language_state import BackendTranslations as BT
-from aitutor.models import (
-    GlobalPermission,
-    Lecture,
-    LectureRole,
-    LinkUserLecture,
-    UserRole,
+from aitutor.models import Lecture, LectureRole, LinkUserLecture, UserRole
+from aitutor.utilities.lecture_permissions import (
+    count_lecture_owners,
+    get_user_lecture_link,
+    user_may_view_lecture,
 )
 
 
@@ -49,28 +48,6 @@ class LectureMembersState(SessionState):
     current_user_lecture_role: int | None = None
 
     @rx.event
-    def open_add_member_dialog(self):
-        """Open the add-member dialog with freshly loaded available users."""
-        self.available_user_filter_query = ""
-        self.load_available_users()
-        self.add_member_dialog_is_open = True
-
-    @rx.event
-    def close_add_member_dialog(self):
-        """Close the add-member dialog and reset its local filter."""
-        self.available_user_filter_query = ""
-        self.add_member_dialog_is_open = False
-
-    @rx.event
-    def set_add_member_dialog_is_open(self, value: bool):
-        """Open or close the add-member dialog from the dialog component."""
-        if value:
-            self.open_add_member_dialog()
-            return
-
-        self.close_add_member_dialog()
-
-    @rx.event
     def set_available_user_filter_query(self, query: str):
         """Set the user search query for the add-member dialog."""
         self.available_user_filter_query = query
@@ -79,55 +56,6 @@ class LectureMembersState(SessionState):
     def clear_available_user_filter_query(self):
         """Clear the add-member user search query."""
         self.available_user_filter_query = ""
-
-    @rx.event
-    @state_require_role_or_permission(required_role=UserRole.STUDENT)
-    def add_member(self, user_id: int):
-        """Add one user to the current lecture as a student."""
-        if not self.can_manage_members or self.current_lecture_id is None:
-            return
-
-        with rx.session() as session:
-            user = session.get(LocalUser, user_id)
-            if user is None:
-                return rx.toast.error(
-                    BT.error_user_not_found(self.language),
-                    duration=5000,
-                    position="bottom-center",
-                    invert=True,
-                )
-
-            existing_link = session.exec(
-                select(LinkUserLecture).where(
-                    LinkUserLecture.lecture_id == self.current_lecture_id,
-                    LinkUserLecture.user_id == user_id,
-                )
-            ).one_or_none()
-            if existing_link is not None:
-                return rx.toast.error(
-                    BT.user_already_lecture_member(self.language),
-                    duration=5000,
-                    position="bottom-center",
-                    invert=True,
-                )
-
-            session.add(
-                LinkUserLecture(
-                    lecture_id=self.current_lecture_id,
-                    user_id=user_id,
-                    role=LectureRole.STUDENT,
-                )
-            )
-            session.commit()
-
-        self.load_members()
-        self.load_available_users()
-        return rx.toast.success(
-            BT.member_added_successfully(self.language),
-            duration=5000,
-            position="bottom-center",
-            invert=True,
-        )
 
     @rx.event
     def set_member_role(self, user_id: int, role_name: str):
@@ -161,72 +89,6 @@ class LectureMembersState(SessionState):
 
     @rx.event
     @state_require_role_or_permission(required_role=UserRole.STUDENT)
-    def save_member_role_change(self, user_id: int):
-        """Persist one changed lecture member role."""
-        if not self.can_manage_members or self.current_lecture_id is None:
-            return
-
-        changed_member = self._find_member(user_id)
-        if (
-            changed_member is None
-            or changed_member.role == changed_member.selected_role
-        ):
-            return
-
-        if self._would_remove_last_owner(
-            changed_member,
-            new_role=changed_member.selected_role,
-        ):
-            return self._sole_owner_error_toast()
-
-        with rx.session() as session:
-            link = session.exec(
-                select(LinkUserLecture).where(
-                    LinkUserLecture.lecture_id == self.current_lecture_id,
-                    LinkUserLecture.user_id == user_id,
-                )
-            ).one_or_none()
-            if link is None:
-                return
-
-            link.role = LectureRole[changed_member.selected_role]
-            session.commit()
-
-        self.load_members()
-        self.load_available_users()
-
-    @rx.event
-    @state_require_role_or_permission(required_role=UserRole.STUDENT)
-    def kick_member(self, user_id: int):
-        """Remove one member from the current lecture."""
-        if not self.can_manage_members or self.current_lecture_id is None:
-            return
-
-        member = self._find_member(user_id)
-        if member is None:
-            return
-
-        if self._would_remove_last_owner(member):
-            return self._sole_owner_error_toast()
-
-        with rx.session() as session:
-            link = session.exec(
-                select(LinkUserLecture).where(
-                    LinkUserLecture.lecture_id == self.current_lecture_id,
-                    LinkUserLecture.user_id == user_id,
-                )
-            ).one_or_none()
-            if link is None:
-                return
-
-            session.delete(link)
-            session.commit()
-
-        self.load_members()
-        self.load_available_users()
-
-    @rx.event
-    @state_require_role_or_permission(required_role=UserRole.STUDENT)
     def on_load(self):
         """Initialize the members page."""
         self.global_load()
@@ -255,12 +117,12 @@ class LectureMembersState(SessionState):
         """Clear page-specific state on logout."""
         self._reset_page_state()
 
-    @rx.var
+    @rx.var(initial_value=False)
     def is_owner(self) -> bool:
         """Whether the current user is an owner of this lecture."""
         return self.current_user_lecture_role == LectureRole.OWNER.value
 
-    @rx.var
+    @rx.var(initial_value=False)
     def can_manage_members(self) -> bool:
         """Whether the current user may manage members of this lecture."""
         return self.is_global_admin or self.is_owner
@@ -278,6 +140,128 @@ class LectureMembersState(SessionState):
             if normalized_query in user.username.lower()
         ]
 
+    @rx.event
+    def open_add_member_dialog(self):
+        """Open the add-member dialog with freshly loaded available users."""
+        self.available_user_filter_query = ""
+        self.load_available_users()
+        self.add_member_dialog_is_open = True
+
+    @rx.event
+    def close_add_member_dialog(self):
+        """Close the add-member dialog and reset its local filter."""
+        self.available_user_filter_query = ""
+        self.add_member_dialog_is_open = False
+
+    @rx.event
+    def set_add_member_dialog_is_open(self, value: bool):
+        """Open or close the add-member dialog from the dialog component."""
+        if value:
+            self.open_add_member_dialog()
+            return
+
+        self.close_add_member_dialog()
+
+    @rx.event
+    @state_require_role_or_permission(required_role=UserRole.STUDENT)
+    def add_member(self, user_id: int):
+        """Add one user to the current lecture as a student."""
+        if not self.can_manage_members or self.current_lecture_id is None:
+            return
+
+        with rx.session() as session:
+            user = session.get(LocalUser, user_id)
+            if user is None:
+                return rx.toast.error(
+                    BT.error_user_not_found(self.language),
+                    duration=5000,
+                    position="bottom-center",
+                    invert=True,
+                )
+
+            if self._get_member_link(session, user_id) is not None:
+                return rx.toast.error(
+                    BT.user_already_lecture_member(self.language),
+                    duration=5000,
+                    position="bottom-center",
+                    invert=True,
+                )
+
+            session.add(
+                LinkUserLecture(
+                    lecture_id=self.current_lecture_id,
+                    user_id=user_id,
+                    role=LectureRole.STUDENT,
+                )
+            )
+            session.commit()
+
+        self.load_members()
+        self.load_available_users()
+        return rx.toast.success(
+            BT.member_added_successfully(self.language),
+            duration=5000,
+            position="bottom-center",
+            invert=True,
+        )
+
+    @rx.event
+    @state_require_role_or_permission(required_role=UserRole.STUDENT)
+    def save_member_role_change(self, user_id: int):
+        """Persist one changed lecture member role."""
+        if not self.can_manage_members or self.current_lecture_id is None:
+            return
+
+        changed_member = self._find_member(user_id)
+        if (
+            changed_member is None
+            or changed_member.role == changed_member.selected_role
+        ):
+            return
+
+        with rx.session() as session:
+            if self._would_remove_last_owner(
+                session,
+                changed_member,
+                new_role=changed_member.selected_role,
+            ):
+                return self._sole_owner_error_toast()
+
+            link = self._get_member_link(session, user_id)
+            if link is None:
+                return
+
+            link.role = LectureRole[changed_member.selected_role]
+            session.commit()
+
+        self.load_members()
+        self.load_available_users()
+
+    @rx.event
+    @state_require_role_or_permission(required_role=UserRole.STUDENT)
+    def kick_member(self, user_id: int):
+        """Remove one member from the current lecture."""
+        if not self.can_manage_members or self.current_lecture_id is None:
+            return
+
+        member = self._find_member(user_id)
+        if member is None:
+            return
+
+        with rx.session() as session:
+            if self._would_remove_last_owner(session, member):
+                return self._sole_owner_error_toast()
+
+            link = self._get_member_link(session, user_id)
+            if link is None:
+                return
+
+            session.delete(link)
+            session.commit()
+
+        self.load_members()
+        self.load_available_users()
+
     def _reset_page_state(self) -> None:
         """Reset loaded lecture and member data."""
         self.current_lecture_id = None
@@ -292,18 +276,14 @@ class LectureMembersState(SessionState):
         """Check whether the current user may open this lecture."""
         if self.authenticated_user is None or self.authenticated_user.id is None:
             return False
-        if GlobalPermission.ADMIN in self.global_permissions:
-            return True
 
         with rx.session() as session:
-            link = session.exec(
-                select(LinkUserLecture).where(
-                    LinkUserLecture.lecture_id == lecture_id,
-                    LinkUserLecture.user_id == self.authenticated_user.id,
-                )
-            ).one_or_none()
-
-        return link is not None
+            return user_may_view_lecture(
+                session,
+                user_id=self.authenticated_user.id,
+                global_permissions=self.global_permissions,
+                lecture_id=lecture_id,
+            )
 
     def load_members(self):
         """Load all members for the current lecture."""
@@ -316,7 +296,11 @@ class LectureMembersState(SessionState):
                 select(LocalUser, LinkUserLecture.role)
                 .join(LinkUserLecture)
                 .where(LinkUserLecture.lecture_id == self.current_lecture_id)
-                .order_by(LocalUser.username)
+                .order_by(
+                    (LinkUserLecture.role == LectureRole.OWNER).desc(),  # type: ignore
+                    (LinkUserLecture.role == LectureRole.TUTOR).desc(),  # type: ignore
+                    func.lower(LocalUser.username),
+                )
             ).all()
 
         self.members = [
@@ -329,12 +313,6 @@ class LectureMembersState(SessionState):
             for user, role in rows
             if user.id is not None
         ]
-        self.members.sort(
-            key=lambda member: (
-                -LectureRole[member.role].value,
-                member.username.lower(),
-            )
-        )
         self.current_user_lecture_role = self._find_current_user_role()
 
     def load_available_users(self):
@@ -376,8 +354,20 @@ class LectureMembersState(SessionState):
             None,
         )
 
+    def _get_member_link(self, session, user_id: int) -> LinkUserLecture | None:
+        """Return the persisted membership link in the current lecture."""
+        if self.current_lecture_id is None:
+            return None
+
+        return get_user_lecture_link(
+            session,
+            user_id=user_id,
+            lecture_id=self.current_lecture_id,
+        )
+
     def _would_remove_last_owner(
         self,
+        session,
         member: LectureMemberRow,
         *,
         new_role: str | None = None,
@@ -387,7 +377,9 @@ class LectureMembersState(SessionState):
             return False
         if new_role == LectureRole.OWNER.name:
             return False
-        return self._owner_count() <= 1
+        if self.current_lecture_id is None:
+            return False
+        return count_lecture_owners(session, lecture_id=self.current_lecture_id) <= 1
 
     def _sole_owner_error_toast(self):
         """Show a toast for actions that would remove the last lecture owner."""
@@ -396,10 +388,4 @@ class LectureMembersState(SessionState):
             duration=7000,
             position="bottom-center",
             invert=True,
-        )
-
-    def _owner_count(self) -> int:
-        """Return the number of loaded owners."""
-        return sum(
-            1 for member in self.members if member.role == LectureRole.OWNER.name
         )

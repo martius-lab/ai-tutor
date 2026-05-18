@@ -7,7 +7,7 @@ from aitutor.language_state import LanguageState
 
 specific_lecture_links = [
     (
-        "Lecture Overview",
+        LanguageState.overview,
         routes.LECTURE_OVERVIEW,
         "layout-dashboard",
         "lecture_overview",
@@ -20,7 +20,7 @@ specific_lecture_links = [
         "exercises",
         True,
     ),
-    ("Members", routes.LECTURE_MEMBERS, "users", "members", False),
+    (LanguageState.members, routes.LECTURE_MEMBERS, "users", "members", False),
     (LanguageState.settings, routes.LECTURE_OVERVIEW, "settings", "settings", True),
 ]
 

@@ -1,17 +1,12 @@
 """State for the lecture overview page."""
 
 import reflex as rx
-from sqlmodel import select
 
 import aitutor.routes as routes
 from aitutor.auth.protection import state_require_role_or_permission
 from aitutor.auth.state import SessionState
-from aitutor.models import (
-    GlobalPermission,
-    Lecture,
-    LinkUserLecture,
-    UserRole,
-)
+from aitutor.models import Lecture, UserRole
+from aitutor.utilities.lecture_permissions import user_may_view_lecture
 
 
 class LectureOverviewState(SessionState):
@@ -70,15 +65,11 @@ class LectureOverviewState(SessionState):
         """Check whether the current user may open this lecture."""
         if self.authenticated_user is None or self.authenticated_user.id is None:
             return False
-        if GlobalPermission.ADMIN in self.global_permissions:
-            return True
 
         with rx.session() as session:
-            link = session.exec(
-                select(LinkUserLecture).where(
-                    LinkUserLecture.lecture_id == lecture_id,
-                    LinkUserLecture.user_id == self.authenticated_user.id,
-                )
-            ).one_or_none()
-
-        return link is not None
+            return user_may_view_lecture(
+                session,
+                user_id=self.authenticated_user.id,
+                global_permissions=self.global_permissions,
+                lecture_id=lecture_id,
+            )

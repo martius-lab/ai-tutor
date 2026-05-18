@@ -78,6 +78,11 @@ class LanguageState(SessionState):
         return self.translate(de="Rauswerfen", en="Kick")
 
     @rx.var
+    def enter(self) -> str:
+        """Enter/open item string."""
+        return self.translate(de="Betreten", en="Enter")
+
+    @rx.var
     def prompt(self) -> str:
         return self.translate(
             de="Prompt",
@@ -1356,6 +1361,11 @@ Please test the chat for functionality after changing the model.
         return self.translate(de="Mitglied hinzufügen", en="Add member")
 
     @rx.var
+    def members(self) -> str:
+        """Members page heading."""
+        return self.translate(de="Mitglieder", en="Members")
+
+    @rx.var
     def add_member_description(self) -> str:
         """Add member dialog description."""
         return self.translate(
@@ -1369,6 +1379,14 @@ Please test the chat for functionality after changing the model.
         return self.translate(
             de="Keine Benutzer zum Hinzufügen gefunden.",
             en="No users available to add.",
+        )
+
+    @rx.var
+    def no_members_found(self) -> str:
+        """Message shown when a lecture has no members."""
+        return self.translate(
+            de="Keine Mitglieder gefunden.",
+            en="No members found.",
         )
 
     @rx.var
@@ -1461,6 +1479,15 @@ Please test the chat for functionality after changing the model.
         return self.translate(
             de="Diese Person wird aus der Vorlesung entfernt.",
             en="This person will be removed from the lecture.",
+        )
+
+    # Lecture_overview Strings --------------------------------------------------------------------------------
+    @rx.var
+    def overview(self) -> str:
+        """Overview label."""
+        return self.translate(
+            de="Übersicht",
+            en="Overview",
         )
 
 

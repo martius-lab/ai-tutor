@@ -4,13 +4,13 @@ import reflex as rx
 
 from aitutor import routes
 from aitutor.auth.protection import page_require_role_or_permission
-from aitutor.models import GlobalPermission
+from aitutor.models import UserRole
 from aitutor.pages.edit_lecture.components import edit_lecture_content
 from aitutor.pages.navbar import with_navbar
 
 
 @with_navbar(routes.LECTURES)
-@page_require_role_or_permission(allowed_permissions=[GlobalPermission.LECTURER])
+@page_require_role_or_permission(required_role=UserRole.STUDENT)
 def edit_lecture_page() -> rx.Component:
     """Lecture edit/create page."""
     return rx.center(

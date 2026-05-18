@@ -74,7 +74,7 @@ def members_header() -> rx.Component:
     return rx.vstack(
         rx.hstack(
             rx.hstack(
-                rx.heading("Members", size="5"),
+                rx.heading(LS.members, size="5"),
                 rx.cond(
                     LectureMembersState.lecture_name != "",
                     rx.text(LectureMembersState.lecture_name, color_scheme="gray"),
@@ -275,7 +275,7 @@ def members_table() -> rx.Component:
             max_height="66vh",
         ),
         rx.center(
-            rx.text("No members found.", size="4"),
+            rx.text(LS.no_members_found, size="4"),
             width="85vw",
             max_width="100%",
         ),
