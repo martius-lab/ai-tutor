@@ -1351,6 +1351,27 @@ Please test the chat for functionality after changing the model.
         )
 
     @rx.var
+    def add_member(self) -> str:
+        """Add member button/title string."""
+        return self.translate(de="Mitglied hinzufügen", en="Add member")
+
+    @rx.var
+    def add_member_description(self) -> str:
+        """Add member dialog description."""
+        return self.translate(
+            de="Suchen Sie nach einem Benutzer und fügen Sie ihn dieser Vorlesung hinzu.",
+            en="Search for a user and add them to this lecture.",
+        )
+
+    @rx.var
+    def no_available_users(self) -> str:
+        """Message shown when no users can be added to a lecture."""
+        return self.translate(
+            de="Keine Benutzer zum Hinzufügen gefunden.",
+            en="No users available to add.",
+        )
+
+    @rx.var
     def all(self) -> str:
         """Label for all items."""
         return self.translate(de="Alle", en="All")
@@ -1535,6 +1556,22 @@ class BackendTranslations:
             language,
             de="Sie sind dieser Vorlesung nicht beigetreten.",
             en="You have not joined this lecture.",
+        )
+
+    @staticmethod
+    def member_added_successfully(language: Language) -> str:
+        return translate(
+            language,
+            de="Mitglied erfolgreich hinzugefügt.",
+            en="Member added successfully.",
+        )
+
+    @staticmethod
+    def user_already_lecture_member(language: Language) -> str:
+        return translate(
+            language,
+            de="Dieser Benutzer ist bereits Mitglied dieser Vorlesung.",
+            en="This user is already a member of this lecture.",
         )
 
     @staticmethod

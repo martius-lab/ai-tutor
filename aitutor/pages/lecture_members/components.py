@@ -5,7 +5,11 @@ import reflex as rx
 from aitutor.components.dialogs import destructive_confirm
 from aitutor.language_state import LanguageState as LS
 from aitutor.models import LectureRole
-from aitutor.pages.lecture_members.state import LectureMemberRow, LectureMembersState
+from aitutor.pages.lecture_members.state import (
+    AvailableLectureUser,
+    LectureMemberRow,
+    LectureMembersState,
+)
 
 
 def lecture_role_text(role: str):
@@ -69,18 +73,141 @@ def members_header() -> rx.Component:
     """Render the members page header."""
     return rx.vstack(
         rx.hstack(
-            rx.heading("Members", size="5"),
-            rx.cond(
-                LectureMembersState.lecture_name != "",
-                rx.text(LectureMembersState.lecture_name, color_scheme="gray"),
+            rx.hstack(
+                rx.heading("Members", size="5"),
+                rx.cond(
+                    LectureMembersState.lecture_name != "",
+                    rx.text(LectureMembersState.lecture_name, color_scheme="gray"),
+                ),
+                align="baseline",
             ),
-            align="baseline",
+            rx.cond(
+                LectureMembersState.can_manage_members,
+                add_member_dialog(),
+            ),
+            justify="between",
+            align="center",
             width="85vw",
             max_width="100%",
         ),
         spacing="3",
         align="center",
         width="100%",
+    )
+
+
+def add_member_dialog() -> rx.Component:
+    """Render the dialog for adding users to the lecture."""
+    return rx.dialog.root(
+        rx.dialog.trigger(
+            rx.button(
+                rx.flex(
+                    rx.icon("user-plus", size=15),
+                    LS.add_member,
+                    gap="0.5em",
+                    align="center",
+                ),
+                on_click=LectureMembersState.open_add_member_dialog,
+                _hover={"cursor": "pointer"},
+            ),
+        ),
+        rx.dialog.content(
+            rx.vstack(
+                rx.dialog.title(LS.add_member),
+                rx.dialog.description(LS.add_member_description),
+                available_user_filter(),
+                available_users_list(),
+                rx.hstack(
+                    rx.dialog.close(
+                        rx.button(
+                            LS.cancel,
+                            variant="outline",
+                            on_click=LectureMembersState.close_add_member_dialog,
+                            _hover={"cursor": "pointer"},
+                        )
+                    ),
+                    justify="end",
+                    width="100%",
+                ),
+                spacing="4",
+                align="stretch",
+            ),
+            max_width="34em",
+        ),
+        open=LectureMembersState.add_member_dialog_is_open,
+        on_open_change=LectureMembersState.set_add_member_dialog_is_open,
+    )
+
+
+def available_user_filter() -> rx.Component:
+    """Render the search field for available users."""
+    return rx.hstack(
+        rx.input(
+            value=LectureMembersState.available_user_filter_query,
+            on_change=LectureMembersState.set_available_user_filter_query,
+            placeholder=LS.search_filter_placeholder,
+            width="100%",
+        ),
+        rx.cond(
+            LectureMembersState.available_user_filter_query != "",
+            rx.button(
+                "×",
+                on_click=LectureMembersState.clear_available_user_filter_query,
+                variant="soft",
+                size="2",
+                _hover={"cursor": "pointer"},
+            ),
+        ),
+        align="center",
+        width="100%",
+    )
+
+
+def available_user_row(user: AvailableLectureUser) -> rx.Component:
+    """Render one available user row in the add-member dialog."""
+    return rx.hstack(
+        rx.text(user.username),
+        rx.button(
+            rx.flex(
+                rx.icon("user-plus", size=14),
+                LS.add,
+                gap="0.4em",
+                align="center",
+            ),
+            size="2",
+            on_click=LectureMembersState.add_member(user.user_id),
+            _hover={"cursor": "pointer"},
+        ),
+        justify="between",
+        align="center",
+        width="100%",
+        padding="0.5em",
+        border_bottom=f"1px solid {rx.color('gray', 5)}",
+    )
+
+
+def available_users_list() -> rx.Component:
+    """Render the filtered list of users that can be added."""
+    return rx.cond(
+        LectureMembersState.filtered_available_users,
+        rx.vstack(
+            rx.foreach(
+                LectureMembersState.filtered_available_users,
+                available_user_row,
+            ),
+            spacing="0",
+            align="stretch",
+            width="100%",
+            max_height="20em",
+            overflow_y="auto",
+            border=f"1px solid {rx.color('gray', 5)}",
+            border_radius="0.5em",
+        ),
+        rx.center(
+            rx.text(LS.no_available_users, color_scheme="gray"),
+            width="100%",
+            padding="1em",
+        ),
     )
 
 

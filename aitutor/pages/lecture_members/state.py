@@ -29,13 +29,105 @@ class LectureMemberRow:
     selected_role: str
 
 
+@dataclass
+class AvailableLectureUser:
+    """Serializable row data for one user that can be added to a lecture."""
+
+    user_id: int
+    username: str
+
+
 class LectureMembersState(SessionState):
     """State for listing all members of one lecture."""
 
     current_lecture_id: int | None = None
     lecture_name: str = ""
     members: list[LectureMemberRow] = []
+    available_users: list[AvailableLectureUser] = []
+    available_user_filter_query: str = ""
+    add_member_dialog_is_open: bool = False
     current_user_lecture_role: int | None = None
+
+    @rx.event
+    def open_add_member_dialog(self):
+        """Open the add-member dialog with freshly loaded available users."""
+        self.available_user_filter_query = ""
+        self.load_available_users()
+        self.add_member_dialog_is_open = True
+
+    @rx.event
+    def close_add_member_dialog(self):
+        """Close the add-member dialog and reset its local filter."""
+        self.available_user_filter_query = ""
+        self.add_member_dialog_is_open = False
+
+    @rx.event
+    def set_add_member_dialog_is_open(self, value: bool):
+        """Open or close the add-member dialog from the dialog component."""
+        if value:
+            self.open_add_member_dialog()
+            return
+
+        self.close_add_member_dialog()
+
+    @rx.event
+    def set_available_user_filter_query(self, query: str):
+        """Set the user search query for the add-member dialog."""
+        self.available_user_filter_query = query
+
+    @rx.event
+    def clear_available_user_filter_query(self):
+        """Clear the add-member user search query."""
+        self.available_user_filter_query = ""
+
+    @rx.event
+    @state_require_role_or_permission(required_role=UserRole.STUDENT)
+    def add_member(self, user_id: int):
+        """Add one user to the current lecture as a student."""
+        if not self.can_manage_members or self.current_lecture_id is None:
+            return
+
+        with rx.session() as session:
+            user = session.get(LocalUser, user_id)
+            if user is None:
+                return rx.toast.error(
+                    BT.error_user_not_found(self.language),
+                    duration=5000,
+                    position="bottom-center",
+                    invert=True,
+                )
+
+            existing_link = session.exec(
+                select(LinkUserLecture).where(
+                    LinkUserLecture.lecture_id == self.current_lecture_id,
+                    LinkUserLecture.user_id == user_id,
+                )
+            ).one_or_none()
+            if existing_link is not None:
+                return rx.toast.error(
+                    BT.user_already_lecture_member(self.language),
+                    duration=5000,
+                    position="bottom-center",
+                    invert=True,
+                )
+
+            session.add(
+                LinkUserLecture(
+                    lecture_id=self.current_lecture_id,
+                    user_id=user_id,
+                    role=LectureRole.STUDENT,
+                )
+            )
+            session.commit()
+
+        self.load_members()
+        self.load_available_users()
+        return rx.toast.success(
+            BT.member_added_successfully(self.language),
+            duration=5000,
+            position="bottom-center",
+            invert=True,
+        )
 
     @rx.event
     def set_member_role(self, user_id: int, role_name: str):
@@ -101,6 +193,7 @@ class LectureMembersState(SessionState):
             session.commit()
 
         self.load_members()
+        self.load_available_users()
 
     @rx.event
     @state_require_role_or_permission(required_role=UserRole.STUDENT)
@@ -130,6 +223,7 @@ class LectureMembersState(SessionState):
             session.commit()
 
         self.load_members()
+        self.load_available_users()
 
     @rx.event
     @state_require_role_or_permission(required_role=UserRole.STUDENT)
@@ -155,6 +249,7 @@ class LectureMembersState(SessionState):
             self.lecture_name = lecture.lecture_name
 
         self.load_members()
+        self.load_available_users()
 
     def on_logout(self):
         """Clear page-specific state on logout."""
@@ -170,11 +265,27 @@ class LectureMembersState(SessionState):
         """Whether the current user may manage members of this lecture."""
         return self.is_global_admin or self.is_owner
 
+    @rx.var(initial_value=[])
+    def filtered_available_users(self) -> list[AvailableLectureUser]:
+        """Return users available to add, filtered by the search query."""
+        normalized_query = self.available_user_filter_query.strip().lower()
+        if not normalized_query:
+            return self.available_users
+
+        return [
+            user
+            for user in self.available_users
+            if normalized_query in user.username.lower()
+        ]
+
     def _reset_page_state(self) -> None:
         """Reset loaded lecture and member data."""
         self.current_lecture_id = None
         self.lecture_name = ""
         self.members = []
+        self.available_users = []
+        self.available_user_filter_query = ""
+        self.add_member_dialog_is_open = False
         self.current_user_lecture_role = None
 
     def _user_may_view_lecture(self, lecture_id: int) -> bool:
@@ -225,6 +336,29 @@ class LectureMembersState(SessionState):
             )
         )
         self.current_user_lecture_role = self._find_current_user_role()
+
+    def load_available_users(self):
+        """Load users that are not members of the current lecture yet."""
+        if self.current_lecture_id is None:
+            self.available_users = []
+            return
+
+        with rx.session() as session:
+            member_user_ids = set(
+                session.exec(
+                    select(LinkUserLecture.user_id).where(
+                        LinkUserLecture.lecture_id == self.current_lecture_id,
+                    )
+                ).all()
+            )
+
+            users = session.exec(select(LocalUser).order_by(LocalUser.username)).all()
+
+        self.available_users = [
+            AvailableLectureUser(user_id=int(user.id), username=user.username)
+            for user in users
+            if user.id is not None and user.id not in member_user_ids
+        ]
 
     def _find_current_user_role(self) -> int | None:
         """Return the loaded lecture role for the authenticated user."""
