@@ -9,6 +9,8 @@ from aitutor.auth.state import SessionState
 from aitutor.language_state import BackendTranslations as BT
 from aitutor.models import (
     GlobalPermission,
+    LectureRole,
+    LinkUserLecture,
     LocalUser,
     Permission,
     UserInfo,
@@ -60,17 +62,17 @@ class ManageUsersState(SessionState):
             )
             self.users = [(lu, ui) for lu, ui in session.exec(query).all()]
 
-    @rx.var
+    @rx.var(initial_value=False)
     def edited_user_has_admin_permission(self) -> bool:
         """Whether the edited user currently has global ADMIN permission."""
         return GlobalPermission.ADMIN in self.edited_user_permissions
 
-    @rx.var
+    @rx.var(initial_value=False)
     def edited_user_has_maintainer_permission(self) -> bool:
         """Whether the edited user currently has MAINTAINER permission."""
         return GlobalPermission.MAINTAINER in self.edited_user_permissions
 
-    @rx.var
+    @rx.var(initial_value=False)
     def edited_user_has_lecturer_permission(self) -> bool:
         """Whether the edited user currently has LECTURER permission."""
         return GlobalPermission.LECTURER in self.edited_user_permissions
@@ -184,6 +186,32 @@ class ManageUsersState(SessionState):
 
             if row:
                 local_user, user_info = row
+
+                owner_links = session.exec(
+                    select(LinkUserLecture).where(
+                        LinkUserLecture.user_id == local_user.id,
+                        LinkUserLecture.role == LectureRole.OWNER,
+                    )
+                ).all()
+
+                # Block deletion if the user is the sole owner of any lecture.
+                for owner_link in owner_links:
+                    if owner_link.lecture_id is None:
+                        continue
+                    other_owner = session.exec(
+                        select(LinkUserLecture).where(
+                            LinkUserLecture.lecture_id == owner_link.lecture_id,
+                            LinkUserLecture.user_id != local_user.id,
+                            LinkUserLecture.role == LectureRole.OWNER,
+                        )
+                    ).first()
+                    if other_owner is None:
+                        return rx.toast.error(
+                            BT.cannot_delete_sole_lecture_owner(self.language),
+                            duration=7000,
+                            position="bottom-center",
+                            invert=True,
+                        )
 
                 # NOTE: The deletions below could be reduced to a single delete of
                 # LocalUser if delete cascades where set up properly.  However, since

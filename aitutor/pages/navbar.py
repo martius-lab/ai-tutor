@@ -11,7 +11,7 @@ from aitutor import DisplayConfigState
 from aitutor.auth.protection import lecture_has_role_at_least
 from aitutor.auth.state import SessionState
 from aitutor.language_state import LanguageState
-from aitutor.models import UserRole
+from aitutor.models import GlobalPermission, UserRole
 
 
 def is_highlighted(route_to_highlight: Optional[str], url: str) -> rx.Var[bool]:
@@ -52,6 +52,7 @@ def navbar_link(text: str, url: str, route_to_highlight: Optional[str]) -> rx.Co
 general_links = [
     (LanguageState.home_link, routes.HOME, "house"),
     (LanguageState.exercises_link, routes.EXERCISES, "book"),
+    (LanguageState.lectures_link, routes.MY_LECTURES, "graduation-cap"),
 ]
 tutor_links = [
     (LanguageState.submissions_link, routes.SUBMISSIONS, "search-check"),
@@ -65,12 +66,25 @@ admin_links = [
 def get_links():
     """Returns the list of navigation links for the current user role."""
     return rx.cond(
-        lecture_has_role_at_least(UserRole.ADMIN),
-        general_links + tutor_links + admin_links,
+        SessionState.global_permissions.contains(GlobalPermission.ADMIN)
+        | SessionState.global_permissions.contains(GlobalPermission.LECTURER),
         rx.cond(
-            lecture_has_role_at_least(UserRole.TUTOR),
-            general_links + tutor_links,
-            general_links,
+            lecture_has_role_at_least(UserRole.ADMIN),
+            general_links + tutor_links + admin_links,
+            rx.cond(
+                lecture_has_role_at_least(UserRole.TUTOR),
+                general_links + tutor_links,
+                general_links,
+            ),
+        ),
+        rx.cond(
+            lecture_has_role_at_least(UserRole.ADMIN),
+            general_links + tutor_links + admin_links,
+            rx.cond(
+                lecture_has_role_at_least(UserRole.TUTOR),
+                general_links + tutor_links,
+                general_links,
+            ),
         ),
     )
 
