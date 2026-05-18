@@ -106,12 +106,18 @@ def role_filter_text(label, value) -> rx.Component:
 
 def role_filter_value(role: int | None):
     """Return the filter value for a role."""
-    return rx.match(
-        role,
-        (LectureRole.OWNER.value, ROLE_FILTER_OWNER),
-        (LectureRole.TUTOR.value, ROLE_FILTER_TUTOR),
-        (LectureRole.STUDENT.value, ROLE_FILTER_STUDENT),
-        ROLE_FILTER_NOT_JOINED,
+    return rx.cond(
+        role == LectureRole.OWNER.value,
+        ROLE_FILTER_OWNER,
+        rx.cond(
+            role == LectureRole.TUTOR.value,
+            ROLE_FILTER_TUTOR,
+            rx.cond(
+                role == LectureRole.STUDENT.value,
+                ROLE_FILTER_STUDENT,
+                ROLE_FILTER_NOT_JOINED,
+            ),
+        ),
     )
 
 
