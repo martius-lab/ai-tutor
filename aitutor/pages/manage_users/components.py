@@ -204,7 +204,7 @@ def edit_user_dialog() -> rx.Component:
         )
 
     return rx.cond(
-        ManageUsersState.edited_user != None,  # noqa: E711
+        ManageUsersState.edited_user != None,
         _helper(
             local_user=ManageUsersState.edited_user[0],  # type: ignore
             user_info=ManageUsersState.edited_user[1],  # type: ignore

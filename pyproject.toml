@@ -53,6 +53,9 @@ lint.select = [
     "D100", "D101", "D102", "D103",  # Complain about missing docstrings
     "I",
 ]
+lint.ignore = [
+    "E711",  # in rx.cond, we often need to compare None with `==`/`!=`
+]
 extend-exclude = ["alembic"]
 
 [tool.ruff.lint.per-file-ignores]
