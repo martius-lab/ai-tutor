@@ -20,7 +20,5 @@ def prompts_page() -> rx.Component:
     """Prompts page."""
     return rx.center(
         prompt_management(),
-        margin_top="2em",
-        margin_bottom="2em",
-        width="100%",
+        class_name="page-frame",
     )

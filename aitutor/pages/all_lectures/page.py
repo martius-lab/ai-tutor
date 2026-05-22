@@ -17,7 +17,5 @@ def all_lectures_page() -> rx.Component:
     """Show the page scaffold for all available lectures."""
     return rx.center(
         all_lectures_content(),
-        margin_top="2em",
-        margin_bottom="2em",
-        width="100%",
+        class_name="page-frame",
     )

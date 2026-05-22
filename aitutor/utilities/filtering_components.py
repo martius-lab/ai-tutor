@@ -76,7 +76,6 @@ def search_bar(state: type[FilterMixin]) -> rx.Component:
                 name="search_value",
                 placeholder=LanguageState.search_placeholder,
                 required=True,
-                max_width="60vw",
             ),
             rx.button(
                 rx.icon("plus"),
@@ -84,9 +83,11 @@ def search_bar(state: type[FilterMixin]) -> rx.Component:
             ),
             justify="center",
             align="center",
+            width="100%",
         ),
         on_submit=state.add_search_value,
         reset_on_submit=True,
+        class_name="app-search-form",
     )
 
 

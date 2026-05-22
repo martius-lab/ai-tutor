@@ -21,9 +21,7 @@ def custom_login_page() -> rx.Component:
             LoginState.is_hydrated,
             rx.card(login_form()),
         ),
-        margin_top="2em",
-        margin_bottom="2em",
-        width="90%",
+        class_name="page-frame",
     )
 
 
@@ -38,7 +36,5 @@ def custom_register_page() -> rx.Component:
             RegistrationState.is_hydrated,
             rx.card(register_form()),
         ),
-        margin_top="2em",
-        margin_bottom="2em",
-        width="90%",
+        class_name="page-frame",
     )

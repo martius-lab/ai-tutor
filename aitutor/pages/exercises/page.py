@@ -17,42 +17,47 @@ def exercises_page() -> rx.Component:
     """Default wrapper for exercises page"""
     return rx.center(
         rx.vstack(
-            rx.hstack(
-                rx.icon(tag="clock"),
-                rx.moment(
-                    format="HH:mm:ss",
-                    interval=1000,
-                    on_change=ExercisesState.update_time_left_strings,
-                ),
-            ),
-            rx.vstack(
-                search_bar(ExercisesState),
-                rx.cond(
-                    ExercisesState.search_values.length() > 0,  # type: ignore
-                    search_badges(ExercisesState),
-                ),
-                rx.desktop_only(
+            rx.box(
+                rx.vstack(
                     rx.hstack(
-                        filter_options(),
-                        spacing="9",
-                    ),
-                ),
-                rx.mobile_and_tablet(
-                    rx.vstack(
-                        filter_options(),
+                        rx.icon(tag="clock"),
+                        rx.moment(
+                            format="HH:mm:ss",
+                            interval=1000,
+                            on_change=ExercisesState.update_time_left_strings,
+                        ),
                         align="center",
+                        justify="center",
                     ),
+                    search_bar(ExercisesState),
+                    rx.cond(
+                        ExercisesState.search_values.length() > 0,  # type: ignore
+                        search_badges(ExercisesState),
+                    ),
+                    rx.desktop_only(
+                        rx.hstack(
+                            filter_options(),
+                            spacing="9",
+                        ),
+                    ),
+                    rx.mobile_and_tablet(
+                        rx.vstack(
+                            filter_options(),
+                            align="center",
+                        ),
+                    ),
+                    align="center",
+                    justify="center",
+                    spacing="3",
                 ),
-                align="center",
-                justify="center",
+                class_name="app-panel",
+                width="100%",
             ),
             render_exercises(),
             spacing="5",
-            justify="center",
+            justify="start",
             align="center",
             width="100%",
         ),
-        margin_top="2em",
-        margin_bottom="2em",
-        width="90%",
+        class_name="page-frame",
     )

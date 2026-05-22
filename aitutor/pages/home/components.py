@@ -3,7 +3,7 @@
 import reflex as rx
 
 import aitutor.global_vars as gv
-from aitutor import DisplayConfigState, routes
+from aitutor import DisplayConfigState
 from aitutor.language_state import LanguageState
 from aitutor.pages.home.state import HomeState
 from aitutor.pages.legal_infos.loader_functions import get_privacy_notice_short
@@ -154,19 +154,5 @@ def info_accordion():
                 collapsible=True,
                 variant="outline",
             ),
-        ),
-    )
-
-
-def legal_info_links():
-    """Render the links for Impressum and privacy notice"""
-    return rx.hstack(
-        rx.link(
-            LanguageState.impressum,
-            href=routes.IMPRESSUM,
-        ),
-        rx.link(
-            LanguageState.privacy_notice,
-            href=routes.PRIVACY_NOTICE,
         ),
     )

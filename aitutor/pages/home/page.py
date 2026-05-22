@@ -6,7 +6,6 @@ from aitutor import routes
 from aitutor.pages.home.components import (
     dashboard_card,
     info_accordion,
-    legal_info_links,
 )
 from aitutor.pages.navbar import with_navbar
 
@@ -20,12 +19,9 @@ def home_page() -> rx.Component:
             # Dashboard Card
             dashboard_card(),
             info_accordion(),
-            legal_info_links(),
             width="100%",
             align="center",
             justify="center",
         ),
-        margin_top="2em",
-        margin_bottom="2em",
-        width="90%",
+        class_name="page-frame",
     )

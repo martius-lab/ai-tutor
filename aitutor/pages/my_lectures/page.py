@@ -17,7 +17,5 @@ def my_lectures_page() -> rx.Component:
     """Show the lectures visible to the current user."""
     return rx.center(
         my_lectures_content(),
-        margin_top="2em",
-        margin_bottom="2em",
-        width="100%",
+        class_name="page-frame",
     )

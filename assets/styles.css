@@ -1,0 +1,212 @@
+:root {
+  --app-page-max-width: 1180px;
+  --app-page-gutter: clamp(1rem, 3vw, 2rem);
+  --app-border: color-mix(in srgb, var(--gray-6) 72%, transparent);
+  --app-surface: color-mix(in srgb, var(--gray-1) 88%, white);
+  --app-muted-surface: color-mix(in srgb, var(--gray-2) 84%, white);
+  --app-shadow: 0 1px 2px rgb(15 23 42 / 5%);
+  --app-primary: #2563eb;
+  --app-primary-hover: #1d4ed8;
+  --app-primary-contrast: #fff;
+}
+
+html,
+body {
+  min-height: 100%;
+}
+
+.app-shell {
+  min-height: 100vh;
+  width: 100%;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--gray-2) 70%, white) 0, transparent 220px),
+    var(--gray-1);
+  color: var(--gray-12);
+}
+
+.app-main {
+  flex: 1;
+  width: 100%;
+}
+
+.site-navbar {
+  background: color-mix(in srgb, var(--gray-1) 92%, white);
+  border-bottom: 1px solid var(--app-border);
+  box-shadow: var(--app-shadow);
+}
+
+.site-footer {
+  width: 100%;
+  border-top: 1px solid var(--app-border);
+  background: color-mix(in srgb, var(--gray-1) 94%, white);
+  color: var(--gray-11);
+  flex-wrap: wrap;
+}
+
+.mobile-menu-trigger {
+  border: 1px solid var(--app-border);
+  background: var(--app-surface);
+  color: var(--gray-12);
+  box-shadow: var(--app-shadow);
+}
+
+.site-footer a {
+  color: var(--gray-11);
+  text-decoration: none;
+}
+
+.site-footer a:hover {
+  color: var(--accent-11);
+  text-decoration: underline;
+}
+
+.page-frame {
+  width: min(100%, var(--app-page-max-width));
+  padding: 1.75rem var(--app-page-gutter);
+}
+
+.subnav-tabs-shell {
+  width: 100%;
+  overflow: hidden;
+  border-bottom: 1px solid var(--app-border);
+  background: color-mix(in srgb, var(--gray-1) 90%, white);
+}
+
+.subnav-tabs-list {
+  display: flex;
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: var(--gray-7) transparent;
+}
+
+.subnav-tabs-list [role="tab"] {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+.app-panel,
+.exercise-toolbar {
+  width: 100%;
+  display: grid;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  border: 1px solid var(--app-border);
+  border-radius: 8px;
+  background: var(--app-surface);
+  box-shadow: var(--app-shadow);
+}
+
+.exercise-toolbar {
+  padding: 0.5rem;
+}
+
+.exercise-toolbar-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.exercise-toolbar-group,
+.exercise-search-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.exercise-search-row {
+  justify-content: flex-end;
+}
+
+.app-search-form,
+.app-search-form > div {
+  width: 100%;
+}
+
+.app-search-form input {
+  width: min(26rem, 100%);
+}
+
+.page-frame .rt-TableRoot {
+  max-width: 100%;
+  overflow-x: auto;
+  border: 1px solid var(--app-border);
+  border-radius: 8px;
+  background: var(--app-surface);
+  box-shadow: var(--app-shadow);
+}
+
+.page-frame .rt-TableRoot table {
+  min-width: 38rem;
+}
+
+.rt-Card,
+.rt-AccordionRoot {
+  border-color: var(--app-border);
+  border-radius: 8px;
+  box-shadow: var(--app-shadow);
+}
+
+.rt-Button {
+  border-radius: 6px;
+  font-weight: 500;
+}
+
+.rt-Button:where([data-disabled]),
+.rt-Button:disabled {
+  background: var(--gray-4) !important;
+  color: var(--gray-9) !important;
+}
+
+.rt-TextFieldRoot,
+.rt-TextAreaRoot,
+.rt-SelectTrigger {
+  border-radius: 6px;
+}
+
+.rt-TableColumnHeaderCell {
+  background: var(--app-muted-surface);
+  color: var(--gray-12);
+  font-weight: 600;
+}
+
+.rt-TableCell,
+.rt-TableColumnHeaderCell {
+  padding-top: 0.8rem;
+  padding-bottom: 0.8rem;
+}
+
+.rt-TabsTrigger {
+  color: var(--gray-11);
+  font-weight: 500;
+}
+
+.rt-TabsTrigger[data-state="active"] {
+  color: var(--gray-12);
+}
+
+.rt-ProgressIndicator {
+  background: var(--app-primary);
+}
+
+@media (max-width: 560px) {
+  .page-frame {
+    padding: 1.25rem var(--app-page-gutter);
+  }
+
+  .exercise-toolbar-row,
+  .exercise-toolbar-group,
+  .exercise-search-row {
+    justify-content: stretch;
+  }
+
+  .exercise-toolbar-group > *,
+  .exercise-toolbar-row > *,
+  .exercise-search-row > * {
+    flex: 1 1 auto;
+  }
+}

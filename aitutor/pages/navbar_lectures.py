@@ -47,11 +47,12 @@ def lectures_navbar(tab_to_highlight: str) -> rx.Component:
                     ),
                 ),
                 width="100%",
+                class_name="subnav-tabs-list",
             ),
             default_value=tab_to_highlight,
             width="100%",
         ),
-        margin_top="0.5em",
+        class_name="subnav-tabs-shell",
         width="100%",
     )
 

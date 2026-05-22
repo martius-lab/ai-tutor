@@ -35,7 +35,5 @@ def token_analyzer_page() -> rx.Component:
             align="center",
             justify="center",
         ),
-        margin_top="2em",
-        margin_bottom="2em",
-        width="100%",
+        class_name="page-frame",
     )

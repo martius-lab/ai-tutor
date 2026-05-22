@@ -20,8 +20,7 @@ def impressum_page() -> rx.Component:
             ),
             align="center",
         ),
-        margin_top="2em",
-        width="90%",
+        class_name="page-frame",
     )
 
 
@@ -37,6 +36,5 @@ def privacy_notice_page() -> rx.Component:
             ),
             align="center",
         ),
-        margin_top="2em",
-        width="90%",
+        class_name="page-frame",
     )

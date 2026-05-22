@@ -21,7 +21,5 @@ def user_settings_page() -> rx.Component:
             align="center",
             justify="center",
         ),
-        margin_top="2em",
-        margin_bottom="2em",
-        width="90%",
+        class_name="page-frame",
     )

@@ -62,11 +62,12 @@ def admin_navbar(tab_to_highlight: str) -> rx.Component:
                     ),
                 ),
                 width="100%",
+                class_name="subnav-tabs-list",
             ),
             default_value=tab_to_highlight,
             width="100%",
         ),
-        margin_top="0.5em",
+        class_name="subnav-tabs-shell",
         width="100%",
     )
 
@@ -100,7 +101,7 @@ def with_admin_navbar(tab_to_highlight: str):
             spacing="0",
             padding="0",
             align="center",
-            width="90%",
+            width="100%",
         )
 
     return decorator

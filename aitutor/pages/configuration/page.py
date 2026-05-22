@@ -17,7 +17,5 @@ def configuration_page() -> rx.Component:
     """Configuration page."""
     return rx.center(
         config_form(),
-        margin_top="2em",
-        margin_bottom="2em",
-        width="100%",
+        class_name="page-frame",
     )

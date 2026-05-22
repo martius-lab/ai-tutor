@@ -17,10 +17,11 @@ from aitutor.utilities.create_default_users import create_default_users
 
 app = rx.App(
     theme=rx.theme(
-        accent_color="indigo",
+        accent_color="blue",
         gray_color="slate",
         radius="medium",
-    )
+    ),
+    stylesheets=["/styles.css"],
 )
 # info: add dynamic routes first
 app.add_page(

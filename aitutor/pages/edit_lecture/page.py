@@ -17,7 +17,5 @@ def edit_lecture_page() -> rx.Component:
     """Lecture edit/create page."""
     return rx.center(
         edit_lecture_form(),
-        margin_top="2em",
-        margin_bottom="2em",
-        width="100%",
+        class_name="page-frame",
     )
