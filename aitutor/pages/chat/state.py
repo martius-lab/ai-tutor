@@ -25,7 +25,8 @@ from aitutor.language_state import BackendTranslations as BT
 from aitutor.models import Exercise, ExerciseResult, Report, UserRole
 from aitutor.pages.chat.generated_ui import (
     GENERATIVE_UI_SYSTEM_PROMPT,
-    ShowQuizAction,
+    GeneratedUiAction,
+    GeneratedUiKind,
     TutorResponse,
     quiz_result_message,
     sanitize_conversation_for_openai,
@@ -57,7 +58,7 @@ class ChatMessage(BaseModel):
     role: Role
     # check_passed is used to color the check result message
     check_passed: bool = False
-    ui_actions: list[ShowQuizAction] = []
+    ui_actions: list[GeneratedUiAction] = []
     is_generated_ui_result: bool = False
 
 
@@ -577,6 +578,8 @@ class ChatState(SessionState):
                 return
 
             action = message.ui_actions[action_index]
+            if action.kind != GeneratedUiKind.SHOW_QUIZ:
+                return
             if question_index < 0 or question_index >= len(action.questions):
                 return
 
@@ -667,7 +670,8 @@ class ChatState(SessionState):
     def has_unanswered_required_ui_action(self) -> bool:
         """Return whether a generated UI action blocks the next chat turn."""
         return any(
-            action.require_answer_before_continuing
+            action.kind == GeneratedUiKind.SHOW_QUIZ
+            and action.require_answer_before_continuing
             and any(
                 question.selected_option_index is None
                 for question in action.questions
@@ -816,7 +820,7 @@ class ChatState(SessionState):
         message,
         role: Role,
         check_passed: bool,
-        ui_actions: list[ShowQuizAction] | None = None,
+        ui_actions: list[GeneratedUiAction] | None = None,
         is_generated_ui_result: bool = False,
     ):
         """

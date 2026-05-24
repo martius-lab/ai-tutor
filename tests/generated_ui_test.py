@@ -3,6 +3,8 @@
 import pytest
 
 from aitutor.pages.chat.generated_ui import (
+    DiagramType,
+    GeneratedUiAction,
     GeneratedUiKind,
     ShowQuizAction,
     TutorResponse,
@@ -80,6 +82,84 @@ def test_quiz_option_indexes_must_exist():
                         "options": [{"label": "A"}, {"label": "B"}],
                         "correct_option_index": 2,
                     }
+                ],
+            }
+        )
+
+
+def test_tutor_response_parses_show_diagram_action():
+    """A structured tutor response can include a renderable diagram action."""
+    response = TutorResponse.model_validate(
+        {
+            "message": "Here is the process visually.",
+            "ui_actions": [
+                {
+                    "kind": "show_diagram",
+                    "title": "Photosynthesis map",
+                    "diagram_type": "tree",
+                    "nodes": [
+                        {
+                            "id": "light",
+                            "label": "Photosynthesis",
+                            "detail": "Chlorophyll captures energy.",
+                        },
+                        {
+                            "id": "water",
+                            "label": "Water split",
+                            "detail": "Oxygen is released.",
+                        },
+                    ],
+                    "edges": [
+                        {
+                            "source_id": "light",
+                            "target_id": "water",
+                            "label": "powers",
+                        }
+                    ],
+                    "caption": "A compact process diagram.",
+                }
+            ],
+        }
+    )
+
+    diagram = response.ui_actions[0]
+    assert diagram.kind == GeneratedUiKind.SHOW_DIAGRAM
+    assert diagram.diagram_type == DiagramType.TREE
+    assert diagram.nodes[0].label == "Photosynthesis"
+
+
+def test_diagram_edges_must_reference_existing_nodes():
+    """Generated diagram edges must reference declared node ids."""
+    with pytest.raises(ValueError):
+        GeneratedUiAction.model_validate(
+            {
+                "kind": "show_diagram",
+                "title": "Invalid diagram",
+                "nodes": [
+                    {"id": "a", "label": "A"},
+                    {"id": "b", "label": "B"},
+                ],
+                "edges": [
+                    {"source_id": "a", "target_id": "missing"},
+                ],
+            }
+        )
+
+
+def test_diagram_requires_edges_between_adjacent_nodes():
+    """Generated diagram renderers expect an ordered edge between each node."""
+    with pytest.raises(ValueError):
+        GeneratedUiAction.model_validate(
+            {
+                "kind": "show_diagram",
+                "title": "Under-connected diagram",
+                "nodes": [
+                    {"id": "a", "label": "A"},
+                    {"id": "b", "label": "B"},
+                    {"id": "c", "label": "C"},
+                ],
+                "edges": [
+                    {"source_id": "a", "target_id": "b"},
                 ],
             }
         )

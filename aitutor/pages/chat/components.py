@@ -7,6 +7,7 @@ from aitutor.components.dialogs import confirm, destructive_confirm
 from aitutor.global_vars import CHAT_MESSAGE_CHAR_LIMIT
 from aitutor.language_state import LanguageState
 from aitutor.pages.chat.generated_ui_components import generated_ui_actions
+from aitutor.pages.chat.markdown_components import chat_markdown
 from aitutor.pages.chat.state import ChatMessage, ChatState, Role
 
 MESSAGE_COLLAPSE_CHAR_LIMIT = 900
@@ -28,10 +29,8 @@ def message_box(chat_message: ChatMessage, message_index: int) -> rx.Component:
     return rx.box(
         rx.vstack(
             rx.box(
-                rx.markdown(
-                    chat_message.message.replace(
-                        "\n", "  \n"
-                    ),  # transform to markdown newline
+                chat_markdown(
+                    chat_message.message,
                     background_color=rx.cond(
                         chat_message.role == Role.CHECK_RESULT,
                         rx.color(check_result_color, 4),
@@ -50,11 +49,6 @@ def message_box(chat_message: ChatMessage, message_index: int) -> rx.Component:
                             rx.color("accent", 12),
                         ),
                     ),
-                    text_align="left",
-                    display="inline-block",
-                    padding="1em",
-                    border_radius="8px",
-                    max_width=["30em", "30em", "50em", "50em", "50em", "50em"],
                 ),
                 max_width=["30em", "30em", "50em", "50em", "50em", "50em"],
                 max_height=rx.cond(

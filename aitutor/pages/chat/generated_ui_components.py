@@ -2,7 +2,13 @@
 
 import reflex as rx
 
-from aitutor.pages.chat.generated_ui import QuizOption, QuizQuestion, ShowQuizAction
+from aitutor.pages.chat.generated_diagram_components import show_diagram_action
+from aitutor.pages.chat.generated_ui import (
+    GeneratedUiAction,
+    GeneratedUiKind,
+    QuizOption,
+    QuizQuestion,
+)
 
 
 def quiz_option_button(
@@ -109,7 +115,7 @@ def quiz_question(
 
 
 def show_quiz_action(
-    action: ShowQuizAction,
+    action: GeneratedUiAction,
     message_index: int,
     action_index: int,
     on_select,
@@ -147,15 +153,29 @@ def show_quiz_action(
     )
 
 
+def generated_ui_action(
+    action: GeneratedUiAction,
+    message_index: int,
+    action_index: int,
+    on_select,
+) -> rx.Component:
+    """Render one generated UI action from its typed contract."""
+    return rx.cond(
+        action.kind == GeneratedUiKind.SHOW_DIAGRAM,
+        show_diagram_action(action),
+        show_quiz_action(action, message_index, action_index, on_select),
+    )
+
+
 def generated_ui_actions(
-    actions: list[ShowQuizAction],
+    actions: list[GeneratedUiAction],
     message_index: int,
     on_select,
 ) -> rx.Component:
     """Render generated UI actions for a chat message."""
     return rx.foreach(
         actions,
-        lambda action, action_index: show_quiz_action(
+        lambda action, action_index: generated_ui_action(
             action, message_index, action_index, on_select
         ),
     )
