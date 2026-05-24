@@ -82,7 +82,7 @@ class SubmissionsState(FilterMixin, SessionState):
             # filter only rows that are either submitted or hit token limit
             stmt = stmt.where(
                 or_(
-                    ExerciseResult.submit_time_stamp != None,  # noqa: E711
+                    ExerciseResult.submit_time_stamp != None,
                     ExerciseResult.tokens_used >= token_limit,
                 )
             )
