@@ -23,6 +23,14 @@ from aitutor.global_vars import (
 )
 from aitutor.language_state import BackendTranslations as BT
 from aitutor.models import Exercise, ExerciseResult, Report, UserRole
+from aitutor.pages.chat.generated_ui import (
+    GENERATIVE_UI_SYSTEM_PROMPT,
+    ShowQuizAction,
+    TutorResponse,
+    quiz_result_message,
+    sanitize_conversation_for_openai,
+    ui_actions_from_raw,
+)
 
 
 class Role(StrEnum):
@@ -49,6 +57,8 @@ class ChatMessage(BaseModel):
     role: Role
     # check_passed is used to color the check result message
     check_passed: bool = False
+    ui_actions: list[ShowQuizAction] = []
+    is_generated_ui_result: bool = False
 
 
 class CheckConversationResponse(BaseModel):
@@ -69,7 +79,7 @@ async def get_chat_response(conversation):
     and the user.
 
     Returns:
-        tuple: (response_text, tokens_used)
+        tuple: (tutor_response, tokens_used)
     """
     API_KEY = cast(str, decouple.config("OPENAI_API_KEY", cast=str, default=""))
     if API_KEY == "":
@@ -77,23 +87,25 @@ async def get_chat_response(conversation):
 
     # Creates GPT instance
     client = AsyncOpenAI(api_key=API_KEY)
-    # filter out messages with role 'check_result' from the conversation
-    conversation = [
-        msg for msg in conversation if msg["role"] != Role.CHECK_RESULT.value
-    ]
-    # remove msg["check_passed"] from conversation
-    for msg in conversation:
-        if "check_passed" in msg:
-            del msg["check_passed"]
+    conversation = sanitize_conversation_for_openai(conversation)
+    conversation.insert(
+        1,
+        {
+            "role": Role.SYSTEM.value,
+            "content": GENERATIVE_UI_SYSTEM_PROMPT,
+        },
+    )
     # Wait till Chat Completion Request is fulfilled.
-    session = await client.chat.completions.create(
-        model=get_config().response_ai_model, messages=conversation
+    session = await client.beta.chat.completions.parse(
+        model=get_config().response_ai_model,
+        messages=conversation,
+        response_format=TutorResponse,
     )
     # Extracts the first response by CHATGPT. By default only a single response is
     # generated.
-    response = session.choices[0].message.content
-    if not isinstance(response, str):
-        raise TypeError(f"Expected string but got {type(response)}: {response}")
+    response = session.choices[0].message.parsed
+    if response is None:
+        raise TypeError("Expected structured tutor response but got None.")
 
     # Extract token usage from the response
     tokens_used = session.usage.total_tokens if session.usage else 0
@@ -118,14 +130,7 @@ async def get_check_conversation_response(
     if not check_conversation_prompt:
         raise ValueError("Check Conversation prompt not set in config.")
 
-    # filter out messages with role 'check_result' from the conversation
-    conversation = [
-        msg for msg in conversation if msg["role"] != Role.CHECK_RESULT.value
-    ]
-    # remove msg["check_passed"] from conversation
-    for msg in conversation:
-        if "check_passed" in msg:
-            del msg["check_passed"]
+    conversation = sanitize_conversation_for_openai(conversation)
     conversation.append(
         {
             "role": Role.SYSTEM.value,
@@ -167,6 +172,7 @@ class ChatState(SessionState):
     MAX_REPORT_LENGTH: int = 2000
     current_tokens: int = 0
     token_limit: int = 0
+    expanded_message_indexes: dict[int, bool] = {}
 
     @rx.var
     def token_limit_reached(self) -> bool:
@@ -185,6 +191,11 @@ class ChatState(SessionState):
             return 0
         return int((self.current_tokens / self.token_limit) * 100)
 
+    @rx.var
+    def waiting_for_required_ui_response(self) -> bool:
+        """Check whether a generated UI action must be answered first."""
+        return self.has_unanswered_required_ui_action()
+
     @rx.event
     def set_report_text(self, value: str):
         """Set the report text."""
@@ -196,6 +207,12 @@ class ChatState(SessionState):
         self.user_input = value[:CHAT_MESSAGE_CHAR_LIMIT]
 
     @rx.event
+    def toggle_message_expansion(self, message_index: int):
+        """Toggle expansion for a long chat message."""
+        current_value = self.expanded_message_indexes.get(message_index, False)
+        self.expanded_message_indexes[message_index] = not current_value
+
+    @rx.event
     @state_require_role_or_permission(required_role=UserRole.STUDENT)
     def on_load(self):
         """
@@ -205,6 +222,7 @@ class ChatState(SessionState):
 
         self.global_load()
         self.waiting_for_response = False
+        self.expanded_message_indexes = {}
 
         userinfo = self.authenticated_user_info
         # should be guaranteed by the decorator but assert for type checkers
@@ -294,6 +312,7 @@ class ChatState(SessionState):
         self.last_user_message_index = -1
         self.is_overdue = False
         self._userinfo_id = -1
+        self.expanded_message_indexes = {}
 
     @rx.var
     def report_char_count(self) -> int:
@@ -360,13 +379,14 @@ class ChatState(SessionState):
         # state changes
         for i in reversed(range(len(self.messages))):
             msg = self.messages[i]
-            if msg.role == Role.USER.value:
+            if msg.role == Role.USER.value and not msg.is_generated_ui_result:
                 self.user_input = msg.message
                 check_already_passed = msg.check_passed
                 del self.messages[i:]
                 break
         self.check_passed = check_already_passed
         self.update_last_user_message_index()
+        self.reset_message_expansion_state()
 
         # update db
         self.save_conversation_to_db(
@@ -405,6 +425,8 @@ class ChatState(SessionState):
                     role=Role.AITUTOR,
                     check_passed=False,
                 )
+        self.reset_message_expansion_state()
+
 
     @rx.event(background=True)
     async def send_message(self, form_data: dict):
@@ -413,6 +435,8 @@ class ChatState(SessionState):
         """
         async with self:
             if self.token_limit_reached:
+                return
+            if self.has_unanswered_required_ui_action():
                 return
             if self.waiting_for_response:
                 # don't allow sending another message while waiting for a response
@@ -436,15 +460,16 @@ class ChatState(SessionState):
             # the OpenAI API can handle the messages.
             messages = self.get_messages_dict_gpt()
             # Wait while OpenAI Response is generated.
-            llm_response, tokens_used = await get_chat_response(conversation=messages)
+            tutor_response, tokens_used = await get_chat_response(conversation=messages)
 
             async with self:
                 # Append response generated by LLM to list of messages, set is_llm to
                 # True to indicate that it is generated by the user.
                 self.append_chat_message(
-                    message=llm_response,
+                    message=tutor_response.message,
                     role=Role.AITUTOR,
                     check_passed=self.check_passed,
+                    ui_actions=tutor_response.ui_actions,
                 )
                 self.update_last_user_message_index()
                 messages = self.get_messages_dict_gpt()
@@ -464,6 +489,8 @@ class ChatState(SessionState):
         """
         async with self:
             if self.token_limit_reached:
+                return
+            if self.has_unanswered_required_ui_action():
                 return
             self.waiting_for_response = True
             conversation = self.get_messages_dict_gpt()
@@ -532,6 +559,97 @@ class ChatState(SessionState):
                 TIME_FORMAT
             )
 
+    @rx.event(background=True)
+    async def answer_generated_quiz(
+        self,
+        message_index: int,
+        action_index: int,
+        question_index: int,
+        option_index: int,
+    ):
+        """Save a generated quiz answer and continue once the quiz is complete."""
+        async with self:
+            if message_index < 0 or message_index >= len(self.messages):
+                return
+
+            message = self.messages[message_index]
+            if action_index < 0 or action_index >= len(message.ui_actions):
+                return
+
+            action = message.ui_actions[action_index]
+            if question_index < 0 or question_index >= len(action.questions):
+                return
+
+            question = action.questions[question_index]
+            if question.selected_option_index is not None:
+                return
+            if option_index < 0 or option_index >= len(question.options):
+                return
+            if question_index != action.current_question_index:
+                return
+
+            updated_questions = list(action.questions)
+            updated_questions[question_index] = question.model_copy(
+                update={"selected_option_index": option_index}
+            )
+            next_question_index = question_index
+            for index, quiz_question in enumerate(updated_questions):
+                if quiz_question.selected_option_index is None:
+                    next_question_index = index
+                    break
+            answered_action = action.model_copy(
+                update={
+                    "questions": updated_questions,
+                    "current_question_index": next_question_index,
+                }
+            )
+            updated_actions = list(message.ui_actions)
+            updated_actions[action_index] = answered_action
+            self.messages[message_index] = message.model_copy(
+                update={"ui_actions": updated_actions}
+            )
+
+            quiz_is_complete = all(
+                quiz_question.selected_option_index is not None
+                for quiz_question in answered_action.questions
+            )
+            should_continue = (
+                quiz_is_complete and not self.has_unanswered_required_ui_action()
+            )
+            if should_continue:
+                self.append_chat_message(
+                    message=quiz_result_message(answered_action),
+                    role=Role.USER,
+                    check_passed=self.check_passed,
+                    is_generated_ui_result=True,
+                )
+                self.update_last_user_message_index()
+                self.waiting_for_response = True
+
+            conversation = self.get_messages_dict_gpt()
+            self.save_conversation_to_db(conversation=conversation, tokens_to_add=0)
+
+        yield
+
+        if not should_continue:
+            return
+
+        tutor_response, tokens_used = await get_chat_response(conversation=conversation)
+
+        async with self:
+            self.append_chat_message(
+                message=tutor_response.message,
+                role=Role.AITUTOR,
+                check_passed=self.check_passed,
+                ui_actions=tutor_response.ui_actions,
+            )
+            self.update_last_user_message_index()
+            conversation = self.get_messages_dict_gpt()
+            self.save_conversation_to_db(
+                conversation=conversation, tokens_to_add=tokens_used
+            )
+            self.waiting_for_response = False
+
     def update_last_user_message_index(self):
         """
         Sets the index of the last user message in the chat.
@@ -541,8 +659,21 @@ class ChatState(SessionState):
                 i
                 for i in reversed(range(len(self.messages)))
                 if self.messages[i].role == Role.USER.value
+                and not self.messages[i].is_generated_ui_result
             ),
             -1,
+        )
+
+    def has_unanswered_required_ui_action(self) -> bool:
+        """Return whether a generated UI action blocks the next chat turn."""
+        return any(
+            action.require_answer_before_continuing
+            and any(
+                question.selected_option_index is None
+                for question in action.questions
+            )
+            for message in self.messages
+            for action in message.ui_actions
         )
 
     def successfull_submit_message(self):
@@ -622,6 +753,11 @@ class ChatState(SessionState):
                     "role": chat_message.role,
                     "content": chat_message.message,
                     "check_passed": chat_message.check_passed,
+                    "ui_actions": [
+                        action.model_dump(mode="json")
+                        for action in chat_message.ui_actions
+                    ],
+                    "is_generated_ui_result": chat_message.is_generated_ui_result,
                 }
             )
         return messages_gpt
@@ -646,6 +782,12 @@ class ChatState(SessionState):
                                 msg["content"],
                                 role=Role(msg["role"]),
                                 check_passed=msg.get("check_passed", False),
+                                ui_actions=ui_actions_from_raw(
+                                    msg.get("ui_actions", [])
+                                ),
+                                is_generated_ui_result=msg.get(
+                                    "is_generated_ui_result", False
+                                ),
                             )
 
     def no_exercise_available(self):
@@ -674,15 +816,27 @@ class ChatState(SessionState):
         message,
         role: Role,
         check_passed: bool,
+        ui_actions: list[ShowQuizAction] | None = None,
+        is_generated_ui_result: bool = False,
     ):
         """
         Once a new message is generated by the user it is appended to the list of
         messages in ChatState.
         """
+        message_index = len(self.messages)
         self.messages.append(
             ChatMessage(
                 message=message,
                 role=role,
                 check_passed=check_passed,
+                ui_actions=ui_actions or [],
+                is_generated_ui_result=is_generated_ui_result,
             )
         )
+        self.expanded_message_indexes[message_index] = False
+
+    def reset_message_expansion_state(self):
+        """Reset message expansion flags after message indexes change."""
+        self.expanded_message_indexes = {
+            index: False for index, _message in enumerate(self.messages)
+        }

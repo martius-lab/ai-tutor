@@ -442,6 +442,27 @@ class LanguageState(SessionState):
         )
 
     @rx.var
+    def answer_quiz_before_continuing(self) -> str:
+        return self.translate(
+            de="Beantworten Sie zuerst das Quiz, bevor Sie die Unterhaltung fortsetzen.",
+            en="Answer the quiz before continuing the conversation.",
+        )
+
+    @rx.var
+    def show_more(self) -> str:
+        return self.translate(
+            de="Mehr anzeigen",
+            en="Show more",
+        )
+
+    @rx.var
+    def show_less(self) -> str:
+        return self.translate(
+            de="Weniger anzeigen",
+            en="Show less",
+        )
+
+    @rx.var
     def token_warning_message(self) -> str:
         return self.translate(
             de="Token-Nutzungswarnung: Ihre aktuelle Token-Nutzung für diese Übung beträgt ",

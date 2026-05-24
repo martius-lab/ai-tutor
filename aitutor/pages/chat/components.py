@@ -6,10 +6,14 @@ import aitutor.global_vars as gv
 from aitutor.components.dialogs import confirm, destructive_confirm
 from aitutor.global_vars import CHAT_MESSAGE_CHAR_LIMIT
 from aitutor.language_state import LanguageState
+from aitutor.pages.chat.generated_ui_components import generated_ui_actions
 from aitutor.pages.chat.state import ChatMessage, ChatState, Role
 
+MESSAGE_COLLAPSE_CHAR_LIMIT = 900
+COLLAPSED_MESSAGE_MAX_HEIGHT = "14rem"
 
-def message_box(chat_message: ChatMessage) -> rx.Component:
+
+def message_box(chat_message: ChatMessage, message_index: int) -> rx.Component:
     """Each message from the chat history gets its bounding box. Depending on the sender
     the message is aligned to the left for the LLM and aligned to the right for the
     user.
@@ -19,32 +23,73 @@ def message_box(chat_message: ChatMessage) -> rx.Component:
         "green",
         "yellow",
     )
+    is_long_message = chat_message.message.length() > MESSAGE_COLLAPSE_CHAR_LIMIT  # type: ignore
+    is_expanded = ChatState.expanded_message_indexes[message_index]
     return rx.box(
-        rx.markdown(
-            chat_message.message.replace("\n", "  \n"),  # transform to markdown newline
-            background_color=rx.cond(
-                chat_message.role == Role.CHECK_RESULT,
-                rx.color(check_result_color, 4),
-                rx.cond(
-                    chat_message.role == Role.AITUTOR,
-                    rx.color("gray", 3),
-                    rx.color("accent", 3),
+        rx.vstack(
+            rx.box(
+                rx.markdown(
+                    chat_message.message.replace(
+                        "\n", "  \n"
+                    ),  # transform to markdown newline
+                    background_color=rx.cond(
+                        chat_message.role == Role.CHECK_RESULT,
+                        rx.color(check_result_color, 4),
+                        rx.cond(
+                            chat_message.role == Role.AITUTOR,
+                            rx.color("gray", 3),
+                            rx.color("accent", 3),
+                        ),
+                    ),
+                    color=rx.cond(
+                        chat_message.role == Role.CHECK_RESULT,
+                        rx.color(check_result_color, 12),
+                        rx.cond(
+                            chat_message.role == Role.AITUTOR,
+                            rx.color("gray", 12),
+                            rx.color("accent", 12),
+                        ),
+                    ),
+                    text_align="left",
+                    display="inline-block",
+                    padding="1em",
+                    border_radius="8px",
+                    max_width=["30em", "30em", "50em", "50em", "50em", "50em"],
+                ),
+                max_width=["30em", "30em", "50em", "50em", "50em", "50em"],
+                max_height=rx.cond(
+                    is_long_message & ~is_expanded,
+                    COLLAPSED_MESSAGE_MAX_HEIGHT,
+                    "none",
+                ),
+                overflow=rx.cond(is_long_message & ~is_expanded, "hidden", "visible"),
+            ),
+            rx.cond(
+                is_long_message,
+                rx.button(
+                    rx.cond(
+                        is_expanded,
+                        LanguageState.show_less,
+                        LanguageState.show_more,
+                    ),
+                    variant="ghost",
+                    size="2",
+                    margin_top="0.25em",
+                    on_click=ChatState.toggle_message_expansion(message_index),
+                    _hover={"cursor": "pointer"},
                 ),
             ),
-            color=rx.cond(
-                chat_message.role == Role.CHECK_RESULT,
-                rx.color(check_result_color, 12),
-                rx.cond(
-                    chat_message.role == Role.AITUTOR,
-                    rx.color("gray", 12),
-                    rx.color("accent", 12),
-                ),
+            generated_ui_actions(
+                chat_message.ui_actions,
+                message_index,
+                ChatState.answer_generated_quiz,
             ),
-            text_align="left",
-            display="inline-block",
-            padding="1em",
-            border_radius="8px",
-            max_width=["30em", "30em", "50em", "50em", "50em", "50em"],
+            spacing="0",
+            align=rx.cond(
+                chat_message.role == Role.USER,
+                "end",
+                "start",
+            ),
         ),
         text_align=rx.cond(
             chat_message.role == Role.USER,
@@ -67,7 +112,7 @@ def show_messages() -> rx.Component:
                 ChatState.messages,
                 lambda msg, msg_i: rx.fragment(
                     rx.vstack(
-                        message_box(msg),
+                        message_box(msg, msg_i),
                         rx.cond(
                             msg_i == last_user_msg_i,
                             rx.box(
@@ -111,6 +156,7 @@ def chat_form() -> rx.Component:
             resize="vertical",
             rows="4",
             max_length=CHAT_MESSAGE_CHAR_LIMIT,
+            disabled=ChatState.waiting_for_required_ui_response,
         )
 
     return rx.form(
@@ -125,13 +171,24 @@ def chat_form() -> rx.Component:
                     variant="surface",
                 ),
                 rx.fragment(
-                    rx.desktop_only(
-                        text_area_with_key_submit(True),
-                        width="100%",
+                    rx.cond(
+                        ChatState.waiting_for_required_ui_response,
+                        rx.callout(
+                            LanguageState.answer_quiz_before_continuing,
+                            icon="list-checks",
+                            width="100%",
+                            variant="surface",
+                        ),
                     ),
-                    rx.mobile_and_tablet(
-                        text_area_with_key_submit(False),
-                        width="100%",
+                    rx.fragment(
+                        rx.desktop_only(
+                            text_area_with_key_submit(True),
+                            width="100%",
+                        ),
+                        rx.mobile_and_tablet(
+                            text_area_with_key_submit(False),
+                            width="100%",
+                        ),
                     ),
                 ),
             ),
@@ -192,11 +249,15 @@ def send_message_button() -> rx.Component:
         rx.icon("send-horizontal", size=20),
         type="submit",
         _hover=rx.cond(
-            ChatState.waiting_for_response | ChatState.token_limit_reached,
+            ChatState.waiting_for_response
+            | ChatState.token_limit_reached
+            | ChatState.waiting_for_required_ui_response,
             {"cursor": "not-allowed"},
             {"cursor": "pointer"},
         ),
-        disabled=ChatState.waiting_for_response | ChatState.token_limit_reached,
+        disabled=ChatState.waiting_for_response
+        | ChatState.token_limit_reached
+        | ChatState.waiting_for_required_ui_response,
     )
 
 
@@ -265,7 +326,9 @@ def check_conversation_button() -> rx.Component:
         ),
         # show Check Conversation button
         rx.cond(
-            ChatState.waiting_for_response | ChatState.token_limit_reached,
+            ChatState.waiting_for_response
+            | ChatState.token_limit_reached
+            | ChatState.waiting_for_required_ui_response,
             rx.button(
                 rx.desktop_only(LanguageState.check_conversation),
                 rx.mobile_and_tablet(LanguageState.check),
@@ -287,13 +350,15 @@ def check_conversation_button() -> rx.Component:
                     type="button",
                     _hover=rx.cond(
                         (ChatState.messages.length() < 2)  # type: ignore
-                        | ChatState.token_limit_reached,
+                        | ChatState.token_limit_reached
+                        | ChatState.waiting_for_required_ui_response,
                         {"cursor": "not-allowed"},
                         {"cursor": "pointer"},
                     ),
                     disabled=rx.cond(
                         (ChatState.messages.length() < 2)  # type: ignore
-                        | ChatState.token_limit_reached,
+                        | ChatState.token_limit_reached
+                        | ChatState.waiting_for_required_ui_response,
                         True,
                         False,
                     ),
