@@ -74,6 +74,9 @@ class Lecture(SQLModel, table=True):
     user_links: List["LinkUserLecture"] = Relationship(
         back_populates="lecture", sa_relationship_kwargs={"passive_deletes": True}
     )
+    exercises: List["Exercise"] = Relationship(
+        back_populates="lecture", sa_relationship_kwargs={"passive_deletes": True}
+    )
 
 
 class LinkUserLecture(SQLModel, table=True):
@@ -134,6 +137,9 @@ class Exercise(SQLModel, table=True):
     description: str = Field(nullable=False, default="")
     lesson_context: str = Field(nullable=False, default="")
     prompt_id: Optional[int] = Field(default=None, foreign_key="prompt.id")
+    lecture_id: Optional[int] = Field(
+        default=None, foreign_key="lecture.id", ondelete="CASCADE", index=True
+    )
     is_hidden: bool = Field(default=False)
     deadline: Optional[datetime] = Field(
         sa_column=Column(DateTime, nullable=True), default=None
@@ -148,6 +154,7 @@ class Exercise(SQLModel, table=True):
         back_populates="exercises", link_model=ExerciseTagLink
     )
     prompt: Optional["Prompt"] = Relationship()
+    lecture: Optional[Lecture] = Relationship(back_populates="exercises")
 
     @property
     def editing_period(self) -> str:

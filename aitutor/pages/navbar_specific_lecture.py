@@ -15,13 +15,19 @@ specific_lecture_links = [
     ),
     (
         LanguageState.exercises_link,
-        routes.LECTURE_OVERVIEW,
+        routes.LECTURE_EXERCISES,
         "book-open",
         "exercises",
-        True,
+        False,
     ),
     (LanguageState.members, routes.LECTURE_MEMBERS, "users", "members", False),
-    (LanguageState.settings, routes.LECTURE_OVERVIEW, "settings", "settings", True),
+    (
+        LanguageState.manage_exercises_link,
+        routes.LECTURE_MANAGE_EXERCISES,
+        "book-copy",
+        "manage_exercises",
+        False,
+    ),
 ]
 
 
