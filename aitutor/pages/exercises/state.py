@@ -137,6 +137,7 @@ class ExercisesState(FilterMixin, SessionState):
                     ),
                     isouter=True,
                 )
+                .where(Exercise.lecture_id == None)  # noqa: E711
             )
 
             # Don't load hidden exercises for students

@@ -563,7 +563,7 @@ class ManageExercisesState(FilterMixin, SessionState):
             query_exercises = select(Exercise).options(
                 selectinload(Exercise.tags),  # type: ignore
                 selectinload(Exercise.prompt),  # type: ignore
-            )
+            ).where(Exercise.lecture_id == None)  # noqa: E711
 
             # filter with search values
             if self.search_values:
