@@ -52,7 +52,7 @@ def prompt_card(prompt: Prompt) -> rx.Component:
                                 prompt.id
                             ),
                             variant="soft",
-                            color_scheme=rx.cond(
+                            color_scheme=rx.cond(  # type: ignore
                                 prompt.is_default_prompt,
                                 "green",
                                 "gray",

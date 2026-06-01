@@ -23,7 +23,7 @@ class PasswordInput(rx.ComponentState):
         """Create the component."""
         return rx.hstack(
             rx.input(
-                type=rx.cond(cls.password_visible, "text", "password"),
+                type=rx.cond(cls.password_visible, "text", "password"),  # type: ignore
                 on_mount=cls.hide_password,
                 **props,
             ),

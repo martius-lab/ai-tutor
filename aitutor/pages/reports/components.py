@@ -72,7 +72,7 @@ def show_table_row(table_row: TableRow) -> rx.Component:
                             rx.icon("mail", size=22),
                         ),
                         size="2",
-                        color_scheme=rx.cond(
+                        color_scheme=rx.cond(  # type: ignore
                             table_row.looked_at,
                             "gray",
                             "accent",
