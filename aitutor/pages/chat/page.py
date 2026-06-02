@@ -27,7 +27,7 @@ def chat_page() -> rx.Component:
                     rx.hstack(
                         rx.button(
                             rx.icon("arrow-left", size=20),
-                            on_click=rx.redirect(routes.EXERCISES),
+                            on_click=rx.redirect(ChatState.exercises_url),
                             _hover={"cursor": "pointer"},
                         ),
                         rx.heading(
