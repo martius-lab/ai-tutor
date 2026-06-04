@@ -13,7 +13,10 @@ from aitutor.utilities.filtering_components import search_badges, search_bar
 
 
 @with_navbar(routes.LECTURES)
-@with_specific_lecture_navbar("exercises", LectureExercisesState.current_lecture_id)
+@with_specific_lecture_navbar(
+    "exercises",
+    LectureExercisesState.current_lecture_id,
+)
 @page_require_role_or_permission(required_role=UserRole.STUDENT)
 def lecture_exercises_page() -> rx.Component:
     """Default wrapper for lecture-specific exercises page"""

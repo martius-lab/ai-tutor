@@ -69,6 +69,11 @@ app.add_page(
     on_load=pages.LectureManageExercisesState.on_load,
 )
 app.add_page(
+    pages.lecture_submissions_page,
+    route=routes.LECTURE_SUBMISSIONS + "/[lecture_id]",
+    on_load=pages.LectureSubmissionsState.on_load,
+)
+app.add_page(
     pages.all_lectures_page,
     route=routes.ALL_LECTURES + "/[lecture_id]",
     on_load=pages.AllLecturesState.on_load,
