@@ -130,3 +130,13 @@ class SessionState(reflex_local_auth.LocalAuthState):
                 )
             ).all()
             return permissions  # type: ignore
+        
+    def has_permission(self, permission: GlobalPermission) -> bool:
+        """Return whether the current user has a global permission.
+
+        Global ADMIN permission grants all global permissions.
+        """
+        return (
+            permission in self.global_permissions
+            or GlobalPermission.ADMIN in self.global_permissions
+        )      

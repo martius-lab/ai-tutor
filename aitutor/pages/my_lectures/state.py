@@ -15,7 +15,10 @@ from aitutor.models import (
     LinkUserLecture,
     UserRole,
 )
-from aitutor.utilities.lecture_permissions import count_lecture_owners
+from aitutor.utilities.lecture_permissions import (
+    count_lecture_owners,
+    get_user_lecture_link,
+)
 
 LectureWithRole = tuple[Lecture, int | None]
 
@@ -53,12 +56,11 @@ class MyLecturesState(SessionState):
         user_id = self.authenticated_user.id
 
         with rx.session() as session:
-            link = session.exec(
-                select(LinkUserLecture).where(
-                    LinkUserLecture.lecture_id == lecture_id,
-                    LinkUserLecture.user_id == user_id,
-                )
-            ).one_or_none()
+            link = get_user_lecture_link(
+                session,
+                user_id=user_id,
+                lecture_id=lecture_id,
+            )
 
             if link is None:
                 return rx.toast.error(
@@ -124,10 +126,7 @@ class MyLecturesState(SessionState):
     @rx.var(initial_value=False)
     def can_create_lectures(self) -> bool:
         """Whether the current user may create new lectures."""
-        return (
-            GlobalPermission.LECTURER in self.global_permissions
-            or GlobalPermission.ADMIN in self.global_permissions
-        )
+        return self.has_permission(GlobalPermission.LECTURER)
 
     def _reset_filters(self) -> None:
         """Reset the local filters and loaded lectures."""

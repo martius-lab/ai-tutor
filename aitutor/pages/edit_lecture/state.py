@@ -147,7 +147,7 @@ class EditLectureState(SessionState):
                         position="bottom-center",
                         invert=True,
                     ),
-                    rx.redirect(f"{routes.EDIT_LECTURE}/{lecture.id}"),
+                    rx.redirect(f"{routes.LECTURE_OVERVIEW}/{lecture.id}"),
                 ]
 
             lecture_id = self.current_lecture_id
@@ -282,10 +282,7 @@ class EditLectureState(SessionState):
 
     def _user_may_create_lecture(self) -> bool:
         """Check whether the current user may create a new lecture."""
-        return (
-            GlobalPermission.LECTURER in self.global_permissions
-            or GlobalPermission.ADMIN in self.global_permissions
-        )
+        return self.has_permission(GlobalPermission.LECTURER)
 
     def _user_may_edit_existing_lecture(self, lecture_id: int) -> bool:
         """Check whether the current user may edit an existing lecture."""
