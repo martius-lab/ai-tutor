@@ -76,14 +76,25 @@ class SessionState(reflex_local_auth.LocalAuthState):
         Handles the logout process for the authenticated user.
         """
         states = [
+            pages.AllLecturesState,
             pages.ChatState,
+            pages.EditLectureState,
             pages.HomeState,
             pages.ExercisesState,
             pages.FinishedViewState,
             pages.FinishedViewTutorState,
+            pages.LectureMembersState,
+            pages.LectureOverviewState,
+            pages.ManageConfigState,
             pages.ManageExercisesState,
             pages.ManageTagsState,
+            pages.ManagePromptsState,
+            pages.ManageUsersState,
+            pages.MyLecturesState,
+            pages.ReportsState,
+            pages.ReportViewState,
             pages.SubmissionsState,
+            pages.TokenAnalyzerState,
         ]
         for state in states:
             # get the state
