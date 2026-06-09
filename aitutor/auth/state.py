@@ -9,7 +9,6 @@ import reflex_local_auth
 from sqlmodel import select
 
 import aitutor.routes as routes
-from aitutor import pages
 from aitutor.models import GlobalPermission, Language, Permission, UserInfo, UserRole
 
 
@@ -75,24 +74,8 @@ class SessionState(reflex_local_auth.LocalAuthState):
         """
         Handles the logout process for the authenticated user.
         """
-        states = [
-            pages.ChatState,
-            pages.HomeState,
-            pages.ExercisesState,
-            pages.FinishedViewState,
-            pages.FinishedViewTutorState,
-            pages.ManageExercisesState,
-            pages.ManageTagsState,
-            pages.SubmissionsState,
-        ]
-        for state in states:
-            # get the state
-            state_instance = await self.get_state(state)
-            # clear the state
-            state_instance.on_logout()
-
-        # logout
         self.do_logout()
+        self.reset()
         return rx.redirect(routes.HOME, replace=True)
 
     @rx.var(cache=True, initial_value=None)
