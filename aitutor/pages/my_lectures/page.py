@@ -10,9 +10,9 @@ from aitutor.pages.navbar import with_navbar
 from aitutor.pages.navbar_lectures import with_lectures_navbar
 
 
+@page_require_role_or_permission(required_role=UserRole.STUDENT)
 @with_navbar(routes.LECTURES)
 @with_lectures_navbar(routes.MY_LECTURES)
-@page_require_role_or_permission(required_role=UserRole.STUDENT)
 def my_lectures_page() -> rx.Component:
     """Show the lectures visible to the current user."""
     return rx.center(

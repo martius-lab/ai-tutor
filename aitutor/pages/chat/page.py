@@ -16,8 +16,8 @@ from aitutor.pages.chat.state import ChatState
 from aitutor.pages.navbar import with_navbar
 
 
-@with_navbar(routes.EXERCISES)
 @page_require_role_or_permission(required_role=UserRole.STUDENT)
+@with_navbar(routes.EXERCISES)
 def chat_page() -> rx.Component:
     """Renders the web page."""
     return rx.container(
