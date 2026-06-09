@@ -23,7 +23,6 @@ ExerciseWithResult = tuple[Exercise, Optional[ExerciseResult]]
 class LectureExercisesState(FilterMixin, SessionState):
     """State for managing exercises belonging to one lecture."""
 
-    current_lecture_id: int | None = None
     exercises_with_result: list[ExerciseWithResult] = []
     open_deadline_exercises: list[ExerciseWithResult] = []
     no_deadline_exercises: list[ExerciseWithResult] = []
@@ -58,11 +57,11 @@ class LectureExercisesState(FilterMixin, SessionState):
         Fetch exercises from database for the lecture in the route.
         """
         self.global_load()
+        assert self.authenticated_user_info is not None
         self._clear_exercises()
 
-        try:
-            lecture_id = int(self.lecture_id)
-        except ValueError:
+        lecture_id = self._parse_route_lecture_id()
+        if lecture_id is None:
             return rx.redirect(routes.NOT_FOUND)
 
         if not self._user_may_view_lecture(lecture_id):
@@ -72,14 +71,16 @@ class LectureExercisesState(FilterMixin, SessionState):
             if session.get(Lecture, lecture_id) is None:
                 return rx.redirect(routes.NOT_FOUND)
 
-        self.current_lecture_id = lecture_id
-        assert self.authenticated_user_info is not None
         self.load_exercises()
 
     def on_logout(self):
         """Clears the state when the user logs out."""
-        self.current_lecture_id = None
         self._clear_exercises()
+
+    @rx.var
+    def route_lecture_id(self) -> str:
+        """Return the lecture id route parameter for lecture-specific navigation."""
+        return str(self.lecture_id)
 
     def _clear_exercises(self):
         """Clear loaded exercise lists."""
@@ -88,6 +89,13 @@ class LectureExercisesState(FilterMixin, SessionState):
         self.no_deadline_exercises = []
         self.closed_deadline_exercises = []
         self.time_left_strings = {}
+
+    def _parse_route_lecture_id(self) -> int | None:
+        """Return the numeric lecture id from the route, or None if invalid."""
+        try:
+            return int(self.lecture_id)
+        except ValueError:
+            return None
 
     def _user_may_view_lecture(self, lecture_id: int) -> bool:
         """Check whether the current user may view this lecture."""
@@ -158,7 +166,8 @@ class LectureExercisesState(FilterMixin, SessionState):
         """
         Get exercises from db based on the current search values and the user role.
         """
-        if self.current_lecture_id is None:
+        lecture_id = self._parse_route_lecture_id()
+        if lecture_id is None:
             self._clear_exercises()
             return
 
@@ -176,7 +185,7 @@ class LectureExercisesState(FilterMixin, SessionState):
                     ),
                     isouter=True,
                 )
-                .where(Exercise.lecture_id == self.current_lecture_id)
+                .where(Exercise.lecture_id == lecture_id)
             )
 
             # Don't load hidden exercises for students
