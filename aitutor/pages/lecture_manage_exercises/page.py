@@ -4,7 +4,7 @@ import reflex as rx
 
 from aitutor import routes
 from aitutor.auth.protection import page_require_lecture_role
-from aitutor.models import GlobalPermission, LectureRole
+from aitutor.models import LectureRole
 from aitutor.pages.lecture_manage_exercises.components import (
     add_exercise_button,
     delete_selected_exercises_button,
@@ -24,10 +24,7 @@ from aitutor.utilities.filtering_components import search_badges, search_bar
     "manage_exercises",
     LectureManageExercisesState.current_lecture_id,
 )
-@page_require_lecture_role(
-    LectureRole.TUTOR,
-    allowed_permissions=[GlobalPermission.LECTURER],
-)
+@page_require_lecture_role(LectureRole.TUTOR)
 def lecture_manage_exercises_page() -> rx.Component:
     """Manage lecture-specific exercises page."""
     return rx.center(

@@ -3,8 +3,8 @@
 import reflex as rx
 
 from aitutor import routes
-from aitutor.auth.protection import page_require_role_or_permission
-from aitutor.models import UserRole
+from aitutor.auth.protection import page_require_lecture_role
+from aitutor.models import LectureRole
 from aitutor.pages.lecture_members.components import lecture_members_content
 from aitutor.pages.lecture_members.state import LectureMembersState
 from aitutor.pages.navbar import with_navbar
@@ -16,7 +16,7 @@ from aitutor.pages.navbar_specific_lecture import with_specific_lecture_navbar
     "members",
     LectureMembersState.current_lecture_id,
 )
-@page_require_role_or_permission(required_role=UserRole.STUDENT)
+@page_require_lecture_role(LectureRole.STUDENT)
 def lecture_members_page() -> rx.Component:
     """Show the lecture-specific members page."""
     return rx.center(

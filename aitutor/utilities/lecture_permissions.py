@@ -111,9 +111,6 @@ def user_may_manage_lecture_exercises(
     if has_global_admin_permission(global_permissions):
         return True
 
-    if GlobalPermission.LECTURER in global_permissions:
-        return True
-
     return get_user_lecture_role(
         session,
         user_id=user_id,
