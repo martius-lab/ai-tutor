@@ -177,6 +177,9 @@ def initialize():
         sys.exit(1)
     else:
         print("OPENAI_API_KEY found in environment variables.")
+    openai_base_url = decouple.config("OPENAI_BASE_URL", cast=str, default="")
+    if openai_base_url:
+        print(f"Using OPENAI_BASE_URL={openai_base_url}")
 
     create_default_users()
 
