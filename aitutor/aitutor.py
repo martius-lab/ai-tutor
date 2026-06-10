@@ -159,24 +159,20 @@ def initialize():
 
     # load config here, so we fail immediately if there is any issue with it
     try:
-        config = get_config()
-        if config.course_name:
-            print("Configuration can be loaded successfully.")
+        _ = get_config()
     except Exception as e:
         print("\033[91m" + f"Error loading config: {e}" + "\033[0m")
         sys.exit(1)
 
     # check if an openai_key is in the .env, if not, we exit
-    API_KEY = decouple.config("OPENAI_API_KEY", cast=str, default="")
-    if API_KEY == "":
+    openai_api_key = decouple.config("OPENAI_API_KEY", cast=str, default="")
+    if openai_api_key == "":
         print(
             "\033[91m"
-            + "OPENAI_KEY is not set in the environment variables."
+            + "OPENAI_API_KEY is not set in the environment variables."
             + "\033[0m"
         )
         sys.exit(1)
-    else:
-        print("OPENAI_API_KEY found in environment variables.")
     openai_base_url = decouple.config("OPENAI_BASE_URL", cast=str, default="")
     if openai_base_url:
         print(f"Using OPENAI_BASE_URL={openai_base_url}")
