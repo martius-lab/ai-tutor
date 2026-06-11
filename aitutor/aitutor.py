@@ -124,6 +124,16 @@ app.add_page(
     route=routes.REGISTER,
     on_load=pages.MyRegisterState.on_load,
 )
+app.add_page(
+    pages.forgot_password_page,
+    route=routes.FORGOT_PASSWORD,
+    on_load=pages.ForgotPasswordState.on_load,
+)
+app.add_page(
+    pages.reset_password_page,
+    route=routes.RESET_PASSWORD + "/[token]",
+    on_load=pages.ResetPasswordState.on_load,
+)
 app.add_page(pages.not_found_page, route=routes.NOT_FOUND)
 app.add_page(pages.impressum_page, route=routes.IMPRESSUM)
 app.add_page(pages.privacy_notice_page, route=routes.PRIVACY_NOTICE)

@@ -61,6 +61,7 @@ def login_form() -> rx.Component:
                 placeholder=LanguageState.password,
                 required=True,
             ),
+            rx.link(LanguageState.forgot_password, href=routes.FORGOT_PASSWORD),
             rx.button(LanguageState.log_in, width="100%", _hover={"cursor": "pointer"}),
             rx.center(
                 rx.link(LanguageState.register, href=routes.REGISTER),

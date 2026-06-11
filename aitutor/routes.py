@@ -27,6 +27,8 @@ TOKEN_ANALYZER = ADMIN_SETTINGS + "/token_analyzer"
 REPORT_VIEW = REPORTS + "/report_view"
 
 USER_SETTINGS = "/user_settings"
+FORGOT_PASSWORD = "/forgot_password"
+RESET_PASSWORD = "/reset_password"
 
 LECTURES = "/lectures"
 MY_LECTURES = LECTURES + "/my_lectures"

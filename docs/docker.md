@@ -22,8 +22,8 @@ The config files `config.toml` and `.env` are expected to be found in the projec
 
 ## Email setup
 
-Signup welcome emails are sent through SMTP.  Configure the following values in
-`.env`:
+Signup welcome emails and password reset emails are sent through SMTP.
+Configure the following values in `.env`:
 
 ```
 SMTP_HOST=smtp.example.com
@@ -52,8 +52,9 @@ The SMTP username may be the ZDV-ID rather than the visible email address.  In
 that case, set `SMTP_USERNAME` to the ZDV-ID and set `SMTP_FROM_EMAIL` to the
 actual sender address that should appear on account emails.
 
-Signup welcome emails use `AITUTOR_PUBLIC_URL` to build login links.  Set it to
-the public URL users open in their browser.
+Password reset emails use `AITUTOR_PUBLIC_URL` to build reset links.  Set it to
+the public URL users open in their browser.  New users receive a short welcome
+email after registration.
 
 Do not commit real SMTP credentials to the repository.
 

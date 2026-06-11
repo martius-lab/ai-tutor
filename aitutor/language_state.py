@@ -822,6 +822,33 @@ class LanguageState(SessionState):
         )
 
     @rx.var
+    def forgot_password(self) -> str:
+        return self.translate(de="Passwort vergessen?", en="Forgot password?")
+
+    @rx.var
+    def reset_password(self) -> str:
+        return self.translate(de="Passwort zurücksetzen", en="Reset password")
+
+    @rx.var
+    def username_or_email(self) -> str:
+        return self.translate(de="Benutzername oder E-Mail", en="Username or email")
+
+    @rx.var
+    def send_reset_link(self) -> str:
+        return self.translate(de="Link zum Zurücksetzen senden", en="Send reset link")
+
+    @rx.var
+    def set_new_password(self) -> str:
+        return self.translate(de="Neues Passwort festlegen", en="Set new password")
+
+    @rx.var
+    def confirm_new_password(self) -> str:
+        return self.translate(
+            de="Neues Passwort bestätigen",
+            en="Confirm new password",
+        )
+
+    @rx.var
     def password(self) -> str:
         """Password string"""
         return self.translate(de="Passwort", en="Password")
@@ -1542,7 +1569,63 @@ class BackendTranslations:
             en="Error: The entered password is incorrect.",
         )
 
-    # Account email flows ---------------------------------------------------------------
+    # Login, registration and account email flows --------------------------------------
+    @staticmethod
+    def enter_username_or_email(language: Language) -> str:
+        return translate(
+            language,
+            de="Geben Sie Ihren Benutzernamen oder Ihre E-Mail-Adresse ein.",
+            en="Enter your username or email address.",
+        )
+
+    @staticmethod
+    def password_reset_email_unavailable(language: Language) -> str:
+        return translate(
+            language,
+            de="Die E-Mail zum Zurücksetzen des Passworts ist derzeit nicht verfügbar. Bitte versuchen Sie es später erneut.",
+            en="Password reset email is not available right now. Please try again later.",
+        )
+
+    @staticmethod
+    def password_reset_requested_generic(language: Language) -> str:
+        return translate(
+            language,
+            de="Falls ein Konto mit diesem Benutzernamen oder dieser E-Mail existiert, wurde ein Link zum Zurücksetzen gesendet.",
+            en="If an account exists for that username or email, a reset link has been sent.",
+        )
+
+    @staticmethod
+    def enter_new_password(language: Language) -> str:
+        return translate(
+            language,
+            de="Geben Sie ein neues Passwort ein.",
+            en="Enter a new password.",
+        )
+
+    @staticmethod
+    def passwords_do_not_match(language: Language) -> str:
+        return translate(
+            language,
+            de="Die eingegebenen Passwörter stimmen nicht überein.",
+            en="The entered passwords do not match.",
+        )
+
+    @staticmethod
+    def reset_link_invalid_or_expired(language: Language) -> str:
+        return translate(
+            language,
+            de="Dieser Link zum Zurücksetzen ist ungültig oder abgelaufen.",
+            en="This reset link is invalid or has expired.",
+        )
+
+    @staticmethod
+    def password_changed_login_now(language: Language) -> str:
+        return translate(
+            language,
+            de="Ihr Passwort wurde geändert. Sie können sich jetzt anmelden.",
+            en="Your password was changed. You can now log in.",
+        )
+
     @staticmethod
     def signup_welcome_subject(language: Language) -> str:
         return translate(
@@ -1570,6 +1653,34 @@ class BackendTranslations:
                 f"Username: {username}\n\n"
                 f"You can log in here:\n{login_url}\n\n"
                 "If you did not create this account, please contact the AI Tutor team."
+            ),
+        )
+
+    @staticmethod
+    def password_reset_subject(language: Language) -> str:
+        return translate(
+            language,
+            de="AI Tutor Passwort zurücksetzen",
+            en="Reset your AI Tutor password",
+        )
+
+    @staticmethod
+    def password_reset_body(
+        language: Language, *, username: str, reset_link: str, ttl_hours: int
+    ) -> str:
+        return translate(
+            language,
+            de=(
+                f"Hallo {username},\n\n"
+                "Verwenden Sie diesen Link, um Ihr AI Tutor Passwort zurückzusetzen:\n\n"
+                f"{reset_link}\n\n"
+                f"Dieser Link läuft in {ttl_hours} Stunden ab. Falls Sie dies nicht angefordert haben, können Sie diese E-Mail ignorieren."
+            ),
+            en=(
+                f"Hello {username},\n\n"
+                "Use this link to reset your AI Tutor password:\n\n"
+                f"{reset_link}\n\n"
+                f"This link expires in {ttl_hours} hours. If you did not request it, you can ignore this email."
             ),
         )
 

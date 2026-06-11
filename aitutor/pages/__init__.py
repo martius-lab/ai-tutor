@@ -1,3 +1,11 @@
+from aitutor.pages.account_emails.page import (
+    forgot_password_page,
+    reset_password_page,
+)
+from aitutor.pages.account_emails.state import (
+    ForgotPasswordState,
+    ResetPasswordState,
+)
 from aitutor.pages.all_lectures.page import all_lectures_page
 from aitutor.pages.all_lectures.state import AllLecturesState
 from aitutor.pages.chat.page import chat_page
@@ -19,7 +27,10 @@ from aitutor.pages.login_and_registration.page import (
     custom_login_page,
     custom_register_page,
 )
-from aitutor.pages.login_and_registration.state import MyLoginState, MyRegisterState
+from aitutor.pages.login_and_registration.state import (
+    MyLoginState,
+    MyRegisterState,
+)
 from aitutor.pages.manage_exercises.page import manage_exercises_page
 from aitutor.pages.manage_exercises.state import ManageExercisesState, ManageTagsState
 from aitutor.pages.manage_users.page import manage_users_page
@@ -58,6 +69,8 @@ __all__ = [
     "finished_view_tutor_page",
     "custom_login_page",
     "custom_register_page",
+    "forgot_password_page",
+    "reset_password_page",
     "impressum_page",
     "privacy_notice_page",
     "user_settings_page",
@@ -80,6 +93,8 @@ __all__ = [
     "SubmissionsState",
     "MyLoginState",
     "MyRegisterState",
+    "ForgotPasswordState",
+    "ResetPasswordState",
     "UserSettingsState",
     "ManageConfigState",
     "EditLectureState",
