@@ -20,6 +20,43 @@ Then open [https://localhost](https://localhost) in your browser to access the a
 
 The config files `config.toml` and `.env` are expected to be found in the projects root directory and are mounted into the container from the host system.  This means that the configuration can easily be changed without the need of rebuilding the images.
 
+## Email setup
+
+Signup welcome emails are sent through SMTP.  Configure the following values in
+`.env`:
+
+```
+SMTP_HOST=smtp.example.com
+SMTP_PORT=587
+SMTP_FROM_EMAIL="AI Tutor <noreply@example.com>"
+SMTP_USERNAME=your-smtp-user
+SMTP_PASSWORD=your-smtp-password
+SMTP_USE_TLS=true
+SMTP_USE_SSL=false
+SMTP_TIMEOUT=10
+AITUTOR_PUBLIC_URL=https://your-ai-tutor.example
+```
+
+`SMTP_USERNAME` and `SMTP_PASSWORD` are optional only if the SMTP server allows
+unauthenticated sending.  If one is set, the other must be set as well.
+
+For University of Tuebingen SMTP, the documented server is typically:
+
+```
+SMTP_HOST=smtpserv.uni-tuebingen.de
+SMTP_PORT=587
+SMTP_USE_TLS=true
+```
+
+The SMTP username may be the ZDV-ID rather than the visible email address.  In
+that case, set `SMTP_USERNAME` to the ZDV-ID and set `SMTP_FROM_EMAIL` to the
+actual sender address that should appear on account emails.
+
+Signup welcome emails use `AITUTOR_PUBLIC_URL` to build login links.  Set it to
+the public URL users open in their browser.
+
+Do not commit real SMTP credentials to the repository.
+
 
 ## Production environment with Postgresql
 
