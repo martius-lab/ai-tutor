@@ -2,16 +2,16 @@
 
 from datetime import datetime
 from enum import StrEnum
-from typing import Optional, cast
+from typing import Optional
 from zoneinfo import ZoneInfo
 
-import decouple
 import reflex as rx
 from openai import AsyncOpenAI
 from pydantic import BaseModel
 from sqlmodel import select
 
 import aitutor.routes as routes
+from aitutor.app_settings import get_settings
 from aitutor.auth.protection import state_require_role_or_permission
 from aitutor.auth.state import SessionState
 from aitutor.config import get_config
@@ -71,12 +71,10 @@ async def get_chat_response(conversation):
     Returns:
         tuple: (response_text, tokens_used)
     """
-    API_KEY = cast(str, decouple.config("OPENAI_API_KEY", cast=str, default=""))
-    if API_KEY == "":
-        raise ValueError("API key not found.")
+    api_key = get_settings().require_openai_api_key()
 
     # Creates GPT instance
-    client = AsyncOpenAI(api_key=API_KEY)
+    client = AsyncOpenAI(api_key=api_key)
     # filter out messages with role 'check_result' from the conversation
     conversation = [
         msg for msg in conversation if msg["role"] != Role.CHECK_RESULT.value
@@ -132,10 +130,8 @@ async def get_check_conversation_response(
             "content": check_conversation_prompt,
         }
     )
-    API_KEY = cast(str, decouple.config("OPENAI_API_KEY", cast=str, default=""))
-    if API_KEY == "":
-        raise ValueError("API key not found.")
-    client = AsyncOpenAI(api_key=API_KEY)
+    api_key = get_settings().require_openai_api_key()
+    client = AsyncOpenAI(api_key=api_key)
     completion = await client.beta.chat.completions.parse(
         model=config.check_ai_model,
         messages=conversation,

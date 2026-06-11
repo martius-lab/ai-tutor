@@ -5,12 +5,12 @@ This module contains the main app definition for Reflex.
 
 import sys
 
-import decouple
 import reflex as rx
 from sqlmodel import select
 
 import aitutor.routes as routes
 from aitutor import pages
+from aitutor.app_settings import get_settings
 from aitutor.config import add_configprompts_to_db, get_config, initialize_config_db
 from aitutor.models import Prompt
 from aitutor.utilities.create_default_users import create_default_users
@@ -146,17 +146,14 @@ def initialize():
         print("\033[91m" + f"Error loading config: {e}" + "\033[0m")
         sys.exit(1)
 
-    # check if an openai_key is in the .env, if not, we exit
-    API_KEY = decouple.config("OPENAI_API_KEY", cast=str, default="")
-    if API_KEY == "":
-        print(
-            "\033[91m"
-            + "OPENAI_KEY is not set in the environment variables."
-            + "\033[0m"
-        )
+    # check if an OpenAI key is configured, if not, we exit
+    try:
+        get_settings().require_openai_api_key()
+    except ValueError as e:
+        print("\033[91m" + str(e) + "\033[0m")
         sys.exit(1)
-    else:
-        print("OPENAI_API_KEY found in environment variables.")
+
+    print("OPENAI_API_KEY found in environment variables.")
 
     create_default_users()
 
