@@ -32,6 +32,8 @@ LECTURES = "/lectures"
 MY_LECTURES = LECTURES + "/my_lectures"
 ALL_LECTURES = LECTURES + "/all_lectures"
 EDIT_LECTURE = LECTURES + "/edit_lecture"
+LECTURE_OVERVIEW = LECTURES + "/overview"
+LECTURE_MEMBERS = LECTURES + "/members"
 
 NOT_FOUND = "/404"
 

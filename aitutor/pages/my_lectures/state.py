@@ -7,12 +7,17 @@ from sqlmodel import and_, select
 
 from aitutor.auth.protection import state_require_role_or_permission
 from aitutor.auth.state import SessionState
+from aitutor.language_state import BackendTranslations as BT
 from aitutor.models import (
     GlobalPermission,
     Lecture,
     LectureRole,
     LinkUserLecture,
     UserRole,
+)
+from aitutor.utilities.lecture_permissions import (
+    count_lecture_owners,
+    get_user_lecture_link,
 )
 
 LectureWithRole = tuple[Lecture, int | None]
@@ -40,6 +45,52 @@ class MyLecturesState(SessionState):
     def set_role_filter(self, value: str):
         """Set the role filter."""
         self.role_filter = value
+
+    @rx.event
+    @state_require_role_or_permission(required_role=UserRole.STUDENT)
+    def leave_lecture(self, lecture_id: int):
+        """Leave a joined lecture while ensuring every lecture keeps an owner."""
+        if self.authenticated_user is None or self.authenticated_user.id is None:
+            return
+
+        user_id = self.authenticated_user.id
+
+        with rx.session() as session:
+            link = get_user_lecture_link(
+                session,
+                user_id=user_id,
+                lecture_id=lecture_id,
+            )
+
+            if link is None:
+                return rx.toast.error(
+                    description=BT.not_joined_lecture(self.language),
+                    duration=5000,
+                    position="bottom-center",
+                    invert=True,
+                )
+
+            if (
+                int(link.role) == LectureRole.OWNER.value
+                and count_lecture_owners(session, lecture_id=lecture_id) <= 1
+            ):
+                return rx.toast.error(
+                    description=BT.cannot_remove_sole_lecture_owner(self.language),
+                    duration=7000,
+                    position="bottom-center",
+                    invert=True,
+                )
+
+            session.delete(link)
+            session.commit()
+
+        self.load_joined_lectures()
+        return rx.toast.success(
+            description=BT.left_lecture_successfully(self.language),
+            duration=5000,
+            position="bottom-center",
+            invert=True,
+        )
 
     @rx.event
     @state_require_role_or_permission(required_role=UserRole.STUDENT)
@@ -75,10 +126,7 @@ class MyLecturesState(SessionState):
     @rx.var(initial_value=False)
     def can_create_lectures(self) -> bool:
         """Whether the current user may create new lectures."""
-        return (
-            GlobalPermission.LECTURER in self.global_permissions
-            or GlobalPermission.ADMIN in self.global_permissions
-        )
+        return self.has_permission(GlobalPermission.LECTURER)
 
     def _reset_filters(self) -> None:
         """Reset the local filters and loaded lectures."""
