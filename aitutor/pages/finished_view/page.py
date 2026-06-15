@@ -13,8 +13,8 @@ from aitutor.pages.finished_view.state import FinishedViewState
 from aitutor.pages.navbar import with_navbar
 
 
-@with_navbar(routes.EXERCISES)
 @page_require_role_or_permission(required_role=UserRole.STUDENT)
+@with_navbar(routes.EXERCISES)
 def finished_view_page() -> rx.Component:
     """Renders the web page."""
     return rx.container(

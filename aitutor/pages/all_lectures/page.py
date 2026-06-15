@@ -9,8 +9,8 @@ from aitutor.pages.all_lectures.components import all_lectures_content
 from aitutor.pages.navbar import with_navbar
 
 
-@with_navbar(routes.LECTURES)
 @page_require_role_or_permission(required_role=UserRole.STUDENT)
+@with_navbar(routes.LECTURES)
 def all_lectures_page() -> rx.Component:
     """Show the page scaffold for all available lectures."""
     return rx.center(
