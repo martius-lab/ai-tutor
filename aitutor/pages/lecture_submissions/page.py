@@ -23,12 +23,12 @@ def lecture_submissions_content() -> rx.Component:
     )
 
 
+@page_require_lecture_role(LectureRole.TUTOR)
 @with_navbar(routes.LECTURES)
 @with_specific_lecture_navbar(
     "submissions",
     LectureSubmissionsState.current_lecture_id,
 )
-@page_require_lecture_role(LectureRole.TUTOR)
 def lecture_submissions_page() -> rx.Component:
     """Lecture-specific submissions page."""
     return rx.center(
