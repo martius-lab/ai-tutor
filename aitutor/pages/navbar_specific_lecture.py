@@ -28,10 +28,10 @@ specific_lecture_links = [
     ),
     SpecificLectureLink(
         label=LanguageState.exercises_link,
-        route=routes.LECTURE_OVERVIEW,
+        route=routes.LECTURE_EXERCISES,
         icon="book-open",
         tab_value="exercises",
-        disabled=True,
+        disabled=False,
     ),
     SpecificLectureLink(
         label=LanguageState.members,
@@ -41,11 +41,11 @@ specific_lecture_links = [
         disabled=False,
     ),
     SpecificLectureLink(
-        label=LanguageState.settings,
-        route=routes.LECTURE_OVERVIEW,
-        icon="settings",
-        tab_value="settings",
-        disabled=True,
+        label=LanguageState.manage_exercises_link,
+        route=routes.LECTURE_MANAGE_EXERCISES,
+        icon="book-copy",
+        tab_value="manage_exercises",
+        disabled=False,
     ),
 ]
 
