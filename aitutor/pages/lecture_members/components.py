@@ -120,7 +120,7 @@ def add_member_dialog() -> rx.Component:
                 rx.hstack(
                     rx.dialog.close(
                         rx.button(
-                            LS.cancel,
+                            LS.close,
                             variant="outline",
                             on_click=LectureMembersState.close_add_member_dialog,
                             _hover={"cursor": "pointer"},
@@ -254,7 +254,7 @@ def member_row(member: LectureMemberRow) -> rx.Component:
 def members_table() -> rx.Component:
     """Render the table containing all loaded lecture members."""
     return rx.cond(
-        LectureMembersState.members,
+        LectureMembersState.member_list,
         rx.table.root(
             rx.table.header(
                 rx.table.row(
@@ -266,7 +266,7 @@ def members_table() -> rx.Component:
                     ),
                 )
             ),
-            rx.table.body(rx.foreach(LectureMembersState.members, member_row)),
+            rx.table.body(rx.foreach(LectureMembersState.member_list, member_row)),
             variant="surface",
             size="3",
             width="85vw",

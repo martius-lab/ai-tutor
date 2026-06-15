@@ -1,7 +1,5 @@
 """Components for the my lectures page."""
 
-from typing import cast
-
 import reflex as rx
 
 import aitutor.routes as routes
@@ -106,18 +104,12 @@ def role_filter_text(label, value) -> rx.Component:
 
 def role_filter_value(role: int | None):
     """Return the filter value for a role."""
-    return rx.cond(
-        role == LectureRole.OWNER.value,
-        ROLE_FILTER_OWNER,
-        rx.cond(
-            role == LectureRole.TUTOR.value,
-            ROLE_FILTER_TUTOR,
-            rx.cond(
-                role == LectureRole.STUDENT.value,
-                ROLE_FILTER_STUDENT,
-                ROLE_FILTER_NOT_JOINED,
-            ),
-        ),
+    return rx.match(
+        role,
+        (LectureRole.OWNER.value, ROLE_FILTER_OWNER),
+        (LectureRole.TUTOR.value, ROLE_FILTER_TUTOR),
+        (LectureRole.STUDENT.value, ROLE_FILTER_STUDENT),
+        ROLE_FILTER_NOT_JOINED,
     )
 
 
@@ -151,12 +143,13 @@ def browse_lectures_button() -> rx.Component:
 
 def leave_lecture_button(lecture: Lecture, *, width: str | None = None) -> rx.Component:
     """Render the leave lecture button with a destructive confirmation dialog."""
+    assert lecture.id is not None, "Lecture must be persisted to render leave button."
     return destructive_confirm(
         title=LS.leave_lecture + ": " + lecture.lecture_name,
         description=LS.leave_lecture_description,
         confirm_text=LS.leave_lecture,
         cancel_text=LS.cancel,
-        on_confirm=MyLecturesState.leave_lecture(cast(int, lecture.id)),
+        on_confirm=MyLecturesState.leave_lecture(lecture.id),
         trigger=rx.button(
             rx.flex(
                 rx.icon("log-out", size=15),
@@ -174,6 +167,7 @@ def leave_lecture_button(lecture: Lecture, *, width: str | None = None) -> rx.Co
 
 def enter_lecture_button(lecture: Lecture, *, width: str | None = None) -> rx.Component:
     """Render the button for entering a lecture."""
+    assert lecture.id is not None, "Lecture must be persisted to render enter button."
     return rx.link(
         rx.button(
             rx.flex(
@@ -192,6 +186,7 @@ def enter_lecture_button(lecture: Lecture, *, width: str | None = None) -> rx.Co
 
 def edit_lecture_button(lecture: Lecture, *, width: str | None = None) -> rx.Component:
     """Render the button for editing a lecture."""
+    assert lecture.id is not None, "Lecture must be persisted to render edit button."
     return rx.link(
         rx.button(
             rx.flex(

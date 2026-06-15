@@ -18,9 +18,9 @@ from aitutor.pages.token_analyzer.state import (
 )
 
 
+@page_require_role_or_permission(required_role=UserRole.ADMIN)
 @with_navbar(routes.ADMIN_SETTINGS)
 @with_admin_navbar(routes.TOKEN_ANALYZER)
-@page_require_role_or_permission(required_role=UserRole.ADMIN)
 def token_analyzer_page() -> rx.Component:
     """Token analyzer page for user token usage overview."""
     return rx.center(

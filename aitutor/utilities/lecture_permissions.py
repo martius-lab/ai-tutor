@@ -69,10 +69,7 @@ def user_may_edit_lecture(
     lecture_id: int,
 ) -> bool:
     """Return whether a user may edit a lecture's settings."""
-    if has_global_admin_permission(global_permissions):
-        return True
-
-    return (
+    return has_global_admin_permission(global_permissions) or (
         get_user_lecture_role(
             session,
             user_id=user_id,

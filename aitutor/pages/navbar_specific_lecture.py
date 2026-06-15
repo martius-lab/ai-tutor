@@ -1,5 +1,7 @@
 """Specific lecture navbar."""
 
+from typing import NamedTuple
+
 import reflex as rx
 
 import aitutor.routes as routes
@@ -55,42 +57,58 @@ class SpecificLectureNavbarState(SessionState):
             return None
 
 
+class SpecificLectureLink(NamedTuple):
+    """Configuration for one tab in the specific lecture navbar."""
+
+    label: rx.Var[str]
+    route: str
+    icon: str
+    tab_value: str
+    disabled: bool
+
+
 specific_lecture_links = [
-    (
-        LanguageState.overview,
-        routes.LECTURE_OVERVIEW,
-        "layout-dashboard",
-        "lecture_overview",
-        False,
+    SpecificLectureLink(
+        label=LanguageState.overview,
+        route=routes.LECTURE_OVERVIEW,
+        icon="layout-dashboard",
+        tab_value="lecture_overview",
+        disabled=False,
     ),
-    (
-        LanguageState.exercises_link,
-        routes.LECTURE_EXERCISES,
-        "book-open",
-        "exercises",
-        False,
+    SpecificLectureLink(
+        label=LanguageState.exercises_link,
+        route=routes.LECTURE_EXERCISES,
+        icon="book-open",
+        tab_value="exercises",
+        disabled=False,
     ),
-    (LanguageState.members, routes.LECTURE_MEMBERS, "users", "members", False),
+    SpecificLectureLink(
+        label=LanguageState.members,
+        route=routes.LECTURE_MEMBERS,
+        icon="users",
+        tab_value="members",
+        disabled=False,
+    ),
 ]
 
-manage_exercises_link = (
-    LanguageState.manage_exercises_link,
-    routes.LECTURE_MANAGE_EXERCISES,
-    "book-copy",
-    "manage_exercises",
-    False,
+manage_exercises_link = SpecificLectureLink(
+    label=LanguageState.manage_exercises_link,
+    route=routes.LECTURE_MANAGE_EXERCISES,
+    icon="book-copy",
+    tab_value="manage_exercises",
+    disabled=False,
 )
 
-submissions_link = (
-    LanguageState.submissions_link,
-    routes.LECTURE_SUBMISSIONS,
-    "search-check",
-    "submissions",
-    False,
+submissions_link = SpecificLectureLink(
+    label=LanguageState.submissions_link,
+    route=routes.LECTURE_SUBMISSIONS,
+    icon="search-check",
+    tab_value="submissions",
+    disabled=False,
 )
 
 
-def tab_content(link):
+def tab_content(link: SpecificLectureLink):
     """
     The icon and text for a tab in the specific lecture navbar.
 
@@ -99,7 +117,7 @@ def tab_content(link):
     """
     return rx.hstack(
         rx.box(
-            rx.icon(link[2], size=20),
+            rx.icon(link.icon, size=20),
             width="20px",
             height="20px",
             display="flex",
@@ -107,7 +125,7 @@ def tab_content(link):
             justify_content="center",
             flex_shrink=0,
         ),
-        rx.text(link[0]),
+        rx.text(link.label),
         spacing="2",
         align="center",
     )
@@ -122,14 +140,14 @@ def lecture_route(route: str, lecture_id) -> rx.Var[str]:
     )
 
 
-def tab_trigger(link, lecture_id) -> rx.Component:
+def tab_trigger(link: SpecificLectureLink, lecture_id) -> rx.Component:
     """Create one tab trigger for the specific lecture navbar."""
     return rx.tabs.trigger(
         tab_content(link),
-        value=link[3],
-        disabled=link[4],
-        on_click=rx.redirect(lecture_route(link[1], lecture_id)),
-        _hover={"cursor": rx.cond(link[4], "not-allowed", "pointer")},
+        value=link.tab_value,
+        disabled=link.disabled,
+        on_click=rx.redirect(lecture_route(link.route, lecture_id)),
+        _hover={"cursor": rx.cond(link.disabled, "not-allowed", "pointer")},
     )
 
 
@@ -138,10 +156,7 @@ def specific_lecture_navbar(tab_to_highlight: str, lecture_id) -> rx.Component:
     return rx.box(
         rx.tabs.root(
             rx.tabs.list(
-                rx.foreach(
-                    specific_lecture_links,
-                    lambda link: tab_trigger(link, lecture_id),
-                ),
+                *[tab_trigger(link, lecture_id) for link in specific_lecture_links],
                 rx.cond(
                     SpecificLectureNavbarState.can_manage_exercises,
                     tab_trigger(manage_exercises_link, lecture_id),

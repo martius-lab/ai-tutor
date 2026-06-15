@@ -12,12 +12,12 @@ from aitutor.pages.navbar_specific_lecture import with_specific_lecture_navbar
 from aitutor.utilities.filtering_components import search_badges, search_bar
 
 
+@page_require_lecture_role(LectureRole.STUDENT)
 @with_navbar(routes.LECTURES)
 @with_specific_lecture_navbar(
     "exercises",
-    LectureExercisesState.current_lecture_id,
+    LectureExercisesState.route_lecture_id,
 )
-@page_require_lecture_role(LectureRole.STUDENT)
 def lecture_exercises_page() -> rx.Component:
     """Default wrapper for lecture-specific exercises page"""
     return rx.center(

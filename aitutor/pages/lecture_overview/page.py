@@ -11,12 +11,12 @@ from aitutor.pages.navbar import with_navbar
 from aitutor.pages.navbar_specific_lecture import with_specific_lecture_navbar
 
 
+@page_require_lecture_role(LectureRole.STUDENT)
 @with_navbar(routes.LECTURES)
 @with_specific_lecture_navbar(
     "lecture_overview",
     LectureOverviewState.current_lecture_id,
 )
-@page_require_lecture_role(LectureRole.STUDENT)
 def lecture_overview_page() -> rx.Component:
     """Show the lecture-specific overview page."""
     return rx.center(
