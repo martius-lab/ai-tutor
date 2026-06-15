@@ -58,7 +58,7 @@ def test_send_signup_welcome_sends_email(monkeypatch):
         message.set_content(kwargs["body"])
         sent_messages.append(message)
 
-    monkeypatch.setenv("AITUTOR_PUBLIC_URL", "https://ai-tutor.example")
+    monkeypatch.setenv("DOMAIN", "ai-tutor.example")
     monkeypatch.setattr("aitutor.account_emails.send_text_email", fake_send_text_email)
 
     with make_session() as session:
@@ -84,7 +84,7 @@ def test_send_signup_welcome_uses_user_language(monkeypatch):
         message.set_content(kwargs["body"])
         sent_messages.append(message)
 
-    monkeypatch.setenv("AITUTOR_PUBLIC_URL", "https://ai-tutor.example")
+    monkeypatch.setenv("DOMAIN", "ai-tutor.example")
     monkeypatch.setattr("aitutor.account_emails.send_text_email", fake_send_text_email)
 
     with make_session() as session:
