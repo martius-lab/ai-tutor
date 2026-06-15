@@ -19,12 +19,12 @@ from aitutor.pages.navbar_specific_lecture import with_specific_lecture_navbar
 from aitutor.utilities.filtering_components import search_badges, search_bar
 
 
+@page_require_role_or_permission(required_role=UserRole.STUDENT)
 @with_navbar(routes.LECTURES)
 @with_specific_lecture_navbar(
     "manage_exercises",
     LectureManageExercisesState.current_lecture_id,
 )
-@page_require_role_or_permission(required_role=UserRole.STUDENT)
 def lecture_manage_exercises_page() -> rx.Component:
     """Manage lecture-specific exercises page."""
     return rx.center(

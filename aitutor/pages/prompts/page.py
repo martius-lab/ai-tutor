@@ -10,12 +10,12 @@ from aitutor.pages.navbar_admin import with_admin_navbar
 from aitutor.pages.prompts.components import prompt_management
 
 
-@with_navbar(routes.ADMIN_SETTINGS)
-@with_admin_navbar(routes.PROMPTS)
 @page_require_role_or_permission(
     required_role=UserRole.ADMIN,
     allowed_permissions=[GlobalPermission.MAINTAINER],
 )
+@with_navbar(routes.ADMIN_SETTINGS)
+@with_admin_navbar(routes.PROMPTS)
 def prompts_page() -> rx.Component:
     """Prompts page."""
     return rx.center(

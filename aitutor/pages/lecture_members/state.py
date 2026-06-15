@@ -4,7 +4,7 @@ from dataclasses import dataclass
 
 import reflex as rx
 from reflex_local_auth.user import LocalUser
-from sqlmodel import func, select
+from sqlmodel import col, func, select
 
 import aitutor.routes as routes
 from aitutor.auth.protection import state_require_role_or_permission
@@ -41,7 +41,7 @@ class LectureMembersState(SessionState):
 
     current_lecture_id: int | None = None
     lecture_name: str = ""
-    members: list[LectureMemberRow] = []
+    members: dict[int, LectureMemberRow] = {}
     available_users: list[AvailableLectureUser] = []
     available_user_filter_query: str = ""
     add_member_dialog_is_open: bool = False
@@ -60,32 +60,14 @@ class LectureMembersState(SessionState):
     @rx.event
     def set_member_role(self, user_id: int, role_name: str):
         """Update the selected role for one loaded member."""
-        self.members = [
-            LectureMemberRow(
-                user_id=member.user_id,
-                username=member.username,
-                role=member.role,
-                selected_role=role_name
-                if member.user_id == user_id
-                else member.selected_role,
-            )
-            for member in self.members
-        ]
+        if user_id in self.members:
+            self.members[user_id].selected_role = role_name
 
     @rx.event
     def cancel_member_role_change(self, user_id: int):
         """Reset one selected role to the persisted role."""
-        self.members = [
-            LectureMemberRow(
-                user_id=member.user_id,
-                username=member.username,
-                role=member.role,
-                selected_role=member.role
-                if member.user_id == user_id
-                else member.selected_role,
-            )
-            for member in self.members
-        ]
+        if user_id in self.members:
+            self.members[user_id].selected_role = self.members[user_id].role
 
     @rx.event
     @state_require_role_or_permission(required_role=UserRole.STUDENT)
@@ -126,6 +108,11 @@ class LectureMembersState(SessionState):
     def can_manage_members(self) -> bool:
         """Whether the current user may manage members of this lecture."""
         return self.is_global_admin or self.is_owner
+
+    @rx.var(initial_value=[])
+    def member_list(self) -> list[LectureMemberRow]:
+        """Return loaded members as a list for rendering."""
+        return list(self.members.values())
 
     @rx.var(initial_value=[])
     def filtered_available_users(self) -> list[AvailableLectureUser]:
@@ -266,7 +253,7 @@ class LectureMembersState(SessionState):
         """Reset loaded lecture and member data."""
         self.current_lecture_id = None
         self.lecture_name = ""
-        self.members = []
+        self.members = {}
         self.available_users = []
         self.available_user_filter_query = ""
         self.add_member_dialog_is_open = False
@@ -288,7 +275,7 @@ class LectureMembersState(SessionState):
     def load_members(self):
         """Load all members for the current lecture."""
         if self.current_lecture_id is None:
-            self.members = []
+            self.members = {}
             return
 
         with rx.session() as session:
@@ -303,8 +290,8 @@ class LectureMembersState(SessionState):
                 )
             ).all()
 
-        self.members = [
-            LectureMemberRow(
+        self.members = {
+            int(user.id): LectureMemberRow(
                 user_id=int(user.id),
                 username=user.username,
                 role=LectureRole(int(role)).name,
@@ -312,7 +299,7 @@ class LectureMembersState(SessionState):
             )
             for user, role in rows
             if user.id is not None
-        ]
+        }
         self.current_user_lecture_role = self._find_current_user_role()
 
     def load_available_users(self):
@@ -322,37 +309,34 @@ class LectureMembersState(SessionState):
             return
 
         with rx.session() as session:
-            member_user_ids = set(
-                session.exec(
-                    select(LinkUserLecture.user_id).where(
-                        LinkUserLecture.lecture_id == self.current_lecture_id,
-                    )
-                ).all()
+            member_user_ids = select(LinkUserLecture.user_id).where(
+                LinkUserLecture.lecture_id == self.current_lecture_id,
             )
 
-            users = session.exec(select(LocalUser).order_by(LocalUser.username)).all()
+            users = session.exec(
+                select(LocalUser)
+                .where(col(LocalUser.id).not_in(member_user_ids))
+                .order_by(LocalUser.username)
+            ).all()
 
         self.available_users = [
             AvailableLectureUser(user_id=int(user.id), username=user.username)
             for user in users
-            if user.id is not None and user.id not in member_user_ids
+            if user.id is not None
         ]
 
     def _find_current_user_role(self) -> int | None:
         """Return the loaded lecture role for the authenticated user."""
         if self.authenticated_user is None or self.authenticated_user.id is None:
             return None
-        for member in self.members:
-            if member.user_id == self.authenticated_user.id:
-                return LectureRole[member.role].value
-        return None
+        member = self.members.get(self.authenticated_user.id)
+        if member is None:
+            return None
+        return LectureRole[member.role].value
 
     def _find_member(self, user_id: int) -> LectureMemberRow | None:
         """Return one loaded member by user id."""
-        return next(
-            (member for member in self.members if member.user_id == user_id),
-            None,
-        )
+        return self.members.get(user_id)
 
     def _get_member_link(self, session, user_id: int) -> LinkUserLecture | None:
         """Return the persisted membership link in the current lecture."""

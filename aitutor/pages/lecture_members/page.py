@@ -11,12 +11,12 @@ from aitutor.pages.navbar import with_navbar
 from aitutor.pages.navbar_specific_lecture import with_specific_lecture_navbar
 
 
+@page_require_role_or_permission(required_role=UserRole.STUDENT)
 @with_navbar(routes.LECTURES)
 @with_specific_lecture_navbar(
     "members",
     LectureMembersState.current_lecture_id,
 )
-@page_require_role_or_permission(required_role=UserRole.STUDENT)
 def lecture_members_page() -> rx.Component:
     """Show the lecture-specific members page."""
     return rx.center(

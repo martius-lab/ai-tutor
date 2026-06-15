@@ -11,8 +11,8 @@ from aitutor.pages.navbar import with_navbar
 from aitutor.utilities.filtering_components import search_badges, search_bar
 
 
-@with_navbar(routes.EXERCISES)
 @page_require_role_or_permission(required_role=UserRole.STUDENT)
+@with_navbar(routes.EXERCISES)
 def exercises_page() -> rx.Component:
     """Default wrapper for exercises page"""
     return rx.center(

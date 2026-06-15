@@ -9,8 +9,8 @@ from aitutor.pages.edit_lecture.components import edit_lecture_content
 from aitutor.pages.navbar import with_navbar
 
 
-@with_navbar(routes.LECTURES)
 @page_require_role_or_permission(required_role=UserRole.STUDENT)
+@with_navbar(routes.LECTURES)
 def edit_lecture_page() -> rx.Component:
     """Lecture edit/create page."""
     return rx.center(
