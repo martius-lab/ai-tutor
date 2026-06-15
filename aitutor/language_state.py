@@ -1557,20 +1557,34 @@ class BackendTranslations:
     ) -> str:
         return translate(
             language,
-            de=(
-                f"Hallo {username},\n\n"
-                "Ihr AI Tutor Konto wurde erfolgreich erstellt.\n\n"
-                f"Benutzername: {username}\n\n"
-                f"Sie können sich hier anmelden:\n{login_url}\n\n"
-                "Falls Sie dieses Konto nicht erstellt haben, kontaktieren Sie bitte das AI Tutor Team."
-            ),
-            en=(
-                f"Hello {username},\n\n"
-                "Your AI Tutor account has been created successfully.\n\n"
-                f"Username: {username}\n\n"
-                f"You can log in here:\n{login_url}\n\n"
-                "If you did not create this account, please contact the AI Tutor team."
-            ),
+            de=textwrap.dedent(
+                f"""
+                Hallo {username},
+
+                Ihr AI Tutor Konto wurde erfolgreich erstellt.
+
+                Benutzername: {username}
+
+                Sie können sich hier anmelden:
+                {login_url}
+
+                Falls Sie dieses Konto nicht erstellt haben, kontaktieren Sie bitte das AI Tutor Team.
+                """
+            ).lstrip(),
+            en=textwrap.dedent(
+                f"""
+                Hello {username},
+
+                Your AI Tutor account has been created successfully.
+
+                Username: {username}
+
+                You can log in here:
+                {login_url}
+
+                If you did not create this account, please contact the AI Tutor team.
+                """
+            ).lstrip(),
         )
 
     # ManageExercisesState -------------------------------------------------------------

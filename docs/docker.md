@@ -34,26 +34,14 @@ SMTP_PASSWORD=your-smtp-password
 SMTP_USE_TLS=true
 SMTP_USE_SSL=false
 SMTP_TIMEOUT=10
-AITUTOR_PUBLIC_URL=https://your-ai-tutor.example
+DOMAIN=your-ai-tutor.example
 ```
 
 `SMTP_USERNAME` and `SMTP_PASSWORD` are optional only if the SMTP server allows
 unauthenticated sending.  If one is set, the other must be set as well.
 
-For University of Tuebingen SMTP, the documented server is typically:
-
-```
-SMTP_HOST=smtpserv.uni-tuebingen.de
-SMTP_PORT=587
-SMTP_USE_TLS=true
-```
-
-The SMTP username may be the ZDV-ID rather than the visible email address.  In
-that case, set `SMTP_USERNAME` to the ZDV-ID and set `SMTP_FROM_EMAIL` to the
-actual sender address that should appear on account emails.
-
-Signup welcome emails use `AITUTOR_PUBLIC_URL` to build login links.  Set it to
-the public URL users open in their browser.
+Signup welcome emails use `DOMAIN` to build HTTPS login links.  Set it to the
+public domain users open in their browser.
 
 Do not commit real SMTP credentials to the repository.
 

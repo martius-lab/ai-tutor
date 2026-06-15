@@ -112,7 +112,6 @@ class MyRegisterState(reflex_local_auth.RegistrationState):
             welcome_email_sent = False
             welcome_email_failed = False
             with rx.session() as session:
-                local_user = session.get(LocalUser, self.new_user_id)
                 user_info = UserInfo(
                     email=form_data["email"],
                     role=UserRole.STUDENT,
@@ -122,6 +121,7 @@ class MyRegisterState(reflex_local_auth.RegistrationState):
                 session.add(user_info)
                 session.commit()
                 try:
+                    local_user = session.get(LocalUser, self.new_user_id)
                     if local_user is not None:
                         send_signup_welcome(
                             local_user=local_user,

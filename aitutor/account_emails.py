@@ -11,9 +11,8 @@ from aitutor.models import UserInfo
 
 def public_base_url() -> str:
     """Public base URL used for links in account emails."""
-    return cast(
-        str, config("AITUTOR_PUBLIC_URL", default="http://localhost:3000", cast=str)
-    ).rstrip("/")
+    domain = cast(str, config("DOMAIN", default="localhost", cast=str)).strip()
+    return f"https://{domain}".rstrip("/")
 
 
 def send_signup_welcome(*, local_user: LocalUser, user_info: UserInfo) -> None:
