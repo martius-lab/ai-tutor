@@ -115,8 +115,7 @@ class LectureReportViewState(SessionState):
 
         with rx.session() as session:
             report = session.exec(
-                select(Report)
-                .where(
+                select(Report).where(
                     Report.id == int(self.report_id),
                     Report.lecture_id == self.current_lecture_id,
                 )
