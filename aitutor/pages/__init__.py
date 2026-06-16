@@ -25,6 +25,10 @@ from aitutor.pages.lecture_members.page import lecture_members_page
 from aitutor.pages.lecture_members.state import LectureMembersState
 from aitutor.pages.lecture_overview.page import lecture_overview_page
 from aitutor.pages.lecture_overview.state import LectureOverviewState
+from aitutor.pages.lecture_report_view.page import lecture_report_view_page
+from aitutor.pages.lecture_report_view.state import LectureReportViewState
+from aitutor.pages.lecture_reports.page import lecture_reports_page
+from aitutor.pages.lecture_reports.state import LectureReportsState
 from aitutor.pages.lecture_submissions.page import lecture_submissions_page
 from aitutor.pages.lecture_submissions.state import LectureSubmissionsState
 from aitutor.pages.legal_infos.page import impressum_page, privacy_notice_page
@@ -67,6 +71,8 @@ __all__ = [
     "lecture_exercises_page",
     "lecture_manage_exercises_page",
     "lecture_submissions_page",
+    "lecture_reports_page",
+    "lecture_report_view_page",
     "exercises_page",
     "navbar",
     "not_found_page",
@@ -101,6 +107,8 @@ __all__ = [
     "LectureManageExercisesState",
     "LectureManageTagsState",
     "LectureSubmissionsState",
+    "LectureReportsState",
+    "LectureReportViewState",
     "SubmissionsState",
     "MyLoginState",
     "MyRegisterState",

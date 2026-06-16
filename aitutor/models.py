@@ -311,6 +311,8 @@ class Report(SQLModel, table=True):
         id: Primary key of the report.
         exercise_id: Foreign key referencing the associated Exercise
         (nullable if exercise deleted).
+        lecture_id: Foreign key referencing the lecture the report belongs to
+        (kept if exercise is deleted; cascades if lecture is deleted).
         userinfo_id: Foreign key referencing the user who submitted the report.
         report_text: The text content of the report.
         looked_at: Flag indicating whether the report has been viewed by a tutor.
@@ -329,6 +331,20 @@ class Report(SQLModel, table=True):
                 "exercise.id", ondelete="SET NULL", name="fk_report_exercise_id"
             ),
             nullable=True,
+        ),
+    )
+    lecture_id: Optional[int] = Field(
+        default=None,
+        sa_column=Column(
+            "lecture_id",
+            sa.Integer,
+            SAForeignKey(
+                "lecture.id",
+                ondelete="CASCADE",
+                name="fk_report_lecture_id_lecture",
+            ),
+            nullable=True,
+            index=True,
         ),
     )
     userinfo_id: int = Field(

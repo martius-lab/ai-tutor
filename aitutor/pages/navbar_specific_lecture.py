@@ -107,6 +107,14 @@ submissions_link = SpecificLectureLink(
     disabled=False,
 )
 
+reports_link = SpecificLectureLink(
+    label=LanguageState.reports,
+    route=routes.LECTURE_REPORTS,
+    icon="flag",
+    tab_value="reports",
+    disabled=False,
+)
+
 
 def tab_content(link: SpecificLectureLink):
     """
@@ -164,6 +172,10 @@ def specific_lecture_navbar(tab_to_highlight: str, lecture_id) -> rx.Component:
                 rx.cond(
                     SpecificLectureNavbarState.can_view_submissions,
                     tab_trigger(submissions_link, lecture_id),
+                ),
+                rx.cond(
+                    SpecificLectureNavbarState.can_view_submissions,
+                    tab_trigger(reports_link, lecture_id),
                 ),
                 width="100%",
             ),

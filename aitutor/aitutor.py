@@ -34,6 +34,11 @@ app.add_page(
     on_load=pages.ReportViewState.on_load,
 )
 app.add_page(
+    pages.lecture_report_view_page,
+    route=routes.LECTURE_REPORT_VIEW + "/[lecture_id]/[report_id]",
+    on_load=pages.LectureReportViewState.on_load,
+)
+app.add_page(
     pages.chat_page,
     route=routes.CHAT + "/[exercise_id]",
     on_load=pages.ChatState.on_load,
@@ -72,6 +77,11 @@ app.add_page(
     pages.lecture_submissions_page,
     route=routes.LECTURE_SUBMISSIONS + "/[lecture_id]",
     on_load=pages.LectureSubmissionsState.on_load,
+)
+app.add_page(
+    pages.lecture_reports_page,
+    route=routes.LECTURE_REPORTS + "/[lecture_id]",
+    on_load=pages.LectureReportsState.on_load,
 )
 app.add_page(
     pages.all_lectures_page,

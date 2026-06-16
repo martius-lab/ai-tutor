@@ -366,6 +366,7 @@ class ChatState(SessionState):
 
             report = Report(
                 exercise_id=self.current_exercise.id,
+                lecture_id=self.current_exercise.lecture_id,
                 userinfo_id=self._userinfo_id,
                 report_text=self.report_text,
                 looked_at=False,
