@@ -45,6 +45,7 @@ Create local environment file `.env` with the following content:
 
 ```bash
 OPENAI_API_KEY=<your key>
+OPENAI_BASE_URL=<url>  # optional, if using a different provider (instead of OpenAI)
 ```
 
 (Optional) Add your own `config.toml` file for the initial configuration. See [configfile documentation](docs/configfile.md) for more information.
