@@ -33,10 +33,10 @@ class LectureAccessState(SessionState):
 
     def _has_lecture_role_at_least(self, required_role: LectureRole) -> bool:
         """Check the current route lecture role against the required lecture role."""
-        if GlobalPermission.ADMIN in self.global_permissions:
-            return True
         if self.authenticated_user is None or self.authenticated_user.id is None:
             return False
+        if GlobalPermission.ADMIN in self.global_permissions:
+            return True
 
         try:
             lecture_id = int(self.lecture_id)
@@ -168,14 +168,9 @@ def page_require_lecture_role(
                 case _:
                     lecture_access_cond = LectureAccessState.is_lecture_member_or_admin
 
-            if perms_to_check:
-                perm_cond = SessionState.global_permissions.contains(perms_to_check[0])
-                for perm in perms_to_check[1:]:
-                    perm_cond = perm_cond | SessionState.global_permissions.contains(
-                        perm
-                    )
-            else:
-                perm_cond = False
+            perm_cond = False
+            for perm in perms_to_check:
+                perm_cond = perm_cond | SessionState.global_permissions.contains(perm)
 
             final_access_cond = lecture_access_cond | perm_cond
 
@@ -209,6 +204,44 @@ def page_require_lecture_role(
 
         protected_page.__name__ = page.__name__
         return protected_page
+
+    return decorator
+
+
+def state_require_lecture_role(required_role: LectureRole):
+    """Protect a state event by requiring a lecture-specific role.
+
+    Global ADMIN permission is always allowed.
+    """
+
+    def decorator(func):
+        @functools.wraps(func)
+        def wrapper(self: SessionState, *args, **kwargs):
+            if not self.is_authenticated:
+                return
+            if self.authenticated_user is None or self.authenticated_user.id is None:
+                return
+
+            try:
+                lecture_id = int(self.lecture_id)
+            except ValueError:
+                return
+
+            if GlobalPermission.ADMIN in self.global_permissions:
+                return func(self, *args, **kwargs)
+
+            with rx.session() as session:
+                link = session.exec(
+                    select(LinkUserLecture).where(
+                        LinkUserLecture.lecture_id == lecture_id,
+                        LinkUserLecture.user_id == self.authenticated_user.id,
+                    )
+                ).one_or_none()
+
+            if link is not None and link.role >= required_role:
+                return func(self, *args, **kwargs)
+
+        return wrapper
 
     return decorator
 

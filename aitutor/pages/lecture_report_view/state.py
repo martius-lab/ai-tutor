@@ -5,9 +5,12 @@ from sqlalchemy.orm import selectinload
 from sqlmodel import select
 
 import aitutor.routes as routes
-from aitutor.auth.protection import state_require_role_or_permission
+from aitutor.auth.protection import (
+    state_require_lecture_role,
+    state_require_role_or_permission,
+)
 from aitutor.auth.state import SessionState
-from aitutor.models import Lecture, Report, UserInfo, UserRole
+from aitutor.models import Lecture, LectureRole, Report, UserInfo, UserRole
 from aitutor.pages.chat.state import ChatMessage, Role
 from aitutor.utilities.lecture_permissions import user_may_view_lecture_submissions
 
@@ -107,7 +110,7 @@ class LectureReportViewState(SessionState):
             ]
 
     @rx.event
-    @state_require_role_or_permission(required_role=UserRole.STUDENT)
+    @state_require_lecture_role(LectureRole.TUTOR)
     def toggle_looked_at(self):
         """Toggle the looked_at status of the lecture-specific report."""
         if self.current_lecture_id is None:
