@@ -22,6 +22,7 @@ class FakeSmtpClient:
         self.started_tls = False
         self.login_args = None
         self.sent_messages = []
+        self.calls = []
         FakeSmtpClient.instances.append(self)
 
     def __enter__(self):
@@ -31,12 +32,18 @@ class FakeSmtpClient:
         return None
 
     def starttls(self):
+        self.calls.append("starttls")
         self.started_tls = True
 
+    def ehlo(self):
+        self.calls.append("ehlo")
+
     def login(self, username, password):
+        self.calls.append("login")
         self.login_args = (username, password)
 
     def send_message(self, message):
+        self.calls.append("send_message")
         self.sent_messages.append(message)
 
 
@@ -124,5 +131,6 @@ def test_send_email_uses_starttls_and_authentication():
     assert client.port == 587
     assert client.timeout == 10
     assert client.started_tls is True
+    assert client.calls == ["starttls", "ehlo", "login", "send_message"]
     assert client.login_args == ("smtp-user", "smtp-password")
     assert client.sent_messages == [message]
