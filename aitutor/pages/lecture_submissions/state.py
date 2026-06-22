@@ -1,4 +1,4 @@
-"""The state for the submissions page."""
+"""The state for the lecture-specific submissions page."""
 
 from dataclasses import dataclass
 from typing import override
@@ -10,16 +10,25 @@ from sqlalchemy.orm import selectinload
 from sqlmodel import and_, func, or_, select
 
 import aitutor.global_vars as gv
+import aitutor.routes as routes
 from aitutor.auth.protection import state_require_role_or_permission
 from aitutor.auth.state import SessionState
 from aitutor.config import get_config
-from aitutor.models import Exercise, ExerciseResult, Tag, UserInfo, UserRole
+from aitutor.models import (
+    Exercise,
+    ExerciseResult,
+    Lecture,
+    Tag,
+    UserInfo,
+    UserRole,
+)
 from aitutor.utilities.filtering_components import FilterMixin
+from aitutor.utilities.lecture_permissions import user_may_view_lecture_submissions
 
 
 @dataclass
-class TableRow:
-    """A row in the submissions table."""
+class LectureSubmissionTableRow:
+    """A row in the lecture-specific submissions table."""
 
     username: str
     user_id: int | None
@@ -30,10 +39,11 @@ class TableRow:
     exercise_tags: list[str]
 
 
-class SubmissionsState(FilterMixin, SessionState):
-    """State for the submissions page."""
+class LectureSubmissionsState(FilterMixin, SessionState):
+    """State for the lecture-specific submissions page."""
 
-    table_rows: list[TableRow]
+    current_lecture_id: int | None = None
+    table_rows: list[LectureSubmissionTableRow]
 
     # valid search keys. overrides the var from FilterMixin
     search_keys: list[str] = [
@@ -43,28 +53,62 @@ class SubmissionsState(FilterMixin, SessionState):
     ]
 
     @rx.event
-    @state_require_role_or_permission(required_role=UserRole.TUTOR)
+    @state_require_role_or_permission(required_role=UserRole.STUDENT)
     def on_load(self):
-        """gets executed when the page loads."""
+        """Gets executed when the page loads."""
         self.global_load()
+        self.current_lecture_id = None
+        self.table_rows = []
+
+        try:
+            lecture_id = int(self.lecture_id)
+        except ValueError:
+            return rx.redirect(routes.NOT_FOUND)
+
+        if not self._user_may_view_submissions(lecture_id):
+            return rx.redirect(routes.MY_LECTURES)
+
+        with rx.session() as session:
+            if session.get(Lecture, lecture_id) is None:
+                return rx.redirect(routes.NOT_FOUND)
+
+        self.current_lecture_id = lecture_id
         self.load_submissions()
+
+    def _user_may_view_submissions(self, lecture_id: int) -> bool:
+        """Return whether the current user may view submissions in the lecture."""
+        if self.authenticated_user is None or self.authenticated_user.id is None:
+            return False
+
+        with rx.session() as session:
+            return user_may_view_lecture_submissions(
+                session,
+                user_id=self.authenticated_user.id,
+                global_permissions=self.global_permissions,
+                lecture_id=lecture_id,
+            )
 
     def on_logout(self):
         """Clears the state when the user logs out."""
+        self.current_lecture_id = None
         self.table_rows = []
         self.search_values = []  # from FilterMixin
 
     @override
     @rx.event
     def load_filtered_data(self):
-        """implements the abstract method from FilterMixin"""
+        """Implements the abstract method from FilterMixin."""
         self.load_submissions()
 
     def load_submissions(self):
-        """Get submissions from db based on the current search values."""
+        """Get submissions from db based on the current lecture and search values."""
+        if self.current_lecture_id is None:
+            self.table_rows = []
+            return
+
         token_limit = get_config().exercise_token_limit
         with rx.session() as session:
-            # statement to load all submissions
+            # statement to load all submissions for this lecture
             stmt = (
                 select(LocalUser, UserInfo, Exercise, ExerciseResult)
                 .select_from(LocalUser)
@@ -76,7 +120,7 @@ class SubmissionsState(FilterMixin, SessionState):
                     & (ExerciseResult.userinfo_id == UserInfo.id),  # type: ignore
                 )
                 .options(selectinload(Exercise.tags))  # type: ignore
-                .where(Exercise.lecture_id == None)  # noqa: E711
+                .where(Exercise.lecture_id == self.current_lecture_id)
                 .order_by(func.lower(Exercise.title), LocalUser.username)
             )
 
@@ -117,7 +161,7 @@ class SubmissionsState(FilterMixin, SessionState):
 
             # get submissions from db
             self.table_rows = [
-                TableRow(
+                LectureSubmissionTableRow(
                     username=user.username,
                     user_id=user.id,
                     has_submitted=result.submit_time_stamp is not None,

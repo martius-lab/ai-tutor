@@ -3,8 +3,8 @@
 import reflex as rx
 
 from aitutor import routes
-from aitutor.auth.protection import page_require_role_or_permission
-from aitutor.models import UserRole
+from aitutor.auth.protection import page_require_lecture_role
+from aitutor.models import LectureRole
 from aitutor.pages.lecture_exercises.components import filter_options, render_exercises
 from aitutor.pages.lecture_exercises.state import LectureExercisesState
 from aitutor.pages.navbar import with_navbar
@@ -12,9 +12,12 @@ from aitutor.pages.navbar_specific_lecture import with_specific_lecture_navbar
 from aitutor.utilities.filtering_components import search_badges, search_bar
 
 
-@page_require_role_or_permission(required_role=UserRole.STUDENT)
+@page_require_lecture_role(LectureRole.STUDENT)
 @with_navbar(routes.LECTURES)
-@with_specific_lecture_navbar("exercises", LectureExercisesState.route_lecture_id)
+@with_specific_lecture_navbar(
+    "exercises",
+    LectureExercisesState.route_lecture_id,
+)
 def lecture_exercises_page() -> rx.Component:
     """Default wrapper for lecture-specific exercises page"""
     return rx.center(
