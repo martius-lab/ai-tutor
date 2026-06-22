@@ -131,6 +131,7 @@ def send_email(
         ) as smtp:
             if active_settings.use_tls:
                 smtp.starttls()
+                smtp.ehlo()
             if active_settings.uses_authentication:
                 smtp.login(active_settings.username, active_settings.password)
             smtp.send_message(message)

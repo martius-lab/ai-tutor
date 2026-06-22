@@ -196,6 +196,8 @@ def register_form() -> rx.Component:
             ),
             rx.button(
                 LanguageState.register,
+                disabled=MyRegisterState.registration_in_progress,
+                loading=MyRegisterState.registration_in_progress,
                 width="100%",
                 _hover={"cursor": "pointer"},
             ),
