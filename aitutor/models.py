@@ -69,6 +69,7 @@ class Lecture(SQLModel, table=True):
     registration_code: str = Field(nullable=False, default="")
     lecture_information_text: str = Field(nullable=False, default="")
     check_conversation_prompt: str = Field(nullable=False, default="")
+    default_prompt_id: Optional[int] = Field(default=None)
 
     # ORM relationships
     user_links: List["LinkUserLecture"] = Relationship(
@@ -295,9 +296,12 @@ class Prompt(SQLModel, table=True):
     """
 
     id: Optional[int] = Field(default=None, primary_key=True)
-    name: str = Field(unique=True, nullable=False)
+    name: str = Field(nullable=False)
     prompt_template: str = Field(nullable=False, default="")
     is_default_prompt: bool = Field(default=False)
+    lecture_id: Optional[int] = Field(
+        default=None, foreign_key="lecture.id", ondelete="CASCADE", index=True
+    )
 
     def __repr__(self):
         return f"<Prompt(name='{self.name}')>"

@@ -131,7 +131,9 @@ class ManageExercisesState(FilterMixin, SessionState):
             self.prompts = (
                 list(
                     session.exec(
-                        select(Prompt).order_by(
+                        select(Prompt)
+                        .where(Prompt.lecture_id == None)  # noqa: E711
+                        .order_by(
                             Prompt.is_default_prompt.desc(),  # type: ignore
                             Prompt.id,  # type: ignore
                         )
@@ -336,7 +338,10 @@ class ManageExercisesState(FilterMixin, SessionState):
 
                 for p_name, p_template in prompt_templates.items():
                     existing_prompt = session.exec(
-                        select(Prompt).where(Prompt.name == p_name)
+                        select(Prompt).where(
+                            Prompt.name == p_name,
+                            Prompt.lecture_id == None,  # noqa: E711
+                        )
                     ).first()
 
                     if existing_prompt:
@@ -348,13 +353,18 @@ class ManageExercisesState(FilterMixin, SessionState):
                             new_name = p_name
                             counter = 1
                             while session.exec(
-                                select(Prompt).where(Prompt.name == new_name)
+                                select(Prompt).where(
+                                    Prompt.name == new_name,
+                                    Prompt.lecture_id == None,  # noqa: E711
+                                )
                             ).first():
                                 new_name = f"{p_name} (imported {counter})"
                                 counter += 1
 
                             new_prompt = Prompt(
-                                name=new_name, prompt_template=p_template
+                                name=new_name,
+                                prompt_template=p_template,
+                                lecture_id=None,
                             )
                             session.add(new_prompt)
                             session.flush()  # Flush to get the ID
@@ -362,7 +372,11 @@ class ManageExercisesState(FilterMixin, SessionState):
                             prompt_renames.append((p_name, new_name))
                     else:
                         # New prompt
-                        new_prompt = Prompt(name=p_name, prompt_template=p_template)
+                        new_prompt = Prompt(
+                            name=p_name,
+                            prompt_template=p_template,
+                            lecture_id=None,
+                        )
                         session.add(new_prompt)
                         session.flush()
                         prompt_name_to_id[p_name] = new_prompt.id

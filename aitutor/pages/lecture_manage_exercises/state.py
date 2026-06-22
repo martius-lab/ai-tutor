@@ -44,6 +44,7 @@ class LectureManageExercisesState(FilterMixin, SessionState):
     add_exercise_dialog_is_open: bool = False
     edit_exercise_dialog_is_open: bool = False
     current_lecture_id: int | None = None
+    current_default_prompt_id: int | None = None
 
     exercises: list[Exercise] = []
     tag_list: list[Tag] = []
@@ -148,8 +149,10 @@ class LectureManageExercisesState(FilterMixin, SessionState):
             return rx.redirect(routes.MY_LECTURES)
 
         with rx.session() as session:
-            if session.get(Lecture, lecture_id) is None:
+            lecture = session.get(Lecture, lecture_id)
+            if lecture is None:
                 return rx.redirect(routes.NOT_FOUND)
+            self.current_default_prompt_id = lecture.default_prompt_id
 
         self.current_lecture_id = lecture_id
         with rx.session() as session:
@@ -157,14 +160,23 @@ class LectureManageExercisesState(FilterMixin, SessionState):
             self.prompts = (
                 list(
                     session.exec(
-                        select(Prompt).order_by(
+                        select(Prompt)
+                        .where(
+                            or_(
+                                Prompt.lecture_id == None,  # noqa: E711
+                                Prompt.lecture_id == lecture_id,
+                            )
+                        )
+                        .order_by(
                             Prompt.is_default_prompt.desc(),  # type: ignore
+                            Prompt.lecture_id.is_not(None).desc(),  # type: ignore
                             Prompt.id,  # type: ignore
                         )
                     ).all()
                 )
                 or []
             )
+        self._sort_prompts_by_default()
         self.load_tags()
         self.prompt_names = [prompt.name for prompt in self.prompts]
         self.load_exercises()
@@ -187,6 +199,7 @@ class LectureManageExercisesState(FilterMixin, SessionState):
         """Clears the state when the user logs out."""
         self.exercises = []
         self.current_lecture_id = None
+        self.current_default_prompt_id = None
         self.tag_list = []
         self.tag_names = []
         self.search_values = []  # from FilterMixin
@@ -260,6 +273,16 @@ class LectureManageExercisesState(FilterMixin, SessionState):
             if prompt.name == prompt_name:
                 return prompt.id
         return None
+
+    def _sort_prompts_by_default(self) -> None:
+        """Sort prompts with the lecture default first, then global default, then id."""
+        self.prompts.sort(
+            key=lambda prompt: (
+                prompt.id != self.current_default_prompt_id,
+                not prompt.is_default_prompt,
+                prompt.id or 0,
+            )
+        )
 
     @rx.event
     def export_selected_exercises(self):
@@ -378,7 +401,13 @@ class LectureManageExercisesState(FilterMixin, SessionState):
 
                 for p_name, p_template in prompt_templates.items():
                     existing_prompt = session.exec(
-                        select(Prompt).where(Prompt.name == p_name)
+                        select(Prompt).where(
+                            Prompt.name == p_name,
+                            or_(
+                                Prompt.lecture_id == None,  # noqa: E711
+                                Prompt.lecture_id == self.current_lecture_id,
+                            ),
+                        )
                     ).first()
 
                     if existing_prompt:
@@ -390,13 +419,21 @@ class LectureManageExercisesState(FilterMixin, SessionState):
                             new_name = p_name
                             counter = 1
                             while session.exec(
-                                select(Prompt).where(Prompt.name == new_name)
+                                select(Prompt).where(
+                                    Prompt.name == new_name,
+                                    or_(
+                                        Prompt.lecture_id == None,  # noqa: E711
+                                        Prompt.lecture_id == self.current_lecture_id,
+                                    ),
+                                )
                             ).first():
                                 new_name = f"{p_name} (imported {counter})"
                                 counter += 1
 
                             new_prompt = Prompt(
-                                name=new_name, prompt_template=p_template
+                                name=new_name,
+                                prompt_template=p_template,
+                                lecture_id=self.current_lecture_id,
                             )
                             session.add(new_prompt)
                             session.flush()  # Flush to get the ID
@@ -404,7 +441,11 @@ class LectureManageExercisesState(FilterMixin, SessionState):
                             prompt_renames.append((p_name, new_name))
                     else:
                         # New prompt
-                        new_prompt = Prompt(name=p_name, prompt_template=p_template)
+                        new_prompt = Prompt(
+                            name=p_name,
+                            prompt_template=p_template,
+                            lecture_id=self.current_lecture_id,
+                        )
                         session.add(new_prompt)
                         session.flush()
                         prompt_name_to_id[p_name] = new_prompt.id
@@ -807,7 +848,21 @@ class LectureManageExercisesState(FilterMixin, SessionState):
     def open_add_dialog(self):
         """Open the add/edit dialog."""
         self.reset_exercise_form()
-        self.current_prompt_name = self.prompt_names[0] if self.prompt_names else ""
+        default_prompt = next(
+            (
+                prompt
+                for prompt in self.prompts
+                if prompt.id == self.current_default_prompt_id
+            ),
+            None,
+        )
+        self.current_prompt_name = (
+            default_prompt.name
+            if default_prompt is not None
+            else self.prompt_names[0]
+            if self.prompt_names
+            else ""
+        )
         self.add_exercise_dialog_is_open = True
 
     @rx.event

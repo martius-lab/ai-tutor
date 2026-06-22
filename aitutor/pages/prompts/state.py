@@ -1,12 +1,13 @@
 """The state for the prompts page."""
 
 import reflex as rx
+from sqlalchemy.exc import IntegrityError
 from sqlmodel import select
 
 from aitutor.auth.protection import state_require_role_or_permission
 from aitutor.auth.state import SessionState
 from aitutor.language_state import BackendTranslations as BT
-from aitutor.models import Exercise, GlobalPermission, Prompt, UserRole
+from aitutor.models import Exercise, GlobalPermission, Lecture, Prompt, UserRole
 
 
 class ManagePromptsState(SessionState):
@@ -106,11 +107,29 @@ class ManagePromptsState(SessionState):
         """Check if all names in the list are unique."""
         return len(names) == len(set(names))
 
+    def _names_conflict_with_db(self, prompt_ids: set[int | None], names: list[str]) -> bool:
+        """Return whether any name conflicts with prompts outside prompt_ids."""
+        with rx.session() as session:
+            db_prompts = session.exec(select(Prompt)).all()
+        return any(
+            prompt.id not in prompt_ids and prompt.name in names for prompt in db_prompts
+        )
+
     @rx.event
     def save_prompts_to_db(self):
         """Saves the current prompts to the database."""
         prompts = self.prompts
         if not self.names_are_unique([prompt.name for prompt in prompts.values()]):
+            yield rx.toast.error(
+                description=BT.prompt_names_unique_error(self.language),
+                duration=5000,
+                position="bottom-center",
+                invert=True,
+            )
+            return
+        if self._names_conflict_with_db(
+            set(prompts.keys()), [prompt.name for prompt in prompts.values()]
+        ):
             yield rx.toast.error(
                 description=BT.prompt_names_unique_error(self.language),
                 duration=5000,
@@ -126,9 +145,18 @@ class ManagePromptsState(SessionState):
                 invert=True,
             )
             return
-        with rx.session() as session:
-            session.add_all(prompts.values())
-            session.commit()
+        try:
+            with rx.session() as session:
+                session.add_all(prompts.values())
+                session.commit()
+        except IntegrityError:
+            yield rx.toast.error(
+                description=BT.prompt_names_unique_error(self.language),
+                duration=5000,
+                position="bottom-center",
+                invert=True,
+            )
+            return
         self.unsaved_changes = False
         self.load_prompts_from_db()
 
@@ -150,7 +178,10 @@ class ManagePromptsState(SessionState):
             if prompt:
                 # Find the replacement prompt by name
                 replacement_prompt = session.exec(
-                    select(Prompt).where(Prompt.name == self.replacement_prompt_name)
+                    select(Prompt).where(
+                        Prompt.name == self.replacement_prompt_name,
+                        Prompt.lecture_id == None,  # noqa: E711
+                    )
                 ).first()
 
                 if not replacement_prompt:
@@ -173,6 +204,14 @@ class ManagePromptsState(SessionState):
                 for exercise in exercises:
                     exercise.prompt_id = replacement_prompt.id
                     session.add(exercise)
+
+                # Update lecture-specific defaults that pointed to the deleted prompt.
+                lectures = session.exec(
+                    select(Lecture).where(Lecture.default_prompt_id == prompt_id)
+                ).all()
+                for lecture in lectures:
+                    lecture.default_prompt_id = replacement_prompt.id
+                    session.add(lecture)
 
                 # If deleting the default prompt, mark the replacement as default
                 if is_deleting_default:
@@ -219,17 +258,39 @@ class ManagePromptsState(SessionState):
             )
             return
         with rx.session() as session:
-            new_prompt = Prompt(
-                name=self.new_prompt_name,
-                prompt_template=self.new_prompt_template,
+            existing_prompt = session.exec(
+                select(Prompt).where(Prompt.name == self.new_prompt_name)
+            ).first()
+        if existing_prompt is not None:
+            yield rx.toast.error(
+                description=BT.prompt_names_unique_error(self.language),
+                duration=5000,
+                position="bottom-center",
+                invert=True,
             )
-            session.add(new_prompt)
-            session.commit()
+            return
+        try:
+            with rx.session() as session:
+                new_prompt = Prompt(
+                    name=self.new_prompt_name,
+                    prompt_template=self.new_prompt_template,
+                    lecture_id=None,
+                )
+                session.add(new_prompt)
+                session.commit()
 
-            # add the new prompt to the state
-            session.refresh(new_prompt)
-            if new_prompt.id:
-                self.prompts[new_prompt.id] = new_prompt
+                # add the new prompt to the state
+                session.refresh(new_prompt)
+                if new_prompt.id:
+                    self.prompts[new_prompt.id] = new_prompt
+        except IntegrityError:
+            yield rx.toast.error(
+                description=BT.prompt_names_unique_error(self.language),
+                duration=5000,
+                position="bottom-center",
+                invert=True,
+            )
+            return
         self.new_prompt_name = ""
         self.new_prompt_template = ""
         self.add_prompt_dialog_open = False
@@ -244,6 +305,10 @@ class ManagePromptsState(SessionState):
     def load_prompts_from_db(self):
         """Loads prompts from the database."""
         with rx.session() as session:
-            prompts = session.exec(select(Prompt).order_by(Prompt.id))  # type: ignore
+            prompts = session.exec(
+                select(Prompt)
+                .where(Prompt.lecture_id == None)  # noqa: E711
+                .order_by(Prompt.id)  # type: ignore
+            )
             self.prompts = {p.id: p for p in prompts}
         self.unsaved_changes = False

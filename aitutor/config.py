@@ -81,7 +81,9 @@ def get_config_from_file() -> ConfigFile:
 def add_configprompts_to_db():
     """Add prompts from the config file to the database."""
     with rx.session() as session:
-        existing_prompts = session.exec(select(Prompt))
+        existing_prompts = session.exec(
+            select(Prompt).where(Prompt.lecture_id == None)  # noqa: E711
+        )
         existing_prompt_names = {prompt.name for prompt in existing_prompts}
 
         config_file = get_config_from_file()
@@ -90,6 +92,7 @@ def add_configprompts_to_db():
                 prompt = Prompt(
                     name=prompt_cfg.name,
                     prompt_template=prompt_cfg.prompt,
+                    lecture_id=None,
                 )
                 session.add(prompt)
                 print(f"Added prompt '{prompt_cfg.name}' to the database.")

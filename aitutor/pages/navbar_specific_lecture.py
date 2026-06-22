@@ -99,6 +99,14 @@ manage_exercises_link = SpecificLectureLink(
     disabled=False,
 )
 
+manage_prompts_link = SpecificLectureLink(
+    label=LanguageState.manage_prompts,
+    route=routes.LECTURE_PROMPTS,
+    icon="text-search",
+    tab_value="manage_prompts",
+    disabled=False,
+)
+
 submissions_link = SpecificLectureLink(
     label=LanguageState.submissions_link,
     route=routes.LECTURE_SUBMISSIONS,
@@ -168,6 +176,10 @@ def specific_lecture_navbar(tab_to_highlight: str, lecture_id) -> rx.Component:
                 rx.cond(
                     SpecificLectureNavbarState.can_manage_exercises,
                     tab_trigger(manage_exercises_link, lecture_id),
+                ),
+                rx.cond(
+                    SpecificLectureNavbarState.can_manage_exercises,
+                    tab_trigger(manage_prompts_link, lecture_id),
                 ),
                 rx.cond(
                     SpecificLectureNavbarState.can_view_submissions,

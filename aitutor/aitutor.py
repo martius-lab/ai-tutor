@@ -74,6 +74,11 @@ app.add_page(
     on_load=pages.LectureManageExercisesState.on_load,
 )
 app.add_page(
+    pages.lecture_prompts_page,
+    route=routes.LECTURE_PROMPTS + "/[lecture_id]",
+    on_load=pages.LectureManagePromptsState.on_load,
+)
+app.add_page(
     pages.lecture_submissions_page,
     route=routes.LECTURE_SUBMISSIONS + "/[lecture_id]",
     on_load=pages.LectureSubmissionsState.on_load,
@@ -195,7 +200,9 @@ def initialize():
     create_default_users()
 
     with rx.session() as session:
-        prompt = session.exec(select(Prompt)).first()
+        prompt = session.exec(
+            select(Prompt).where(Prompt.lecture_id == None)  # noqa: E711
+        ).first()
         if not prompt:
             print("No prompts found in the database. Adding default prompts...")
             add_configprompts_to_db()
