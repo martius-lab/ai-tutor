@@ -8,7 +8,14 @@ from aitutor.auth.protection import state_require_role_or_permission
 from aitutor.auth.state import SessionState
 from aitutor.global_vars import DEFAULT_CHECK_CONVERSATION_PROMPT
 from aitutor.language_state import BackendTranslations as BT
-from aitutor.models import GlobalPermission, Lecture, LectureRole, LinkUserLecture
+from aitutor.models import (
+    GlobalPermission,
+    Lecture,
+    LectureRole,
+    LinkUserLecture,
+    UserRole,
+)
+from aitutor.utilities.lecture_permissions import user_may_edit_lecture
 
 
 class EditLectureState(SessionState):
@@ -42,9 +49,7 @@ class EditLectureState(SessionState):
         self.delete_confirmation_password = ""
 
     @rx.event
-    @state_require_role_or_permission(
-        allowed_permissions=[GlobalPermission.LECTURER],
-    )
+    @state_require_role_or_permission(required_role=UserRole.STUDENT)
     def on_load(self):
         """Initialize the page state."""
         self.global_load()
@@ -52,6 +57,9 @@ class EditLectureState(SessionState):
         self.lecture_id_param = lecture_id_param
 
         if lecture_id_param == "new":
+            if not self._user_may_create_lecture():
+                return rx.redirect(routes.MY_LECTURES)
+
             self._reset_form(
                 check_conversation_prompt=DEFAULT_CHECK_CONVERSATION_PROMPT,
             )
@@ -78,7 +86,7 @@ class EditLectureState(SessionState):
         self.delete_confirmation_password = ""
 
     @rx.event
-    @state_require_role_or_permission(allowed_permissions=[GlobalPermission.LECTURER])
+    @state_require_role_or_permission(required_role=UserRole.STUDENT)
     def save_lecture(self):
         """Create a new lecture or save changes to an existing one."""
         if self.authenticated_user is None or self.authenticated_user.id is None:
@@ -98,6 +106,9 @@ class EditLectureState(SessionState):
             ).one_or_none()
 
             if self.is_new:
+                if not self._user_may_create_lecture():
+                    return rx.redirect(routes.MY_LECTURES)
+
                 if existing_lecture is not None:
                     return rx.toast.error(
                         description=BT.lecture_name_already_exists(self.language),
@@ -136,7 +147,7 @@ class EditLectureState(SessionState):
                         position="bottom-center",
                         invert=True,
                     ),
-                    rx.redirect(f"{routes.EDIT_LECTURE}/{lecture.id}"),
+                    rx.redirect(f"{routes.LECTURE_OVERVIEW}/{lecture.id}"),
                 ]
 
             lecture_id = self.current_lecture_id
@@ -177,7 +188,7 @@ class EditLectureState(SessionState):
         )
 
     @rx.event
-    @state_require_role_or_permission(allowed_permissions=[GlobalPermission.LECTURER])
+    @state_require_role_or_permission(required_role=UserRole.STUDENT)
     def delete_current_lecture(self):
         """Delete the current lecture after password confirmation."""
         if self.authenticated_user is None or self.authenticated_user.id is None:
@@ -269,19 +280,19 @@ class EditLectureState(SessionState):
         """Return the trimmed lecturer name used for validation and persistence."""
         return self.lecturer_name.strip()
 
+    def _user_may_create_lecture(self) -> bool:
+        """Check whether the current user may create a new lecture."""
+        return self.has_permission(GlobalPermission.LECTURER)
+
     def _user_may_edit_existing_lecture(self, lecture_id: int) -> bool:
         """Check whether the current user may edit an existing lecture."""
         if self.authenticated_user is None or self.authenticated_user.id is None:
             return False
-        if GlobalPermission.ADMIN in self.global_permissions:
-            return True
 
         with rx.session() as session:
-            link = session.exec(
-                select(LinkUserLecture).where(
-                    LinkUserLecture.lecture_id == lecture_id,
-                    LinkUserLecture.user_id == self.authenticated_user.id,
-                    LinkUserLecture.role == LectureRole.OWNER,
-                )
-            ).one_or_none()
-        return link is not None
+            return user_may_edit_lecture(
+                session,
+                user_id=self.authenticated_user.id,
+                global_permissions=self.global_permissions,
+                lecture_id=lecture_id,
+            )

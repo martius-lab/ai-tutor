@@ -53,6 +53,11 @@ class LanguageState(SessionState):
         return self.translate(de="Abbrechen", en="Cancel")
 
     @rx.var
+    def close(self) -> str:
+        """Close string"""
+        return self.translate(de="Schließen", en="Close")
+
+    @rx.var
     def log_in(self) -> str:
         """Log in string"""
         return self.translate(de="Anmelden", en="Log in")
@@ -81,6 +86,16 @@ class LanguageState(SessionState):
     def delete(self) -> str:
         """Delete string"""
         return self.translate(de="Löschen", en="Delete")
+
+    @rx.var
+    def kick(self) -> str:
+        """Kick/remove member string."""
+        return self.translate(de="Rauswerfen", en="Kick")
+
+    @rx.var
+    def enter(self) -> str:
+        """Enter/open item string."""
+        return self.translate(de="Betreten", en="Enter")
 
     @rx.var
     def prompt(self) -> str:
@@ -1357,6 +1372,53 @@ Please test the chat for functionality after changing the model.
         )
 
     @rx.var
+    def leave_lecture(self) -> str:
+        """Leave lecture button/title string."""
+        return self.translate(de="Vorlesung verlassen", en="Leave lecture")
+
+    @rx.var
+    def leave_lecture_description(self) -> str:
+        """Leave lecture confirmation description."""
+        return self.translate(
+            de="Sie verlassen diese Vorlesung und verlieren den Zugriff darauf.",
+            en="You will leave this lecture and lose access to it.",
+        )
+
+    @rx.var
+    def add_member(self) -> str:
+        """Add member button/title string."""
+        return self.translate(de="Mitglied hinzufügen", en="Add member")
+
+    @rx.var
+    def members(self) -> str:
+        """Members page heading."""
+        return self.translate(de="Mitglieder", en="Members")
+
+    @rx.var
+    def add_member_description(self) -> str:
+        """Add member dialog description."""
+        return self.translate(
+            de="Suchen Sie nach einem Benutzer und fügen Sie ihn dieser Vorlesung hinzu.",
+            en="Search for a user and add them to this lecture.",
+        )
+
+    @rx.var
+    def no_available_users(self) -> str:
+        """Message shown when no users can be added to a lecture."""
+        return self.translate(
+            de="Keine Benutzer zum Hinzufügen gefunden.",
+            en="No users available to add.",
+        )
+
+    @rx.var
+    def no_members_found(self) -> str:
+        """Message shown when a lecture has no members."""
+        return self.translate(
+            de="Keine Mitglieder gefunden.",
+            en="No members found.",
+        )
+
+    @rx.var
     def all(self) -> str:
         """Label for all items."""
         return self.translate(de="Alle", en="All")
@@ -1439,6 +1501,24 @@ Please test the chat for functionality after changing the model.
             en="No lectures available.",
         )
 
+    # Member Strings --------------------------------------------------------------------------------
+    @rx.var
+    def kick_member_description(self) -> str:
+        """Kick member confirmation description."""
+        return self.translate(
+            de="Diese Person wird aus der Vorlesung entfernt.",
+            en="This person will be removed from the lecture.",
+        )
+
+    # Lecture_overview Strings --------------------------------------------------------------------------------
+    @rx.var
+    def overview(self) -> str:
+        """Overview label."""
+        return self.translate(
+            de="Übersicht",
+            en="Overview",
+        )
+
 
 class BackendTranslations:
     """Translations for use in the backend (where LanguageState is not available)."""
@@ -1519,6 +1599,38 @@ class BackendTranslations:
         )
 
     @staticmethod
+    def left_lecture_successfully(language: Language) -> str:
+        return translate(
+            language,
+            de="Vorlesung erfolgreich verlassen.",
+            en="Left lecture successfully.",
+        )
+
+    @staticmethod
+    def not_joined_lecture(language: Language) -> str:
+        return translate(
+            language,
+            de="Sie sind dieser Vorlesung nicht beigetreten.",
+            en="You have not joined this lecture.",
+        )
+
+    @staticmethod
+    def member_added_successfully(language: Language) -> str:
+        return translate(
+            language,
+            de="Mitglied erfolgreich hinzugefügt.",
+            en="Member added successfully.",
+        )
+
+    @staticmethod
+    def user_already_lecture_member(language: Language) -> str:
+        return translate(
+            language,
+            de="Dieser Benutzer ist bereits Mitglied dieser Vorlesung.",
+            en="This user is already a member of this lecture.",
+        )
+
+    @staticmethod
     def lecture_deleted_successfully(language: Language) -> str:
         return translate(
             language,
@@ -1532,6 +1644,14 @@ class BackendTranslations:
             language,
             de="Fehler: Der Benutzer kann nicht gelöscht werden, da er der einzige Besitzer mindestens einer Vorlesung ist. Bitte weisen Sie zuerst einen anderen Besitzer zu oder löschen Sie die Vorlesung.",
             en="Error: Cannot delete user because they are the sole owner of at least one lecture. Please assign another owner or delete the lecture first.",
+        )
+
+    @staticmethod
+    def cannot_remove_sole_lecture_owner(language: Language) -> str:
+        return translate(
+            language,
+            de="Fehler: Diese Aktion ist nicht möglich, da jede Vorlesung mindestens einen Besitzer behalten muss.",
+            en="Error: This action is not possible because every lecture must keep at least one owner.",
         )
 
     @staticmethod

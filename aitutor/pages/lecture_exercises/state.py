@@ -9,17 +9,19 @@ from sqlalchemy.orm import selectinload
 from sqlmodel import and_, func, or_, select
 
 import aitutor.global_vars as gv
+import aitutor.routes as routes
 from aitutor.auth.protection import state_require_role_or_permission
 from aitutor.auth.state import SessionState
 from aitutor.global_vars import TIME_FORMAT, TIME_ZONE
-from aitutor.models import Exercise, ExerciseResult, Tag, UserRole
+from aitutor.models import Exercise, ExerciseResult, Lecture, Tag, UserRole
 from aitutor.utilities.filtering_components import FilterMixin
+from aitutor.utilities.lecture_permissions import user_may_view_lecture
 
 ExerciseWithResult = tuple[Exercise, Optional[ExerciseResult]]
 
 
-class ExercisesState(FilterMixin, SessionState):
-    """State for managing exercises."""
+class LectureExercisesState(FilterMixin, SessionState):
+    """State for managing exercises belonging to one lecture."""
 
     exercises_with_result: list[ExerciseWithResult] = []
     open_deadline_exercises: list[ExerciseWithResult] = []
@@ -52,20 +54,61 @@ class ExercisesState(FilterMixin, SessionState):
     @state_require_role_or_permission(required_role=UserRole.STUDENT)
     def on_load(self):
         """
-        Fetch exercises from database
+        Fetch exercises from database for the lecture in the route.
         """
         self.global_load()
-
         assert self.authenticated_user_info is not None
+        self._clear_exercises()
+
+        lecture_id = self._parse_route_lecture_id()
+        if lecture_id is None:
+            return rx.redirect(routes.NOT_FOUND)
+
+        if not self._user_may_view_lecture(lecture_id):
+            return rx.redirect(routes.MY_LECTURES)
+
+        with rx.session() as session:
+            if session.get(Lecture, lecture_id) is None:
+                return rx.redirect(routes.NOT_FOUND)
+
         self.load_exercises()
 
     def on_logout(self):
         """Clears the state when the user logs out."""
+        self._clear_exercises()
+
+    @rx.var
+    def route_lecture_id(self) -> str:
+        """Return the lecture id route parameter for lecture-specific navigation."""
+        return str(self.lecture_id)
+
+    def _clear_exercises(self):
+        """Clear loaded exercise lists."""
         self.exercises_with_result = []
         self.open_deadline_exercises = []
         self.no_deadline_exercises = []
         self.closed_deadline_exercises = []
         self.time_left_strings = {}
+
+    def _parse_route_lecture_id(self) -> int | None:
+        """Return the numeric lecture id from the route, or None if invalid."""
+        try:
+            return int(self.lecture_id)
+        except ValueError:
+            return None
+
+    def _user_may_view_lecture(self, lecture_id: int) -> bool:
+        """Check whether the current user may view this lecture."""
+        if self.authenticated_user is None or self.authenticated_user.id is None:
+            return False
+
+        with rx.session() as session:
+            return user_may_view_lecture(
+                session,
+                user_id=self.authenticated_user.id,
+                global_permissions=self.global_permissions,
+                lecture_id=lecture_id,
+            )
 
     @rx.var
     def submit_time_stamps(self) -> dict[int, str]:
@@ -123,6 +166,11 @@ class ExercisesState(FilterMixin, SessionState):
         """
         Get exercises from db based on the current search values and the user role.
         """
+        lecture_id = self._parse_route_lecture_id()
+        if lecture_id is None:
+            self._clear_exercises()
+            return
+
         with rx.session() as session:
             stmt = (
                 select(Exercise, ExerciseResult)
@@ -137,7 +185,7 @@ class ExercisesState(FilterMixin, SessionState):
                     ),
                     isouter=True,
                 )
-                .where(Exercise.lecture_id == None)  # noqa: E711
+                .where(Exercise.lecture_id == lecture_id)
             )
 
             # Don't load hidden exercises for students

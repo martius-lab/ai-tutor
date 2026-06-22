@@ -2,8 +2,40 @@
 
 import reflex as rx
 
+from aitutor import routes
 from aitutor.language_state import LanguageState as LS
 from aitutor.pages.all_lectures.state import AllLecturesState, LectureWithRole
+
+
+def back_to_my_lectures_button() -> rx.Component:
+    """Render the button for navigating back to my lectures."""
+    return rx.button(
+        rx.icon("arrow-left", size=20),
+        LS.my_lectures,
+        on_click=rx.redirect(routes.MY_LECTURES),
+        _hover={"cursor": "pointer"},
+    )
+
+
+def all_lectures_header() -> rx.Component:
+    """Render the all lectures page header."""
+    return rx.vstack(
+        rx.hstack(
+            back_to_my_lectures_button(),
+            align="center",
+            width="85vw",
+            max_width="100%",
+        ),
+        rx.hstack(
+            rx.heading(LS.all_lectures, size="5"),
+            align="center",
+            width="85vw",
+            max_width="100%",
+        ),
+        spacing="3",
+        align="center",
+        width="100%",
+    )
 
 
 def lecture_details_toggle_button(lecture_id) -> rx.Component:
@@ -221,6 +253,7 @@ def all_lectures_table() -> rx.Component:
 def all_lectures_content() -> rx.Component:
     """Main content for the all lectures page."""
     return rx.vstack(
+        all_lectures_header(),
         all_lectures_table(),
         join_lecture_dialog(),
         spacing="3",
