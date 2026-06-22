@@ -62,6 +62,19 @@ class CheckConversationResponse(BaseModel):
     check_passed: bool
 
 
+def init_async_openai_client() -> AsyncOpenAI:
+    """Initialize AsyncOpenAI client.
+
+    Uses decouple to get the API key and optionally base url, so they can be set either
+    as environment variables or in a .env file.
+    """
+    api_key = cast(str, decouple.config("OPENAI_API_KEY", cast=str))
+    base_url = cast(str, decouple.config("OPENAI_BASE_URL", cast=str, default=""))
+    base_url = base_url if base_url else None
+
+    return AsyncOpenAI(api_key=api_key, base_url=base_url)
+
+
 async def get_chat_response(conversation):
     """
     Sends asynchronous requests to OpenAI.
@@ -72,12 +85,8 @@ async def get_chat_response(conversation):
     Returns:
         tuple: (response_text, tokens_used)
     """
-    API_KEY = cast(str, decouple.config("OPENAI_API_KEY", cast=str, default=""))
-    if API_KEY == "":
-        raise ValueError("API key not found.")
-
     # Creates GPT instance
-    client = AsyncOpenAI(api_key=API_KEY)
+    client = init_async_openai_client()
     # filter out messages with role 'check_result' from the conversation
     conversation = [
         msg for msg in conversation if msg["role"] != Role.CHECK_RESULT.value
@@ -133,10 +142,7 @@ async def get_check_conversation_response(
             "content": check_conversation_prompt,
         }
     )
-    API_KEY = cast(str, decouple.config("OPENAI_API_KEY", cast=str, default=""))
-    if API_KEY == "":
-        raise ValueError("API key not found.")
-    client = AsyncOpenAI(api_key=API_KEY)
+    client = init_async_openai_client()
     completion = await client.beta.chat.completions.parse(
         model=config.check_ai_model,
         messages=conversation,
