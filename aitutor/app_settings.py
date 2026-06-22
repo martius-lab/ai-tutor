@@ -19,6 +19,7 @@ class AppSettings(BaseSettings):
     )
 
     openai_api_key: str = Field(default="", validation_alias="OPENAI_API_KEY")
+    openai_base_url: str = Field(default="", validation_alias="OPENAI_BASE_URL")
 
     def require_openai_api_key(self) -> str:
         """Return the configured OpenAI API key or raise a clear startup error."""
@@ -26,6 +27,11 @@ class AppSettings(BaseSettings):
         if api_key == "":
             raise ValueError("OPENAI_API_KEY is not set in the environment variables.")
         return api_key
+
+    def optional_openai_base_url(self) -> str | None:
+        """Return a configured OpenAI-compatible base URL, if present."""
+        base_url = self.openai_base_url.strip()
+        return base_url or None
 
 
 @lru_cache

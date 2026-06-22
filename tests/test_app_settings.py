@@ -41,3 +41,14 @@ def test_app_settings_requires_openai_api_key(monkeypatch):
 
     with pytest.raises(ValueError, match="OPENAI_API_KEY"):
         make_settings(env_file=None).require_openai_api_key()
+
+
+def test_app_settings_reads_optional_openai_base_url(tmp_path, monkeypatch):
+    """OPENAI_BASE_URL can come from a dotenv file when configured."""
+    monkeypatch.delenv("OPENAI_BASE_URL", raising=False)
+    env_file = tmp_path / ".env"
+    env_file.write_text("OPENAI_BASE_URL=https://example.test/v1\n")
+
+    assert make_settings(env_file=env_file).optional_openai_base_url() == (
+        "https://example.test/v1"
+    )

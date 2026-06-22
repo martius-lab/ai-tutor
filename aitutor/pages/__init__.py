@@ -14,6 +14,17 @@ from aitutor.pages.finished_view_tutor.page import finished_view_tutor_page
 from aitutor.pages.finished_view_tutor.state import FinishedViewTutorState
 from aitutor.pages.home.page import home_page
 from aitutor.pages.home.state import HomeState
+from aitutor.pages.lecture_exercises.page import lecture_exercises_page
+from aitutor.pages.lecture_exercises.state import LectureExercisesState
+from aitutor.pages.lecture_manage_exercises.page import lecture_manage_exercises_page
+from aitutor.pages.lecture_manage_exercises.state import (
+    LectureManageExercisesState,
+    LectureManageTagsState,
+)
+from aitutor.pages.lecture_members.page import lecture_members_page
+from aitutor.pages.lecture_members.state import LectureMembersState
+from aitutor.pages.lecture_overview.page import lecture_overview_page
+from aitutor.pages.lecture_overview.state import LectureOverviewState
 from aitutor.pages.legal_infos.page import impressum_page, privacy_notice_page
 from aitutor.pages.login_and_registration.page import (
     custom_login_page,
@@ -49,6 +60,10 @@ __all__ = [
     "manage_users_page",
     "my_lectures_page",
     "all_lectures_page",
+    "lecture_overview_page",
+    "lecture_members_page",
+    "lecture_exercises_page",
+    "lecture_manage_exercises_page",
     "exercises_page",
     "navbar",
     "not_found_page",
@@ -77,6 +92,11 @@ __all__ = [
     "ManageUsersState",
     "MyLecturesState",
     "AllLecturesState",
+    "LectureOverviewState",
+    "LectureMembersState",
+    "LectureExercisesState",
+    "LectureManageExercisesState",
+    "LectureManageTagsState",
     "SubmissionsState",
     "MyLoginState",
     "MyRegisterState",

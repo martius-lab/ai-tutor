@@ -12,11 +12,22 @@ from sqlalchemy.orm import selectinload
 from sqlmodel import and_, func, or_, select
 
 import aitutor.global_vars as gv
+import aitutor.routes as routes
 from aitutor.auth.protection import state_require_role_or_permission
 from aitutor.auth.state import SessionState
 from aitutor.language_state import BackendTranslations as BT
-from aitutor.models import Exercise, ExerciseTagLink, Prompt, Tag, UserRole
+from aitutor.models import (
+    Exercise,
+    ExerciseTagLink,
+    GlobalPermission,
+    Lecture,
+    LectureRole,
+    Prompt,
+    Tag,
+    UserRole,
+)
 from aitutor.utilities.filtering_components import FilterMixin
+from aitutor.utilities.lecture_permissions import get_user_lecture_role
 
 
 class DialogMode(Enum):
@@ -26,14 +37,15 @@ class DialogMode(Enum):
     EDIT = "edit"
 
 
-class ManageExercisesState(FilterMixin, SessionState):
-    """State for the exercises page."""
+class LectureManageExercisesState(FilterMixin, SessionState):
+    """State for managing exercises belonging to one lecture."""
 
     # Flags to control if dialogs are open.  They are needed as a workaround due to a
     # bug with Reflex dialogs, see
     # https://github.com/reflex-dev/reflex/issues/4221#issuecomment-2430197475
     add_exercise_dialog_is_open: bool = False
     edit_exercise_dialog_is_open: bool = False
+    current_lecture_id: int | None = None
 
     exercises: list[Exercise] = []
     tag_list: list[Tag] = []
@@ -123,9 +135,25 @@ class ManageExercisesState(FilterMixin, SessionState):
         self.exercise_is_selected[exercise_id] = is_selected  # type: ignore
 
     @rx.event
-    @state_require_role_or_permission(required_role=UserRole.ADMIN)
+    @state_require_role_or_permission(required_role=UserRole.STUDENT)
     def on_load(self):
         """Initialize the state"""
+        self.global_load()
+        self.current_lecture_id = None
+
+        try:
+            lecture_id = int(self.lecture_id)
+        except ValueError:
+            return rx.redirect(routes.NOT_FOUND)
+
+        if not self._user_may_manage_lecture(lecture_id):
+            return rx.redirect(routes.MY_LECTURES)
+
+        with rx.session() as session:
+            if session.get(Lecture, lecture_id) is None:
+                return rx.redirect(routes.NOT_FOUND)
+
+        self.current_lecture_id = lecture_id
         with rx.session() as session:
             # Sort prompts at database level: default first, then by id
             self.prompts = (
@@ -140,14 +168,29 @@ class ManageExercisesState(FilterMixin, SessionState):
                 or []
             )
         self.load_tags()
-        self.global_load()
         self.prompt_names = [prompt.name for prompt in self.prompts]
         self.load_exercises()
         self.extracting_lesson_material = False
 
+    def _user_may_manage_lecture(self, lecture_id: int) -> bool:
+        """Return whether the current user may manage exercises in the lecture."""
+        if GlobalPermission.ADMIN in self.global_permissions:
+            return True
+        if self.authenticated_user is None or self.authenticated_user.id is None:
+            return False
+
+        with rx.session() as session:
+            role = get_user_lecture_role(
+                session,
+                user_id=self.authenticated_user.id,
+                lecture_id=lecture_id,
+            )
+        return role in (LectureRole.TUTOR, LectureRole.OWNER)
+
     def on_logout(self):
         """Clears the state when the user logs out."""
         self.exercises = []
+        self.current_lecture_id = None
         self.tag_list = []
         self.tag_names = []
         self.search_values = []  # from FilterMixin
@@ -302,6 +345,9 @@ class ManageExercisesState(FilterMixin, SessionState):
         """
         events = [rx.clear_selected_files("exercises_upload")]
 
+        if self.current_lecture_id is None:
+            return [rx.redirect(routes.MY_LECTURES)]
+
         if not files:
             return events
 
@@ -431,6 +477,7 @@ class ManageExercisesState(FilterMixin, SessionState):
                         description=ex_data["description"],
                         lesson_context=ex_data["lesson_context"],
                         prompt_id=prompt_id,
+                        lecture_id=self.current_lecture_id,
                         is_hidden=ex_data["is_hidden"],
                         deadline=deadline_dt,
                         days_to_complete=ex_data["days_to_complete"],
@@ -496,6 +543,8 @@ class ManageExercisesState(FilterMixin, SessionState):
     @rx.event
     def add_exercise(self, form_data: dict):
         """Add exercises to db."""
+        if self.current_lecture_id is None:
+            return rx.redirect(routes.MY_LECTURES)
         existing_titles = {exercise.title for exercise in self.exercises}
         with rx.session() as session:
             if not form_data["title"]:
@@ -520,6 +569,7 @@ class ManageExercisesState(FilterMixin, SessionState):
                 title=form_data["title"],
                 description=form_data["description"],
                 prompt_id=self.get_prompt_id_by_name(self.current_prompt_name),
+                lecture_id=self.current_lecture_id,
                 is_hidden=self.current_hidden_state,
                 tags=session.exec(
                     select(Tag).where(Tag.name.in_(self.selected_tags))  # type: ignore
@@ -558,6 +608,13 @@ class ManageExercisesState(FilterMixin, SessionState):
 
     def load_exercises(self):
         """Get exercises from db."""
+        if self.current_lecture_id is None:
+            self.exercises = []
+            self.editing_periods = {}
+            self.exercise_is_started = {}
+            self.exercise_is_selected = {}
+            return
+
         with rx.session() as session:
             # load exercises
             query_exercises = (
@@ -566,8 +623,8 @@ class ManageExercisesState(FilterMixin, SessionState):
                     selectinload(Exercise.tags),  # type: ignore
                     selectinload(Exercise.prompt),  # type: ignore
                 )
-                .where(Exercise.lecture_id == None)
-            )  # noqa: E711
+                .where(Exercise.lecture_id == self.current_lecture_id)
+            )
 
             # filter with search values
             if self.search_values:
@@ -623,7 +680,10 @@ class ManageExercisesState(FilterMixin, SessionState):
         with rx.session() as session:
             # load exercise object from db
             _exercise = session.exec(
-                select(Exercise).where(Exercise.id == exercise.id)
+                select(Exercise).where(
+                    Exercise.id == exercise.id,
+                    Exercise.lecture_id == self.current_lecture_id,
+                )
             ).one()
             # toggle visibility
             _exercise.is_hidden = not _exercise.is_hidden
@@ -650,7 +710,10 @@ class ManageExercisesState(FilterMixin, SessionState):
                     + "exercise. Please choose a different title."
                 )
             updated_exercise = session.exec(
-                select(Exercise).where(Exercise.id == self.current_exercise.id)
+                select(Exercise).where(
+                    Exercise.id == self.current_exercise.id,
+                    Exercise.lecture_id == self.current_lecture_id,
+                )
             ).one()
             # update fields
             updated_exercise.title = form_data["title"]
@@ -705,6 +768,8 @@ class ManageExercisesState(FilterMixin, SessionState):
         """Delete an exercise from the db."""
         with rx.session() as session:
             exercise = session.exec(select(Exercise).where(Exercise.id == id)).first()
+            if exercise is None or exercise.lecture_id != self.current_lecture_id:
+                return rx.redirect(routes.MY_LECTURES)
             session.delete(exercise)
             session.commit()
         self.load_exercises()
@@ -783,7 +848,7 @@ class ManageExercisesState(FilterMixin, SessionState):
         return None, deadline, days_to_complete
 
 
-class ManageTagsState(ManageExercisesState):
+class LectureManageTagsState(LectureManageExercisesState):
     """State for the tags management."""
 
     add_tag_dialog_is_open: bool = False
@@ -828,8 +893,13 @@ class ManageTagsState(ManageExercisesState):
         """
         self.exercises  # update when exercises change # noqa: B018
         with rx.session() as session:
-            stmt = select(ExerciseTagLink.tag_id, func.count()).group_by(
-                ExerciseTagLink.tag_id  # type: ignore
+            stmt = (
+                select(ExerciseTagLink.tag_id, func.count())
+                .where(
+                    ExerciseTagLink.exercise_id == Exercise.id,
+                    Exercise.lecture_id == self.current_lecture_id,
+                )
+                .group_by(ExerciseTagLink.tag_id)  # type: ignore
             )
 
             # append 0 for tags without exercises

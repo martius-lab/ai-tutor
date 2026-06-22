@@ -61,6 +61,19 @@ class CheckConversationResponse(BaseModel):
     check_passed: bool
 
 
+def init_async_openai_client() -> AsyncOpenAI:
+    """Initialize AsyncOpenAI client.
+
+    Uses settings so the API key and optional base URL can be set either as environment
+    variables or in a .env file.
+    """
+    settings = get_settings()
+    return AsyncOpenAI(
+        api_key=settings.require_openai_api_key(),
+        base_url=settings.optional_openai_base_url(),
+    )
+
+
 async def get_chat_response(conversation):
     """
     Sends asynchronous requests to OpenAI.
@@ -71,10 +84,8 @@ async def get_chat_response(conversation):
     Returns:
         tuple: (response_text, tokens_used)
     """
-    api_key = get_settings().require_openai_api_key()
-
     # Creates GPT instance
-    client = AsyncOpenAI(api_key=api_key)
+    client = init_async_openai_client()
     # filter out messages with role 'check_result' from the conversation
     conversation = [
         msg for msg in conversation if msg["role"] != Role.CHECK_RESULT.value
@@ -130,8 +141,7 @@ async def get_check_conversation_response(
             "content": check_conversation_prompt,
         }
     )
-    api_key = get_settings().require_openai_api_key()
-    client = AsyncOpenAI(api_key=api_key)
+    client = init_async_openai_client()
     completion = await client.beta.chat.completions.parse(
         model=config.check_ai_model,
         messages=conversation,

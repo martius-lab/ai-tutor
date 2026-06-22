@@ -49,6 +49,26 @@ app.add_page(
     on_load=pages.MyLecturesState.on_load,
 )
 app.add_page(
+    pages.lecture_overview_page,
+    route=routes.LECTURE_OVERVIEW + "/[lecture_id]",
+    on_load=pages.LectureOverviewState.on_load,
+)
+app.add_page(
+    pages.lecture_members_page,
+    route=routes.LECTURE_MEMBERS + "/[lecture_id]",
+    on_load=pages.LectureMembersState.on_load,
+)
+app.add_page(
+    pages.lecture_exercises_page,
+    route=routes.LECTURE_EXERCISES + "/[lecture_id]",
+    on_load=pages.LectureExercisesState.on_load,
+)
+app.add_page(
+    pages.lecture_manage_exercises_page,
+    route=routes.LECTURE_MANAGE_EXERCISES + "/[lecture_id]",
+    on_load=pages.LectureManageExercisesState.on_load,
+)
+app.add_page(
     pages.all_lectures_page,
     route=routes.ALL_LECTURES + "/[lecture_id]",
     on_load=pages.AllLecturesState.on_load,
@@ -139,21 +159,23 @@ def initialize():
 
     # load config here, so we fail immediately if there is any issue with it
     try:
-        config = get_config()
-        if config.course_name:
-            print("Configuration can be loaded successfully.")
+        _ = get_config()
     except Exception as e:
         print("\033[91m" + f"Error loading config: {e}" + "\033[0m")
         sys.exit(1)
 
     # check if an OpenAI key is configured, if not, we exit
+    settings = get_settings()
     try:
-        get_settings().require_openai_api_key()
+        settings.require_openai_api_key()
     except ValueError as e:
         print("\033[91m" + str(e) + "\033[0m")
         sys.exit(1)
 
     print("OPENAI_API_KEY found in environment variables.")
+    openai_base_url = settings.optional_openai_base_url()
+    if openai_base_url:
+        print(f"Using OPENAI_BASE_URL={openai_base_url}")
 
     create_default_users()
 

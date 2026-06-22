@@ -76,14 +76,25 @@ class SessionState(reflex_local_auth.LocalAuthState):
         Handles the logout process for the authenticated user.
         """
         states = [
+            pages.AllLecturesState,
             pages.ChatState,
+            pages.EditLectureState,
             pages.HomeState,
             pages.ExercisesState,
             pages.FinishedViewState,
             pages.FinishedViewTutorState,
+            pages.LectureMembersState,
+            pages.LectureOverviewState,
+            pages.ManageConfigState,
             pages.ManageExercisesState,
             pages.ManageTagsState,
+            pages.ManagePromptsState,
+            pages.ManageUsersState,
+            pages.MyLecturesState,
+            pages.ReportsState,
+            pages.ReportViewState,
             pages.SubmissionsState,
+            pages.TokenAnalyzerState,
         ]
         for state in states:
             # get the state
@@ -130,3 +141,13 @@ class SessionState(reflex_local_auth.LocalAuthState):
                 )
             ).all()
             return permissions  # type: ignore
+
+    def has_permission(self, permission: GlobalPermission) -> bool:
+        """Return whether the current user has a global permission.
+
+        Global ADMIN permission grants all global permissions.
+        """
+        return (
+            permission in self.global_permissions
+            or GlobalPermission.ADMIN in self.global_permissions
+        )
