@@ -25,7 +25,7 @@ class AppSettings(BaseSettings):
 
     @field_validator("openai_base_url", mode="before")
     @classmethod
-    def empty_openai_base_url_as_none(cls, value: object) -> object:
+    def _empty_openai_base_url_as_none(cls, value: object) -> object:
         """Treat an empty optional base URL as unset."""
         if isinstance(value, str) and value.strip() == "":
             return None
