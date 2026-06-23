@@ -1,40 +1,38 @@
 """Environment-backed application settings."""
 
 from functools import lru_cache
-from pathlib import Path
+from typing import Annotated
 
-from pydantic import Field
+from pydantic import Field, StringConstraints, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
-
-ENV_FILE_PATH = Path(__file__).resolve().parent.parent / ".env"
 
 
 class AppSettings(BaseSettings):
     """Settings loaded from environment variables and the project `.env` file."""
 
     model_config = SettingsConfigDict(
-        env_file=ENV_FILE_PATH,
+        env_file=".env",
         env_file_encoding="utf-8",
         extra="ignore",
     )
 
-    openai_api_key: str = Field(default="", validation_alias="OPENAI_API_KEY")
-    openai_base_url: str = Field(default="", validation_alias="OPENAI_BASE_URL")
+    openai_api_key: Annotated[
+        str, StringConstraints(strip_whitespace=True, min_length=1)
+    ] = Field(validation_alias="OPENAI_API_KEY")
+    openai_base_url: str | None = Field(
+        default=None, validation_alias="OPENAI_BASE_URL"
+    )
 
-    def require_openai_api_key(self) -> str:
-        """Return the configured OpenAI API key or raise a clear startup error."""
-        api_key = self.openai_api_key.strip()
-        if api_key == "":
-            raise ValueError("OPENAI_API_KEY is not set in the environment variables.")
-        return api_key
-
-    def optional_openai_base_url(self) -> str | None:
-        """Return a configured OpenAI-compatible base URL, if present."""
-        base_url = self.openai_base_url.strip()
-        return base_url or None
+    @field_validator("openai_base_url", mode="before")
+    @classmethod
+    def empty_openai_base_url_as_none(cls, value: object) -> object:
+        """Treat an empty optional base URL as unset."""
+        if isinstance(value, str) and value.strip() == "":
+            return None
+        return value
 
 
 @lru_cache
 def get_settings() -> AppSettings:
     """Return cached app settings."""
-    return AppSettings()
+    return AppSettings()  # pyright: ignore[reportCallIssue]

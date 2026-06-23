@@ -69,8 +69,8 @@ def init_async_openai_client() -> AsyncOpenAI:
     """
     settings = get_settings()
     return AsyncOpenAI(
-        api_key=settings.require_openai_api_key(),
-        base_url=settings.optional_openai_base_url(),
+        api_key=settings.openai_api_key,
+        base_url=settings.openai_base_url,
     )
 
 

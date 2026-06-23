@@ -164,18 +164,14 @@ def initialize():
         print("\033[91m" + f"Error loading config: {e}" + "\033[0m")
         sys.exit(1)
 
-    # check if an OpenAI key is configured, if not, we exit
-    settings = get_settings()
     try:
-        settings.require_openai_api_key()
+        settings = get_settings()
     except ValueError as e:
         print("\033[91m" + str(e) + "\033[0m")
         sys.exit(1)
 
-    print("OPENAI_API_KEY found in environment variables.")
-    openai_base_url = settings.optional_openai_base_url()
-    if openai_base_url:
-        print(f"Using OPENAI_BASE_URL={openai_base_url}")
+    if settings.openai_base_url:
+        print(f"Using OPENAI_BASE_URL={settings.openai_base_url}")
 
     create_default_users()
 
