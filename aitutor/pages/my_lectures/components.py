@@ -32,7 +32,7 @@ def role_filter_button(label, value: str) -> rx.Component:
     """Render a small role filter button."""
     return rx.button(
         label,
-        variant=rx.cond(MyLecturesState.role_filter == value, "solid", "outline"),
+        variant=rx.cond(MyLecturesState.role_filter == value, "solid", "outline"),  # type: ignore
         size="2",
         on_click=MyLecturesState.set_role_filter(value),
         _hover={"cursor": "pointer"},

@@ -65,7 +65,7 @@ def confirm_dialog(
                     rx.button(
                         rx.text(cancel_text),
                         _hover={"cursor": "pointer"},
-                        variant=rx.cond(destructive, "solid", "outline"),
+                        variant=rx.cond(destructive, "solid", "outline"),  # type: ignore
                     )
                 ),
                 rx.alert_dialog.action(

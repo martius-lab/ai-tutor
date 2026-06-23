@@ -16,7 +16,7 @@ def password_changed_message() -> rx.Component:
             icon=rx.cond(
                 UserSettingsState.change_password_success, "check", "triangle_alert"
             ),
-            color_scheme=rx.cond(
+            color_scheme=rx.cond(  # type: ignore
                 UserSettingsState.change_password_success, "green", "red"
             ),
             role="alert",

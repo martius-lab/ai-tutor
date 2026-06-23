@@ -4,7 +4,7 @@
 # =======================================
 # Stage 1: init
 # =======================================
-FROM ghcr.io/astral-sh/uv:0.7.8-python3.13-bookworm AS init
+FROM ghcr.io/astral-sh/uv:0.11.10-python3.14-trixie AS init
 
 WORKDIR /app
 
@@ -39,7 +39,7 @@ RUN mv /tmp/client .web/build/client
 # =======================================
 # Stage 2: copy artifacts into slim image
 # =======================================
-FROM python:3.13-slim
+FROM python:3.14-slim
 
 # Install libpq-dev for psycopg (skip if not using postgres).
 RUN apt-get update -y && apt-get install -y libpq-dev && rm -rf /var/lib/apt/lists/*
