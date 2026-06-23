@@ -2,16 +2,16 @@
 
 from datetime import datetime
 from enum import StrEnum
-from typing import Optional, cast
+from typing import Optional
 from zoneinfo import ZoneInfo
 
-import decouple
 import reflex as rx
 from openai import AsyncOpenAI
 from pydantic import BaseModel
 from sqlmodel import select
 
 import aitutor.routes as routes
+from aitutor.app_settings import get_settings
 from aitutor.auth.protection import state_require_role_or_permission
 from aitutor.auth.state import SessionState
 from aitutor.config import get_config
@@ -65,14 +65,14 @@ class CheckConversationResponse(BaseModel):
 def init_async_openai_client() -> AsyncOpenAI:
     """Initialize AsyncOpenAI client.
 
-    Uses decouple to get the API key and optionally base url, so they can be set either
-    as environment variables or in a .env file.
+    Uses settings so the API key and optional base URL can be set either as environment
+    variables or in a .env file.
     """
-    api_key = cast(str, decouple.config("OPENAI_API_KEY", cast=str))
-    base_url = cast(str, decouple.config("OPENAI_BASE_URL", cast=str, default=""))
-    base_url = base_url if base_url else None
-
-    return AsyncOpenAI(api_key=api_key, base_url=base_url)
+    settings = get_settings()
+    return AsyncOpenAI(
+        api_key=settings.openai_api_key,
+        base_url=settings.openai_base_url,
+    )
 
 
 async def get_chat_response(conversation):
