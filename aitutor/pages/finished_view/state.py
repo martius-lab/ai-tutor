@@ -11,6 +11,7 @@ from aitutor.auth.state import SessionState
 from aitutor.language_state import BackendTranslations as BT
 from aitutor.models import Exercise, ExerciseResult, UserRole
 from aitutor.pages.chat.state import ChatMessage, Role
+from aitutor.utilities.lecture_permissions import user_may_view_lecture
 
 
 class FinishedViewState(SessionState):
@@ -19,6 +20,7 @@ class FinishedViewState(SessionState):
     messages: list[ChatMessage] = []
     current_exercise: Optional[Exercise] = None
     exercise_title: str = "No Exercise Selected"
+    current_lecture_id: int | None = None
 
     @rx.event
     @state_require_role_or_permission(required_role=UserRole.STUDENT)
@@ -26,8 +28,15 @@ class FinishedViewState(SessionState):
         """Loads the finished exercise and conversation."""
 
         self.global_load()
+        self.current_lecture_id = None
         userinfo = self.authenticated_user_info
         if userinfo:
+            try:
+                exercise_id = int(self.exercise_id)
+            except ValueError:
+                yield rx.redirect(routes.NOT_FOUND)
+                return
+
             with rx.session() as session:
                 stmt = (
                     select(
@@ -36,7 +45,7 @@ class FinishedViewState(SessionState):
                     )
                     .join(ExerciseResult)
                     .where(
-                        Exercise.id == int(self.exercise_id),
+                        Exercise.id == exercise_id,
                         ExerciseResult.userinfo_id == userinfo.id,
                     )
                 )
@@ -44,8 +53,24 @@ class FinishedViewState(SessionState):
 
                 if result is None:
                     yield rx.redirect(routes.NOT_FOUND)
+                    return
 
                 exercise, finished_conversation = result  # type: ignore
+                if exercise.lecture_id is not None:
+                    if (
+                        self.authenticated_user is None
+                        or self.authenticated_user.id is None
+                        or not user_may_view_lecture(
+                            session,
+                            user_id=self.authenticated_user.id,
+                            global_permissions=self.global_permissions,
+                            lecture_id=exercise.lecture_id,
+                        )
+                    ):
+                        yield rx.redirect(routes.MY_LECTURES)
+                        return
+                    self.current_lecture_id = exercise.lecture_id
+
                 self.current_exercise = exercise
                 self.exercise_title = exercise.title
                 self.messages = []
@@ -56,6 +81,7 @@ class FinishedViewState(SessionState):
         self.messages = []
         self.current_exercise = None
         self.exercise_title = "No Exercise Selected"
+        self.current_lecture_id = None
 
     @rx.var
     def chat_url(self) -> str:

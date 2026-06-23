@@ -3,8 +3,8 @@
 import reflex as rx
 
 from aitutor import routes
-from aitutor.auth.protection import page_require_role_or_permission
-from aitutor.models import UserRole
+from aitutor.auth.protection import page_require_lecture_role
+from aitutor.models import LectureRole
 from aitutor.pages.lecture_manage_exercises.components import (
     add_exercise_button,
     delete_selected_exercises_button,
@@ -19,7 +19,7 @@ from aitutor.pages.navbar_specific_lecture import with_specific_lecture_navbar
 from aitutor.utilities.filtering_components import search_badges, search_bar
 
 
-@page_require_role_or_permission(required_role=UserRole.STUDENT)
+@page_require_lecture_role(LectureRole.TUTOR)
 @with_navbar(routes.LECTURES)
 @with_specific_lecture_navbar(
     "manage_exercises",

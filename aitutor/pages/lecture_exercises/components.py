@@ -3,6 +3,7 @@
 import reflex as rx
 
 import aitutor.global_vars as gv
+import aitutor.routes as routes
 from aitutor.language_state import LanguageState
 from aitutor.models import Exercise, ExerciseResult
 from aitutor.pages.lecture_exercises.state import (
@@ -122,7 +123,8 @@ def render_exercise_card(exercise_with_res: ExerciseWithResult) -> rx.Component:
             ),
             variant="surface",
             width="100%",
-            _hover={"cursor": "default"},
+            on_click=rx.redirect(f"{routes.CHAT}/{exercise.id}"),
+            _hover={"cursor": "pointer"},
             style=rx.cond(
                 exercise_with_res[0].is_hidden,
                 {"opacity": "0.5"},

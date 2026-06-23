@@ -5,7 +5,56 @@ from typing import NamedTuple
 import reflex as rx
 
 import aitutor.routes as routes
+from aitutor.auth.state import SessionState
 from aitutor.language_state import LanguageState
+from aitutor.utilities.lecture_permissions import (
+    user_may_manage_lecture_exercises,
+    user_may_view_lecture_submissions,
+)
+
+
+class SpecificLectureNavbarState(SessionState):
+    """State for permissions needed by the specific lecture navbar."""
+
+    @rx.var(initial_value=False)
+    def can_view_submissions(self) -> bool:
+        """Whether the current user may see the lecture submissions tab."""
+        lecture_id = self._get_current_lecture_id()
+        if lecture_id is None:
+            return False
+
+        with rx.session() as session:
+            return user_may_view_lecture_submissions(
+                session,
+                user_id=self.authenticated_user.id,  # type: ignore[union-attr]
+                global_permissions=self.global_permissions,
+                lecture_id=lecture_id,
+            )
+
+    @rx.var(initial_value=False)
+    def can_manage_exercises(self) -> bool:
+        """Whether the current user may see the manage exercises tab."""
+        lecture_id = self._get_current_lecture_id()
+        if lecture_id is None:
+            return False
+
+        with rx.session() as session:
+            return user_may_manage_lecture_exercises(
+                session,
+                user_id=self.authenticated_user.id,  # type: ignore[union-attr]
+                global_permissions=self.global_permissions,
+                lecture_id=lecture_id,
+            )
+
+    def _get_current_lecture_id(self) -> int | None:
+        """Return the current lecture id from the route, if available and valid."""
+        if self.authenticated_user is None or self.authenticated_user.id is None:
+            return None
+
+        try:
+            return int(self.lecture_id)
+        except ValueError:
+            return None
 
 
 class SpecificLectureLink(NamedTuple):
@@ -40,14 +89,31 @@ specific_lecture_links = [
         tab_value="members",
         disabled=False,
     ),
-    SpecificLectureLink(
-        label=LanguageState.manage_exercises_link,
-        route=routes.LECTURE_MANAGE_EXERCISES,
-        icon="book-copy",
-        tab_value="manage_exercises",
-        disabled=False,
-    ),
 ]
+
+manage_exercises_link = SpecificLectureLink(
+    label=LanguageState.manage_exercises_link,
+    route=routes.LECTURE_MANAGE_EXERCISES,
+    icon="book-copy",
+    tab_value="manage_exercises",
+    disabled=False,
+)
+
+submissions_link = SpecificLectureLink(
+    label=LanguageState.submissions_link,
+    route=routes.LECTURE_SUBMISSIONS,
+    icon="search-check",
+    tab_value="submissions",
+    disabled=False,
+)
+
+reports_link = SpecificLectureLink(
+    label=LanguageState.reports,
+    route=routes.LECTURE_REPORTS,
+    icon="flag",
+    tab_value="reports",
+    disabled=False,
+)
 
 
 def tab_content(link: SpecificLectureLink):
@@ -99,6 +165,18 @@ def specific_lecture_navbar(tab_to_highlight: str, lecture_id) -> rx.Component:
         rx.tabs.root(
             rx.tabs.list(
                 *[tab_trigger(link, lecture_id) for link in specific_lecture_links],
+                rx.cond(
+                    SpecificLectureNavbarState.can_manage_exercises,
+                    tab_trigger(manage_exercises_link, lecture_id),
+                ),
+                rx.cond(
+                    SpecificLectureNavbarState.can_view_submissions,
+                    tab_trigger(submissions_link, lecture_id),
+                ),
+                rx.cond(
+                    SpecificLectureNavbarState.can_view_submissions,
+                    tab_trigger(reports_link, lecture_id),
+                ),
                 width="100%",
             ),
             default_value=tab_to_highlight,

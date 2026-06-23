@@ -79,6 +79,42 @@ def user_may_edit_lecture(
     )
 
 
+def user_may_view_lecture_submissions(
+    session: Session,
+    *,
+    user_id: int,
+    global_permissions: Collection[GlobalPermission],
+    lecture_id: int,
+) -> bool:
+    """Return whether a user may view submissions for one lecture."""
+    if has_global_admin_permission(global_permissions):
+        return True
+
+    return get_user_lecture_role(
+        session,
+        user_id=user_id,
+        lecture_id=lecture_id,
+    ) in (LectureRole.TUTOR, LectureRole.OWNER)
+
+
+def user_may_manage_lecture_exercises(
+    session: Session,
+    *,
+    user_id: int,
+    global_permissions: Collection[GlobalPermission],
+    lecture_id: int,
+) -> bool:
+    """Return whether a user may manage exercises for one lecture."""
+    if has_global_admin_permission(global_permissions):
+        return True
+
+    return get_user_lecture_role(
+        session,
+        user_id=user_id,
+        lecture_id=lecture_id,
+    ) in (LectureRole.TUTOR, LectureRole.OWNER)
+
+
 def count_lecture_owners(session: Session, *, lecture_id: int) -> int:
     """Return the number of owners for one lecture."""
     return session.exec(

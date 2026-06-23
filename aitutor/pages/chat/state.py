@@ -23,6 +23,7 @@ from aitutor.global_vars import (
 )
 from aitutor.language_state import BackendTranslations as BT
 from aitutor.models import Exercise, ExerciseResult, Report, UserRole
+from aitutor.utilities.lecture_permissions import user_may_view_lecture
 
 
 class Role(StrEnum):
@@ -173,6 +174,7 @@ class ChatState(SessionState):
     MAX_REPORT_LENGTH: int = 2000
     current_tokens: int = 0
     token_limit: int = 0
+    current_lecture_id: int | None = None
 
     @rx.var
     def token_limit_reached(self) -> bool:
@@ -211,55 +213,78 @@ class ChatState(SessionState):
 
         self.global_load()
         self.waiting_for_response = False
+        self.current_lecture_id = None
 
         userinfo = self.authenticated_user_info
         # should be guaranteed by the decorator but assert for type checkers
         assert userinfo is not None and userinfo.id is not None
         self._userinfo_id = userinfo.id
 
+        try:
+            exercise_id = int(self.exercise_id)
+        except ValueError:
+            yield rx.redirect(routes.NOT_FOUND)
+            return
+
         with rx.session() as session:
             config = get_config()
             self.token_limit = max(1, config.exercise_token_limit)
             exercise = session.exec(
-                select(Exercise).where(Exercise.id == int(self.exercise_id))
+                select(Exercise).where(Exercise.id == exercise_id)
             ).one_or_none()
+            if exercise is None:
+                yield rx.redirect(routes.NOT_FOUND)
+                return
+
+            if exercise.lecture_id is not None:
+                if (
+                    self.authenticated_user is None
+                    or self.authenticated_user.id is None
+                    or not user_may_view_lecture(
+                        session,
+                        user_id=self.authenticated_user.id,
+                        global_permissions=self.global_permissions,
+                        lecture_id=exercise.lecture_id,
+                    )
+                ):
+                    yield rx.redirect(routes.MY_LECTURES)
+                    return
+                self.current_lecture_id = exercise.lecture_id
+
             exercise_result = session.exec(
                 select(ExerciseResult).where(
-                    ExerciseResult.exercise_id == int(self.exercise_id),
+                    ExerciseResult.exercise_id == exercise_id,
                     ExerciseResult.userinfo_id == self._userinfo_id,
                 )
             ).one_or_none()
             error_when_loading_prompt: bool = False
-            if exercise:
-                self.current_exercise = exercise
-                self.exercise_title = self.current_exercise.title
-                self.is_overdue = self.current_exercise.deadline_exceeded
+            self.current_exercise = exercise
+            self.exercise_title = self.current_exercise.title
+            self.is_overdue = self.current_exercise.deadline_exceeded
 
-                if self.current_exercise.prompt:
-                    exercise_prompt = self.current_exercise.prompt.prompt_template
-                else:
-                    exercise_prompt = (
-                        "tell the user there was an error when loading "
-                        "the prompt. Don't answer any questions."
-                    )
-                    error_when_loading_prompt = True
-                self.system_message_gpt = exercise_prompt.format(
-                    title=self.current_exercise.title,
-                    description=self.current_exercise.description,
-                    lesson_context=self.current_exercise.lesson_context,
-                )
-
-                self.messages = []
-                self.load_existing_conversation()
-                if not self.messages:
-                    self.append_chat_message(
-                        self.current_exercise.description,
-                        role=Role.AITUTOR,
-                        check_passed=False,
-                    )
-                self.update_last_user_message_index()
+            if self.current_exercise.prompt:
+                exercise_prompt = self.current_exercise.prompt.prompt_template
             else:
-                yield rx.redirect(routes.NOT_FOUND)
+                exercise_prompt = (
+                    "tell the user there was an error when loading "
+                    "the prompt. Don't answer any questions."
+                )
+                error_when_loading_prompt = True
+            self.system_message_gpt = exercise_prompt.format(
+                title=self.current_exercise.title,
+                description=self.current_exercise.description,
+                lesson_context=self.current_exercise.lesson_context,
+            )
+
+            self.messages = []
+            self.load_existing_conversation()
+            if not self.messages:
+                self.append_chat_message(
+                    self.current_exercise.description,
+                    role=Role.AITUTOR,
+                    check_passed=False,
+                )
+            self.update_last_user_message_index()
             if exercise_result:
                 self.check_passed = exercise_result.check_passed
                 self.conversation_is_submitted = (
@@ -300,6 +325,7 @@ class ChatState(SessionState):
         self.last_user_message_index = -1
         self.is_overdue = False
         self._userinfo_id = -1
+        self.current_lecture_id = None
 
     @rx.var
     def report_char_count(self) -> int:
@@ -318,6 +344,13 @@ class ChatState(SessionState):
         It is set by the route parameter in the URL.
         """
         return f"{routes.FINISHED_VIEW}/{self.exercise_id}"
+
+    @rx.var
+    def exercises_url(self) -> str:
+        """Return the exercise list URL for the current chat context."""
+        if self.current_lecture_id is not None:
+            return f"{routes.LECTURE_EXERCISES}/{self.current_lecture_id}"
+        return routes.EXERCISES
 
     @rx.event
     def submit_report(self):
@@ -339,6 +372,7 @@ class ChatState(SessionState):
 
             report = Report(
                 exercise_id=self.current_exercise.id,
+                lecture_id=self.current_exercise.lecture_id,
                 userinfo_id=self._userinfo_id,
                 report_text=self.report_text,
                 looked_at=False,

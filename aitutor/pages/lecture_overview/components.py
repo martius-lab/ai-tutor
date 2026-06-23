@@ -2,6 +2,7 @@
 
 import reflex as rx
 
+import aitutor.global_vars as gv
 from aitutor import DisplayConfigState, routes
 from aitutor.language_state import LanguageState as LS
 from aitutor.pages.lecture_overview.state import LectureOverviewState
@@ -43,29 +44,38 @@ def lecture_information_content() -> rx.Component:
 
 
 def lecture_dashboard_card() -> rx.Component:
-    """Render dashboard shell with explicit placeholder data for lecture exercises."""
+    """Render the lecture-specific dashboard card."""
+    exercises_num = LectureOverviewState.exercises_with_result.length()  # type: ignore
+
     return rx.card(
         rx.vstack(
             rx.heading(f"{LectureOverviewState.lecture_name} {LS.dashboard}"),
             rx.text(LS.welcome_back, weight="medium"),
             rx.progress(
-                value=100,
+                value=LectureOverviewState.progress_value,  # type: ignore
                 max=100,
                 width="100%",
             ),
-            rx.callout(
-                "Placeholder data: lecture-specific exercises are not connected yet.",
-                icon="info",
-                width="100%",
-            ),
             rx.hstack(
-                rx.icon("circle-check", size=20),
-                rx.text("0/0 lecture-specific exercises submitted (placeholder)."),
+                rx.icon("circle-check", color=gv.GREEN_CHECK_COLOR, size=20),
+                rx.cond(
+                    exercises_num > 0,
+                    rx.text(
+                        f"{LectureOverviewState.completed_exercises_num} \
+                        /{exercises_num} \
+                            {LS.open_exercises_submitted}"
+                    ),
+                    rx.text(LS.no_pending_exercises),
+                ),
                 align="center",
             ),
             rx.hstack(
                 rx.text(LS.next_deadline, weight="bold"),
-                rx.text("No lecture-specific deadline available yet (placeholder)."),
+                rx.cond(
+                    LectureOverviewState.next_deadline_task,
+                    rx.text(LectureOverviewState.next_deadline_task),
+                    rx.text(LS.no_upcoming_deadlines),
+                ),
             ),
             spacing="4",
             align="start",
