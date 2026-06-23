@@ -30,7 +30,12 @@ def upgrade() -> None:
     with op.batch_alter_table('lecture', schema=None) as batch_op:
         batch_op.add_column(sa.Column('default_prompt_id', sa.Integer(), nullable=True))
 
-    with op.batch_alter_table('prompt', schema=None) as batch_op:
+    with op.batch_alter_table(
+        'prompt',
+        schema=None,
+        naming_convention={'uq': 'uq_%(table_name)s_%(column_0_name)s'},
+    ) as batch_op:
+        batch_op.drop_constraint('uq_prompt_name', type_='unique')
         batch_op.add_column(sa.Column('lecture_id', sa.Integer(), nullable=True))
         batch_op.create_index(batch_op.f('ix_prompt_lecture_id'), ['lecture_id'], unique=False)
         batch_op.create_foreign_key('fk_prompt_lecture_id_lecture', 'lecture', ['lecture_id'], ['id'], ondelete='CASCADE')
@@ -51,6 +56,7 @@ def downgrade() -> None:
         batch_op.drop_constraint('fk_prompt_lecture_id_lecture', type_='foreignkey')
         batch_op.drop_index(batch_op.f('ix_prompt_lecture_id'))
         batch_op.drop_column('lecture_id')
+        batch_op.create_unique_constraint('uq_prompt_name', ['name'])
 
     with op.batch_alter_table('lecture', schema=None) as batch_op:
         batch_op.drop_column('default_prompt_id')

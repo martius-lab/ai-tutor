@@ -148,9 +148,25 @@ class LectureManagePromptsState(SessionState):
         return [prompt.name for prompt in self.prompts.values()]
 
     def _names_conflict_with_db(self, prompt_ids: set[int | None], names: list[str]) -> bool:
-        """Return whether any name conflicts with prompts outside prompt_ids."""
+        """Return whether any name conflicts in the current lecture-visible scope.
+
+        A lecture can see global prompts and prompts belonging to that lecture.
+        Prompt names only need to be unique within this visible scope. Prompts in
+        different lectures may share names because they never appear together in
+        the same exercise prompt dropdown.
+        """
+        if self.current_lecture_id is None:
+            return False
+
         with rx.session() as session:
-            db_prompts = session.exec(select(Prompt)).all()
+            db_prompts = session.exec(
+                select(Prompt).where(
+                    or_(
+                        Prompt.lecture_id == None,  # noqa: E711
+                        Prompt.lecture_id == self.current_lecture_id,
+                    )
+                )
+            ).all()
         return any(
             prompt.id not in prompt_ids and prompt.name in names for prompt in db_prompts
         )
@@ -301,7 +317,13 @@ class LectureManagePromptsState(SessionState):
             return
         with rx.session() as session:
             existing_prompt = session.exec(
-                select(Prompt).where(Prompt.name == self.new_prompt_name)
+                select(Prompt).where(
+                    Prompt.name == self.new_prompt_name,
+                    or_(
+                        Prompt.lecture_id == None,  # noqa: E711
+                        Prompt.lecture_id == self.current_lecture_id,
+                    ),
+                )
             ).first()
         if existing_prompt is not None:
             yield rx.toast.error(
