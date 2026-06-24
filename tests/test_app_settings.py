@@ -76,3 +76,22 @@ def test_app_settings_treats_empty_openai_base_url_as_none(monkeypatch):
     monkeypatch.setenv("OPENAI_BASE_URL", " ")
 
     assert make_settings(env_file=None).openai_base_url is None
+
+
+def test_app_settings_defaults_optional_smtp_fields_to_none(monkeypatch):
+    """Unset optional SMTP strings remain distinguishable from configured values."""
+    monkeypatch.setenv("OPENAI_API_KEY", "env-key")
+    for env_var in (
+        "SMTP_HOST",
+        "SMTP_FROM_EMAIL",
+        "SMTP_USERNAME",
+        "SMTP_PASSWORD",
+    ):
+        monkeypatch.delenv(env_var, raising=False)
+
+    settings = make_settings(env_file=None)
+
+    assert settings.smtp_host is None
+    assert settings.smtp_from_email is None
+    assert settings.smtp_username is None
+    assert settings.smtp_password is None

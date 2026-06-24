@@ -95,12 +95,26 @@ def register_success() -> rx.Component:
     """Render the successful registration message."""
     return rx.cond(
         MyRegisterState.success,
-        rx.callout(
-            LanguageState.successful_registration,
-            icon="check",
-            color_scheme="green",
-            role="alert",
-            width="100%",
+        rx.cond(
+            MyRegisterState.welcome_email_failed,
+            rx.callout(
+                LanguageState.successful_registration_email_failed,
+                icon="triangle_alert",
+                color_scheme="amber",
+                role="alert",
+                width="100%",
+            ),
+            rx.callout(
+                rx.cond(
+                    MyRegisterState.welcome_email_sent,
+                    LanguageState.successful_registration_with_email,
+                    LanguageState.successful_registration,
+                ),
+                icon="check",
+                color_scheme="green",
+                role="alert",
+                width="100%",
+            ),
         ),
     )
 
@@ -110,6 +124,11 @@ def register_form() -> rx.Component:
     privacy_notice = get_privacy_notice_short()
     return rx.form(
         rx.vstack(
+            rx.input(
+                type="hidden",
+                name="language",
+                value=LanguageState.language,
+            ),
             rx.heading(LanguageState.register_heading, size="7"),
             register_error(),
             register_success(),
@@ -177,6 +196,8 @@ def register_form() -> rx.Component:
             ),
             rx.button(
                 LanguageState.register,
+                disabled=MyRegisterState.registration_in_progress,
+                loading=MyRegisterState.registration_in_progress,
                 width="100%",
                 _hover={"cursor": "pointer"},
             ),
