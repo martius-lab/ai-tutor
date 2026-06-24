@@ -77,6 +77,19 @@ def test_smtp_settings_from_env(monkeypatch):
     assert settings.uses_authentication is True
 
 
+def test_smtp_settings_default_to_no_tls(monkeypatch):
+    monkeypatch.setenv("OPENAI_API_KEY", "test-key")
+    monkeypatch.setenv("SMTP_HOST", "smtp.example.com")
+    monkeypatch.setenv("SMTP_FROM_EMAIL", "noreply@example.com")
+    monkeypatch.delenv("SMTP_USE_TLS", raising=False)
+    monkeypatch.delenv("SMTP_USE_SSL", raising=False)
+
+    settings = SmtpSettings.from_env()
+
+    assert settings.use_tls is False
+    assert settings.use_ssl is False
+
+
 def test_smtp_settings_require_host(monkeypatch):
     monkeypatch.setenv("OPENAI_API_KEY", "test-key")
     monkeypatch.delenv("SMTP_HOST", raising=False)

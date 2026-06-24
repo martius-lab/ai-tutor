@@ -25,18 +25,24 @@ class AppSettings(BaseSettings):
     domain: Annotated[str, StringConstraints(strip_whitespace=True)] = Field(
         default="localhost", validation_alias="DOMAIN"
     )
-    smtp_host: Annotated[str, StringConstraints(strip_whitespace=True)] = Field(
-        default="", validation_alias="SMTP_HOST"
+    smtp_host: Annotated[str, StringConstraints(strip_whitespace=True)] | None = Field(
+        default=None, validation_alias="SMTP_HOST"
     )
     smtp_port: int | None = Field(default=None, validation_alias="SMTP_PORT")
-    smtp_from_email: Annotated[str, StringConstraints(strip_whitespace=True)] = Field(
-        default="", validation_alias="SMTP_FROM_EMAIL"
+    smtp_from_email: Annotated[str, StringConstraints(strip_whitespace=True)] | None = (
+        Field(
+            default=None,
+            validation_alias="SMTP_FROM_EMAIL",
+        )
     )
-    smtp_username: Annotated[str, StringConstraints(strip_whitespace=True)] = Field(
-        default="", validation_alias="SMTP_USERNAME"
+    smtp_username: Annotated[str, StringConstraints(strip_whitespace=True)] | None = (
+        Field(
+            default=None,
+            validation_alias="SMTP_USERNAME",
+        )
     )
-    smtp_password: str = Field(default="", validation_alias="SMTP_PASSWORD")
-    smtp_use_tls: bool | None = Field(default=None, validation_alias="SMTP_USE_TLS")
+    smtp_password: str | None = Field(default=None, validation_alias="SMTP_PASSWORD")
+    smtp_use_tls: bool = Field(default=False, validation_alias="SMTP_USE_TLS")
     smtp_use_ssl: bool = Field(default=False, validation_alias="SMTP_USE_SSL")
     smtp_timeout: int = Field(default=10, validation_alias="SMTP_TIMEOUT")
 
