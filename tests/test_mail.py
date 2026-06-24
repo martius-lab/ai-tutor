@@ -2,12 +2,20 @@ from email.message import EmailMessage
 
 import pytest
 
+from aitutor.app_settings import get_settings
 from aitutor.mail import (
     EmailConfigurationError,
     SmtpSettings,
     build_text_email,
     send_email,
 )
+
+
+@pytest.fixture(autouse=True)
+def clear_settings_cache():
+    get_settings.cache_clear()
+    yield
+    get_settings.cache_clear()
 
 
 class FakeSmtpClient:
@@ -48,6 +56,7 @@ class FakeSmtpClient:
 
 
 def test_smtp_settings_from_env(monkeypatch):
+    monkeypatch.setenv("OPENAI_API_KEY", "test-key")
     monkeypatch.setenv("SMTP_HOST", "smtpserv.uni-tuebingen.de")
     monkeypatch.setenv("SMTP_PORT", "587")
     monkeypatch.setenv("SMTP_FROM_EMAIL", "AI Tutor <noreply@example.com>")
@@ -69,6 +78,7 @@ def test_smtp_settings_from_env(monkeypatch):
 
 
 def test_smtp_settings_require_host(monkeypatch):
+    monkeypatch.setenv("OPENAI_API_KEY", "test-key")
     monkeypatch.delenv("SMTP_HOST", raising=False)
     monkeypatch.setenv("SMTP_FROM_EMAIL", "noreply@example.com")
 
