@@ -1,0 +1,41 @@
+name: Technical task
+description: Track refactoring, maintenance, tests, documentation, or developer workflow work.
+title: "chore: "
+body:
+  - type: textarea
+    id: objective
+    attributes:
+      label: Objective
+      description: What should be improved, and why now?
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Scope
+      description: List the intended files, modules, or behavior boundaries.
+      placeholder: |
+        In scope:
+        - ...
+        Out of scope:
+        - ...
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      description: Concrete checks that show the task is done.
+    validations:
+      required: true
+  - type: textarea
+    id: validation
+    attributes:
+      label: Expected validation
+      description: Tests, lint, type checks, migration checks, or manual app checks expected for the task.
+      placeholder: |
+        - uv run ruff check ...
+        - uv run pytest ...
+        - Manual check: ...
+    validations:
+      required: false
