@@ -34,9 +34,14 @@ class SmtpSettings:
         """Load and validate SMTP settings from environment variables."""
         app_settings = get_settings()
         use_ssl = app_settings.smtp_use_ssl
+        default_port = 465 if use_ssl else 587
         settings = cls(
             host=app_settings.smtp_host,
-            port=app_settings.smtp_port or (465 if use_ssl else 587),
+            port=(
+                app_settings.smtp_port
+                if app_settings.smtp_port is not None
+                else default_port
+            ),
             from_email=app_settings.smtp_from_email,
             username=app_settings.smtp_username,
             password=app_settings.smtp_password,
