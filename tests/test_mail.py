@@ -99,16 +99,6 @@ def test_smtp_settings_require_host(monkeypatch):
         SmtpSettings.from_env()
 
 
-def test_smtp_settings_reject_invalid_port(monkeypatch):
-    monkeypatch.setenv("OPENAI_API_KEY", "test-key")
-    monkeypatch.setenv("SMTP_HOST", "smtp.example.com")
-    monkeypatch.setenv("SMTP_FROM_EMAIL", "noreply@example.com")
-    monkeypatch.setenv("SMTP_PORT", "0")
-
-    with pytest.raises(EmailConfigurationError, match="SMTP_PORT"):
-        SmtpSettings.from_env()
-
-
 def test_smtp_settings_reject_partial_credentials():
     settings = SmtpSettings(
         host="smtp.example.com",

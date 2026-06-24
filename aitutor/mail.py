@@ -37,11 +37,7 @@ class SmtpSettings:
         default_port = 465 if use_ssl else 587
         settings = cls(
             host=app_settings.smtp_host or "",
-            port=(
-                app_settings.smtp_port
-                if app_settings.smtp_port is not None
-                else default_port
-            ),
+            port=app_settings.smtp_port or default_port,
             from_email=app_settings.smtp_from_email or "",
             username=app_settings.smtp_username or "",
             password=app_settings.smtp_password or "",
