@@ -19,15 +19,13 @@ from aitutor.language_state import BackendTranslations as BT
 from aitutor.models import (
     Exercise,
     ExerciseTagLink,
-    GlobalPermission,
     Lecture,
-    LectureRole,
     Prompt,
     Tag,
     UserRole,
 )
 from aitutor.utilities.filtering_components import FilterMixin
-from aitutor.utilities.lecture_permissions import get_user_lecture_role
+from aitutor.utilities.lecture_permissions import user_may_manage_lecture_exercises
 
 
 class DialogMode(Enum):
@@ -174,18 +172,16 @@ class LectureManageExercisesState(FilterMixin, SessionState):
 
     def _user_may_manage_lecture(self, lecture_id: int) -> bool:
         """Return whether the current user may manage exercises in the lecture."""
-        if GlobalPermission.ADMIN in self.global_permissions:
-            return True
         if self.authenticated_user is None or self.authenticated_user.id is None:
             return False
 
         with rx.session() as session:
-            role = get_user_lecture_role(
+            return user_may_manage_lecture_exercises(
                 session,
                 user_id=self.authenticated_user.id,
+                global_permissions=self.global_permissions,
                 lecture_id=lecture_id,
             )
-        return role in (LectureRole.TUTOR, LectureRole.OWNER)
 
     def on_logout(self):
         """Clears the state when the user logs out."""
