@@ -45,6 +45,29 @@ public domain users open in their browser.
 
 Do not commit real SMTP credentials to the repository.
 
+For local email testing without sending real mail, configure the app container
+to send signup emails to Mailpit:
+
+```
+SMTP_HOST=mailpit
+SMTP_PORT=1025
+SMTP_FROM_EMAIL="AI Tutor <noreply@example.test>"
+SMTP_USE_TLS=false
+SMTP_USE_SSL=false
+DOMAIN=localhost
+```
+
+Leave `SMTP_USERNAME` and `SMTP_PASSWORD` unset unless you configure Mailpit to
+require authentication.
+
+Then start the optional Mailpit compose override:
+
+```
+docker compose -f compose.yaml -f compose.mailpit.yaml up
+```
+
+Open [http://localhost:8025](http://localhost:8025) to inspect captured emails.
+
 
 ## Production environment with Postgresql
 
