@@ -121,18 +121,9 @@ class MyRegisterState(reflex_local_auth.RegistrationState):
                 self.registration_code = ""
                 return
 
-            validation_errors = self._validate_fields(
-                form_data["username"],
-                form_data["password"],
-                form_data["confirm_password"],
-            )
-            if validation_errors:
-                self.new_user_id = -1
-                yield validation_errors
-                return
-
-            self._register_user(form_data["username"], form_data["password"])
+            registration_result = self.handle_registration(form_data)
             if self.new_user_id < 0:
+                yield registration_result
                 return
 
             welcome_email_sent = False
@@ -169,6 +160,6 @@ class MyRegisterState(reflex_local_auth.RegistrationState):
             self.success = True
             self.error_message = ""
             if not welcome_email_failed:
-                yield type(self).successful_registration
+                yield registration_result
         finally:
             self.registration_in_progress = False
