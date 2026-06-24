@@ -249,6 +249,12 @@ class LectureManagePromptsState(SessionState):
         with rx.session() as session:
             prompt = session.get(Prompt, prompt_id)
             if prompt is None or prompt.lecture_id != self.current_lecture_id:
+                yield rx.toast.error(
+                    description=BT.invalid_replacement_prompt(self.language),
+                    duration=5000,
+                    position="bottom-center",
+                    invert=True,
+                )
                 return
 
             replacement_prompt = session.exec(
@@ -270,6 +276,15 @@ class LectureManagePromptsState(SessionState):
                 )
                 return
 
+            if replacement_prompt.id == prompt_id:
+                yield rx.toast.error(
+                    description=BT.invalid_replacement_prompt(self.language),
+                    duration=5000,
+                    position="bottom-center",
+                    invert=True,
+                )
+                return
+
             exercises = session.exec(
                 select(Exercise).where(
                     Exercise.prompt_id == prompt_id,
@@ -284,6 +299,7 @@ class LectureManagePromptsState(SessionState):
             lecture = session.get(Lecture, self.current_lecture_id)
             if lecture is not None and lecture.default_prompt_id == prompt_id:
                 lecture.default_prompt_id = replacement_prompt.id
+                self.current_default_prompt_id = replacement_prompt.id
                 session.add(lecture)
 
             session.delete(prompt)

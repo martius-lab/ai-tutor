@@ -176,6 +176,27 @@ class ManagePromptsState(SessionState):
         with rx.session() as session:
             prompt = session.get(Prompt, prompt_id)
             if prompt:
+                lecture_default_using_prompt = session.exec(
+                    select(Lecture).where(Lecture.default_prompt_id == prompt_id)
+                ).first()
+                lecture_exercise_using_prompt = session.exec(
+                    select(Exercise).where(
+                        Exercise.prompt_id == prompt_id,
+                        Exercise.lecture_id != None,  # noqa: E711
+                    )
+                ).first()
+
+                if lecture_default_using_prompt or lecture_exercise_using_prompt:
+                    yield rx.toast.error(
+                        description=BT.prompt_used_in_lectures_cannot_delete(
+                            self.language
+                        ),
+                        duration=5000,
+                        position="bottom-center",
+                        invert=True,
+                    )
+                    return
+
                 # Find the replacement prompt by name
                 replacement_prompt = session.exec(
                     select(Prompt).where(
@@ -193,25 +214,30 @@ class ManagePromptsState(SessionState):
                     )
                     return
 
+                if replacement_prompt.id == prompt_id:
+                    yield rx.toast.error(
+                        description=BT.invalid_replacement_prompt(self.language),
+                        duration=5000,
+                        position="bottom-center",
+                        invert=True,
+                    )
+                    return
+
                 # Check if the prompt being deleted is the default prompt
                 is_deleting_default = prompt.is_default_prompt
 
-                # Update all exercises that use the prompt to be deleted
+                # Update global exercises that use the prompt to be deleted.
+                # Lecture exercises are guarded above and block global deletion.
                 exercises = session.exec(
-                    select(Exercise).where(Exercise.prompt_id == prompt_id)
+                    select(Exercise).where(
+                        Exercise.prompt_id == prompt_id,
+                        Exercise.lecture_id == None,  # noqa: E711
+                    )
                 ).all()
 
                 for exercise in exercises:
                     exercise.prompt_id = replacement_prompt.id
                     session.add(exercise)
-
-                # Update lecture-specific defaults that pointed to the deleted prompt.
-                lectures = session.exec(
-                    select(Lecture).where(Lecture.default_prompt_id == prompt_id)
-                ).all()
-                for lecture in lectures:
-                    lecture.default_prompt_id = replacement_prompt.id
-                    session.add(lecture)
 
                 # If deleting the default prompt, mark the replacement as default
                 if is_deleting_default:
