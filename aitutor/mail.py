@@ -25,7 +25,7 @@ class SmtpSettings:
     from_email: str
     username: str = ""
     password: str = ""
-    use_tls: bool = True
+    use_tls: bool = False
     use_ssl: bool = False
     timeout: int = 10
 
@@ -36,20 +36,16 @@ class SmtpSettings:
         use_ssl = app_settings.smtp_use_ssl
         default_port = 465 if use_ssl else 587
         settings = cls(
-            host=app_settings.smtp_host,
+            host=app_settings.smtp_host or "",
             port=(
                 app_settings.smtp_port
                 if app_settings.smtp_port is not None
                 else default_port
             ),
-            from_email=app_settings.smtp_from_email,
-            username=app_settings.smtp_username,
-            password=app_settings.smtp_password,
-            use_tls=(
-                not use_ssl
-                if app_settings.smtp_use_tls is None
-                else app_settings.smtp_use_tls
-            ),
+            from_email=app_settings.smtp_from_email or "",
+            username=app_settings.smtp_username or "",
+            password=app_settings.smtp_password or "",
+            use_tls=app_settings.smtp_use_tls,
             use_ssl=use_ssl,
             timeout=app_settings.smtp_timeout,
         )
