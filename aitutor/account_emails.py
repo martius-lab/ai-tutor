@@ -3,27 +3,15 @@
 from typing import cast
 
 from decouple import config
-from reflex_local_auth.user import LocalUser
 
 from aitutor.mail import send_text_email
-from aitutor.models import Language, UserInfo
+from aitutor.models import Language
 
 
 def public_base_url() -> str:
     """Public base URL used for links in account emails."""
     domain = cast(str, config("DOMAIN", default="localhost", cast=str)).strip()
     return f"https://{domain}".rstrip("/")
-
-
-def send_signup_welcome(*, local_user: LocalUser, user_info: UserInfo) -> None:
-    """Send a welcome email for a newly registered account."""
-    if local_user.id is None:
-        raise ValueError("Cannot send welcome email before user is persisted.")
-    send_signup_welcome_email(
-        to_email=user_info.email,
-        username=local_user.username,
-        language=user_info.language,
-    )
 
 
 def send_signup_welcome_email(
