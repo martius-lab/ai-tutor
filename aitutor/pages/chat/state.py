@@ -2,11 +2,12 @@
 
 from datetime import datetime
 from enum import StrEnum
-from typing import Optional
+from typing import Optional, cast
 from zoneinfo import ZoneInfo
 
 import reflex as rx
 from openai import AsyncOpenAI
+from openai.types.chat import ChatCompletionMessageParam
 from pydantic import BaseModel
 from sqlmodel import select
 
@@ -101,10 +102,13 @@ async def get_chat_response(conversation):
     conversation = sanitize_conversation_for_openai(conversation)
     conversation.insert(
         1,
-        {
-            "role": Role.SYSTEM.value,
-            "content": GENERATIVE_UI_SYSTEM_PROMPT,
-        },
+        cast(
+            ChatCompletionMessageParam,
+            {
+                "role": Role.SYSTEM.value,
+                "content": GENERATIVE_UI_SYSTEM_PROMPT,
+            },
+        ),
     )
     # Wait till Chat Completion Request is fulfilled.
     session = await client.beta.chat.completions.parse(
@@ -468,7 +472,6 @@ class ChatState(SessionState):
                 )
         self.reset_message_expansion_state()
 
-
     @rx.event(background=True)
     async def send_message(self, form_data: dict):
         """
@@ -713,8 +716,7 @@ class ChatState(SessionState):
             action.kind == GeneratedUiKind.SHOW_QUIZ
             and action.require_answer_before_continuing
             and any(
-                question.selected_option_index is None
-                for question in action.questions
+                question.selected_option_index is None for question in action.questions
             )
             for message in self.messages
             for action in message.ui_actions

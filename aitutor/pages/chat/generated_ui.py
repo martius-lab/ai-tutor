@@ -1,8 +1,9 @@
 """Contracts and helpers for generated chat UI actions."""
 
 from enum import StrEnum
-from typing import Literal
+from typing import Literal, cast
 
+from openai.types.chat import ChatCompletionMessageParam
 from pydantic import BaseModel, Field, field_validator, model_validator
 
 
@@ -70,9 +71,9 @@ class DiagramEdge(BaseModel):
 class GeneratedUiAction(BaseModel):
     """A generated UI action shown inline in the chat."""
 
-    kind: Literal[
-        GeneratedUiKind.SHOW_QUIZ, GeneratedUiKind.SHOW_DIAGRAM
-    ] = GeneratedUiKind.SHOW_QUIZ
+    kind: Literal[GeneratedUiKind.SHOW_QUIZ, GeneratedUiKind.SHOW_DIAGRAM] = (
+        GeneratedUiKind.SHOW_QUIZ
+    )
     title: str = Field(default="Quiz", max_length=120)
     questions: list[QuizQuestion] = Field(default_factory=list, max_length=10)
     current_question_index: int = Field(default=0, ge=0, le=9)
@@ -194,11 +195,16 @@ Avoid:
 """.strip()
 
 
-def sanitize_conversation_for_openai(conversation: list[dict]) -> list[dict[str, str]]:
+def sanitize_conversation_for_openai(
+    conversation: list[dict],
+) -> list[ChatCompletionMessageParam]:
     """Keep only OpenAI-supported chat message fields."""
     supported_roles = {"system", "user", "assistant"}
     return [
-        {"role": str(msg["role"]), "content": str(msg["content"])}
+        cast(
+            ChatCompletionMessageParam,
+            {"role": str(msg["role"]), "content": str(msg["content"])},
+        )
         for msg in conversation
         if msg.get("role") in supported_roles and msg.get("content") is not None
     ]
