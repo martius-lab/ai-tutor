@@ -29,7 +29,7 @@ Use this skill to make repo-native changes that match the expectations shown in 
 - Preserve the page folder pattern: `page.py` for route/page composition, `components.py` for UI helpers, and `state.py` for event and data logic.
 - Keep state values minimal. Avoid duplicating route IDs, database values, or derived flags that can drift out of sync.
 - Add new user-specific state to logout/reset handling when needed. Do not reset session-independent preferences, such as language, by accident.
-- Prefer public APIs from Reflex and `reflex-local-auth`. If a private method is unavoidable, keep the call isolated and explain why in the PR.
+- Prefer public APIs from third-party packages. If a private method is unavoidable, keep the call isolated and explain why in the PR.
 - Computed vars that touch database-backed state may need explicit initial values for frontend builds.
 - Expect pyright and Reflex to disagree sometimes. Use `# type: ignore` only when the runtime behavior is verified and a clearer typed structure is not practical.
 
