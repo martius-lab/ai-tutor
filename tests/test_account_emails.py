@@ -3,8 +3,16 @@ from email.message import EmailMessage
 import pytest
 
 from aitutor.account_emails import send_signup_welcome_email
+from aitutor.app_settings import get_settings
 from aitutor.language_state import BackendTranslations as BT
 from aitutor.models import Language
+
+
+@pytest.fixture(autouse=True)
+def clear_settings_cache():
+    get_settings.cache_clear()
+    yield
+    get_settings.cache_clear()
 
 
 @pytest.mark.parametrize(
@@ -29,6 +37,7 @@ def test_send_signup_welcome_email_sends_email(monkeypatch):
         sent_messages.append(message)
 
     monkeypatch.setenv("DOMAIN", "ai-tutor.example")
+    monkeypatch.setenv("OPENAI_API_KEY", "test-key")
     monkeypatch.setattr("aitutor.account_emails.send_text_email", fake_send_text_email)
 
     send_signup_welcome_email(
@@ -55,6 +64,7 @@ def test_send_signup_welcome_email_uses_user_language(monkeypatch):
         sent_messages.append(message)
 
     monkeypatch.setenv("DOMAIN", "ai-tutor.example")
+    monkeypatch.setenv("OPENAI_API_KEY", "test-key")
     monkeypatch.setattr("aitutor.account_emails.send_text_email", fake_send_text_email)
 
     send_signup_welcome_email(

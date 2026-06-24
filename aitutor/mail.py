@@ -3,9 +3,9 @@
 from dataclasses import dataclass
 from email.message import EmailMessage
 from smtplib import SMTP, SMTP_SSL, SMTPException
-from typing import Any, Callable, cast
+from typing import Any, Callable
 
-from decouple import config
+from aitutor.app_settings import get_settings
 
 
 class EmailConfigurationError(RuntimeError):
@@ -32,20 +32,21 @@ class SmtpSettings:
     @classmethod
     def from_env(cls) -> "SmtpSettings":
         """Load and validate SMTP settings from environment variables."""
-        use_ssl = cast(bool, config("SMTP_USE_SSL", default=False, cast=bool))
+        app_settings = get_settings()
+        use_ssl = app_settings.smtp_use_ssl
         settings = cls(
-            host=cast(str, config("SMTP_HOST", default="", cast=str)).strip(),
-            port=cast(
-                int, config("SMTP_PORT", default=465 if use_ssl else 587, cast=int)
+            host=app_settings.smtp_host,
+            port=app_settings.smtp_port or (465 if use_ssl else 587),
+            from_email=app_settings.smtp_from_email,
+            username=app_settings.smtp_username,
+            password=app_settings.smtp_password,
+            use_tls=(
+                not use_ssl
+                if app_settings.smtp_use_tls is None
+                else app_settings.smtp_use_tls
             ),
-            from_email=cast(
-                str, config("SMTP_FROM_EMAIL", default="", cast=str)
-            ).strip(),
-            username=cast(str, config("SMTP_USERNAME", default="", cast=str)).strip(),
-            password=cast(str, config("SMTP_PASSWORD", default="", cast=str)),
-            use_tls=cast(bool, config("SMTP_USE_TLS", default=not use_ssl, cast=bool)),
             use_ssl=use_ssl,
-            timeout=cast(int, config("SMTP_TIMEOUT", default=10, cast=int)),
+            timeout=app_settings.smtp_timeout,
         )
         settings.validate()
         return settings
