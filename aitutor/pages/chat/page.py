@@ -16,8 +16,8 @@ from aitutor.pages.chat.state import ChatState
 from aitutor.pages.navbar import with_navbar
 
 
-@with_navbar(routes.EXERCISES)
 @page_require_role_or_permission(required_role=UserRole.STUDENT)
+@with_navbar(routes.EXERCISES)
 def chat_page() -> rx.Component:
     """Renders the web page."""
     return rx.container(
@@ -27,7 +27,7 @@ def chat_page() -> rx.Component:
                     rx.hstack(
                         rx.button(
                             rx.icon("arrow-left", size=20),
-                            on_click=rx.redirect(routes.EXERCISES),
+                            on_click=rx.redirect(ChatState.exercises_url),
                             _hover={"cursor": "pointer"},
                         ),
                         rx.heading(

@@ -76,6 +76,7 @@ class SubmissionsState(FilterMixin, SessionState):
                     & (ExerciseResult.userinfo_id == UserInfo.id),  # type: ignore
                 )
                 .options(selectinload(Exercise.tags))  # type: ignore
+                .where(Exercise.lecture_id == None)  # noqa: E711
                 .order_by(func.lower(Exercise.title), LocalUser.username)
             )
 

@@ -120,9 +120,7 @@ def initialize_config_db():
             )
             session.add(config)
             session.commit()
-            print("Configuration row added to the database.")
-        else:
-            print("Configuration row exists in the database.")
+            print("Configuration added to the database.")
 
 
 def get_config() -> Config:

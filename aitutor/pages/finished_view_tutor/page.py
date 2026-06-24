@@ -11,8 +11,8 @@ from aitutor.pages.finished_view_tutor.state import FinishedViewTutorState
 from aitutor.pages.navbar import with_navbar
 
 
+@page_require_role_or_permission(required_role=UserRole.STUDENT)
 @with_navbar(routes.SUBMISSIONS)
-@page_require_role_or_permission(required_role=UserRole.TUTOR)
 def finished_view_tutor_page() -> rx.Component:
     """Renders the web page."""
     return rx.container(
@@ -22,7 +22,7 @@ def finished_view_tutor_page() -> rx.Component:
                     rx.button(
                         rx.icon("arrow-left", size=20),
                         on_click=rx.redirect(
-                            routes.SUBMISSIONS,
+                            FinishedViewTutorState.submissions_url,
                         ),
                         _hover={"cursor": "pointer"},
                     ),

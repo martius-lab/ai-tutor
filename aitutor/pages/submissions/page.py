@@ -11,8 +11,8 @@ from aitutor.pages.submissions.state import SubmissionsState
 from aitutor.utilities.filtering_components import search_badges, search_bar
 
 
-@with_navbar(routes.SUBMISSIONS)
 @page_require_role_or_permission(required_role=UserRole.TUTOR)
+@with_navbar(routes.SUBMISSIONS)
 def submissions_page() -> rx.Component:
     """Manage exercises page."""
     return rx.center(

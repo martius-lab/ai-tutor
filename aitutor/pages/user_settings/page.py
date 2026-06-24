@@ -9,8 +9,8 @@ from aitutor.pages.navbar import with_navbar
 from aitutor.pages.user_settings.components import change_password_card
 
 
-@with_navbar()
 @page_require_role_or_permission(required_role=UserRole.STUDENT)
+@with_navbar()
 def user_settings_page() -> rx.Component:
     """Page where the user can change their settings."""
     return rx.center(

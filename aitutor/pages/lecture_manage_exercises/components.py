@@ -1,0 +1,968 @@
+"""The Components for the manage exercises page."""
+
+from typing import Sequence
+
+import reflex as rx
+
+from aitutor.components.dialogs import destructive_confirm
+from aitutor.global_vars import SEARCH_TAG_KEY, TIME_ZONE
+from aitutor.language_state import LanguageState
+from aitutor.models import Exercise
+from aitutor.pages.lecture_manage_exercises.state import (
+    DialogMode,
+)
+from aitutor.pages.lecture_manage_exercises.state import (
+    LectureManageExercisesState as ManageExercisesState,
+)
+from aitutor.pages.lecture_manage_exercises.state import (
+    LectureManageTagsState as ManageTagsState,
+)
+from aitutor.utilities.helper_functions import truncate_text_reflex_var
+
+
+def new_tag_dialog():
+    """Dialog for adding new tags."""
+    return rx.dialog.root(
+        rx.dialog.trigger(
+            rx.button(
+                rx.hstack(
+                    rx.icon("plus", size=20),
+                    rx.icon("tag", size=20),
+                    align="center",
+                    spacing="1",
+                ),
+                LanguageState.new_tag,
+                _hover={"cursor": "pointer"},
+            ),
+        ),
+        rx.dialog.content(
+            rx.vstack(
+                rx.heading(LanguageState.new_tag),
+                rx.input(
+                    placeholder=LanguageState.tagname,
+                    value=ManageTagsState.new_tag_name,
+                    on_change=ManageTagsState.set_new_tag_name,
+                    width="100%",
+                    on_key_down=lambda key: rx.cond(
+                        key == "Enter",
+                        ManageTagsState.add_new_tag,
+                        None,
+                    ),
+                ),
+                rx.hstack(
+                    rx.dialog.close(
+                        rx.button(
+                            rx.text(LanguageState.cancel),
+                            variant="outline",
+                            _hover={"cursor": "pointer"},
+                        ),
+                    ),
+                    rx.button(
+                        LanguageState.add_tag,
+                        on_click=ManageTagsState.add_new_tag,
+                        _hover=rx.cond(
+                            ManageTagsState.new_tag_name == "",
+                            {"cursor": "not-allowed"},
+                            {"cursor": "pointer"},
+                        ),
+                        disabled=ManageTagsState.new_tag_name == "",
+                    ),
+                    padding_top="1em",
+                    spacing="2",
+                    justify="end",
+                    width="100%",
+                ),
+            ),
+            width="20em",
+            max_width="90vw",
+        ),
+        open=ManageTagsState.add_tag_dialog_is_open,
+        on_open_change=ManageTagsState.set_add_tag_dialog_is_open,
+    )
+
+
+def rename_tag_dialog():
+    """Dialog for editing existing tags."""
+    return rx.dialog.root(
+        rx.dialog.content(
+            rx.vstack(
+                rx.heading(LanguageState.rename_tag),
+                rx.input(
+                    placeholder=LanguageState.tagname,
+                    value=ManageTagsState.new_renamed_tag_name,
+                    on_change=ManageTagsState.set_new_renamed_tag_name,
+                    width="100%",
+                    on_key_down=lambda key: rx.cond(
+                        key == "Enter",
+                        ManageTagsState.edit_tag_name(),
+                        None,
+                    ),
+                ),
+                rx.hstack(
+                    rx.dialog.close(
+                        rx.button(
+                            rx.text(LanguageState.cancel),
+                            variant="outline",
+                            _hover={"cursor": "pointer"},
+                        ),
+                    ),
+                    rx.button(
+                        LanguageState.confirm,
+                        on_click=ManageTagsState.edit_tag_name(),
+                        _hover=rx.cond(
+                            ManageTagsState.new_renamed_tag_name == "",
+                            {"cursor": "not-allowed"},
+                            {"cursor": "pointer"},
+                        ),
+                        disabled=ManageTagsState.new_renamed_tag_name == "",
+                    ),
+                    padding_top="1em",
+                    spacing="2",
+                    justify="end",
+                    width="100%",
+                ),
+            ),
+            width="20em",
+            max_width="90vw",
+        ),
+        open=ManageTagsState.edit_tag_dialog_is_open,
+        on_open_change=ManageTagsState.set_edit_tag_dialog_is_open,
+    )
+
+
+def edit_tags_button() -> rx.Component:
+    """Button for managing tags."""
+    return rx.dialog.root(
+        rx.dialog.trigger(
+            rx.button(
+                rx.icon("tags"),
+                rx.text(LanguageState.edit_tags, size="3"),
+                _hover={"cursor": "pointer"},
+                type="button",
+            )
+        ),
+        rx.dialog.content(
+            rx.vstack(
+                rx.hstack(
+                    rx.heading(
+                        LanguageState.edit_tags,
+                    ),
+                    rx.dialog.close(
+                        rx.icon_button(
+                            rx.icon("x", size=20),
+                            size="2",
+                            variant="ghost",
+                            _hover={"cursor": "pointer"},
+                        ),
+                    ),
+                    justify="between",
+                    width="100%",
+                ),
+                rx.hstack(
+                    rx.icon("book-copy", size=14, color="gray"),
+                    rx.text(
+                        "X  = " + LanguageState.exercise_count_info,
+                        size="2",
+                        color="gray",
+                        weight="medium",
+                    ),
+                    align="center",
+                    spacing="1",
+                ),
+                rx.vstack(
+                    rx.foreach(
+                        ManageExercisesState.tag_list,
+                        lambda tag: rx.hstack(
+                            rx.hstack(
+                                rx.icon("book-copy", size=14, color="gray"),
+                                rx.text(
+                                    ManageTagsState.exercises_per_tag[tag.id],
+                                    size="2",
+                                    color="gray",
+                                    weight="medium",
+                                ),
+                                align="center",
+                                spacing="1",
+                            ),
+                            rx.badge(
+                                rx.text(tag.name, size="2"),
+                                variant="soft",
+                            ),
+                            rx.icon_button(
+                                rx.icon("pencil"),
+                                size="2",
+                                variant="ghost",
+                                _hover={"cursor": "pointer"},
+                                on_click=ManageTagsState.open_edit_tag_dialog(
+                                    tag.id, tag.name
+                                ),
+                            ),
+                            destructive_confirm(
+                                title=LanguageState.delete_tag,
+                                description=LanguageState.delete_tag_info,
+                                confirm_text=LanguageState.delete,
+                                cancel_text=LanguageState.cancel,
+                                on_confirm=ManageTagsState.delete_tag(tag.id),
+                                trigger=rx.icon_button(
+                                    rx.icon("trash"),
+                                    size="2",
+                                    variant="ghost",
+                                    color_scheme="red",
+                                    _hover={"cursor": "pointer"},
+                                ),
+                            ),
+                            spacing="4",
+                            align="center",
+                            width="100%",
+                        ),
+                    ),
+                    overflow_y="auto",
+                    spacing="2",
+                    width="100%",
+                    padding_right="0.5em",
+                    padding_bottom="0.5em",
+                ),
+                new_tag_dialog(),
+                rename_tag_dialog(),
+                max_height="60vh",
+            ),
+        ),
+    )
+
+
+def delete_exercise_button(exercise: Exercise):
+    """Delete exercise"""
+
+    return destructive_confirm(
+        title=LanguageState.delete_exercise,
+        description=LanguageState.delete_exercise_info,
+        confirm_text=LanguageState.delete,
+        cancel_text=LanguageState.cancel,
+        on_confirm=ManageExercisesState.delete_exercise(exercise.id),  # type: ignore
+        trigger=rx.icon_button(
+            rx.icon("trash"),
+            size="2",
+            variant="ghost",
+            color_scheme="red",
+            _hover={"cursor": "pointer"},
+        ),
+    )
+
+
+def show_exercise(exercise: Exercise):
+    """Show exercises on page in a table row."""
+    return rx.table.row(
+        rx.table.cell(
+            rx.checkbox(
+                checked=ManageExercisesState.exercise_is_selected[exercise.id],  # type: ignore
+                on_change=lambda checked: ManageExercisesState.set_exercise_is_selected(
+                    exercise.id, checked
+                ),
+            )
+        ),
+        rx.table.cell(exercise.title, max_width="175px"),
+        rx.table.cell(
+            truncate_text_reflex_var(exercise.description, max_length=150),
+            max_width="400px",
+        ),
+        rx.table.cell(
+            rx.hstack(
+                rx.foreach(
+                    exercise.tags,
+                    lambda tag: rx.badge(
+                        tag.name,
+                        variant="soft",
+                        on_click=ManageExercisesState.add_search_value(
+                            {"search_value": f'{SEARCH_TAG_KEY}:"{tag.name}"'}
+                        ),
+                        _hover={"cursor": "pointer"},
+                    ),
+                ),
+                spacing="1",
+                wrap="wrap",
+            )
+        ),
+        rx.table.cell(
+            ManageExercisesState.editing_periods[exercise.id]  # type: ignore
+        ),
+        rx.table.cell(
+            rx.hstack(
+                hide_exercise_button(exercise),
+                edit_exercise_button(exercise),
+                delete_exercise_button(exercise),
+                spacing="5",
+            ),
+        ),
+        style={"_hover": {"bg": rx.color("gray", 3)}},
+        align="center",
+    )
+
+
+def header_cell(text, icon: str):
+    """Create header cells."""
+    return rx.table.column_header_cell(
+        rx.hstack(
+            rx.icon(icon, size=18),
+            rx.text(text),
+            align="center",
+            spacing="3",
+        ),
+    )
+
+
+def exercise_table():
+    """The main table"""
+    return (
+        rx.fragment(
+            # head cells for the main table
+            rx.table.root(
+                rx.table.header(
+                    rx.table.row(
+                        rx.table.column_header_cell(
+                            rx.checkbox(
+                                checked=ManageExercisesState.all_exercises_selected,
+                                on_change=ManageExercisesState.set_all_exercises_selected,
+                            ),
+                        ),
+                        header_cell(LanguageState.exercise, "book"),
+                        header_cell(LanguageState.description, "book-open-text"),
+                        header_cell(LanguageState.tags, "tag"),
+                        header_cell(LanguageState.editing_period, "calendar-clock"),
+                        header_cell(LanguageState.settings, "cog"),
+                    ),
+                ),
+                # dynamically render each new entry
+                rx.table.body(
+                    rx.foreach(ManageExercisesState.exercises, show_exercise)
+                ),
+                variant="surface",
+                size="3",
+                width="100%",
+                overflow_y="auto",
+                max_height="66vh",
+            ),
+            edit_exercise_dialog(),
+            add_exercise_dialog(),
+        ),
+    )
+
+
+def hide_exercise_button(exercise: Exercise):
+    """Button to hide or unhide exercise."""
+    return (
+        rx.center(
+            rx.cond(
+                exercise.is_hidden,
+                rx.icon("eye-off", size=18),
+                rx.cond(
+                    ManageExercisesState.exercise_is_started[exercise.id],  # type: ignore
+                    rx.icon("eye", size=18),
+                    rx.hover_card.root(
+                        rx.hover_card.trigger(
+                            rx.icon("view", size=18),
+                            _hover={"cursor": "pointer"},
+                        ),
+                        rx.hover_card.content(
+                            rx.text(
+                                LanguageState.exercise_hidden_hover_info,
+                            ),
+                        ),
+                    ),
+                ),
+            ),
+            _hover={"cursor": "pointer"},
+            on_click=ManageExercisesState.toggle_visibility(exercise),
+        ),
+    )
+
+
+def add_exercise_button() -> rx.Component:
+    """Button for adding new exercises."""
+    return rx.button(
+        rx.icon("file-plus"),
+        rx.desktop_only(
+            rx.text(LanguageState.add_exercise, size="3"),
+        ),
+        rx.mobile_and_tablet(
+            rx.text(LanguageState.add, size="3"),
+        ),
+        _hover={"cursor": "pointer"},
+        on_click=ManageExercisesState.open_add_dialog,
+        type="button",
+    )
+
+
+def delete_selected_exercises_button() -> rx.Component:
+    """Button to delete all selected exercises."""
+
+    return destructive_confirm(
+        title=LanguageState.delete,
+        description=LanguageState.delete_selected_info,
+        confirm_text=LanguageState.delete,
+        cancel_text=LanguageState.cancel,
+        on_confirm=ManageExercisesState.delete_selected_exercises,
+        trigger=rx.button(
+            rx.icon("trash"),
+            rx.text(
+                LanguageState.delete
+                + " ("
+                + ManageExercisesState.selected_exercises_num
+                + ")",
+                size="3",
+            ),
+            color_scheme="red",
+            _hover=rx.cond(
+                ManageExercisesState.something_is_selected,
+                {"cursor": "pointer"},
+                {"cursor": "not-allowed"},
+            ),
+            type="button",
+            disabled=~ManageExercisesState.something_is_selected,
+        ),
+    )
+
+
+def export_selected_exercises_button() -> rx.Component:
+    """Button to export all selected exercises."""
+    return rx.button(
+        rx.icon("file-down"),
+        rx.text(
+            LanguageState.export
+            + " ("
+            + ManageExercisesState.selected_exercises_num
+            + ")",
+            size="3",
+        ),
+        _hover=rx.cond(
+            ManageExercisesState.something_is_selected,
+            {"cursor": "pointer"},
+            {"cursor": "not-allowed"},
+        ),
+        on_click=ManageExercisesState.export_selected_exercises,
+        type="button",
+        disabled=~ManageExercisesState.something_is_selected,
+    )
+
+
+def add_exercise_dialog() -> rx.Component:
+    """Dialog for adding new exercises."""
+    return rx.dialog.root(
+        rx.dialog.content(
+            rx.hstack(
+                rx.badge(
+                    rx.icon(tag="file-plus", size=34),
+                    radius="full",
+                    color_scheme="green",
+                ),
+                rx.vstack(
+                    rx.dialog.title(
+                        LanguageState.add_exercise,
+                        weight="bold",
+                        margin="0",
+                    ),
+                    rx.dialog.description(
+                        LanguageState.add_exercise_description,
+                    ),
+                    spacing="1",
+                    height="100%",
+                    align_items="start",
+                    justify_content="start",
+                ),
+                height="100%",
+                spacing="4",
+                margin_bottom="1.5em",
+                align_items="start",
+                width="100%",
+            ),
+            rx.form(
+                add_edit_exercise_form(mode=DialogMode.ADD),
+                on_mount=ManageExercisesState.load_tags,
+                on_submit=ManageExercisesState.add_exercise,
+                reset_on_submit=False,
+                enter_key_submit=True,
+            ),
+            on_escape_key_down=ManageExercisesState.close_dialog,
+        ),
+        open=ManageExercisesState.add_exercise_dialog_is_open,
+    )
+
+
+def edit_exercise_button(exercise: Exercise):
+    """Button to open the edit exercise dialog."""
+    return rx.button(
+        rx.icon("wrench", size=22),
+        color_scheme="yellow",
+        size="2",
+        variant="ghost",
+        on_click=ManageExercisesState.open_edit_dialog(exercise),
+        _hover={"cursor": "pointer"},
+        type="button",
+    )
+
+
+def edit_exercise_dialog() -> rx.Component:
+    """Dialog for editing exercises."""
+    return rx.dialog.root(
+        rx.dialog.content(
+            rx.hstack(
+                rx.badge(
+                    rx.icon(tag="wrench", size=34),
+                    color_scheme="yellow",
+                    radius="full",
+                ),
+                rx.vstack(
+                    rx.dialog.title(
+                        LanguageState.edit_exercise,
+                        weight="bold",
+                        margin="0",
+                    ),
+                    rx.dialog.description(
+                        LanguageState.edit_exercise_description,
+                    ),
+                    spacing="1",
+                    height="100%",
+                    align_items="start",
+                    justify_content="start",
+                ),
+                height="100%",
+                spacing="4",
+                margin_bottom="1.5em",
+                align_items="start",
+                width="100%",
+            ),
+            rx.form(
+                add_edit_exercise_form(mode=DialogMode.EDIT),
+                on_mount=ManageExercisesState.load_tags,
+                on_submit=ManageExercisesState.update_exercise,
+                reset_on_submit=False,
+                enter_key_submit=True,
+            ),
+            on_escape_key_down=ManageExercisesState.close_dialog,
+        ),
+        open=ManageExercisesState.edit_exercise_dialog_is_open,
+    )
+
+
+def pdf_upload() -> rx.Component:
+    """Upload area for lesson material in PDF format."""
+    return (
+        rx.text(
+            LanguageState.add_lesson_context_pdf,
+            size="3",
+            weight="medium",
+            text_align="left",
+            width="100%",
+            padding_top="1.5em",
+            padding_bottom="0.5em",
+        ),
+        rx.upload(
+            rx.vstack(
+                rx.button(
+                    LanguageState.select_file,
+                    type="button",
+                    _hover=rx.cond(
+                        ManageExercisesState.extracting_lesson_material,
+                        {"cursor": "not-allowed"},
+                        {"cursor": "pointer"},
+                    ),
+                    loading=ManageExercisesState.extracting_lesson_material,
+                    disabled=ManageExercisesState.extracting_lesson_material,
+                ),
+                rx.text(
+                    LanguageState.pdf_upload_info,
+                ),
+                rx.text(rx.selected_files("upload1"), color="yellow", size="3"),
+                align="center",
+            ),
+            id="upload1",
+            accept={"application/pdf": [".pdf"]},
+            padding="5em",
+            padding_top="1em",
+            padding_bottom="1em",
+            on_drop=ManageExercisesState.extract_lesson_material(
+                rx.upload_files(upload_id="upload1")  # type: ignore
+            ),
+            _hover={"cursor": "pointer"},
+        ),
+        rx.text(
+            LanguageState.last_uploaded_file,
+            size="3",
+            weight="medium",
+            text_align="left",
+            width="100%",
+            padding_top="1.5em",
+            padding_bottom="0.5em",
+        ),
+        # show file icon with file name
+        rx.cond(
+            ManageExercisesState.lesson_file_name,
+            rx.box(
+                rx.hstack(
+                    rx.icon("file-text", size=25),
+                    rx.text(ManageExercisesState.lesson_file_name, color="green"),
+                ),
+            ),
+        ),
+    )
+
+
+def select_prompt(mode: DialogMode) -> rx.Component:
+    """The prompt selection component."""
+    return (
+        rx.text(
+            LanguageState.prompt + ":",
+            size="3",
+            weight="medium",
+            text_align="left",
+            width="100%",
+            padding_top="1.5em",
+            padding_bottom="0.5em",
+        ),
+        rx.hstack(
+            rx.select(
+                items=ManageExercisesState.prompt_names,
+                placeholder=LanguageState.select_prompt,
+                value=ManageExercisesState.current_prompt_name,
+                on_change=ManageExercisesState.set_current_prompt_name,
+                multiple=True,
+            ),
+            # hover to show the prompt
+            rx.popover.root(
+                rx.popover.trigger(
+                    rx.icon("info", size=20),
+                    _hover={"cursor": "pointer"},
+                ),
+                rx.popover.content(
+                    rx.flex(
+                        rx.text(
+                            ManageExercisesState.get_current_prompt_template,
+                            padding="1em",
+                        ),
+                        style={
+                            "white-space": "pre-wrap",
+                            "word-break": "break-word",
+                            "overflow_y": "auto",
+                            "max_height": "40vh",
+                        },
+                    )
+                ),
+            ),
+            # center horizontally
+            align_items="center",
+        ),
+    )  # type: ignore
+
+
+def tag_selection() -> rx.Component:
+    """Tag selection component"""
+    return rx.vstack(
+        rx.text(
+            LanguageState.tags + ":",
+            size="3",
+            weight="medium",
+            text_align="left",
+            width="100%",
+            padding_top="1.5em",
+            padding_bottom="0.5em",
+        ),
+        rx.hstack(
+            rx.menu.root(
+                rx.menu.trigger(
+                    rx.button(
+                        rx.icon("list", size=18),
+                        LanguageState.select_tags,
+                        type="button",
+                        _hover={"cursor": "pointer"},
+                    ),
+                ),
+                rx.menu.content(
+                    rx.foreach(
+                        ManageExercisesState.selectable_tags,
+                        lambda tag_name: rx.menu.item(
+                            tag_name,
+                            on_click=ManageExercisesState.add_to_selected_tags(
+                                tag_name
+                            ),
+                        ),
+                    ),
+                    min_width="10em",
+                ),
+            ),
+            new_tag_dialog(),
+            align="center",
+            justify="between",
+            width="100%",
+        ),
+        rx.hstack(
+            rx.foreach(
+                ManageExercisesState.selected_tags,
+                lambda tag: rx.badge(
+                    rx.hstack(
+                        rx.text(tag),
+                        rx.icon(
+                            "circle-x",
+                            size=16,
+                        ),
+                        spacing="1",
+                        align_items="center",
+                    ),
+                    on_click=ManageExercisesState.remove_selected_tag(tag),  # type: ignore
+                    cursor="pointer",
+                    size="3",
+                    style={
+                        "_hover": {
+                            "background_color": "red",
+                            "color": "black",
+                        }
+                    },
+                ),
+            ),
+            margin_top="0.5em",
+            margin_bottom="0.5em",
+            wrap="wrap",
+        ),
+        spacing="1",
+    )
+
+
+def add_edit_exercise_form(mode: DialogMode) -> Sequence[rx.Component]:
+    """Button for adding or editing exercises."""
+    return (
+        # title
+        rx.text(
+            LanguageState.title,
+            size="3",
+            weight="medium",
+            text_align="left",
+            width="100%",
+            padding_bottom="0.5em",
+        ),
+        rx.input(
+            default_value=rx.cond(
+                mode == DialogMode.EDIT,
+                ManageExercisesState.current_exercise.title,
+                "",
+            ),
+            placeholder=LanguageState.exercise_title_placeholder,
+            size="3",
+            width="100%",
+            type="text",
+            name="title",
+        ),
+        # description
+        rx.text(
+            LanguageState.description + ":",
+            size="3",
+            weight="medium",
+            text_align="left",
+            width="100%",
+            padding_top="1.5em",
+            padding_bottom="0.5em",
+        ),
+        rx.text_area(
+            default_value=rx.cond(
+                mode == DialogMode.EDIT,
+                ManageExercisesState.current_exercise.description,
+                "",
+            ),
+            placeholder=LanguageState.description_placeholder,
+            size="3",
+            width="100%",
+            height="150px",
+            type="text",
+            name="description",
+        ),
+        # lesson context
+        rx.text(
+            LanguageState.lesson_context,
+            size="3",
+            weight="medium",
+            text_align="left",
+            width="100%",
+            padding_top="1.5em",
+            padding_bottom="0.5em",
+        ),
+        rx.text_area(
+            placeholder=LanguageState.lesson_context_placeholder,
+            value=ManageExercisesState.lesson_context,
+            on_change=ManageExercisesState.set_lesson_context,
+            size="3",
+            width="100%",
+            height="200px",
+            type="text",
+            name="lesson_context",
+        ),
+        # lesson file upload area
+        pdf_upload(),
+        # prompt
+        select_prompt(mode),
+        # hidden checkbox
+        rx.hstack(
+            rx.text(
+                LanguageState.hide_exercise,
+                size="3",
+                weight="medium",
+            ),
+            rx.checkbox(
+                checked=ManageExercisesState.current_hidden_state,
+                on_change=ManageExercisesState.set_current_hidden_state,
+            ),
+            align="center",
+            padding_top="1.5em",
+            padding_bottom="0.5em",
+        ),
+        # deadline
+        rx.hstack(
+            rx.text(
+                LanguageState.activate_deadline,
+                size="3",
+                weight="medium",
+            ),
+            rx.checkbox(
+                checked=ManageExercisesState.use_deadline,
+                on_change=ManageExercisesState.set_use_deadline,
+            ),
+            align="center",
+            padding_top="1.5em",
+            padding_bottom="0.5em",
+        ),
+        rx.cond(
+            ManageExercisesState.use_deadline,
+            rx.vstack(
+                rx.hstack(
+                    rx.vstack(
+                        rx.text(
+                            LanguageState.deadline,
+                            size="3",
+                            weight="medium",
+                        ),
+                        rx.input(
+                            value=ManageExercisesState.current_deadline,
+                            on_change=ManageExercisesState.set_current_deadline,
+                            type="datetime-local",
+                        ),
+                    ),
+                    rx.vstack(
+                        rx.text(
+                            LanguageState.days_to_complete,
+                            size="3",
+                            weight="medium",
+                        ),
+                        rx.input(
+                            placeholder="e.g. 7",
+                            value=ManageExercisesState.current_days_to_complete,
+                            on_change=ManageExercisesState.set_current_days_to_complete,
+                            type="number",
+                            step="1",
+                            min="1",
+                        ),
+                    ),
+                ),
+                rx.text(LanguageState.timezone + TIME_ZONE),
+            ),
+        ),
+        # tags
+        tag_selection(),
+        rx.hstack(
+            rx.button(
+                LanguageState.cancel,
+                variant="outline",
+                _hover={"cursor": "pointer"},
+                on_click=ManageExercisesState.close_dialog,
+                type="button",
+            ),
+            rx.cond(
+                mode == DialogMode.ADD,
+                rx.form.submit(
+                    rx.button(
+                        LanguageState.add_task,
+                        color_scheme="green",
+                        type="submit",
+                        _hover={"cursor": "pointer"},
+                    ),
+                    as_child=True,
+                ),
+                rx.form.submit(
+                    rx.button(
+                        LanguageState.update_task,
+                        color_scheme="yellow",
+                        type="submit",
+                        _hover={"cursor": "pointer"},
+                    ),
+                    as_child=True,
+                ),
+            ),
+            spacing="2",
+            justify="end",
+            margin_top="1em",
+        ),
+    )
+
+
+def import_exercises_button() -> rx.Component:
+    """Button for importing exercises from a json file."""
+    return rx.dialog.root(
+        rx.dialog.trigger(
+            rx.button(
+                rx.icon("file_up"),
+                rx.desktop_only(
+                    rx.text(LanguageState.import_exercises, size="3"),
+                ),
+                rx.mobile_and_tablet(
+                    rx.text(LanguageState.import_, size="3"),
+                ),
+                _hover={"cursor": "pointer"},
+            )
+        ),
+        rx.dialog.content(
+            rx.vstack(
+                rx.upload(
+                    rx.text(
+                        LanguageState.exercises_upload_info,
+                    ),
+                    rx.text(
+                        rx.selected_files("exercises_upload"), color="yellow", size="3"
+                    ),
+                    id="exercises_upload",
+                    multiple=False,
+                    accept={"application/json": [".json"]},
+                    max_size=10 * 1024 * 1024,  # 10 MB
+                    padding="5em",
+                    padding_top="1em",
+                    padding_bottom="1em",
+                    _hover={"cursor": "pointer"},
+                    width="100%",
+                ),
+                rx.hstack(
+                    rx.dialog.close(
+                        rx.button(
+                            rx.text(LanguageState.cancel),
+                            variant="outline",
+                            _hover={"cursor": "pointer"},
+                            type="button",
+                            on_click=rx.clear_selected_files("exercises_upload"),
+                        )
+                    ),
+                    rx.dialog.close(
+                        rx.button(
+                            LanguageState.import_,
+                            on_click=ManageExercisesState.import_exercises(
+                                rx.upload_files(upload_id="exercises_upload")  # type: ignore
+                            ),
+                            _hover=rx.cond(
+                                rx.selected_files("exercises_upload").length() == 0,  # type: ignore
+                                {"cursor": "not-allowed"},
+                                {"cursor": "pointer"},
+                            ),
+                            disabled=rx.selected_files("exercises_upload").length()  # type: ignore
+                            == 0,
+                        ),
+                    ),
+                    width="100%",
+                    justify="end",
+                ),
+            ),
+            width="40em",
+            max_width="90vw",
+        ),
+    )

@@ -5,12 +5,12 @@ This module contains the main app definition for Reflex.
 
 import sys
 
-import decouple
 import reflex as rx
 from sqlmodel import select
 
 import aitutor.routes as routes
 from aitutor import pages
+from aitutor.app_settings import get_settings
 from aitutor.config import add_configprompts_to_db, get_config, initialize_config_db
 from aitutor.models import Prompt
 from aitutor.utilities.create_default_users import create_default_users
@@ -34,6 +34,11 @@ app.add_page(
     on_load=pages.ReportViewState.on_load,
 )
 app.add_page(
+    pages.lecture_report_view_page,
+    route=routes.LECTURE_REPORT_VIEW + "/[lecture_id]/[report_id]",
+    on_load=pages.LectureReportViewState.on_load,
+)
+app.add_page(
     pages.chat_page,
     route=routes.CHAT + "/[exercise_id]",
     on_load=pages.ChatState.on_load,
@@ -47,6 +52,36 @@ app.add_page(
     pages.my_lectures_page,
     route=routes.MY_LECTURES,
     on_load=pages.MyLecturesState.on_load,
+)
+app.add_page(
+    pages.lecture_overview_page,
+    route=routes.LECTURE_OVERVIEW + "/[lecture_id]",
+    on_load=pages.LectureOverviewState.on_load,
+)
+app.add_page(
+    pages.lecture_members_page,
+    route=routes.LECTURE_MEMBERS + "/[lecture_id]",
+    on_load=pages.LectureMembersState.on_load,
+)
+app.add_page(
+    pages.lecture_exercises_page,
+    route=routes.LECTURE_EXERCISES + "/[lecture_id]",
+    on_load=pages.LectureExercisesState.on_load,
+)
+app.add_page(
+    pages.lecture_manage_exercises_page,
+    route=routes.LECTURE_MANAGE_EXERCISES + "/[lecture_id]",
+    on_load=pages.LectureManageExercisesState.on_load,
+)
+app.add_page(
+    pages.lecture_submissions_page,
+    route=routes.LECTURE_SUBMISSIONS + "/[lecture_id]",
+    on_load=pages.LectureSubmissionsState.on_load,
+)
+app.add_page(
+    pages.lecture_reports_page,
+    route=routes.LECTURE_REPORTS + "/[lecture_id]",
+    on_load=pages.LectureReportsState.on_load,
 )
 app.add_page(
     pages.all_lectures_page,
@@ -139,24 +174,19 @@ def initialize():
 
     # load config here, so we fail immediately if there is any issue with it
     try:
-        config = get_config()
-        if config.course_name:
-            print("Configuration can be loaded successfully.")
+        _ = get_config()
     except Exception as e:
         print("\033[91m" + f"Error loading config: {e}" + "\033[0m")
         sys.exit(1)
 
-    # check if an openai_key is in the .env, if not, we exit
-    API_KEY = decouple.config("OPENAI_API_KEY", cast=str, default="")
-    if API_KEY == "":
-        print(
-            "\033[91m"
-            + "OPENAI_KEY is not set in the environment variables."
-            + "\033[0m"
-        )
+    try:
+        settings = get_settings()
+    except ValueError as e:
+        print("\033[91m" + str(e) + "\033[0m")
         sys.exit(1)
-    else:
-        print("OPENAI_API_KEY found in environment variables.")
+
+    if settings.openai_base_url:
+        print(f"Using OPENAI_BASE_URL={settings.openai_base_url}")
 
     create_default_users()
 

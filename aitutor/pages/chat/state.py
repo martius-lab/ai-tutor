@@ -2,16 +2,16 @@
 
 from datetime import datetime
 from enum import StrEnum
-from typing import Optional, cast
+from typing import Optional
 from zoneinfo import ZoneInfo
 
-import decouple
 import reflex as rx
 from openai import AsyncOpenAI
 from pydantic import BaseModel
 from sqlmodel import select
 
 import aitutor.routes as routes
+from aitutor.app_settings import get_settings
 from aitutor.auth.protection import state_require_role_or_permission
 from aitutor.auth.state import SessionState
 from aitutor.config import get_config
@@ -32,6 +32,7 @@ from aitutor.pages.chat.generated_ui import (
     sanitize_conversation_for_openai,
     ui_actions_from_raw,
 )
+from aitutor.utilities.lecture_permissions import user_may_view_lecture
 
 
 class Role(StrEnum):
@@ -72,6 +73,19 @@ class CheckConversationResponse(BaseModel):
     check_passed: bool
 
 
+def init_async_openai_client() -> AsyncOpenAI:
+    """Initialize AsyncOpenAI client.
+
+    Uses settings so the API key and optional base URL can be set either as environment
+    variables or in a .env file.
+    """
+    settings = get_settings()
+    return AsyncOpenAI(
+        api_key=settings.openai_api_key,
+        base_url=settings.openai_base_url,
+    )
+
+
 async def get_chat_response(conversation):
     """
     Sends asynchronous requests to OpenAI.
@@ -82,12 +96,8 @@ async def get_chat_response(conversation):
     Returns:
         tuple: (tutor_response, tokens_used)
     """
-    API_KEY = cast(str, decouple.config("OPENAI_API_KEY", cast=str, default=""))
-    if API_KEY == "":
-        raise ValueError("API key not found.")
-
     # Creates GPT instance
-    client = AsyncOpenAI(api_key=API_KEY)
+    client = init_async_openai_client()
     conversation = sanitize_conversation_for_openai(conversation)
     conversation.insert(
         1,
@@ -138,10 +148,7 @@ async def get_check_conversation_response(
             "content": check_conversation_prompt,
         }
     )
-    API_KEY = cast(str, decouple.config("OPENAI_API_KEY", cast=str, default=""))
-    if API_KEY == "":
-        raise ValueError("API key not found.")
-    client = AsyncOpenAI(api_key=API_KEY)
+    client = init_async_openai_client()
     completion = await client.beta.chat.completions.parse(
         model=config.check_ai_model,
         messages=conversation,
@@ -174,6 +181,7 @@ class ChatState(SessionState):
     current_tokens: int = 0
     token_limit: int = 0
     expanded_message_indexes: dict[int, bool] = {}
+    current_lecture_id: int | None = None
 
     @rx.var
     def token_limit_reached(self) -> bool:
@@ -224,55 +232,78 @@ class ChatState(SessionState):
         self.global_load()
         self.waiting_for_response = False
         self.expanded_message_indexes = {}
+        self.current_lecture_id = None
 
         userinfo = self.authenticated_user_info
         # should be guaranteed by the decorator but assert for type checkers
         assert userinfo is not None and userinfo.id is not None
         self._userinfo_id = userinfo.id
 
+        try:
+            exercise_id = int(self.exercise_id)
+        except ValueError:
+            yield rx.redirect(routes.NOT_FOUND)
+            return
+
         with rx.session() as session:
             config = get_config()
             self.token_limit = max(1, config.exercise_token_limit)
             exercise = session.exec(
-                select(Exercise).where(Exercise.id == int(self.exercise_id))
+                select(Exercise).where(Exercise.id == exercise_id)
             ).one_or_none()
+            if exercise is None:
+                yield rx.redirect(routes.NOT_FOUND)
+                return
+
+            if exercise.lecture_id is not None:
+                if (
+                    self.authenticated_user is None
+                    or self.authenticated_user.id is None
+                    or not user_may_view_lecture(
+                        session,
+                        user_id=self.authenticated_user.id,
+                        global_permissions=self.global_permissions,
+                        lecture_id=exercise.lecture_id,
+                    )
+                ):
+                    yield rx.redirect(routes.MY_LECTURES)
+                    return
+                self.current_lecture_id = exercise.lecture_id
+
             exercise_result = session.exec(
                 select(ExerciseResult).where(
-                    ExerciseResult.exercise_id == int(self.exercise_id),
+                    ExerciseResult.exercise_id == exercise_id,
                     ExerciseResult.userinfo_id == self._userinfo_id,
                 )
             ).one_or_none()
             error_when_loading_prompt: bool = False
-            if exercise:
-                self.current_exercise = exercise
-                self.exercise_title = self.current_exercise.title
-                self.is_overdue = self.current_exercise.deadline_exceeded
+            self.current_exercise = exercise
+            self.exercise_title = self.current_exercise.title
+            self.is_overdue = self.current_exercise.deadline_exceeded
 
-                if self.current_exercise.prompt:
-                    exercise_prompt = self.current_exercise.prompt.prompt_template
-                else:
-                    exercise_prompt = (
-                        "tell the user there was an error when loading "
-                        "the prompt. Don't answer any questions."
-                    )
-                    error_when_loading_prompt = True
-                self.system_message_gpt = exercise_prompt.format(
-                    title=self.current_exercise.title,
-                    description=self.current_exercise.description,
-                    lesson_context=self.current_exercise.lesson_context,
-                )
-
-                self.messages = []
-                self.load_existing_conversation()
-                if not self.messages:
-                    self.append_chat_message(
-                        self.current_exercise.description,
-                        role=Role.AITUTOR,
-                        check_passed=False,
-                    )
-                self.update_last_user_message_index()
+            if self.current_exercise.prompt:
+                exercise_prompt = self.current_exercise.prompt.prompt_template
             else:
-                yield rx.redirect(routes.NOT_FOUND)
+                exercise_prompt = (
+                    "tell the user there was an error when loading "
+                    "the prompt. Don't answer any questions."
+                )
+                error_when_loading_prompt = True
+            self.system_message_gpt = exercise_prompt.format(
+                title=self.current_exercise.title,
+                description=self.current_exercise.description,
+                lesson_context=self.current_exercise.lesson_context,
+            )
+
+            self.messages = []
+            self.load_existing_conversation()
+            if not self.messages:
+                self.append_chat_message(
+                    self.current_exercise.description,
+                    role=Role.AITUTOR,
+                    check_passed=False,
+                )
+            self.update_last_user_message_index()
             if exercise_result:
                 self.check_passed = exercise_result.check_passed
                 self.conversation_is_submitted = (
@@ -314,6 +345,7 @@ class ChatState(SessionState):
         self.is_overdue = False
         self._userinfo_id = -1
         self.expanded_message_indexes = {}
+        self.current_lecture_id = None
 
     @rx.var
     def report_char_count(self) -> int:
@@ -332,6 +364,13 @@ class ChatState(SessionState):
         It is set by the route parameter in the URL.
         """
         return f"{routes.FINISHED_VIEW}/{self.exercise_id}"
+
+    @rx.var
+    def exercises_url(self) -> str:
+        """Return the exercise list URL for the current chat context."""
+        if self.current_lecture_id is not None:
+            return f"{routes.LECTURE_EXERCISES}/{self.current_lecture_id}"
+        return routes.EXERCISES
 
     @rx.event
     def submit_report(self):
@@ -353,6 +392,7 @@ class ChatState(SessionState):
 
             report = Report(
                 exercise_id=self.current_exercise.id,
+                lecture_id=self.current_exercise.lecture_id,
                 userinfo_id=self._userinfo_id,
                 report_text=self.report_text,
                 looked_at=False,
