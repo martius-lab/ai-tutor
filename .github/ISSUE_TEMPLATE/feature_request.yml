@@ -1,0 +1,46 @@
+name: Feature request
+description: Propose a user-visible feature or behavior change.
+title: "feat: "
+body:
+  - type: textarea
+    id: objective
+    attributes:
+      label: Objective
+      description: What user or maintainer problem should this solve?
+      placeholder: Tutors need to see which submissions exceeded the token limit.
+    validations:
+      required: true
+  - type: textarea
+    id: users
+    attributes:
+      label: Users and workflow
+      description: Who uses this, and where in the app does it fit?
+      placeholder: Admins use this from the configuration page before a course starts.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed behavior
+      description: Describe the smallest useful version. Note any UI, auth, config, or database impact.
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      description: Concrete checks that would make the feature complete.
+      placeholder: |
+        - Lecturers can filter reports by unresolved status.
+        - Students cannot access the report management page.
+        - The changed flow has a focused test or documented manual check.
+    validations:
+      required: true
+  - type: textarea
+    id: non_goals
+    attributes:
+      label: Non-goals
+      description: What should stay out of scope for the first PR?
+      placeholder: Do not redesign the whole reports page in this issue.
+    validations:
+      required: false

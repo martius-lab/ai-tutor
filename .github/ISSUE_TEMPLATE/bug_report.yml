@@ -1,0 +1,60 @@
+name: Bug report
+description: Report broken or unexpected behavior.
+title: "fix: "
+labels: ["bug"]
+body:
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: What is broken, and what should happen instead?
+      placeholder: The registration page redirects before the warning can be read.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Include the smallest reliable reproduction path.
+      placeholder: |
+        1. Start the app with ...
+        2. Open ...
+        3. Click ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: What should the user see or what state should the system reach?
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+      description: Include visible errors, terminal logs, screenshots, or browser console output when relevant.
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Browser, OS, database backend, deployment mode, and relevant configuration.
+      placeholder: |
+        Browser:
+        Database: SQLite / PostgreSQL
+        Run mode: local / Docker / production
+    validations:
+      required: false
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      description: Concrete checks that should be true after the fix.
+      placeholder: |
+        - The warning remains visible after email delivery fails.
+        - The terminal logs the SMTP failure.
+        - A regression test covers the failed delivery path.
+    validations:
+      required: true

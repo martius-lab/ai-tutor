@@ -1,0 +1,4 @@
+interface:
+  display_name: "AI Tutor Implementation"
+  short_description: "Implement ai-tutor changes with repo guardrails"
+  default_prompt: "Use $ai-tutor-implementation to implement a focused ai-tutor change."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "AI Tutor Review"
+  short_description: "Review ai-tutor diffs and UI behavior"
+  default_prompt: "Use $ai-tutor-review to review an ai-tutor implementation before finalizing."
