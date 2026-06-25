@@ -52,8 +52,8 @@ class SpecificLectureNavbarState(SessionState):
             return None
 
         try:
-            return int(self.lecture_id)
-        except ValueError:
+            return self.get_route_param_or_error("lecture_id", dtype=int)
+        except Exception:
             return None
 
 

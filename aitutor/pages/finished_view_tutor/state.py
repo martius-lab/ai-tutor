@@ -27,8 +27,11 @@ class FinishedViewTutorState(SessionState):
     @state_require_role_or_permission(required_role=UserRole.STUDENT)
     def on_load(self):
         """Loads the finished exercise and user info."""
-
         self.global_load()
+
+        exercise_id = self.get_route_param_or_error("exercise_id", dtype=int)
+        url_user_id = self.get_route_param_or_error("url_user_id", dtype=int)
+
         self.current_lecture_id = None
         with rx.session() as session:
             stmt = (
@@ -39,8 +42,8 @@ class FinishedViewTutorState(SessionState):
                 .join(UserInfo)
                 .join(LocalUser)
                 .where(
-                    Exercise.id == int(self.exercise_id),
-                    LocalUser.id == int(self.url_user_id),
+                    Exercise.id == int(exercise_id),
+                    LocalUser.id == int(url_user_id),
                 )
             )
             result = session.exec(stmt).one_or_none()

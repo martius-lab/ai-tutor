@@ -18,6 +18,7 @@ from aitutor.utilities.lecture_permissions import user_may_view_lecture_submissi
 class LectureReportViewState(SessionState):
     """State for viewing a specific report in a lecture context."""
 
+    _report_id: int
     current_lecture_id: int | None = None
     reports_route: str = routes.MY_LECTURES
     report_text: str = ""
@@ -36,8 +37,9 @@ class LectureReportViewState(SessionState):
         self._clear_report_data()
 
         try:
-            lecture_id = int(self.lecture_id)
-        except ValueError:
+            lecture_id = self.get_route_param_or_error("lecture_id", dtype=int)
+            self._report_id = self.get_route_param_or_error("report_id", dtype=int)
+        except Exception:
             return rx.redirect(routes.NOT_FOUND)
 
         if not self._user_may_view_report(lecture_id):
@@ -53,6 +55,7 @@ class LectureReportViewState(SessionState):
 
     def on_logout(self):
         """Clear state when user logs out."""
+        self._report_id = -1
         self.current_lecture_id = None
         self.reports_route = routes.MY_LECTURES
         self._clear_report_data()
@@ -69,7 +72,7 @@ class LectureReportViewState(SessionState):
             report = session.exec(
                 select(Report)
                 .where(
-                    Report.id == int(self.report_id),
+                    Report.id == self._report_id,
                     Report.lecture_id == self.current_lecture_id,
                 )
                 .options(
@@ -119,7 +122,7 @@ class LectureReportViewState(SessionState):
         with rx.session() as session:
             report = session.exec(
                 select(Report).where(
-                    Report.id == int(self.report_id),
+                    Report.id == self._report_id,
                     Report.lecture_id == self.current_lecture_id,
                 )
             ).first()
