@@ -108,9 +108,11 @@ class ManagePromptsState(SessionState):
         return len(names) == len(set(names))
 
     def _names_conflict_with_db(self, prompt_ids: set[int | None], names: list[str]) -> bool:
-        """Return whether any name conflicts with prompts outside prompt_ids."""
+        """Return whether any name conflicts with global prompts outside prompt_ids."""
         with rx.session() as session:
-            db_prompts = session.exec(select(Prompt)).all()
+            db_prompts = session.exec(
+                select(Prompt).where(Prompt.lecture_id == None)  # noqa: E711
+            ).all()
         return any(
             prompt.id not in prompt_ids and prompt.name in names for prompt in db_prompts
         )
@@ -285,7 +287,10 @@ class ManagePromptsState(SessionState):
             return
         with rx.session() as session:
             existing_prompt = session.exec(
-                select(Prompt).where(Prompt.name == self.new_prompt_name)
+                select(Prompt).where(
+                    Prompt.name == self.new_prompt_name,
+                    Prompt.lecture_id == None,
+                )
             ).first()
         if existing_prompt is not None:
             yield rx.toast.error(

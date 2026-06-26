@@ -619,12 +619,39 @@ def select_prompt(mode: DialogMode) -> rx.Component:
             padding_bottom="0.5em",
         ),
         rx.hstack(
-            rx.select(
-                items=ManageExercisesState.prompt_names,
-                placeholder=LanguageState.select_prompt,
-                value=ManageExercisesState.current_prompt_name,
-                on_change=ManageExercisesState.set_current_prompt_name,
-                multiple=True,
+            rx.select.root(
+                rx.select.trigger(placeholder=LanguageState.select_prompt),
+                rx.select.content(
+                    rx.foreach(
+                        ManageExercisesState.prompts,
+                        lambda prompt: rx.cond(
+                            prompt.lecture_id != None, 
+                            rx.select.item(prompt.name, value=prompt.id.to_string()),
+                        ),
+                    ),
+                    rx.select.separator(),
+                    rx.foreach(
+                        ManageExercisesState.prompts,
+                        lambda prompt: rx.cond(
+                            prompt.lecture_id == None, 
+                            rx.select.item(
+                                rx.hstack(
+                                    rx.text(prompt.name),
+                                    rx.badge(
+                                        "Global",
+                                        color_scheme="blue",
+                                        variant="soft",
+                                    ),
+                                    justify="between",
+                                    width="100%",
+                                ),
+                                value=prompt.id.to_string(),
+                            ),
+                        ),
+                    ),
+                ),
+                value=ManageExercisesState.current_prompt_id,
+                on_change=ManageExercisesState.set_current_prompt_id,
             ),
             # hover to show the prompt
             rx.popover.root(

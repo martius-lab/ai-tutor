@@ -19,8 +19,8 @@ class LectureManagePromptsState(SessionState):
     current_default_prompt_id: int | None = None
     unsaved_changes: bool = False
     prompts: dict[int | None, Prompt] = {}
-    replacement_prompt_name: str = ""
-    prompt_to_delete: str = ""
+    replacement_prompt_id: str = ""
+    prompt_to_delete_id: int | None = None
     new_prompt_name: str = ""
     new_prompt_template: str = ""
     add_prompt_dialog_open: bool = False
@@ -40,14 +40,14 @@ class LectureManagePromptsState(SessionState):
             self.unsaved_changes = True
 
     @rx.event
-    def set_replacement_prompt_name(self, prompt_name: str):
+    def set_replacement_prompt_id(self, prompt_id: str):
         """Set the replacement prompt."""
-        self.replacement_prompt_name = prompt_name
+        self.replacement_prompt_id = prompt_id
 
     @rx.event
-    def set_prompt_to_delete(self, prompt_name: str):
+    def set_prompt_to_delete(self, prompt_id: int | None):
         """Set the prompt to delete."""
-        self.prompt_to_delete = prompt_name
+        self.prompt_to_delete_id = prompt_id
 
     @rx.event
     def set_new_prompt_name(self, name: str):
@@ -104,8 +104,8 @@ class LectureManagePromptsState(SessionState):
         self.current_default_prompt_id = None
         self.unsaved_changes = False
         self.prompts = {}
-        self.replacement_prompt_name = ""
-        self.prompt_to_delete = ""
+        self.replacement_prompt_id = ""
+        self.prompt_to_delete_id = None
         self.new_prompt_name = ""
         self.new_prompt_template = ""
         self.add_prompt_dialog_open = False
@@ -130,41 +130,49 @@ class LectureManagePromptsState(SessionState):
             and prompt.lecture_id == self.current_lecture_id
         )
 
-    @rx.var
-    def remaining_prompt_names(self) -> list[str]:
-        """Return available replacement prompt names excluding the one to delete."""
+    def _remaining_prompt_options(self, *, global_prompts: bool) -> list[dict[str, str]]:
+        """Return serializable replacement prompt options."""
         return [
-            prompt.name
+            {
+                "id": str(prompt.id),
+                "name": prompt.name,
+            }
             for prompt in self.prompts.values()
-            if prompt.name != self.prompt_to_delete and prompt.name != ""
+            if prompt.id is not None
+            and prompt.id != self.prompt_to_delete_id
+            and prompt.name != ""
+            and (prompt.lecture_id is None) == global_prompts
         ]
+
+    @rx.var
+    def remaining_local_prompts(self) -> list[dict[str, str]]:
+        """Return available local replacement prompts excluding the one to delete."""
+        return self._remaining_prompt_options(global_prompts=False)
+
+    @rx.var
+    def remaining_global_prompts(self) -> list[dict[str, str]]:
+        """Return available global replacement prompts excluding the one to delete."""
+        return self._remaining_prompt_options(global_prompts=True)
 
     def names_are_unique(self, names: list[str]) -> bool:
         """Check if all names in the list are unique."""
         return len(names) == len(set(names))
 
-    def _visible_prompt_names(self) -> list[str]:
-        """Return names visible in this lecture scope."""
-        return [prompt.name for prompt in self.prompts.values()]
+    def _lecture_prompt_names(self) -> list[str]:
+        """Return local prompt names for the current lecture."""
+        return [
+            prompt.name for prompt in self.prompts.values() if self._is_lecture_prompt(prompt)
+        ]
 
     def _names_conflict_with_db(self, prompt_ids: set[int | None], names: list[str]) -> bool:
-        """Return whether any name conflicts in the current lecture-visible scope.
-
-        A lecture can see global prompts and prompts belonging to that lecture.
-        Prompt names only need to be unique within this visible scope. Prompts in
-        different lectures may share names because they never appear together in
-        the same exercise prompt dropdown.
-        """
+        """Return whether any name conflicts with local prompts in this lecture."""
         if self.current_lecture_id is None:
             return False
 
         with rx.session() as session:
             db_prompts = session.exec(
                 select(Prompt).where(
-                    or_(
-                        Prompt.lecture_id == None,  # noqa: E711
-                        Prompt.lecture_id == self.current_lecture_id,
-                    )
+                    Prompt.lecture_id == self.current_lecture_id,
                 )
             ).all()
         return any(
@@ -179,12 +187,8 @@ class LectureManagePromptsState(SessionState):
             for prompt_id, prompt in self.prompts.items()
             if self._is_lecture_prompt(prompt)
         }
-        scoped_names = [
-            prompt.name
-            for prompt in self.prompts.values()
-            if prompt.lecture_id is None or self._is_lecture_prompt(prompt)
-        ]
-        if not self.names_are_unique(scoped_names):
+        local_names = [prompt.name for prompt in lecture_prompts.values()]
+        if not self.names_are_unique(local_names):
             yield rx.toast.error(
                 description=BT.prompt_names_unique_error(self.language),
                 duration=5000,
@@ -257,17 +261,21 @@ class LectureManagePromptsState(SessionState):
                 )
                 return
 
-            replacement_prompt = session.exec(
-                select(Prompt).where(
-                    Prompt.name == self.replacement_prompt_name,
-                    or_(
-                        Prompt.lecture_id == None,  # noqa: E711
-                        Prompt.lecture_id == self.current_lecture_id,
-                    ),
-                )
-            ).first()
+            try:
+                replacement_prompt_id = int(self.replacement_prompt_id)
+            except ValueError:
+                replacement_prompt_id = None
 
-            if not replacement_prompt:
+            replacement_prompt = (
+                session.get(Prompt, replacement_prompt_id)
+                if replacement_prompt_id is not None
+                else None
+            )
+
+            if not replacement_prompt or not (
+                replacement_prompt.lecture_id is None
+                or replacement_prompt.lecture_id == self.current_lecture_id
+            ):
                 yield rx.toast.error(
                     description=BT.replacement_prompt_not_found(self.language),
                     duration=5000,
@@ -313,8 +321,8 @@ class LectureManagePromptsState(SessionState):
                 position="bottom-center",
                 invert=True,
             )
-        self.replacement_prompt_name = ""
-        self.prompt_to_delete = ""
+        self.replacement_prompt_id = ""
+        self.prompt_to_delete_id = None
         self.load_prompts_from_db()
 
     @rx.event
@@ -323,7 +331,7 @@ class LectureManagePromptsState(SessionState):
         if self.current_lecture_id is None:
             return rx.redirect(routes.MY_LECTURES)
 
-        if not self.names_are_unique(self._visible_prompt_names() + [self.new_prompt_name]):
+        if not self.names_are_unique(self._lecture_prompt_names() + [self.new_prompt_name]):
             yield rx.toast.error(
                 description=BT.prompt_names_unique_error(self.language),
                 duration=5000,
@@ -335,10 +343,7 @@ class LectureManagePromptsState(SessionState):
             existing_prompt = session.exec(
                 select(Prompt).where(
                     Prompt.name == self.new_prompt_name,
-                    or_(
-                        Prompt.lecture_id == None,  # noqa: E711
-                        Prompt.lecture_id == self.current_lecture_id,
-                    ),
+                    Prompt.lecture_id == self.current_lecture_id,
                 )
             ).first()
         if existing_prompt is not None:

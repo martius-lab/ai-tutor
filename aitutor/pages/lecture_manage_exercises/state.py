@@ -59,12 +59,10 @@ class LectureManageExercisesState(FilterMixin, SessionState):
     lesson_context: str = ""
     #: name of the extracted PDF
     lesson_file_name: str = ""
-    #: the currently selected prompt name
-    current_prompt_name: str = ""
+    #: the currently selected prompt id
+    current_prompt_id: str = ""
     #: the prompt templates
     prompts: list[Prompt] = []
-    #: the prompt names that can be selected
-    prompt_names: list[str] = []
     #: Flag to control if lesson material is being extracted
     extracting_lesson_material: bool = False
     #: Flag to control if the current exercise is hidden
@@ -98,9 +96,9 @@ class LectureManageExercisesState(FilterMixin, SessionState):
         self.lesson_context = context
 
     @rx.event
-    def set_current_prompt_name(self, prompt_name: str):
-        """Set the current prompt name."""
-        self.current_prompt_name = prompt_name
+    def set_current_prompt_id(self, prompt_id: str):
+        """Set the current prompt id."""
+        self.current_prompt_id = prompt_id
 
     @rx.event
     def set_current_hidden_state(self, hidden: bool):
@@ -178,7 +176,6 @@ class LectureManageExercisesState(FilterMixin, SessionState):
             )
         self._sort_prompts_by_default()
         self.load_tags()
-        self.prompt_names = [prompt.name for prompt in self.prompts]
         self.load_exercises()
         self.extracting_lesson_material = False
 
@@ -207,9 +204,8 @@ class LectureManageExercisesState(FilterMixin, SessionState):
         self.selected_tags = []
         self.lesson_context = ""
         self.lesson_file_name = ""
-        self.current_prompt_name = ""
+        self.current_prompt_id = ""
         self.prompts = []
-        self.prompt_names = []
         self.extracting_lesson_material = False
         self.current_hidden_state = False
         self.current_deadline = ""
@@ -243,11 +239,18 @@ class LectureManageExercisesState(FilterMixin, SessionState):
 
     @rx.var
     def get_current_prompt_template(self) -> str:
-        """Return the prompt template for the currently selected prompt name."""
+        """Return the prompt template for the currently selected prompt id."""
         for prompt in self.prompts:
-            if prompt.name == self.current_prompt_name:
+            if str(prompt.id) == self.current_prompt_id:
                 return prompt.prompt_template
         return "prompt selection error!"
+
+    def get_current_prompt_id(self) -> int | None:
+        """Return the currently selected prompt id."""
+        try:
+            return int(self.current_prompt_id)
+        except ValueError:
+            return None
 
     @rx.event
     def delete_selected_exercises(self):
@@ -266,13 +269,6 @@ class LectureManageExercisesState(FilterMixin, SessionState):
             position="bottom-center",
             invert=True,
         )
-
-    def get_prompt_id_by_name(self, prompt_name: str) -> int | None:
-        """Return the prompt id for a given prompt name."""
-        for prompt in self.prompts:
-            if prompt.name == prompt_name:
-                return prompt.id
-        return None
 
     def _sort_prompts_by_default(self) -> None:
         """Sort prompts with the lecture default first, then global default, then id."""
@@ -597,7 +593,7 @@ class LectureManageExercisesState(FilterMixin, SessionState):
                 return rx.window_alert(
                     "Please add some lesson context to the exercise."
                 )
-            if self.current_prompt_name == "":
+            if self.current_prompt_id == "":
                 return rx.window_alert(
                     "Please select a prompt template for the exercise."
                 )
@@ -605,7 +601,7 @@ class LectureManageExercisesState(FilterMixin, SessionState):
                 lesson_context=self.lesson_context,
                 title=form_data["title"],
                 description=form_data["description"],
-                prompt_id=self.get_prompt_id_by_name(self.current_prompt_name),
+                prompt_id=self.get_current_prompt_id(),
                 lecture_id=self.current_lecture_id,
                 is_hidden=self.current_hidden_state,
                 tags=session.exec(
@@ -758,9 +754,7 @@ class LectureManageExercisesState(FilterMixin, SessionState):
             updated_exercise.tags = session.exec(
                 select(Tag).where(Tag.name.in_(self.selected_tags))  # type: ignore
             ).all()
-            updated_exercise.prompt_id = self.get_prompt_id_by_name(
-                self.current_prompt_name
-            )
+            updated_exercise.prompt_id = self.get_current_prompt_id()
             updated_exercise.lesson_context = self.lesson_context
             updated_exercise.is_hidden = self.current_hidden_state
 
@@ -795,7 +789,7 @@ class LectureManageExercisesState(FilterMixin, SessionState):
         self.lesson_context = ""
         self.lesson_file_name = ""
         self.selected_tags = []
-        self.current_prompt_name = ""
+        self.current_prompt_id = ""
         self.current_hidden_state = False
         self.current_deadline = ""
         self.current_days_to_complete = ""
@@ -827,9 +821,7 @@ class LectureManageExercisesState(FilterMixin, SessionState):
                 exercise = self.exercises[i]
                 break
         self.current_exercise = exercise
-        self.current_prompt_name = (
-            exercise.prompt.name if exercise.prompt else "error loading prompt!"
-        )
+        self.current_prompt_id = str(exercise.prompt_id or "")
         self.lesson_context = exercise.lesson_context
         self.selected_tags = [tag.name for tag in exercise.tags]
         self.lesson_file_name = ""  # reset lesson_file_name
@@ -856,13 +848,8 @@ class LectureManageExercisesState(FilterMixin, SessionState):
             ),
             None,
         )
-        self.current_prompt_name = (
-            default_prompt.name
-            if default_prompt is not None
-            else self.prompt_names[0]
-            if self.prompt_names
-            else ""
-        )
+        selected_prompt = default_prompt or (self.prompts[0] if self.prompts else None)
+        self.current_prompt_id = str(selected_prompt.id) if selected_prompt else ""
         self.add_exercise_dialog_is_open = True
 
     @rx.event

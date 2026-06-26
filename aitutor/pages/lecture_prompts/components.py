@@ -99,7 +99,7 @@ def delete_prompt_dialog(prompt: Prompt) -> rx.Component:
                     variant="ghost",
                     color_scheme="red",
                     _hover={"cursor": "pointer"},
-                    on_click=LectureManagePromptsState.set_prompt_to_delete(prompt.name),
+                    on_click=LectureManagePromptsState.set_prompt_to_delete(prompt.id),
                 ),
             ),
             rx.alert_dialog.content(
@@ -108,10 +108,36 @@ def delete_prompt_dialog(prompt: Prompt) -> rx.Component:
                 rx.box(height="0.5em"),
                 rx.text(LS.replacement_prompt + ":", weight="medium"),
                 rx.box(height="0.5em"),
-                rx.select(
-                    LectureManagePromptsState.remaining_prompt_names,
-                    value=LectureManagePromptsState.replacement_prompt_name,
-                    on_change=LectureManagePromptsState.set_replacement_prompt_name,
+                rx.select.root(
+                    rx.select.trigger(placeholder=LS.replacement_prompt),
+                    rx.select.content(
+                        rx.foreach(
+                            LectureManagePromptsState.remaining_local_prompts,
+                            lambda replacement_prompt: rx.select.item(
+                                replacement_prompt["name"],
+                                value=replacement_prompt["id"],
+                            ),
+                        ),
+                        rx.select.separator(),
+                        rx.foreach(
+                            LectureManagePromptsState.remaining_global_prompts,
+                            lambda replacement_prompt: rx.select.item(
+                                rx.hstack(
+                                    rx.text(replacement_prompt["name"]),
+                                    rx.badge(
+                                        "Global",
+                                        color_scheme="blue",
+                                        variant="soft",
+                                    ),
+                                    justify="between",
+                                    width="100%",
+                                ),
+                                value=replacement_prompt["id"],
+                            ),
+                        ),
+                    ),
+                    value=LectureManagePromptsState.replacement_prompt_id,
+                    on_change=LectureManagePromptsState.set_replacement_prompt_id,
                 ),
                 rx.hstack(
                     rx.alert_dialog.cancel(
@@ -119,8 +145,8 @@ def delete_prompt_dialog(prompt: Prompt) -> rx.Component:
                             rx.text(LS.cancel),
                             _hover={"cursor": "pointer"},
                             on_click=[
-                                LectureManagePromptsState.set_replacement_prompt_name(""),
-                                LectureManagePromptsState.set_prompt_to_delete(""),
+                                LectureManagePromptsState.set_replacement_prompt_id(""),
+                                LectureManagePromptsState.set_prompt_to_delete(None),
                             ],
                         ),
                     ),
@@ -130,11 +156,11 @@ def delete_prompt_dialog(prompt: Prompt) -> rx.Component:
                             color_scheme="red",
                             on_click=LectureManagePromptsState.delete_prompt(prompt.id),
                             _hover=rx.cond(
-                                LectureManagePromptsState.replacement_prompt_name == "",
+                                LectureManagePromptsState.replacement_prompt_id == "",
                                 {"cursor": "not-allowed"},
                                 {"cursor": "pointer"},
                             ),
-                            disabled=LectureManagePromptsState.replacement_prompt_name
+                            disabled=LectureManagePromptsState.replacement_prompt_id
                             == "",
                         ),
                     ),
