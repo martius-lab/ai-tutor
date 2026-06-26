@@ -107,14 +107,17 @@ class ManagePromptsState(SessionState):
         """Check if all names in the list are unique."""
         return len(names) == len(set(names))
 
-    def _names_conflict_with_db(self, prompt_ids: set[int | None], names: list[str]) -> bool:
+    def _names_conflict_with_db(
+        self, prompt_ids: set[int | None], names: list[str]
+    ) -> bool:
         """Return whether any name conflicts with global prompts outside prompt_ids."""
         with rx.session() as session:
             db_prompts = session.exec(
                 select(Prompt).where(Prompt.lecture_id == None)  # noqa: E711
             ).all()
         return any(
-            prompt.id not in prompt_ids and prompt.name in names for prompt in db_prompts
+            prompt.id not in prompt_ids and prompt.name in names
+            for prompt in db_prompts
         )
 
     @rx.event

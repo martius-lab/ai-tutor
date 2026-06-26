@@ -34,8 +34,8 @@ def prompt_card(prompt: Prompt) -> rx.Component:
                     name="prompt_template",
                     heading=LS.prompt,
                     value=prompt.prompt_template,
-                    on_change=lambda value: LectureManagePromptsState.set_prompt_template(
-                        prompt.id, value
+                    on_change=lambda value: (
+                        LectureManagePromptsState.set_prompt_template(prompt.id, value)
                     ),
                     placeholder=LS.prompt_variables_info,
                     disabled=is_global,
@@ -57,8 +57,8 @@ def prompt_card(prompt: Prompt) -> rx.Component:
                                 LS.default_prompt,
                                 LS.mark_as_default_prompt,
                             ),
-                            on_click=lambda: LectureManagePromptsState.set_default_prompt(
-                                prompt.id
+                            on_click=lambda: (
+                                LectureManagePromptsState.set_default_prompt(prompt.id)
                             ),
                             variant="soft",
                             color_scheme=rx.cond(

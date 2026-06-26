@@ -625,7 +625,7 @@ def select_prompt(mode: DialogMode) -> rx.Component:
                     rx.foreach(
                         ManageExercisesState.prompts,
                         lambda prompt: rx.cond(
-                            prompt.lecture_id != None, 
+                            prompt.lecture_id != None,
                             rx.select.item(prompt.name, value=prompt.id.to_string()),
                         ),
                     ),
@@ -633,7 +633,7 @@ def select_prompt(mode: DialogMode) -> rx.Component:
                     rx.foreach(
                         ManageExercisesState.prompts,
                         lambda prompt: rx.cond(
-                            prompt.lecture_id == None, 
+                            prompt.lecture_id == None,
                             rx.select.item(
                                 rx.hstack(
                                     rx.text(prompt.name),

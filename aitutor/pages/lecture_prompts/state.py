@@ -28,14 +28,18 @@ class LectureManagePromptsState(SessionState):
     @rx.event
     def set_prompt_name(self, prompt_id: int | None, name: str):
         """Set the name of a lecture-specific prompt."""
-        if prompt_id in self.prompts and self._is_lecture_prompt(self.prompts[prompt_id]):
+        if prompt_id in self.prompts and self._is_lecture_prompt(
+            self.prompts[prompt_id]
+        ):
             self.prompts[prompt_id].name = name
             self.unsaved_changes = True
 
     @rx.event
     def set_prompt_template(self, prompt_id: int | None, template: str):
         """Set the template of a lecture-specific prompt."""
-        if prompt_id in self.prompts and self._is_lecture_prompt(self.prompts[prompt_id]):
+        if prompt_id in self.prompts and self._is_lecture_prompt(
+            self.prompts[prompt_id]
+        ):
             self.prompts[prompt_id].prompt_template = template
             self.unsaved_changes = True
 
@@ -130,7 +134,9 @@ class LectureManagePromptsState(SessionState):
             and prompt.lecture_id == self.current_lecture_id
         )
 
-    def _remaining_prompt_options(self, *, global_prompts: bool) -> list[dict[str, str]]:
+    def _remaining_prompt_options(
+        self, *, global_prompts: bool
+    ) -> list[dict[str, str]]:
         """Return serializable replacement prompt options."""
         return [
             {
@@ -161,10 +167,14 @@ class LectureManagePromptsState(SessionState):
     def _lecture_prompt_names(self) -> list[str]:
         """Return local prompt names for the current lecture."""
         return [
-            prompt.name for prompt in self.prompts.values() if self._is_lecture_prompt(prompt)
+            prompt.name
+            for prompt in self.prompts.values()
+            if self._is_lecture_prompt(prompt)
         ]
 
-    def _names_conflict_with_db(self, prompt_ids: set[int | None], names: list[str]) -> bool:
+    def _names_conflict_with_db(
+        self, prompt_ids: set[int | None], names: list[str]
+    ) -> bool:
         """Return whether any name conflicts with local prompts in this lecture."""
         if self.current_lecture_id is None:
             return False
@@ -176,7 +186,8 @@ class LectureManagePromptsState(SessionState):
                 )
             ).all()
         return any(
-            prompt.id not in prompt_ids and prompt.name in names for prompt in db_prompts
+            prompt.id not in prompt_ids and prompt.name in names
+            for prompt in db_prompts
         )
 
     @rx.event
@@ -331,7 +342,9 @@ class LectureManagePromptsState(SessionState):
         if self.current_lecture_id is None:
             return rx.redirect(routes.MY_LECTURES)
 
-        if not self.names_are_unique(self._lecture_prompt_names() + [self.new_prompt_name]):
+        if not self.names_are_unique(
+            self._lecture_prompt_names() + [self.new_prompt_name]
+        ):
             yield rx.toast.error(
                 description=BT.prompt_names_unique_error(self.language),
                 duration=5000,
