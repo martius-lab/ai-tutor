@@ -27,9 +27,17 @@ from aitutor.models import (
 class BetaAIExercisesState(SessionState):
     """State for the UI-first Beta AI exercise builder."""
 
+    MIN_GENERATION_TARGET: int = 1
+    MAX_CONCEPT_TARGET: int = 30
+    MAX_CORE_POINT_TARGET: int = 15
+    MAX_MISCONCEPTION_TARGET: int = 10
+
     beta_exercises: list[BetaExercise] = []
     title: str = ""
     description: str = ""
+    concept_target_count: int = 8
+    core_point_target_count: int = 4
+    misconception_target_count: int = 2
     source_material_text: str = ""
     source_material_filename: str = ""
     generated_concepts: list[EditableConcept] = []
@@ -51,6 +59,35 @@ class BetaAIExercisesState(SessionState):
     def set_description(self, value: str):
         """Set beta exercise description."""
         self.description = value
+
+    def _set_generation_target(self, field_name: str, value: str, maximum: int):
+        """Set a positive concept-generation target from a number input."""
+        try:
+            target = int(value)
+        except ValueError:
+            return
+        setattr(self, field_name, max(self.MIN_GENERATION_TARGET, min(maximum, target)))
+
+    @rx.event
+    def set_concept_target_count(self, value: str):
+        """Set the approximate number of concepts to generate."""
+        self._set_generation_target(
+            "concept_target_count", value, self.MAX_CONCEPT_TARGET
+        )
+
+    @rx.event
+    def set_core_point_target_count(self, value: str):
+        """Set the approximate number of core points per concept."""
+        self._set_generation_target(
+            "core_point_target_count", value, self.MAX_CORE_POINT_TARGET
+        )
+
+    @rx.event
+    def set_misconception_target_count(self, value: str):
+        """Set the approximate number of misconceptions per concept."""
+        self._set_generation_target(
+            "misconception_target_count", value, self.MAX_MISCONCEPTION_TARGET
+        )
 
     @rx.event
     @state_require_role_at_least(UserRole.TUTOR)
@@ -97,6 +134,21 @@ class BetaAIExercisesState(SessionState):
         if self.generated_concepts:
             return "Regenerate Concepts (replaces current list)"
         return "Generate Concepts"
+
+    @rx.var
+    def concept_target_count_str(self) -> str:
+        """Return the concept target count as a string for the input field."""
+        return str(self.concept_target_count)
+
+    @rx.var
+    def core_point_target_count_str(self) -> str:
+        """Return the core point target count as a string for the input field."""
+        return str(self.core_point_target_count)
+
+    @rx.var
+    def misconception_target_count_str(self) -> str:
+        """Return the misconception target count as a string for the input field."""
+        return str(self.misconception_target_count)
 
     @rx.var
     def has_selected_saved_exercise(self) -> bool:
@@ -243,6 +295,9 @@ class BetaAIExercisesState(SessionState):
             title = self.title
             description = self.description
             source_material_text = self.source_material_text
+            concept_target_count = self.concept_target_count
+            core_point_target_count = self.core_point_target_count
+            misconception_target_count = self.misconception_target_count
         yield
 
         try:
@@ -250,6 +305,9 @@ class BetaAIExercisesState(SessionState):
                 title=title,
                 description=description,
                 source_material_text=source_material_text,
+                concept_target_count=concept_target_count,
+                core_point_target_count=core_point_target_count,
+                misconception_target_count=misconception_target_count,
             )
         except Exception as exc:
             async with self:

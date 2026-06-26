@@ -8,6 +8,7 @@ beta_ai_links = [
     ("Beta AI Exercises", routes.BETA_AI_EXERCISES, "sparkles"),
     ("Diagnosis Lab", routes.BETA_AI_DIAGNOSIS_LAB, "microscope"),
     ("Student Exercises", routes.BETA_AI_STUDENT_EXERCISES, "graduation-cap"),
+    ("Submissions", routes.BETA_AI_SUBMISSIONS, "circle-check"),
     ("Trace Logs", routes.BETA_AI_TRACE_LOGS, "list-tree"),
 ]
 

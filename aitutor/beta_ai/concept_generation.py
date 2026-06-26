@@ -29,6 +29,9 @@ async def generate_concepts_from_material(
     title: str,
     description: str,
     source_material_text: str,
+    concept_target_count: int = 8,
+    core_point_target_count: int = 4,
+    misconception_target_count: int = 2,
 ) -> GeneratedConceptsResponse:
     """Generate a compact, professor-reviewable concept registry."""
     api_key = cast(str, decouple.config("OPENAI_API_KEY", cast=str, default=""))
@@ -43,11 +46,12 @@ async def generate_concepts_from_material(
                 "role": "system",
                 "content": (
                     "You generate a compact, reviewable concept registry for a "
-                    "university AI tutor. Return only structured data. Generate at "
-                    "most 8 concepts. Each concept must be specific enough to be "
-                    "checked in a student answer. Use 3-5 core points per concept "
-                    "and at most 2 common misconceptions. Do not invent content "
-                    "unsupported by the material."
+                    "university AI tutor. Return only structured data. Generate "
+                    f"about {concept_target_count} concepts. Each concept must be "
+                    "specific enough to be checked in a student answer. Use about "
+                    f"{core_point_target_count} core points per concept and about "
+                    f"{misconception_target_count} common misconceptions per "
+                    "concept. Do not invent content unsupported by the material."
                 ),
             },
             {
@@ -56,7 +60,7 @@ async def generate_concepts_from_material(
                     f"Exercise title: {title}\n\n"
                     f"Exercise description: {description}\n\n"
                     "Teaching material:\n"
-                    f"{source_material_text[:45000]}"
+                    f"{source_material_text[:200000]}"
                 ),
             },
         ],

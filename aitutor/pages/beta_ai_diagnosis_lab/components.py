@@ -11,7 +11,7 @@ def diagnosis_lab_header() -> rx.Component:
     return rx.vstack(
         rx.heading("Beta AI Diagnosis Lab", size="7"),
         rx.text(
-            "Checkpoint 3: inspect saved concept data and run structured LLM "
+            "inspect saved concept data and run structured LLM "
             "diagnosis against the selected concept's core points.",
             color_scheme="gray",
         ),

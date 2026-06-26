@@ -240,6 +240,16 @@ class BetaExerciseResult(SQLModel, table=True):
 
     id: Optional[int] = Field(default=None, primary_key=True)
     conversation_text: List[Dict[str, Any]] = Field(sa_column=Column(JSON), default=[])
+    finished_conversation: List[Dict[str, Any]] = Field(
+        sa_column=Column(JSON), default=[]
+    )
+    completion_unlocked: bool = Field(default=False)
+    completed_at: Optional[datetime] = Field(
+        sa_column=Column(type_=DateTime(timezone=True)), default=None
+    )
+    submit_time_stamp: Optional[datetime] = Field(
+        sa_column=Column(type_=DateTime(timezone=True)), default=None
+    )
     started_at: Optional[datetime] = Field(
         sa_column=Column(type_=DateTime(timezone=True)), default=None
     )
@@ -259,31 +269,41 @@ class BetaExerciseResult(SQLModel, table=True):
 
 
 class BetaExerciseTraceLog(SQLModel, table=True):
-    """Stacked didactic trace history for one persisted Beta AI chat result.
+    """Replayable didactic trace for one Beta AI chat turn.
 
-    This is intentionally a 1:1 log container for BetaExerciseResult, not one
-    database row per student message. The JSON history grows append-only inside
-    this container, matching the application's existing conversation persistence
-    style while keeping audit data separate from chat text.
+    Each row represents one student answer and the resulting diagnosis, policy
+    decision, tutor turn, and state snapshot. BetaExerciseResult remains the
+    conversation-level container; this table stores append-only per-turn audit
+    events so traces can be queried and evaluated without growing JSON blobs.
     """
 
     id: Optional[int] = Field(default=None, primary_key=True)
     beta_exercise_result_id: int = Field(
-        foreign_key="betaexerciseresult.id", ondelete="CASCADE", unique=True
+        foreign_key="betaexerciseresult.id", ondelete="CASCADE", index=True
     )
-    trace_history: List[Dict[str, Any]] = Field(sa_column=Column(JSON), default=[])
-    latest_trace: Dict[str, Any] = Field(sa_column=Column(JSON), default={})
+    beta_exercise_id: int = Field(
+        foreign_key="betaexercise.id", ondelete="CASCADE", index=True
+    )
+    userinfo_id: int = Field(foreign_key="userinfo.id", ondelete="CASCADE", index=True)
+    beta_concept_id: Optional[int] = Field(
+        default=None, foreign_key="betaconcept.id", ondelete="SET NULL", index=True
+    )
+    turn_index: int = Field(default=0, index=True)
+    concept_label: str = Field(nullable=False, default="")
+    student_answer: str = Field(nullable=False, default="")
+    final_pattern: str = Field(nullable=False, default="")
+    selected_action: str = Field(nullable=False, default="")
+    selected_rule_id: str = Field(nullable=False, default="")
+    question_level: str = Field(nullable=False, default="")
+    trace_entry: Dict[str, Any] = Field(sa_column=Column(JSON), default={})
     created_at: Optional[datetime] = Field(
-        sa_column=Column(type_=DateTime(timezone=True)), default=None
-    )
-    updated_at: Optional[datetime] = Field(
         sa_column=Column(type_=DateTime(timezone=True)), default=None
     )
 
     def __repr__(self):
         return (
             f"<BetaExerciseTraceLog(beta_exercise_result_id="
-            f"{self.beta_exercise_result_id})>"
+            f"{self.beta_exercise_result_id}, turn_index={self.turn_index})>"
         )
 
 
@@ -308,6 +328,12 @@ class BetaStudentConceptState(SQLModel, table=True):
     evidence_by_core_point: Dict[str, Any] = Field(sa_column=Column(JSON), default={})
     level_status: Dict[str, Any] = Field(sa_column=Column(JSON), default={})
     level_evidence: Dict[str, Any] = Field(sa_column=Column(JSON), default={})
+    active_misconceptions: List[Dict[str, Any]] = Field(
+        sa_column=Column(JSON), default=[]
+    )
+    resolved_misconceptions: List[Dict[str, Any]] = Field(
+        sa_column=Column(JSON), default=[]
+    )
     last_diagnosis_pattern: str = Field(nullable=False, default="")
     last_policy_action: str = Field(nullable=False, default="")
     updated_at: Optional[datetime] = Field(
@@ -371,7 +397,6 @@ class BetaMisconception(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     beta_concept_id: int = Field(foreign_key="betaconcept.id", ondelete="CASCADE")
     label: str = Field(nullable=False, default="")
-    description: str = Field(nullable=False, default="")
     order_index: int = Field(default=0)
 
     # ORM relationships

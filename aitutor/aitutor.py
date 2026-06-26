@@ -49,6 +49,16 @@ app.add_page(
     on_load=pages.BetaAIChatState.on_load,
 )
 app.add_page(
+    pages.beta_ai_finished_view_tutor_page,
+    route=routes.BETA_AI_FINISHED_VIEW_TUTOR + "/[beta_exercise_id]/[url_user_id]",
+    on_load=pages.BetaAIFinishedViewTutorState.on_load,
+)
+app.add_page(
+    pages.beta_ai_finished_view_page,
+    route=routes.BETA_AI_FINISHED_VIEW + "/[beta_exercise_id]",
+    on_load=pages.BetaAIFinishedViewState.on_load,
+)
+app.add_page(
     pages.submissions_page,
     route=routes.SUBMISSIONS,
     on_load=pages.SubmissionsState.on_load,
@@ -97,6 +107,11 @@ app.add_page(
     pages.beta_ai_student_exercises_page,
     route=routes.BETA_AI_STUDENT_EXERCISES,
     on_load=pages.BetaAIStudentExercisesState.on_load,
+)
+app.add_page(
+    pages.beta_ai_submissions_page,
+    route=routes.BETA_AI_SUBMISSIONS,
+    on_load=pages.BetaAISubmissionsState.on_load,
 )
 app.add_page(
     pages.beta_ai_trace_logs_page,

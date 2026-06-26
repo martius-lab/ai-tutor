@@ -2,6 +2,7 @@
 
 import reflex as rx
 
+import aitutor.global_vars as gv
 from aitutor.pages.beta_ai_chat.state import BetaAIChatState
 
 
@@ -96,68 +97,89 @@ def beta_chat_header() -> rx.Component:
 
 
 def chat_message(message: dict[str, str]) -> rx.Component:
-    """Render one skeleton chat message."""
+    """Render one Beta AI chat message using the normal exercise chat bubble style."""
     return rx.box(
-        rx.vstack(
-            rx.badge(
-                rx.cond(message["role"] == "student", "Student", "Tutor"),
-                color_scheme=rx.cond(message["role"] == "student", "blue", "green"),
+        rx.markdown(
+            message["content"].replace("\n", "  \n"),
+            background_color=rx.cond(
+                message["role"] == "student",
+                rx.color("accent", 3),
+                rx.color("gray", 3),
             ),
-            rx.text(message["content"], white_space="pre-wrap"),
-            spacing="2",
-            align="start",
+            color=rx.cond(
+                message["role"] == "student",
+                rx.color("accent", 12),
+                rx.color("gray", 12),
+            ),
+            text_align="left",
+            display="inline-block",
+            padding="1em",
+            border_radius="8px",
+            max_width=["30em", "30em", "50em", "50em", "50em", "50em"],
         ),
-        padding="1em",
-        border_radius="8px",
-        background_color=rx.cond(
+        text_align=rx.cond(
             message["role"] == "student",
-            rx.color("blue", 2),
-            rx.color("green", 2),
+            "right",
+            "left",
         ),
-        align_self=rx.cond(message["role"] == "student", "end", "start"),
-        max_width="75%",
-    )
-
-
-def messages_panel() -> rx.Component:
-    """Render the current in-memory chat messages."""
-    return rx.card(
-        rx.vstack(
-            rx.heading("Conversation", size="4"),
-            rx.cond(
-                BetaAIChatState.messages.length() == 0,  # type: ignore
-                rx.callout("No messages yet.", icon="info", width="100%"),
-                rx.vstack(
-                    rx.foreach(BetaAIChatState.messages, chat_message),
-                    spacing="3",
-                    width="100%",
-                ),
-            ),
-            spacing="3",
-            align="start",
-            width="100%",
-        ),
+        margin_top="1em",
         width="100%",
     )
 
 
+def messages_panel() -> rx.Component:
+    """Render the current Beta AI chat messages in the normal chat scroll style."""
+    return rx.box(
+        rx.auto_scroll(
+            rx.cond(
+                BetaAIChatState.messages.length() == 0,  # type: ignore
+                rx.callout("No messages yet.", icon="info", width="100%"),
+                rx.foreach(BetaAIChatState.messages, chat_message),
+            ),
+            scroll_to_bottom_on_update=True,
+            width="100%",
+            height="100%",
+            padding_right="8px",
+        ),
+        width="100%",
+        height="45vh",
+        min_height="16em",
+        overflow_y="auto",
+    )
+
+
 def message_input() -> rx.Component:
-    """Render the skeleton student message input."""
-    return rx.card(
+    """Render the Beta AI student message input in the normal chat form style."""
+
+    def text_area_with_key_submit(with_key_submit: bool) -> rx.Component:
+        return rx.text_area(
+            name="student_message",
+            placeholder="Your answer",
+            value=BetaAIChatState.student_message,
+            on_change=BetaAIChatState.set_student_message,
+            required=True,
+            width="100%",
+            max_height="40vh",
+            enter_key_submit=with_key_submit,
+            resize="vertical",
+            rows="4",
+        )
+
+    return rx.form(
         rx.vstack(
-            rx.text_area(
-                placeholder="Type a Beta AI chat message...",
-                value=BetaAIChatState.student_message,
-                on_change=BetaAIChatState.set_student_message,
-                rows="4",
+            rx.desktop_only(
+                text_area_with_key_submit(True),
+                width="100%",
+            ),
+            rx.mobile_and_tablet(
+                text_area_with_key_submit(False),
                 width="100%",
             ),
             rx.hstack(
                 rx.spacer(),
                 rx.button(
-                    rx.icon("send"),
-                    rx.cond(BetaAIChatState.running_diagnosis, "Diagnosing...", "Send"),
-                    on_click=BetaAIChatState.send_message,
+                    rx.icon("send-horizontal", size=20),
+                    type="submit",
                     loading=BetaAIChatState.running_diagnosis,
                     disabled=~BetaAIChatState.can_send_message,
                     _hover=rx.cond(
@@ -171,7 +193,51 @@ def message_input() -> rx.Component:
             spacing="3",
             width="100%",
         ),
-        width="100%",
+        on_submit=BetaAIChatState.send_message,
+        reset_on_submit=True,
+    )
+
+
+def beta_submission_status() -> rx.Component:
+    """Render compact Beta AI submission status for the page header."""
+    return rx.cond(
+        BetaAIChatState.conversation_is_submitted,
+        rx.hstack(
+            rx.hover_card.root(
+                rx.hover_card.trigger(
+                    rx.button(
+                        rx.icon("eye", size=20),
+                        on_click=rx.redirect(BetaAIChatState.beta_finished_view_url),
+                        _hover={"cursor": "pointer"},
+                    ),
+                ),
+                rx.hover_card.content(rx.text("View your Beta AI submission")),
+            ),
+            rx.desktop_only(
+                rx.text(
+                    "Last submit: " + BetaAIChatState.submit_time_stamp,
+                    color_scheme="green",
+                ),
+            ),
+            rx.icon("circle-check", color=gv.GREEN_CHECK_COLOR, size=30),
+            align="center",
+        ),
+        rx.cond(
+            BetaAIChatState.completion_unlocked,
+            rx.button(
+                "Submit",
+                color_scheme="green",
+                type="button",
+                on_click=BetaAIChatState.submit_beta_conversation,
+                _hover={"cursor": "pointer"},
+            ),
+            rx.hstack(
+                rx.icon("info", size=20),
+                rx.text("Not submitted yet"),
+                spacing="1",
+                align="center",
+            ),
+        ),
     )
 
 

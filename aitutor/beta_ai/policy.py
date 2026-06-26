@@ -16,6 +16,7 @@ DidacticAction = Literal[
     "ask_application_or_comparison",
     "ask_contrast_question",
     "mark_as_potentially_complete",
+    "advance_to_next_concept",
     "ask_for_explanation",
     "ask_clarification",
 ]
@@ -151,8 +152,8 @@ def preview_policy_action(
 
     if diagnosis.diagnosis_pattern == "misconception_present":
         misconception_hint = (
-            misconceptions[0].label
-            if misconceptions
+            diagnosis.misconception_label or misconceptions[0].label
+            if misconceptions or diagnosis.misconception_label
             else "the assumption in your answer"
         )
         return PolicyPreview(
@@ -274,3 +275,54 @@ def preview_policy_action(
             f"to '{concept_reference}'?"
         ),
     )
+
+
+def policy_preview_for_next_level(
+    *,
+    concept_label: str,
+    concept_description: str,
+    next_question_level: str,
+) -> PolicyPreview | None:
+    """Return a level-transition policy preview when state already advanced.
+
+    The normal diagnosis-pattern policy explains how to repair or respond to the
+    current diagnosis. After a level passes, however, the next didactic action is
+    governed by level state: Basic -> Explain, Explain -> Apply. This helper keeps
+    audit traces aligned with the generated next question level.
+    """
+    concept_reference = concept_label or concept_description or "the selected concept"
+    if next_question_level == "explain_reasoning":
+        return PolicyPreview(
+            rule_id="R-ASK-HOLISTIC-EXPLAIN-01",
+            action="ask_holistic_explanation",
+            rationale=(
+                "Basic core-point coverage is complete. The next didactic step "
+                "is a concept-level explanation prompt that asks for reasoning."
+            ),
+            feedback_brief=(
+                "Good, you have covered the basic ideas. Now I want to check "
+                "your reasoning about the concept as a whole."
+            ),
+            suggested_prompt=(
+                f"Why does '{concept_reference}' matter for understanding this topic? "
+                "Explain the connection in your own words, not as a list of details."
+            ),
+        )
+    if next_question_level == "apply_or_compare":
+        return PolicyPreview(
+            rule_id="R-ASK-APPLY-01",
+            action="ask_application_or_comparison",
+            rationale=(
+                "The explanation level is complete. The next didactic step is "
+                "an application, comparison, or transfer prompt for the concept."
+            ),
+            feedback_brief=(
+                "Good explanation. Now I want to check whether you can transfer "
+                "the concept to a new situation."
+            ),
+            suggested_prompt=(
+                f"Apply '{concept_reference}' to a small example or compare it with "
+                "a related case. What changes, what stays the same, and why?"
+            ),
+        )
+    return None

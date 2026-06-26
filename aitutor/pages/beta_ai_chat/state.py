@@ -17,7 +17,11 @@ from aitutor.beta_ai.diagnosis import (
 from aitutor.beta_ai.diagnosis import (
     run_llm_diagnosis as run_structured_llm_diagnosis,
 )
-from aitutor.beta_ai.policy import preview_policy_action
+from aitutor.beta_ai.policy import (
+    PolicyPreview,
+    policy_preview_for_next_level,
+    preview_policy_action,
+)
 from aitutor.beta_ai.student_state import (
     build_cumulative_evidence_summary,
     normalized_level_status,
@@ -25,10 +29,13 @@ from aitutor.beta_ai.student_state import (
 )
 from aitutor.beta_ai.tutor_turn import (
     choose_question_level,
+    repair_leaky_tutor_turn,
+    run_level_transition_question_generation,
     run_tutor_turn_generation,
     safe_fallback_tutor_turn,
     tutor_turn_reveals_answer,
 )
+from aitutor.global_vars import TIME_FORMAT, TIME_ZONE
 from aitutor.models import (
     BetaConcept,
     BetaCorePoint,
@@ -75,12 +82,17 @@ class BetaAIChatState(SessionState):
     concept_attempts_total: int = 0
     concept_successful_attempts: int = 0
     concept_misconception_hits: int = 0
+    active_misconceptions: list[dict] = []
+    resolved_misconceptions: list[dict] = []
     cumulative_covered_core_point_ids: list[int] = []
     cumulative_missing_core_point_ids: list[int] = []
     current_question: str = ""
     current_question_level: str = "basic_understanding"
     current_focus_core_point_id: int | None = None
     level_status: dict[str, str] = {}
+    completion_unlocked: bool = False
+    conversation_is_submitted: bool = False
+    submit_time_stamp: str = ""
 
     @rx.event
     @state_require_role_at_least(UserRole.STUDENT)
@@ -142,6 +154,8 @@ class BetaAIChatState(SessionState):
             concept_attempts_total = 0
             concept_successful_attempts = 0
             concept_misconception_hits = 0
+            active_misconceptions: list[dict] = []
+            resolved_misconceptions: list[dict] = []
             cumulative_covered_core_point_ids: list[int] = []
             cumulative_missing_core_point_ids: list[int] = []
             level_status: dict[str, str] = normalized_level_status(None)
@@ -169,17 +183,28 @@ class BetaAIChatState(SessionState):
             ).one_or_none()
             if beta_result is not None:
                 conversation_text = beta_result.conversation_text
+                self.completion_unlocked = beta_result.completion_unlocked
+                self.conversation_is_submitted = bool(beta_result.submit_time_stamp)
+                self.submit_time_stamp = (
+                    beta_result.submit_time_stamp.strftime(TIME_FORMAT)
+                    if beta_result.submit_time_stamp
+                    else ""
+                )
                 if beta_result.id is not None:
-                    trace_log = session.exec(
-                        select(BetaExerciseTraceLog).where(
-                            BetaExerciseTraceLog.beta_exercise_result_id
-                            == beta_result.id
-                        )
-                    ).one_or_none()
-                    if trace_log is not None:
-                        latest_trace = trace_log.latest_trace
-                        trace_history_count = len(trace_log.trace_history)
-                        trace_log_id = trace_log.id
+                    trace_logs = list(
+                        session.exec(
+                            select(BetaExerciseTraceLog)
+                            .where(
+                                BetaExerciseTraceLog.beta_exercise_result_id
+                                == beta_result.id
+                            )
+                            .order_by(BetaExerciseTraceLog.turn_index)  # type: ignore
+                        ).all()
+                    )
+                    if trace_logs:
+                        latest_trace = trace_logs[-1].trace_entry
+                        trace_history_count = len(trace_logs)
+                        trace_log_id = trace_logs[-1].id
 
             if concept is not None and concept.id is not None:
                 student_concept_state = concept_states.get(concept.id)
@@ -191,6 +216,12 @@ class BetaAIChatState(SessionState):
                     )
                     concept_misconception_hits = (
                         student_concept_state.misconception_hits
+                    )
+                    active_misconceptions = (
+                        student_concept_state.active_misconceptions or []
+                    )
+                    resolved_misconceptions = (
+                        student_concept_state.resolved_misconceptions or []
                     )
                     cumulative_covered_core_point_ids = (
                         student_concept_state.covered_core_point_ids or []
@@ -211,6 +242,8 @@ class BetaAIChatState(SessionState):
         self.current_concept_index = current_concept_index
         self.concept_count = len(concepts)
         self.all_concepts_completed = all_concepts_completed
+        if all_concepts_completed:
+            self.completion_unlocked = True
         self.selected_concept_id = concept.id if concept else None
         self.selected_concept_label = concept.label if concept else ""
         self.selected_concept_description = concept.description if concept else ""
@@ -226,6 +259,8 @@ class BetaAIChatState(SessionState):
         self.concept_attempts_total = concept_attempts_total
         self.concept_successful_attempts = concept_successful_attempts
         self.concept_misconception_hits = concept_misconception_hits
+        self.active_misconceptions = active_misconceptions
+        self.resolved_misconceptions = resolved_misconceptions
         self.cumulative_covered_core_point_ids = cumulative_covered_core_point_ids
         self.cumulative_missing_core_point_ids = cumulative_missing_core_point_ids
         self.level_status = level_status
@@ -265,12 +300,17 @@ class BetaAIChatState(SessionState):
         self.concept_attempts_total = 0
         self.concept_successful_attempts = 0
         self.concept_misconception_hits = 0
+        self.active_misconceptions = []
+        self.resolved_misconceptions = []
         self.cumulative_covered_core_point_ids = []
         self.cumulative_missing_core_point_ids = []
         self.current_question = ""
         self.current_question_level = "basic_understanding"
         self.current_focus_core_point_id = None
         self.level_status = normalized_level_status(None)
+        self.completion_unlocked = False
+        self.conversation_is_submitted = False
+        self.submit_time_stamp = ""
 
     @rx.event
     def set_student_message(self, value: str):
@@ -393,6 +433,13 @@ class BetaAIChatState(SessionState):
     def has_trace_log_id(self) -> bool:
         """Whether a persisted trace log id is available."""
         return self.last_trace_log_id is not None
+
+    @rx.var
+    def beta_finished_view_url(self) -> str:
+        """Return the student's Beta AI finished-view URL for this exercise."""
+        if self.current_beta_exercise_id is None:
+            return routes.BETA_AI_STUDENT_EXERCISES
+        return f"{routes.BETA_AI_FINISHED_VIEW}/{self.current_beta_exercise_id}"
 
     @rx.var
     def initial_tutor_message(self) -> str:
@@ -546,6 +593,8 @@ class BetaAIChatState(SessionState):
             self.concept_attempts_total = 0
             self.concept_successful_attempts = 0
             self.concept_misconception_hits = 0
+            self.active_misconceptions = []
+            self.resolved_misconceptions = []
             self.cumulative_covered_core_point_ids = []
             self.cumulative_missing_core_point_ids = []
             self.level_status = normalized_level_status(None)
@@ -554,6 +603,12 @@ class BetaAIChatState(SessionState):
             self.concept_attempts_total = student_concept_state.attempts_total
             self.concept_successful_attempts = student_concept_state.successful_attempts
             self.concept_misconception_hits = student_concept_state.misconception_hits
+            self.active_misconceptions = (
+                student_concept_state.active_misconceptions or []
+            )
+            self.resolved_misconceptions = (
+                student_concept_state.resolved_misconceptions or []
+            )
             self.cumulative_covered_core_point_ids = (
                 student_concept_state.covered_core_point_ids or []
             )
@@ -624,6 +679,40 @@ class BetaAIChatState(SessionState):
                 ),
             }
         )
+        self.completion_unlocked = True
+
+    def persist_completion_unlocked(self) -> None:
+        """Persist that the student unlocked Beta AI submission for this exercise."""
+        if self.current_beta_exercise_id is None or self.current_userinfo_id is None:
+            return
+
+        now = datetime.now(ZoneInfo(TIME_ZONE))
+        with rx.session() as session:
+            beta_result = session.exec(
+                select(BetaExerciseResult).where(
+                    BetaExerciseResult.beta_exercise_id
+                    == self.current_beta_exercise_id,
+                    BetaExerciseResult.userinfo_id == self.current_userinfo_id,
+                )
+            ).one_or_none()
+            if beta_result is None:
+                beta_result = BetaExerciseResult(
+                    beta_exercise_id=self.current_beta_exercise_id,
+                    userinfo_id=self.current_userinfo_id,
+                    conversation_text=self.messages,
+                    completion_unlocked=True,
+                    completed_at=now,
+                    started_at=now,
+                    updated_at=now,
+                )
+                session.add(beta_result)
+            else:
+                beta_result.conversation_text = self.messages
+                beta_result.completion_unlocked = True
+                if beta_result.completed_at is None:
+                    beta_result.completed_at = now
+                beta_result.updated_at = now
+            session.commit()
 
     def advance_to_next_incomplete_concept(self) -> dict[str, object]:
         """Automatically move to the next non-secure concept if available."""
@@ -659,6 +748,7 @@ class BetaAIChatState(SessionState):
         self.all_concepts_completed = self.are_all_concepts_secure()
         if self.all_concepts_completed:
             self.append_all_concepts_completed_message()
+            self.persist_completion_unlocked()
             return {
                 "advanced": False,
                 "completed_all": True,
@@ -714,6 +804,7 @@ class BetaAIChatState(SessionState):
                     beta_exercise_id=self.current_beta_exercise_id,
                     userinfo_id=self.current_userinfo_id,
                     conversation_text=self.messages,
+                    completion_unlocked=self.completion_unlocked,
                     started_at=now,
                     updated_at=now,
                 )
@@ -721,49 +812,102 @@ class BetaAIChatState(SessionState):
                 session.flush()
             else:
                 beta_result.conversation_text = self.messages
+                beta_result.completion_unlocked = (
+                    beta_result.completion_unlocked or self.completion_unlocked
+                )
+                if self.completion_unlocked and beta_result.completed_at is None:
+                    beta_result.completed_at = now
                 beta_result.updated_at = now
 
             session.commit()
             return beta_result.id
 
+    @rx.event
+    def submit_beta_conversation(self):
+        """Submit the completed Beta AI conversation for tutor review."""
+        if (
+            not self.completion_unlocked
+            or self.current_beta_exercise_id is None
+            or self.current_userinfo_id is None
+        ):
+            return rx.toast.error("Complete all Beta AI concepts before submitting.")
+
+        now = datetime.now(ZoneInfo(TIME_ZONE))
+        with rx.session() as session:
+            beta_result = session.exec(
+                select(BetaExerciseResult).where(
+                    BetaExerciseResult.beta_exercise_id
+                    == self.current_beta_exercise_id,
+                    BetaExerciseResult.userinfo_id == self.current_userinfo_id,
+                )
+            ).one_or_none()
+            if beta_result is None:
+                beta_result = BetaExerciseResult(
+                    beta_exercise_id=self.current_beta_exercise_id,
+                    userinfo_id=self.current_userinfo_id,
+                    conversation_text=self.messages,
+                    started_at=now,
+                )
+                session.add(beta_result)
+
+            beta_result.conversation_text = self.messages
+            beta_result.finished_conversation = self.messages
+            beta_result.completion_unlocked = True
+            if beta_result.completed_at is None:
+                beta_result.completed_at = now
+            beta_result.submit_time_stamp = now
+            beta_result.updated_at = now
+            session.commit()
+
+        self.conversation_is_submitted = True
+        self.submit_time_stamp = now.strftime(TIME_FORMAT)
+        return rx.toast.success("Beta AI exercise submitted.")
+
     def append_trace_to_db(
         self, *, beta_exercise_result_id: int, trace_entry: dict
     ) -> tuple[int | None, int]:
-        """Append a diagnosis trace to the stacked trace log container."""
+        """Append one per-turn diagnosis trace row."""
+        if self.current_beta_exercise_id is None or self.current_userinfo_id is None:
+            return None, self.trace_history_count
+
         now = datetime.now(ZoneInfo("UTC"))
         with rx.session() as session:
-            trace_log = session.exec(
-                select(BetaExerciseTraceLog).where(
-                    BetaExerciseTraceLog.beta_exercise_result_id
-                    == beta_exercise_result_id
-                )
-            ).one_or_none()
+            existing_logs = list(
+                session.exec(
+                    select(BetaExerciseTraceLog)
+                    .where(
+                        BetaExerciseTraceLog.beta_exercise_result_id
+                        == beta_exercise_result_id
+                    )
+                    .order_by(BetaExerciseTraceLog.turn_index)  # type: ignore
+                ).all()
+            )
+            next_turn_index = (
+                max((log.turn_index for log in existing_logs), default=0) + 1
+            )
+            trace_entry["turn_index"] = next_turn_index
+            trace_entry["created_at"] = now.isoformat()
 
-            if trace_log is None:
-                trace_history = []
-                trace_entry["turn_index"] = 1
-                trace_entry["created_at"] = now.isoformat()
-                trace_history.append(trace_entry)
-                trace_log = BetaExerciseTraceLog(
-                    beta_exercise_result_id=beta_exercise_result_id,
-                    trace_history=trace_history,
-                    latest_trace=trace_entry,
-                    created_at=now,
-                    updated_at=now,
-                )
-                session.add(trace_log)
-                session.flush()
-            else:
-                trace_history = list(trace_log.trace_history or [])
-                trace_entry["turn_index"] = len(trace_history) + 1
-                trace_entry["created_at"] = now.isoformat()
-                trace_history.append(trace_entry)
-                trace_log.trace_history = trace_history
-                trace_log.latest_trace = trace_entry
-                trace_log.updated_at = now
+            trace_log = BetaExerciseTraceLog(
+                beta_exercise_result_id=beta_exercise_result_id,
+                beta_exercise_id=self.current_beta_exercise_id,
+                userinfo_id=self.current_userinfo_id,
+                beta_concept_id=self.selected_concept_id,
+                turn_index=next_turn_index,
+                concept_label=str(trace_entry.get("concept_label", "")),
+                student_answer=str(trace_entry.get("student_answer", "")),
+                final_pattern=str(trace_entry.get("final_pattern", "")),
+                selected_action=str(trace_entry.get("selected_action", "")),
+                selected_rule_id=str(trace_entry.get("selected_rule_id", "")),
+                question_level=str(trace_entry.get("current_question_level", "")),
+                trace_entry=trace_entry,
+                created_at=now,
+            )
+            session.add(trace_log)
+            session.flush()
 
             session.commit()
-            return trace_log.id, len(trace_log.trace_history)
+            return trace_log.id, next_turn_index
 
     def build_cumulative_diagnosis(
         self, *, latest_diagnosis: DiagnosisResponse, student_answer: str
@@ -814,6 +958,8 @@ class BetaAIChatState(SessionState):
             self.concept_attempts_total = student_state.attempts_total
             self.concept_successful_attempts = student_state.successful_attempts
             self.concept_misconception_hits = student_state.misconception_hits
+            self.active_misconceptions = student_state.active_misconceptions or []
+            self.resolved_misconceptions = student_state.resolved_misconceptions or []
             self.cumulative_covered_core_point_ids = (
                 cumulative_diagnosis.covered_core_point_ids
             )
@@ -934,8 +1080,26 @@ class BetaAIChatState(SessionState):
             misconceptions=misconceptions,
         )
         async with self:
-            self.save_last_policy_action_to_student_state(policy_preview.action)
             if self.concept_state == "secure":
+                completed_level_status = dict(self.level_status)
+                completed_concept_state = self.concept_state
+                completion_policy_preview = PolicyPreview(
+                    rule_id="R-CONCEPT-SECURE-01",
+                    action="advance_to_next_concept",
+                    rationale=(
+                        "The current concept has passed basic understanding, "
+                        "explain reasoning, and apply/compare. The next didactic "
+                        "step is to advance to the next incomplete concept."
+                    ),
+                    feedback_brief=(
+                        f"You have completed '{concept_label}' across all "
+                        "required levels."
+                    ),
+                    suggested_prompt="Advance to the next concept.",
+                )
+                self.save_last_policy_action_to_student_state(
+                    completion_policy_preview.action
+                )
                 concept_transition = self.advance_to_next_incomplete_concept()
                 trace = build_diagnosis_trace(
                     exercise_title=exercise_title,
@@ -946,7 +1110,7 @@ class BetaAIChatState(SessionState):
                     llm_suggested_pattern=validation_result.llm_suggested_pattern,
                     validation_errors=validation_result.errors,
                     validation_warnings=validation_result.warnings,
-                    policy_preview=policy_preview,
+                    policy_preview=completion_policy_preview,
                 )
                 trace_entry = trace.model_dump()
                 trace_entry["latest_turn_diagnosis"] = (
@@ -964,12 +1128,16 @@ class BetaAIChatState(SessionState):
                 trace_entry["current_question_level"] = current_question_level
                 trace_entry["current_focus_core_point_id"] = current_focus_core_point_id
                 trace_entry["concept_transition"] = concept_transition
-                trace_entry["level_status"] = self.level_status
+                trace_entry["level_status"] = completed_level_status
+                trace_entry["active_misconceptions"] = self.active_misconceptions
+                trace_entry["resolved_misconceptions"] = self.resolved_misconceptions
+                trace_entry["completed_concept_state"] = completed_concept_state
+                trace_entry["next_concept_level_status"] = self.level_status
 
                 self.last_diagnosis_pattern = cumulative_diagnosis.diagnosis_pattern
-                self.last_policy_action = policy_preview.action
-                self.last_policy_rule_id = policy_preview.rule_id
-                self.last_trace_json = trace.to_pretty_json()
+                self.last_policy_action = completion_policy_preview.action
+                self.last_policy_rule_id = completion_policy_preview.rule_id
+                self.last_trace_json = trace_log_json(trace_entry)
                 beta_exercise_result_id = self.save_conversation_to_db()
                 if beta_exercise_result_id is not None:
                     trace_log_id, trace_history_count = self.append_trace_to_db(
@@ -981,28 +1149,69 @@ class BetaAIChatState(SessionState):
                 self.running_diagnosis = False
                 yield rx.toast.success("Concept completed. Moving to the next concept.")
                 return
+            self.save_last_policy_action_to_student_state(policy_preview.action)
         next_question_level = choose_question_level(
-            cumulative_diagnosis, self.level_status
+            cumulative_diagnosis,
+            self.level_status,
+            current_question_level=current_question_level,  # type: ignore[arg-type]
         )
+        level_transition_policy_preview = policy_preview_for_next_level(
+            concept_label=concept_label,
+            concept_description=concept_description,
+            next_question_level=next_question_level,
+        )
+        if level_transition_policy_preview is not None:
+            policy_preview = level_transition_policy_preview
+            async with self:
+                self.save_last_policy_action_to_student_state(policy_preview.action)
         try:
-            tutor_turn = await run_tutor_turn_generation(
-                concept_label=concept_label,
-                concept_description=concept_description,
-                core_points=core_points,
-                misconceptions=misconceptions,
-                diagnosis=cumulative_diagnosis,
-                policy_preview=policy_preview,
-                question_level=next_question_level,
-                cumulative_evidence_summary=cumulative_evidence_summary,
-                current_question=current_question,
-                student_answer=message,
-            )
-            if tutor_turn_reveals_answer(tutor_turn, core_points=core_points):
-                tutor_turn = safe_fallback_tutor_turn(
+            if level_transition_policy_preview is not None:
+                tutor_turn = await run_level_transition_question_generation(
+                    concept_label=concept_label,
+                    concept_description=concept_description,
+                    core_points=core_points,
+                    policy_preview=policy_preview,
+                    next_question_level=next_question_level,
+                )
+            else:
+                tutor_turn = await run_tutor_turn_generation(
+                    concept_label=concept_label,
+                    concept_description=concept_description,
+                    core_points=core_points,
+                    misconceptions=misconceptions,
                     diagnosis=cumulative_diagnosis,
                     policy_preview=policy_preview,
                     question_level=next_question_level,
+                    cumulative_evidence_summary=cumulative_evidence_summary,
+                    current_question=current_question,
+                    student_answer=message,
                 )
+            if tutor_turn_reveals_answer(tutor_turn, core_points=core_points):
+                try:
+                    repaired_turn = await repair_leaky_tutor_turn(
+                        concept_label=concept_label,
+                        concept_description=concept_description,
+                        core_points=core_points,
+                        policy_preview=policy_preview,
+                        leaky_tutor_turn=tutor_turn,
+                        question_level=next_question_level,
+                    )
+                    if tutor_turn_reveals_answer(
+                        repaired_turn, core_points=core_points
+                    ):
+                        tutor_turn = safe_fallback_tutor_turn(
+                            diagnosis=cumulative_diagnosis,
+                            policy_preview=policy_preview,
+                            question_level=next_question_level,
+                        )
+                    else:
+                        tutor_turn = repaired_turn
+                except Exception:
+                    tutor_turn = safe_fallback_tutor_turn(
+                        diagnosis=cumulative_diagnosis,
+                        policy_preview=policy_preview,
+                        question_level=next_question_level,
+                    )
         except Exception:
             tutor_turn = safe_fallback_tutor_turn(
                 diagnosis=cumulative_diagnosis,
@@ -1035,21 +1244,19 @@ class BetaAIChatState(SessionState):
         trace_entry["current_focus_core_point_id"] = current_focus_core_point_id
         trace_entry["generated_tutor_turn"] = tutor_turn.model_dump()
         trace_entry["level_status"] = self.level_status
+        trace_entry["active_misconceptions"] = self.active_misconceptions
+        trace_entry["resolved_misconceptions"] = self.resolved_misconceptions
 
         tutor_response = (
             f"{tutor_turn.feedback_brief}\n\nQuestion: {tutor_turn.next_question}"
         )
-        if validation_result.warnings:
-            tutor_response += "\n\nValidation notes: " + "; ".join(
-                validation_result.warnings
-            )
 
         async with self:
             self.messages.append({"role": "tutor", "content": tutor_response})
             self.last_diagnosis_pattern = cumulative_diagnosis.diagnosis_pattern
             self.last_policy_action = policy_preview.action
             self.last_policy_rule_id = policy_preview.rule_id
-            self.last_trace_json = trace.to_pretty_json()
+            self.last_trace_json = trace_log_json(trace_entry)
             self.current_question = tutor_turn.next_question
             self.current_question_level = tutor_turn.question_level
             self.current_focus_core_point_id = tutor_turn.focus_core_point_id

@@ -264,6 +264,67 @@ def metadata_card() -> rx.Component:
                 rows="4",
                 width="100%",
             ),
+            rx.vstack(
+                rx.text("Generation targets", weight="bold", size="2"),
+                rx.text(
+                    "Approximate counts used by the AI prompt.",
+                    size="2",
+                    color_scheme="gray",
+                ),
+                rx.hstack(
+                    rx.vstack(
+                        rx.text("Concepts", size="2"),
+                        rx.input(
+                            value=BetaAIExercisesState.concept_target_count_str,
+                            on_change=BetaAIExercisesState.set_concept_target_count,
+                            type="number",
+                            min="1",
+                            max="30",
+                            width="100%",
+                        ),
+                        align="start",
+                        spacing="1",
+                        width="100%",
+                    ),
+                    rx.vstack(
+                        rx.text("Core points", size="2"),
+                        rx.input(
+                            value=BetaAIExercisesState.core_point_target_count_str,
+                            on_change=BetaAIExercisesState.set_core_point_target_count,
+                            type="number",
+                            min="1",
+                            max="15",
+                            width="100%",
+                        ),
+                        align="start",
+                        spacing="1",
+                        width="100%",
+                    ),
+                    rx.vstack(
+                        rx.text("Misconceptions", size="2"),
+                        rx.input(
+                            value=BetaAIExercisesState.misconception_target_count_str,
+                            on_change=BetaAIExercisesState.set_misconception_target_count,
+                            type="number",
+                            min="1",
+                            max="10",
+                            width="100%",
+                        ),
+                        align="start",
+                        spacing="1",
+                        width="100%",
+                    ),
+                    spacing="3",
+                    width="100%",
+                    wrap="wrap",
+                ),
+                align="start",
+                spacing="2",
+                width="100%",
+                padding="1em",
+                background_color=rx.color("gray", 2),
+                border_radius="8px",
+            ),
             rx.button(
                 rx.icon("sparkles"),
                 BetaAIExercisesState.generate_concepts_button_label,
@@ -335,21 +396,38 @@ def misconception_row(
 
 
 def concept_card(concept, concept_index) -> rx.Component:
-    """Render one editable concept card."""
-    return rx.card(
-        rx.vstack(
+    """Render one editable concept as a compact expandable item."""
+    return rx.el.details(
+        rx.el.summary(
             rx.hstack(
-                rx.badge("Concept"),
+                rx.hstack(
+                    rx.icon("chevron-right", size=16, color="gray"),
+                    rx.badge("Concept", variant="soft"),
+                    rx.text(concept.label, weight="bold"),
+                    spacing="2",
+                    align="center",
+                ),
                 rx.spacer(),
                 rx.icon_button(
-                    rx.icon("trash"),
+                    rx.icon("trash", size=16),
                     color_scheme="red",
                     variant="ghost",
+                    size="2",
                     on_click=BetaAIExercisesState.delete_concept(concept_index),
                     _hover={"cursor": "pointer"},
                 ),
                 width="100%",
+                align="center",
             ),
+            padding="0.85em 1em",
+            border_radius="8px",
+            _hover={
+                "cursor": "pointer",
+                "background_color": rx.color("gray", 3),
+            },
+            list_style="none",
+        ),
+        rx.vstack(
             rx.input(
                 value=concept.label,
                 on_change=lambda value: BetaAIExercisesState.set_concept_label(
@@ -367,40 +445,55 @@ def concept_card(concept, concept_index) -> rx.Component:
                 rows="3",
                 width="100%",
             ),
-            rx.text("Core Points", weight="bold"),
-            rx.foreach(
-                concept.core_points,
-                lambda core_point, core_point_index: core_point_row(
-                    concept_index, core_point, core_point_index
+            rx.vstack(
+                rx.text("Core Points", weight="bold"),
+                rx.foreach(
+                    concept.core_points,
+                    lambda core_point, core_point_index: core_point_row(
+                        concept_index, core_point, core_point_index
+                    ),
                 ),
-            ),
-            rx.button(
-                rx.icon("plus", size=16),
-                "Add Core Point",
-                size="2",
-                variant="soft",
-                on_click=BetaAIExercisesState.add_core_point(concept_index),
-                _hover={"cursor": "pointer"},
-            ),
-            rx.text("Misconceptions", weight="bold"),
-            rx.foreach(
-                concept.misconceptions,
-                lambda misconception, misconception_index: misconception_row(
-                    concept_index, misconception, misconception_index
+                rx.button(
+                    rx.icon("plus", size=16),
+                    "Add Core Point",
+                    size="2",
+                    variant="soft",
+                    on_click=BetaAIExercisesState.add_core_point(concept_index),
+                    _hover={"cursor": "pointer"},
                 ),
+                align="start",
+                spacing="2",
+                width="100%",
             ),
-            rx.button(
-                rx.icon("plus", size=16),
-                "Add Misconception",
-                size="2",
-                variant="soft",
-                on_click=BetaAIExercisesState.add_misconception(concept_index),
-                _hover={"cursor": "pointer"},
+            rx.vstack(
+                rx.text("Misconceptions", weight="bold"),
+                rx.foreach(
+                    concept.misconceptions,
+                    lambda misconception, misconception_index: misconception_row(
+                        concept_index, misconception, misconception_index
+                    ),
+                ),
+                rx.button(
+                    rx.icon("plus", size=16),
+                    "Add Misconception",
+                    size="2",
+                    variant="soft",
+                    on_click=BetaAIExercisesState.add_misconception(concept_index),
+                    _hover={"cursor": "pointer"},
+                ),
+                align="start",
+                spacing="2",
+                width="100%",
             ),
             spacing="3",
             align="start",
             width="100%",
+            padding="1em",
+            padding_top="0.5em",
         ),
+        border="1px solid var(--gray-6)",
+        border_radius="10px",
+        background_color=rx.color("gray", 1),
         width="100%",
     )
 
@@ -429,7 +522,11 @@ def concepts_card() -> rx.Component:
                     width="100%",
                 ),
             ),
-            rx.foreach(BetaAIExercisesState.generated_concepts, concept_card),
+            rx.vstack(
+                rx.foreach(BetaAIExercisesState.generated_concepts, concept_card),
+                spacing="3",
+                width="100%",
+            ),
             rx.hstack(
                 rx.button(
                     "Reset",
@@ -466,5 +563,6 @@ def beta_ai_exercises_content() -> rx.Component:
         metadata_card(),
         concepts_card(),
         spacing="4",
-        width="100%",
+        width="42em",
+        max_width="90vw",
     )

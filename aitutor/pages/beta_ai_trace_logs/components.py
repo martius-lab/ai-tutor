@@ -13,7 +13,7 @@ def trace_logs_header() -> rx.Component:
     return rx.vstack(
         rx.heading("Beta AI Trace Logs", size="7"),
         rx.text(
-            "Inspect persisted Beta AI chat conversations and stacked "
+            "Inspect persisted Beta AI chat conversations and per-turn "
             "diagnosis/policy traces.",
             color_scheme="gray",
         ),
@@ -34,7 +34,9 @@ def trace_log_row(row: TraceLogRow) -> rx.Component:
             rx.button(
                 "Inspect",
                 size="2",
-                on_click=BetaAITraceLogsState.select_trace_log(row.trace_log_id),
+                on_click=BetaAITraceLogsState.select_trace_log(
+                    row.beta_exercise_result_id
+                ),
                 _hover={"cursor": "pointer"},
             )
         ),

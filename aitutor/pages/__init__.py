@@ -4,8 +4,16 @@ from aitutor.pages.beta_ai_diagnosis_lab.page import beta_ai_diagnosis_lab_page
 from aitutor.pages.beta_ai_diagnosis_lab.state import BetaAIDiagnosisLabState
 from aitutor.pages.beta_ai_exercises.page import beta_ai_exercises_page
 from aitutor.pages.beta_ai_exercises.state import BetaAIExercisesState
+from aitutor.pages.beta_ai_finished_view.page import beta_ai_finished_view_page
+from aitutor.pages.beta_ai_finished_view.state import BetaAIFinishedViewState
+from aitutor.pages.beta_ai_finished_view_tutor.page import (
+    beta_ai_finished_view_tutor_page,
+)
+from aitutor.pages.beta_ai_finished_view_tutor.state import BetaAIFinishedViewTutorState
 from aitutor.pages.beta_ai_student_exercises.page import beta_ai_student_exercises_page
 from aitutor.pages.beta_ai_student_exercises.state import BetaAIStudentExercisesState
+from aitutor.pages.beta_ai_submissions.page import beta_ai_submissions_page
+from aitutor.pages.beta_ai_submissions.state import BetaAISubmissionsState
 from aitutor.pages.beta_ai_trace_logs.page import beta_ai_trace_logs_page
 from aitutor.pages.beta_ai_trace_logs.state import BetaAITraceLogsState
 from aitutor.pages.chat.page import chat_page
@@ -51,7 +59,10 @@ __all__ = [
     "beta_ai_chat_page",
     "beta_ai_diagnosis_lab_page",
     "beta_ai_exercises_page",
+    "beta_ai_finished_view_page",
+    "beta_ai_finished_view_tutor_page",
     "beta_ai_student_exercises_page",
+    "beta_ai_submissions_page",
     "beta_ai_trace_logs_page",
     "home_page",
     "manage_exercises_page",
@@ -77,7 +88,10 @@ __all__ = [
     "BetaAIChatState",
     "BetaAIDiagnosisLabState",
     "BetaAIExercisesState",
+    "BetaAIFinishedViewState",
+    "BetaAIFinishedViewTutorState",
     "BetaAIStudentExercisesState",
+    "BetaAISubmissionsState",
     "BetaAITraceLogsState",
     "HomeState",
     "ExercisesState",

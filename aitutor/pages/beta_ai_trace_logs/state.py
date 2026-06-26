@@ -21,7 +21,7 @@ from aitutor.models import (
 class TraceLogRow(BaseModel):
     """Simple DTO for rendering trace log rows in Reflex."""
 
-    trace_log_id: int
+    beta_exercise_result_id: int
     exercise_title: str
     user_label: str
     trace_count: int
@@ -42,7 +42,7 @@ class BetaAITraceLogsState(SessionState):
     """State for inspecting persisted Beta AI trace histories."""
 
     trace_rows: list[TraceLogRow] = []
-    selected_trace_log_id: int | None = None
+    selected_beta_exercise_result_id: int | None = None
     selected_exercise_title: str = ""
     selected_user_label: str = ""
     selected_conversation_json: str = ""
@@ -68,12 +68,12 @@ class BetaAITraceLogsState(SessionState):
     @rx.var
     def has_selected_trace_log(self) -> bool:
         """Whether a trace log is selected for inspection."""
-        return self.selected_trace_log_id is not None
+        return self.selected_beta_exercise_result_id is not None
 
     @rx.event
     def clear_selection(self):
         """Clear the selected trace log details."""
-        self.selected_trace_log_id = None
+        self.selected_beta_exercise_result_id = None
         self.selected_exercise_title = ""
         self.selected_user_label = ""
         self.selected_conversation_json = ""
@@ -88,25 +88,35 @@ class BetaAITraceLogsState(SessionState):
         """Load trace log overview rows."""
         rows: list[TraceLogRow] = []
         with rx.session() as session:
-            trace_logs = list(
+            beta_result_ids = list(
                 session.exec(
-                    select(BetaExerciseTraceLog).order_by(
-                        BetaExerciseTraceLog.updated_at.desc()  # type: ignore
-                    )
+                    select(BetaExerciseTraceLog.beta_exercise_result_id).distinct()
                 ).all()
             )
 
-            for trace_log in trace_logs:
-                beta_result = session.get(
-                    BetaExerciseResult, trace_log.beta_exercise_result_id
+            for beta_result_id in beta_result_ids:
+                trace_logs = list(
+                    session.exec(
+                        select(BetaExerciseTraceLog)
+                        .where(
+                            BetaExerciseTraceLog.beta_exercise_result_id
+                            == beta_result_id
+                        )
+                        .order_by(BetaExerciseTraceLog.turn_index)  # type: ignore
+                    )
                 )
+                if not trace_logs:
+                    continue
+
+                beta_result = session.get(BetaExerciseResult, beta_result_id)
                 if beta_result is None:
                     continue
                 exercise = session.get(BetaExercise, beta_result.beta_exercise_id)
                 userinfo = session.get(UserInfo, beta_result.userinfo_id)
+                latest_trace_log = trace_logs[-1]
                 rows.append(
                     TraceLogRow(
-                        trace_log_id=trace_log.id or 0,
+                        beta_exercise_result_id=beta_result_id,
                         exercise_title=exercise.title
                         if exercise
                         else "<deleted exercise>",
@@ -115,34 +125,44 @@ class BetaAITraceLogsState(SessionState):
                             if userinfo
                             else f"UserInfo id={beta_result.userinfo_id}"
                         ),
-                        trace_count=len(trace_log.trace_history or []),
-                        updated_at=_format_datetime(trace_log.updated_at),
+                        trace_count=len(trace_logs),
+                        updated_at=_format_datetime(latest_trace_log.created_at),
                     )
                 )
 
-        self.trace_rows = rows
+        self.trace_rows = sorted(rows, key=lambda row: row.updated_at, reverse=True)
 
     @rx.event
-    def select_trace_log(self, trace_log_id: int | None):
-        """Load one trace log with its linked conversation for inspection."""
-        if trace_log_id is None:
+    def select_trace_log(self, beta_exercise_result_id: int | None):
+        """Load one trace history with its linked conversation for inspection."""
+        if beta_exercise_result_id is None:
             return
 
         with rx.session() as session:
-            trace_log = session.get(BetaExerciseTraceLog, trace_log_id)
-            if trace_log is None:
-                return rx.toast.error("Beta AI trace log not found.")
-
-            beta_result = session.get(
-                BetaExerciseResult, trace_log.beta_exercise_result_id
+            trace_logs = list(
+                session.exec(
+                    select(BetaExerciseTraceLog)
+                    .where(
+                        BetaExerciseTraceLog.beta_exercise_result_id
+                        == beta_exercise_result_id
+                    )
+                    .order_by(BetaExerciseTraceLog.turn_index)  # type: ignore
+                ).all()
             )
+            if not trace_logs:
+                return rx.toast.error("Beta AI trace logs not found.")
+
+            beta_result = session.get(BetaExerciseResult, beta_exercise_result_id)
             if beta_result is None:
                 return rx.toast.error("Linked Beta AI exercise result not found.")
 
             exercise = session.get(BetaExercise, beta_result.beta_exercise_id)
             userinfo = session.get(UserInfo, beta_result.userinfo_id)
 
-            self.selected_trace_log_id = trace_log_id
+            latest_trace = trace_logs[-1].trace_entry or {}
+            trace_history = [trace_log.trace_entry for trace_log in trace_logs]
+
+            self.selected_beta_exercise_result_id = beta_exercise_result_id
             self.selected_exercise_title = (
                 exercise.title if exercise else "<deleted exercise>"
             )
@@ -154,9 +174,8 @@ class BetaAITraceLogsState(SessionState):
             self.selected_conversation_json = _pretty_json(
                 beta_result.conversation_text
             )
-            self.selected_latest_trace_json = _pretty_json(trace_log.latest_trace)
-            self.selected_trace_history_json = _pretty_json(trace_log.trace_history)
-            latest_trace = trace_log.latest_trace or {}
+            self.selected_latest_trace_json = _pretty_json(latest_trace)
+            self.selected_trace_history_json = _pretty_json(trace_history)
             self.selected_latest_turn_diagnosis_json = _pretty_json(
                 latest_trace.get("latest_turn_diagnosis", {})
             )

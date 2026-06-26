@@ -22,6 +22,9 @@ DEFAULT_LEVEL_STATUS = {
     "apply_or_compare": "not_started",
 }
 
+MISCONCEPTION_RESOLUTION_RELEVANCE_THRESHOLD = 0.7
+MISCONCEPTION_RESOLUTION_CORRECTNESS_THRESHOLD = 0.7
+
 
 def normalized_level_status(level_status: dict[str, Any] | None) -> dict[str, str]:
     """Return a complete level-status dict with stable defaults."""
@@ -82,6 +85,111 @@ def build_cumulative_evidence_summary(
     )
 
 
+def _normalize_misconception_label(label: str) -> str:
+    """Return a stable key for matching repeated misconception labels."""
+    normalized = " ".join(label.lower().split())
+    return normalized.strip(" .!?:;\"'")
+
+
+def _fallback_misconception_label(latest_diagnosis: DiagnosisResponse) -> str:
+    """Return a safe label when the diagnosis did not provide one."""
+    if latest_diagnosis.misconception_label.strip():
+        return latest_diagnosis.misconception_label.strip()
+    if latest_diagnosis.evidence_snippets:
+        return latest_diagnosis.evidence_snippets[0].strip()[:120]
+    return "Unspecified misconception"
+
+
+def _is_misconception_resolution_answer(
+    latest_diagnosis: DiagnosisResponse,
+) -> bool:
+    """Return whether this answer can resolve active misconceptions."""
+    return (
+        latest_diagnosis.is_answer_attempt
+        and latest_diagnosis.is_student_owned_evidence
+        and not latest_diagnosis.misconception_flag
+        and latest_diagnosis.diagnosis_pattern
+        not in {
+            "help_seeking",
+            "tutor_derived_answer",
+            "off_task",
+            "shallow_keyword_only",
+            "misconception_present",
+        }
+        and latest_diagnosis.task_relevance
+        >= MISCONCEPTION_RESOLUTION_RELEVANCE_THRESHOLD
+        and latest_diagnosis.correctness
+        >= MISCONCEPTION_RESOLUTION_CORRECTNESS_THRESHOLD
+    )
+
+
+def update_misconception_memory(
+    *,
+    student_state: BetaStudentConceptState,
+    latest_diagnosis: DiagnosisResponse,
+    student_answer: str,
+    trace_reference: int,
+    now: datetime,
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]], bool]:
+    """Update active/resolved misconception memory for one turn.
+
+    Returns active misconceptions, resolved misconceptions, and whether active
+    misconceptions were resolved by this answer.
+    """
+    active = [dict(item) for item in student_state.active_misconceptions or []]
+    resolved = [dict(item) for item in student_state.resolved_misconceptions or []]
+
+    if latest_diagnosis.misconception_flag:
+        label = _fallback_misconception_label(latest_diagnosis)
+        key = _normalize_misconception_label(label)
+        matching_entry = next(
+            (
+                entry
+                for entry in active
+                if entry.get("key") == key
+                or _normalize_misconception_label(str(entry.get("label", ""))) == key
+            ),
+            None,
+        )
+        if matching_entry is None:
+            active.append(
+                {
+                    "key": key,
+                    "label": label,
+                    "status": "active",
+                    "first_seen_turn": trace_reference,
+                    "last_seen_turn": trace_reference,
+                    "hit_count": 1,
+                    "evidence_snippets": latest_diagnosis.evidence_snippets,
+                    "last_student_answer": student_answer,
+                    "created_at": now.isoformat(),
+                    "updated_at": now.isoformat(),
+                }
+            )
+        else:
+            matching_entry["last_seen_turn"] = trace_reference
+            matching_entry["hit_count"] = int(matching_entry.get("hit_count", 0)) + 1
+            matching_entry["evidence_snippets"] = latest_diagnosis.evidence_snippets
+            matching_entry["last_student_answer"] = student_answer
+            matching_entry["updated_at"] = now.isoformat()
+        return active, resolved, False
+
+    if active and _is_misconception_resolution_answer(latest_diagnosis):
+        for entry in active:
+            resolved_entry = dict(entry)
+            resolved_entry["status"] = "resolved"
+            resolved_entry["resolved_at_turn"] = trace_reference
+            resolved_entry["resolution_evidence_snippets"] = (
+                latest_diagnosis.evidence_snippets
+            )
+            resolved_entry["resolution_student_answer"] = student_answer
+            resolved_entry["resolved_at"] = now.isoformat()
+            resolved.append(resolved_entry)
+        return [], resolved, True
+
+    return active, resolved, False
+
+
 def derive_cumulative_pattern(
     *,
     latest_diagnosis: DiagnosisResponse,
@@ -139,27 +247,30 @@ def is_level_successful_answer(
     or application answer can pass the level without re-covering every core
     point in the current turn.
     """
-    blocking_patterns = {
-        "help_seeking",
-        "tutor_derived_answer",
-        "off_task",
-        "shallow_keyword_only",
-        "unclear",
-        "misconception_present",
-    }
     if not latest_diagnosis.is_answer_attempt:
         return False
     if not latest_diagnosis.is_student_owned_evidence:
         return False
     if latest_diagnosis.misconception_flag:
         return False
-    if latest_diagnosis.diagnosis_pattern in blocking_patterns:
-        return False
 
     if question_level == "basic_understanding":
         return latest_diagnosis.diagnosis_pattern == "sufficient_for_completion"
 
-    return latest_diagnosis.task_relevance >= 0.7 and latest_diagnosis.correctness >= 0.7
+    if latest_diagnosis.diagnosis_pattern in {
+        "help_seeking",
+        "tutor_derived_answer",
+        "off_task",
+        "shallow_keyword_only",
+        "misconception_present",
+    }:
+        return False
+
+    threshold = 0.85 if latest_diagnosis.diagnosis_pattern == "unclear" else 0.7
+    return (
+        latest_diagnosis.task_relevance >= threshold
+        and latest_diagnosis.correctness >= threshold
+    )
 
 
 def update_student_concept_state_from_diagnosis(
@@ -232,7 +343,16 @@ def update_student_concept_state_from_diagnosis(
         else 0.0
     )
     all_required_covered = set(required_ids).issubset(set(cumulative_covered_ids))
-    has_active_misconception = cumulative_pattern == "misconception_present"
+    active_misconceptions, resolved_misconceptions, resolved_this_turn = (
+        update_misconception_memory(
+            student_state=student_state,
+            latest_diagnosis=latest_diagnosis,
+            student_answer=student_answer,
+            trace_reference=trace_reference,
+            now=now,
+        )
+    )
+    has_active_misconception = bool(active_misconceptions)
     latest_turn_sufficient_success = is_level_successful_answer(
         latest_diagnosis, question_level
     )
@@ -280,6 +400,8 @@ def update_student_concept_state_from_diagnosis(
     student_state.evidence_by_core_point = evidence_by_core_point
     student_state.level_status = level_status
     student_state.level_evidence = level_evidence
+    student_state.active_misconceptions = active_misconceptions
+    student_state.resolved_misconceptions = resolved_misconceptions
     student_state.last_diagnosis_pattern = latest_diagnosis.diagnosis_pattern
     student_state.updated_at = now
 
@@ -296,9 +418,14 @@ def update_student_concept_state_from_diagnosis(
             student_state.state = "emerging"
     elif cumulative_pattern == "misconception_present":
         student_state.misconception_hits += 1
-        student_state.state = (
-            "review_required" if student_state.misconception_hits >= 2 else "emerging"
-        )
+        # Misconceptions are handled by the tutor's automatic repair loop
+        # (contrast question / targeted misconception repair). They should be
+        # logged for diagnostics, but they should not move the concept into a
+        # human-review terminal state: the Beta AI design goal is that the tutor
+        # pauses normal progression and keeps repairing until the current answer
+        # no longer contains the misconception.
+        if student_state.state not in {"satisfactory", "secure"}:
+            student_state.state = "emerging"
     elif cumulative_pattern == "correct_but_incomplete":
         if student_state.state == "unseen" or student_state.state not in {
             "satisfactory",
@@ -319,19 +446,18 @@ def update_student_concept_state_from_diagnosis(
         student_state.state = "emerging"
 
     policy_pattern = cumulative_pattern
-    if (
-        question_level in {"explain_reasoning", "apply_or_compare"}
-        and latest_diagnosis.diagnosis_pattern
-        in {
-            "correct_but_incomplete",
-            "help_seeking",
-            "tutor_derived_answer",
-            "shallow_keyword_only",
-            "misconception_present",
-            "off_task",
-            "unclear",
-        }
-    ):
+    if question_level in {
+        "explain_reasoning",
+        "apply_or_compare",
+    } and latest_diagnosis.diagnosis_pattern in {
+        "correct_but_incomplete",
+        "help_seeking",
+        "tutor_derived_answer",
+        "shallow_keyword_only",
+        "misconception_present",
+        "off_task",
+        "unclear",
+    }:
         # For higher-level questions, current non-evidence or problematic turns
         # should influence the policy pattern, but must not erase cumulative
         # concept coverage collected in earlier student-owned turns.
@@ -346,6 +472,7 @@ def update_student_concept_state_from_diagnosis(
         correctness=latest_diagnosis.correctness,
         completeness=coverage_ratio,
         misconception_flag=latest_diagnosis.misconception_flag,
+        misconception_label=latest_diagnosis.misconception_label,
         diagnosis_pattern=policy_pattern,
         covered_core_point_ids=cumulative_covered_ids,
         missing_core_point_ids=cumulative_missing_ids,
@@ -354,5 +481,10 @@ def update_student_concept_state_from_diagnosis(
             latest_diagnosis.explanation
             + "\n\nCumulative view: policy is based on all core points covered "
             "across this concept's chat turns."
+            + (
+                " Active misconceptions were resolved by this answer."
+                if resolved_this_turn
+                else ""
+            )
         ),
     )
