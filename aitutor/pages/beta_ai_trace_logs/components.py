@@ -31,13 +31,25 @@ def trace_log_row(row: TraceLogRow) -> rx.Component:
         rx.table.cell(row.trace_count),
         rx.table.cell(row.updated_at),
         rx.table.cell(
-            rx.button(
-                "Inspect",
-                size="2",
-                on_click=BetaAITraceLogsState.select_trace_log(
-                    row.beta_exercise_result_id
+            rx.hstack(
+                rx.icon_button(
+                    rx.icon("download", size=16),
+                    size="2",
+                    variant="soft",
+                    on_click=BetaAITraceLogsState.copy_trace_log(
+                        row.beta_exercise_result_id
+                    ),
+                    _hover={"cursor": "pointer"},
                 ),
-                _hover={"cursor": "pointer"},
+                rx.button(
+                    "Inspect",
+                    size="2",
+                    on_click=BetaAITraceLogsState.select_trace_log(
+                        row.beta_exercise_result_id
+                    ),
+                    _hover={"cursor": "pointer"},
+                ),
+                spacing="2",
             )
         ),
     )
@@ -51,11 +63,11 @@ def trace_logs_table() -> rx.Component:
                 rx.heading("Persisted Trace Logs", size="4"),
                 rx.spacer(),
                 rx.button(
-                    rx.icon("refresh-cw"),
-                    "Refresh",
+                    rx.icon("download"),
+                    "Download all",
                     size="2",
                     variant="soft",
-                    on_click=BetaAITraceLogsState.load_trace_logs,
+                    on_click=BetaAITraceLogsState.copy_all_trace_logs,
                     _hover={"cursor": "pointer"},
                 ),
                 width="100%",

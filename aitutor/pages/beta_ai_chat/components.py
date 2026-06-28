@@ -13,7 +13,7 @@ def beta_chat_header() -> rx.Component:
             rx.hstack(
                 rx.heading(BetaAIChatState.exercise_title, size="6"),
                 rx.spacer(),
-                rx.badge("Beta Chat Skeleton", color_scheme="purple"),
+                rx.badge("Beta Chat", color_scheme="purple"),
                 width="100%",
                 align="center",
             ),
@@ -176,6 +176,7 @@ def message_input() -> rx.Component:
                 width="100%",
             ),
             rx.hstack(
+                beta_submit_button(),
                 rx.spacer(),
                 rx.button(
                     rx.icon("send-horizontal", size=20),
@@ -195,6 +196,26 @@ def message_input() -> rx.Component:
         ),
         on_submit=BetaAIChatState.send_message,
         reset_on_submit=True,
+    )
+
+
+def beta_submit_button() -> rx.Component:
+    """Render the Beta AI submit button in the chat action row."""
+    return rx.button(
+        "Submit",
+        color_scheme="green",
+        type="button",
+        on_click=BetaAIChatState.submit_beta_conversation,
+        disabled=rx.cond(
+            BetaAIChatState.completion_unlocked,
+            False,
+            True,
+        ),
+        _hover=rx.cond(
+            BetaAIChatState.completion_unlocked,
+            {"cursor": "pointer"},
+            {"cursor": "not-allowed"},
+        ),
     )
 
 
@@ -222,21 +243,11 @@ def beta_submission_status() -> rx.Component:
             rx.icon("circle-check", color=gv.GREEN_CHECK_COLOR, size=30),
             align="center",
         ),
-        rx.cond(
-            BetaAIChatState.completion_unlocked,
-            rx.button(
-                "Submit",
-                color_scheme="green",
-                type="button",
-                on_click=BetaAIChatState.submit_beta_conversation,
-                _hover={"cursor": "pointer"},
-            ),
-            rx.hstack(
-                rx.icon("info", size=20),
-                rx.text("Not submitted yet"),
-                spacing="1",
-                align="center",
-            ),
+        rx.hstack(
+            rx.icon("info", size=20),
+            rx.text("Not submitted yet"),
+            spacing="1",
+            align="center",
         ),
     )
 

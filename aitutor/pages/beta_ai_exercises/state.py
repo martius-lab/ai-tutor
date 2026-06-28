@@ -60,14 +60,6 @@ class BetaAIExercisesState(SessionState):
         """Set beta exercise description."""
         self.description = value
 
-    def _set_generation_target(self, field_name: str, value: str, maximum: int):
-        """Set a positive concept-generation target from a number input."""
-        try:
-            target = int(value)
-        except ValueError:
-            return
-        setattr(self, field_name, max(self.MIN_GENERATION_TARGET, min(maximum, target)))
-
     @rx.event
     def set_concept_target_count(self, value: str):
         """Set the approximate number of concepts to generate."""
@@ -88,6 +80,34 @@ class BetaAIExercisesState(SessionState):
         self._set_generation_target(
             "misconception_target_count", value, self.MAX_MISCONCEPTION_TARGET
         )
+
+    @rx.event
+    def set_concept_label(self, concept_index: int, value: str):
+        """Set concept label."""
+        self.generated_concepts[concept_index].label = value
+
+    @rx.event
+    def set_concept_description(self, concept_index: int, value: str):
+        """Set concept description."""
+        self.generated_concepts[concept_index].description = value
+
+    @rx.event
+    def set_core_point_text(
+        self, concept_index: int, core_point_index: int, value: str
+    ):
+        """Set core point text."""
+        self.generated_concepts[concept_index].core_points[
+            core_point_index
+        ].text = value
+
+    @rx.event
+    def set_misconception_label(
+        self, concept_index: int, misconception_index: int, value: str
+    ):
+        """Set misconception label."""
+        self.generated_concepts[concept_index].misconceptions[
+            misconception_index
+        ].label = value
 
     @rx.event
     @state_require_role_at_least(UserRole.TUTOR)
@@ -155,6 +175,50 @@ class BetaAIExercisesState(SessionState):
         """Whether a saved exercise is selected for inspection."""
         return self.selected_saved_exercise_id is not None
 
+    def _set_generation_target(self, field_name: str, value: str, maximum: int):
+        """Set a positive concept-generation target from a number input."""
+        try:
+            target = int(value)
+        except ValueError:
+            return
+        setattr(self, field_name, max(self.MIN_GENERATION_TARGET, min(maximum, target)))
+
+    def _validate_generated_concepts(self) -> str | None:
+        """Return a user-facing validation error for the editable concept list."""
+        if not self.generated_concepts:
+            return "Please generate or add at least one concept first."
+
+        for concept_index, concept in enumerate(self.generated_concepts, start=1):
+            if not concept.label.strip():
+                return f"Concept {concept_index} needs a non-empty label."
+
+            has_core_point = any(
+                core_point.text.strip() for core_point in concept.core_points
+            )
+            if not has_core_point:
+                return (
+                    f"Concept {concept_index} needs at least one non-empty core point."
+                )
+
+            for misconception_index, misconception in enumerate(
+                concept.misconceptions, start=1
+            ):
+                if not misconception.label.strip():
+                    return (
+                        f"Concept {concept_index}, misconception "
+                        f"{misconception_index} needs a non-empty label."
+                    )
+
+        return None
+
+    def _beta_exercise_title_exists(self, title: str) -> bool:
+        """Return whether a Beta AI exercise with this exact title already exists."""
+        with rx.session() as session:
+            existing_exercise = session.exec(
+                select(BetaExercise).where(BetaExercise.title == title)
+            ).first()
+        return existing_exercise is not None
+
     @rx.event
     def reset_builder(self):
         """Reset the current builder form."""
@@ -195,7 +259,12 @@ class BetaAIExercisesState(SessionState):
         with rx.session() as session:
             exercise = session.get(BetaExercise, exercise_id)
             if exercise is None:
-                return rx.toast.error("Beta AI exercise not found.")
+                return rx.toast.error(
+                    description="Beta AI exercise not found.",
+                    duration=5000,
+                    position="bottom-center",
+                    invert=True,
+                )
 
             concepts = list(
                 session.exec(
@@ -250,14 +319,24 @@ class BetaAIExercisesState(SessionState):
         with rx.session() as session:
             exercise = session.get(BetaExercise, exercise_id)
             if exercise is None:
-                return rx.toast.error("Beta AI exercise not found.")
+                return rx.toast.error(
+                    description="Beta AI exercise not found.",
+                    duration=5000,
+                    position="bottom-center",
+                    invert=True,
+                )
             session.delete(exercise)
             session.commit()
 
         if self.selected_saved_exercise_id == exercise_id:
             self.clear_selected_saved_exercise()
         self.load_beta_exercises()
-        return rx.toast.success("Beta AI exercise deleted.")
+        return rx.toast.success(
+            description="Beta AI exercise deleted.",
+            duration=5000,
+            position="bottom-center",
+            invert=True,
+        )
 
     @rx.event
     async def extract_source_material(self, files: list[rx.UploadFile]):
@@ -271,7 +350,7 @@ class BetaAIExercisesState(SessionState):
             for file in files:
                 upload_data = await file.read()
                 with pdfplumber.open(io.BytesIO(upload_data)) as pdf:
-                    text = "".join(page.extract_text() or "" for page in pdf.pages)
+                    text = "\n".join(page.extract_text() or "" for page in pdf.pages)
                 text_parts.append(" ".join(text.replace("\n", " ").split()))
                 file_names.append(file.name or "<unnamed file>")
 
@@ -279,11 +358,21 @@ class BetaAIExercisesState(SessionState):
             self.source_material_filename = ", ".join(file_names)
         except Exception as exc:
             self.extracting_source_material = False
-            yield rx.toast.error(f"Failed to extract PDF text: {exc}")
+            yield rx.toast.error(
+                description=f"Failed to extract PDF text: {exc}",
+                duration=5000,
+                position="bottom-center",
+                invert=True,
+            )
             return
 
         self.extracting_source_material = False
-        yield rx.toast.success("PDF text extracted.")
+        yield rx.toast.success(
+            description="PDF text extracted.",
+            duration=5000,
+            position="bottom-center",
+            invert=True,
+        )
 
     @rx.event(background=True)
     async def generate_concepts(self):
@@ -312,7 +401,12 @@ class BetaAIExercisesState(SessionState):
         except Exception as exc:
             async with self:
                 self.generating_concepts = False
-            yield rx.toast.error(f"Concept generation failed: {exc}")
+            yield rx.toast.error(
+                description=f"Concept generation failed: {exc}",
+                duration=5000,
+                position="bottom-center",
+                invert=True,
+            )
             return
 
         async with self:
@@ -333,35 +427,12 @@ class BetaAIExercisesState(SessionState):
                 for concept in response.concepts
             ]
             self.generating_concepts = False
-        yield rx.toast.success("Concepts generated. Please review them before saving.")
-
-    @rx.event
-    def set_concept_label(self, concept_index: int, value: str):
-        """Set concept label."""
-        self.generated_concepts[concept_index].label = value
-
-    @rx.event
-    def set_concept_description(self, concept_index: int, value: str):
-        """Set concept description."""
-        self.generated_concepts[concept_index].description = value
-
-    @rx.event
-    def set_core_point_text(
-        self, concept_index: int, core_point_index: int, value: str
-    ):
-        """Set core point text."""
-        self.generated_concepts[concept_index].core_points[
-            core_point_index
-        ].text = value
-
-    @rx.event
-    def set_misconception_label(
-        self, concept_index: int, misconception_index: int, value: str
-    ):
-        """Set misconception label."""
-        self.generated_concepts[concept_index].misconceptions[
-            misconception_index
-        ].label = value
+        yield rx.toast.success(
+            description="Concepts generated. Please review them before saving.",
+            duration=5000,
+            position="bottom-center",
+            invert=True,
+        )
 
     @rx.event
     def add_concept(self):
@@ -405,60 +476,102 @@ class BetaAIExercisesState(SessionState):
     def save_beta_exercise(self):
         """Persist the exercise and reviewed concepts."""
         if not self.can_save_exercise:
-            return rx.toast.error("Please generate or add at least one concept first.")
+            return rx.toast.error(
+                description="Please generate or add at least one concept first.",
+                duration=5000,
+                position="bottom-center",
+                invert=True,
+            )
+
+        title = self.title.strip()
+        validation_error = self._validate_generated_concepts()
+        if validation_error:
+            return rx.toast.error(
+                description=validation_error,
+                duration=5000,
+                position="bottom-center",
+                invert=True,
+            )
+
+        if self._beta_exercise_title_exists(title):
+            return rx.toast.error(
+                description=(
+                    "A Beta AI exercise with this title already exists. "
+                    "Please choose a different title."
+                ),
+                duration=5000,
+                position="bottom-center",
+                invert=True,
+            )
 
         self.saving_exercise = True
-        with rx.session() as session:
-            exercise = BetaExercise(
-                title=self.title,
-                description=self.description,
-                source_material_text=self.source_material_text,
-                source_material_filename=self.source_material_filename,
-            )
-            session.add(exercise)
-            session.flush()
-            if exercise.id is None:
-                raise ValueError("Failed to create beta exercise id.")
-
-            for concept_index, concept in enumerate(self.generated_concepts):
-                db_concept = BetaConcept(
-                    beta_exercise_id=exercise.id,
-                    concept_id=concept.concept_id,
-                    label=concept.label,
-                    description=concept.description,
-                    order_index=concept_index,
+        try:
+            with rx.session() as session:
+                exercise = BetaExercise(
+                    title=title,
+                    description=self.description.strip(),
+                    source_material_text=self.source_material_text,
+                    source_material_filename=self.source_material_filename,
                 )
-                session.add(db_concept)
+                session.add(exercise)
                 session.flush()
-                if db_concept.id is None:
-                    raise ValueError("Failed to create beta concept id.")
+                if exercise.id is None:
+                    raise ValueError("Failed to create beta exercise id.")
 
-                for core_point_index, core_point in enumerate(concept.core_points):
-                    if core_point.text.strip():
-                        session.add(
-                            BetaCorePoint(
-                                beta_concept_id=db_concept.id,
-                                text=core_point.text,
-                                required=core_point.required,
-                                order_index=core_point_index,
+                for concept_index, concept in enumerate(self.generated_concepts):
+                    db_concept = BetaConcept(
+                        beta_exercise_id=exercise.id,
+                        concept_id=concept.concept_id.strip(),
+                        label=concept.label.strip(),
+                        description=concept.description.strip(),
+                        order_index=concept_index,
+                    )
+                    session.add(db_concept)
+                    session.flush()
+                    if db_concept.id is None:
+                        raise ValueError("Failed to create beta concept id.")
+
+                    for core_point_index, core_point in enumerate(concept.core_points):
+                        core_point_text = core_point.text.strip()
+                        if core_point_text:
+                            session.add(
+                                BetaCorePoint(
+                                    beta_concept_id=db_concept.id,
+                                    text=core_point_text,
+                                    required=core_point.required,
+                                    order_index=core_point_index,
+                                )
                             )
-                        )
 
-                for misconception_index, misconception in enumerate(
-                    concept.misconceptions
-                ):
-                    if misconception.label.strip():
-                        session.add(
-                            BetaMisconception(
-                                beta_concept_id=db_concept.id,
-                                label=misconception.label,
-                                order_index=misconception_index,
+                    for misconception_index, misconception in enumerate(
+                        concept.misconceptions
+                    ):
+                        misconception_label = misconception.label.strip()
+                        if misconception_label:
+                            session.add(
+                                BetaMisconception(
+                                    beta_concept_id=db_concept.id,
+                                    label=misconception_label,
+                                    order_index=misconception_index,
+                                )
                             )
-                        )
 
-            session.commit()
+                session.commit()
+        except Exception as exc:
+            self.saving_exercise = False
+            return rx.toast.error(
+                description=f"Failed to save Beta AI exercise: {exc}",
+                duration=5000,
+                position="bottom-center",
+                invert=True,
+            )
 
         self.saving_exercise = False
         self.reset_builder()
         self.load_beta_exercises()
-        return rx.toast.success("Beta AI exercise saved.")
+        return rx.toast.success(
+            description="Beta AI exercise saved.",
+            duration=5000,
+            position="bottom-center",
+            invert=True,
+        )

@@ -12,8 +12,7 @@ def student_exercises_header() -> rx.Component:
     return rx.vstack(
         rx.heading("Beta AI Student Exercises", size="7"),
         rx.text(
-            "Choose a visible Beta AI exercise. The Beta chat will be "
-            "added in a later step.",
+            "Choose a Beta AI exercise and open the chat.",
             color_scheme="gray",
         ),
         align="start",
@@ -49,7 +48,7 @@ def beta_exercise_card(exercise: BetaExercise) -> rx.Component:
             rx.hstack(
                 rx.button(
                     rx.icon("message-circle"),
-                    "Open Beta Chat",
+                    "Open Chat",
                     variant="soft",
                     on_click=rx.redirect(routes.BETA_AI_CHAT + f"/{exercise.id}"),
                     _hover={"cursor": "pointer"},

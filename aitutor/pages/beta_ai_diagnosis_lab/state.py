@@ -229,7 +229,12 @@ class BetaAIDiagnosisLabState(SessionState):
         with rx.session() as session:
             exercise = session.get(BetaExercise, exercise_id)
             if exercise is None:
-                return rx.toast.error("Beta AI exercise not found.")
+                return rx.toast.error(
+                    description="Beta AI exercise not found.",
+                    duration=5000,
+                    position="bottom-center",
+                    invert=True,
+                )
 
             self.concepts = list(
                 session.exec(
@@ -262,7 +267,12 @@ class BetaAIDiagnosisLabState(SessionState):
         with rx.session() as session:
             concept = session.get(BetaConcept, concept_id)
             if concept is None:
-                return rx.toast.error("Beta AI concept not found.")
+                return rx.toast.error(
+                    description="Beta AI concept not found.",
+                    duration=5000,
+                    position="bottom-center",
+                    invert=True,
+                )
 
             self.core_points = list(
                 session.exec(
@@ -293,7 +303,12 @@ class BetaAIDiagnosisLabState(SessionState):
     def run_mock_diagnosis(self):
         """Run a deterministic mock diagnosis for UI/data-flow testing."""
         if self.selected_concept_id is None:
-            return rx.toast.error("Select a concept first.")
+            return rx.toast.error(
+                description="Select a concept first.",
+                duration=5000,
+                position="bottom-center",
+                invert=True,
+            )
 
         raw_diagnosis = run_mock_diagnosis(
             student_answer=self.student_answer,
@@ -332,10 +347,20 @@ class BetaAIDiagnosisLabState(SessionState):
         """Run a structured OpenAI diagnosis for the selected concept."""
         async with self:
             if self.selected_concept_id is None:
-                yield rx.toast.error("Select a concept first.")
+                yield rx.toast.error(
+                    description="Select a concept first.",
+                    duration=5000,
+                    position="bottom-center",
+                    invert=True,
+                )
                 return
             if not self.student_answer.strip():
-                yield rx.toast.error("Enter a student answer first.")
+                yield rx.toast.error(
+                    description="Enter a student answer first.",
+                    duration=5000,
+                    position="bottom-center",
+                    invert=True,
+                )
                 return
             if self.running_llm_diagnosis:
                 return
@@ -366,7 +391,12 @@ class BetaAIDiagnosisLabState(SessionState):
         except Exception as exc:
             async with self:
                 self.running_llm_diagnosis = False
-            yield rx.toast.error(f"LLM diagnosis failed: {exc}")
+            yield rx.toast.error(
+                description=f"LLM diagnosis failed: {exc}",
+                duration=5000,
+                position="bottom-center",
+                invert=True,
+            )
             return
 
         async with self:
@@ -393,4 +423,9 @@ class BetaAIDiagnosisLabState(SessionState):
                 policy_preview=self.policy_preview,
             )
             self.running_llm_diagnosis = False
-        yield rx.toast.success("LLM diagnosis completed.")
+        yield rx.toast.success(
+            description="LLM diagnosis completed.",
+            duration=5000,
+            position="bottom-center",
+            invert=True,
+        )

@@ -189,6 +189,90 @@ def _format_misconceptions(misconceptions: list[BetaMisconception]) -> str:
     )
 
 
+async def run_concept_intro_turn_generation(
+    *,
+    exercise_title: str,
+    concept_label: str,
+    concept_description: str,
+    core_points: list[BetaCorePoint],
+    misconceptions: list[BetaMisconception],
+    previous_concept_label: str = "",
+    transition_kind: Literal["initial", "automatic", "manual"] = "initial",
+) -> TutorTurnResponse:
+    """Generate the first tutor turn for a concept without revealing answers."""
+    api_key = cast(str, decouple.config("OPENAI_API_KEY", cast=str, default=""))
+    if api_key == "":
+        raise ValueError("API key not found.")
+
+    if transition_kind == "initial":
+        transition_instruction = (
+            "This is the first tutor message in the chat. Briefly welcome the "
+            "student into the exercise and ask exactly one first question."
+        )
+    elif transition_kind == "automatic":
+        transition_instruction = (
+            "The student has just completed the previous concept. Briefly acknowledge "
+            "that progress, transition naturally to the new concept, and ask exactly "
+            "one first question for the new concept."
+        )
+    else:
+        transition_instruction = (
+            "The student or tutor switched concepts manually. Briefly orient the "
+            "student to the selected concept and ask exactly one first question."
+        )
+
+    client = AsyncOpenAI(api_key=api_key)
+    completion = await client.beta.chat.completions.parse(
+        model=get_config().response_ai_model,
+        messages=[
+            {
+                "role": "system",
+                "content": (
+                    "You generate a natural first turn for a university AI tutor. "
+                    "The app provides the concept scope, but you must not reveal the "
+                    "expected answer. Write concise formative tutor text plus exactly "
+                    "one question. The question must be at basic understanding level: "
+                    "it should ask the student to explain the concept in their own "
+                    "words, describe its role, or give one concrete detail. Do not "
+                    "copy core point wording verbatim or near-verbatim. Do not list "
+                    "core points as hints. Do not mention hidden rubrics, core point "
+                    "IDs, scores, policies, JSON, diagnosis, or Beta internals. Do not "
+                    "provide definitions or completed solutions. Set question_level to "
+                    "basic_understanding."
+                ),
+            },
+            {
+                "role": "user",
+                "content": (
+                    f"Exercise title: {exercise_title}\n"
+                    f"Transition kind: {transition_kind}\n"
+                    f"Previous concept: {previous_concept_label or 'None'}\n\n"
+                    f"Concept: {concept_label}\n"
+                    f"Concept description: {concept_description}\n\n"
+                    "Internal core points that define the concept scope but must NOT "
+                    "be copied into the student-facing turn:\n"
+                    f"{_format_core_points(core_points)}\n\n"
+                    "Known misconceptions to avoid reinforcing:\n"
+                    f"{_format_misconceptions(misconceptions)}\n\n"
+                    f"Task: {transition_instruction}\n"
+                    "Return fields: feedback_brief, next_question, question_level, "
+                    "focus_core_point_id, reveals_answer. Use focus_core_point_id=null "
+                    "unless a single broad first core point is clearly the intended "
+                    "starting focus. Set reveals_answer=true if your text gives away "
+                    "the expected answer too directly."
+                ),
+            },
+        ],
+        response_format=TutorTurnResponse,
+    )
+    parsed = completion.choices[0].message.parsed
+    if parsed is None:
+        raise ValueError("The model did not return a valid concept intro turn.")
+    parsed.question_level = "basic_understanding"
+    parsed.reveals_answer = tutor_turn_reveals_answer(parsed, core_points=core_points)
+    return parsed
+
+
 async def run_level_transition_question_generation(
     *,
     concept_label: str,
@@ -323,7 +407,11 @@ async def repair_leaky_tutor_turn(
                     "rubrics, IDs, policies, scores, JSON, or the expected "
                     "answer. Keep "
                     "the same didactic action and requested question level. Use open "
-                    "scaffolding rather than definitions or completed solutions."
+                    "scaffolding rather than definitions or completed solutions. Do "
+                    "not turn a core point into a fill-in-the-blank question. The "
+                    "repaired question should ask what makes the idea special, what "
+                    "role it plays, what condition should hold, or what the student "
+                    "would check, without stating the decisive expected phrase."
                 ),
             },
             {
@@ -420,6 +508,13 @@ async def run_tutor_turn_generation(
                     "Do not provide a complete solution, full definition, full "
                     "worked example, or the missing core point verbatim. End by "
                     "asking the student to answer in their own words. If "
+                    "a hidden core point says what the expected answer is, do not "
+                    "convert that core point into a fill-in-the-blank question. Do "
+                    "not include the key predicate, exact condition, or decisive "
+                    "phrase from the core point in the question. Ask one level more "
+                    "open-ended instead, e.g. about what makes the object special, "
+                    "what role it plays, what condition should hold, or what the "
+                    "student would check. "
                     "diagnosis_pattern is "
                     "tutor_derived_answer, explain that copied tutor wording "
                     "cannot count yet "
@@ -445,14 +540,21 @@ async def run_tutor_turn_generation(
                     f"Diagnosis JSON: {diagnosis.model_dump()}\n\n"
                     f"Policy action: {policy_preview.action}\n"
                     f"Policy rationale: {policy_preview.rationale}\n"
+                    f"Policy suggested prompt: {policy_preview.suggested_prompt}\n"
                     f"Focus core point id: {policy_preview.focus_core_point_id}\n"
+                    "Focus core point text is hidden expected-answer material. Use it "
+                    "only to choose the broad direction of the question; do NOT copy, "
+                    "paraphrase closely, or turn it into the wording the student "
+                    "should produce.\n"
                     f"Requested next question level: {question_level}\n"
                     "Higher-level instruction: "
                     f"{higher_level_instruction or 'None'}\n\n"
                     "Return fields: feedback_brief, next_question, question_level, "
                     "focus_core_point_id, reveals_answer. Set "
                     "reveals_answer=true if your "
-                    "feedback or question copies an expected core point too directly."
+                    "feedback or question copies or closely paraphrases an expected "
+                    "core point, or if the question already contains the essential "
+                    "answer the student should supply."
                 ),
             },
         ],

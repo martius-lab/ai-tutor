@@ -84,6 +84,20 @@ class SessionState(reflex_local_auth.LocalAuthState):
             pages.ManageExercisesState,
             pages.ManageTagsState,
             pages.SubmissionsState,
+            pages.ManageUsersState,
+            pages.ManageConfigState,
+            pages.ManagePromptsState,
+            pages.TokenAnalyzerState,
+            pages.ReportsState,
+            pages.ReportViewState,
+            pages.BetaAIChatState,
+            pages.BetaAIDiagnosisLabState,
+            pages.BetaAIExercisesState,
+            pages.BetaAIFinishedViewState,
+            pages.BetaAIFinishedViewTutorState,
+            pages.BetaAIStudentExercisesState,
+            pages.BetaAISubmissionsState,
+            pages.BetaAITraceLogsState,
         ]
         for state in states:
             # get the state

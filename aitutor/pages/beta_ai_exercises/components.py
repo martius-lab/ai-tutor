@@ -3,8 +3,31 @@
 import reflex as rx
 
 from aitutor.beta_ai.schemas import SavedConceptDetail
+from aitutor.components.dialogs import destructive_confirm
 from aitutor.models import BetaExercise
 from aitutor.pages.beta_ai_exercises.state import BetaAIExercisesState
+
+
+def delete_saved_exercise_button(exercise: BetaExercise) -> rx.Component:
+    """Render a destructive confirmation dialog for deleting a saved exercise."""
+    return destructive_confirm(
+        title=f"Delete Beta AI exercise '{exercise.title}'?",
+        description=(
+            "This cannot be undone. Deleting this Beta AI exercise also deletes "
+            "its concepts, core points, misconceptions, all student chats/results, "
+            "trace logs, and student concept states for this exercise."
+        ),
+        confirm_text="Delete",
+        cancel_text="Cancel",
+        on_confirm=BetaAIExercisesState.delete_saved_exercise(exercise.id),
+        trigger=rx.button(
+            "Delete",
+            size="2",
+            variant="soft",
+            color_scheme="red",
+            _hover={"cursor": "pointer"},
+        ),
+    )
 
 
 def builder_header() -> rx.Component:
@@ -35,14 +58,7 @@ def saved_exercise_row(exercise: BetaExercise) -> rx.Component:
                     on_click=BetaAIExercisesState.select_saved_exercise(exercise.id),
                     _hover={"cursor": "pointer"},
                 ),
-                rx.button(
-                    "Delete",
-                    size="2",
-                    variant="soft",
-                    color_scheme="red",
-                    on_click=BetaAIExercisesState.delete_saved_exercise(exercise.id),
-                    _hover={"cursor": "pointer"},
-                ),
+                delete_saved_exercise_button(exercise),
                 spacing="2",
             )
         ),
@@ -375,11 +391,12 @@ def misconception_row(
 ) -> rx.Component:
     """Render one editable misconception."""
     return rx.hstack(
-        rx.input(
+        rx.text_area(
             value=misconception.label,
             on_change=lambda value: BetaAIExercisesState.set_misconception_label(
                 concept_index, misconception_index, value
             ),
+            rows="2",
             width="100%",
         ),
         rx.icon_button(
@@ -391,6 +408,7 @@ def misconception_row(
             ),
             _hover={"cursor": "pointer"},
         ),
+        align="center",
         width="100%",
     )
 
@@ -536,7 +554,7 @@ def concepts_card() -> rx.Component:
                 ),
                 rx.button(
                     rx.icon("save"),
-                    "Save Beta AI Exercise",
+                    "Save Exercise",
                     color_scheme="green",
                     on_click=BetaAIExercisesState.save_beta_exercise,
                     loading=BetaAIExercisesState.saving_exercise,

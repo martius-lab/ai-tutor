@@ -15,6 +15,7 @@ from __future__ import annotations
 import argparse
 import asyncio
 import json
+import re
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
@@ -43,6 +44,7 @@ from aitutor.beta_ai.tutor_turn import (
     TutorTurnResponse,
     choose_question_level,
     repair_leaky_tutor_turn,
+    run_concept_intro_turn_generation,
     run_level_transition_question_generation,
     run_tutor_turn_generation,
     safe_fallback_tutor_turn,
@@ -123,6 +125,11 @@ PERSONA_INSTRUCTIONS = {
         "You give correct ideas in scattered fragments across turns. Each answer is "
         "partial, but together they may cover the concept."
     ),
+    "hesitant_filler": (
+        "You are unsure and often start with filler like erm, hm, or I do not know. "
+        "After the tutor scaffolds, make a small genuine attempt instead of asking "
+        "for the full answer."
+    ),
 }
 
 
@@ -145,6 +152,8 @@ class SimulationState:
     current_question_level: str = "basic_understanding"
     current_focus_core_point_id: int | None = None
     trace_reference: int = 0
+    intro_transition_kind: str = "initial"
+    previous_concept_label: str = ""
 
 
 def normalize_title(value: str) -> str:
@@ -212,12 +221,54 @@ def load_concept_bundles(session: Session, exercise_id: int) -> list[ConceptBund
     return bundles
 
 
-def initial_question(concept: BetaConcept) -> str:
-    """Return the first tutor question for a concept."""
+def fallback_initial_question(concept: BetaConcept) -> str:
+    """Return the deterministic fallback first tutor question for a concept."""
     return (
         f"Let's start with {concept.label}. Can you explain the main idea in your "
         "own words, including one concrete detail?"
     )
+
+
+def format_tutor_message(tutor_turn: TutorTurnResponse) -> str:
+    """Format a tutor turn exactly like the Beta AI chat page."""
+    return f"{tutor_turn.feedback_brief}\n\nQuestion: {tutor_turn.next_question}"
+
+
+async def generate_initial_tutor_turn(
+    *,
+    exercise: BetaExercise,
+    bundle: ConceptBundle,
+    transition_kind: str = "initial",
+    previous_concept_label: str = "",
+) -> TutorTurnResponse:
+    """Generate the first tutor turn using the same helper as the app."""
+    try:
+        intro_turn = await run_concept_intro_turn_generation(
+            exercise_title=exercise.title,
+            concept_label=bundle.concept.label,
+            concept_description=bundle.concept.description,
+            core_points=bundle.core_points,
+            misconceptions=bundle.misconceptions,
+            previous_concept_label=previous_concept_label,
+            transition_kind=cast(Any, transition_kind),
+        )
+        if tutor_turn_reveals_answer(intro_turn, core_points=bundle.core_points):
+            raise ValueError("Generated intro turn revealed expected answer wording.")
+        return intro_turn
+    except Exception:
+        return TutorTurnResponse(
+            feedback_brief="",
+            next_question=fallback_initial_question(bundle.concept),
+            question_level="basic_understanding",
+            focus_core_point_id=None,
+            reveals_answer=False,
+        )
+
+
+def slugify(value: str) -> str:
+    """Return a compact filesystem-safe slug."""
+    slug = re.sub(r"[^a-zA-Z0-9]+", "_", value.lower()).strip("_")
+    return slug or "exercise"
 
 
 def core_point_texts(core_points: list[BetaCorePoint], ids: list[int]) -> list[str]:
@@ -331,6 +382,11 @@ async def generate_mediocre_student_answer(
             "idea you "
             "address instead of giving the full concept at once."
         )
+    elif persona == "hesitant_filler" and turn_in_concept <= 1:
+        target_style = (
+            "Give only a short filler answer such as erm, hm, or I do not know. "
+            "Do not include conceptual content in this first attempt."
+        )
     elif question_level == "basic_understanding":
         target_style = (
             "Give a plausible partial answer. Include about two missing core ideas "
@@ -400,15 +456,19 @@ async def simulate_turn(
     student_state = bundle.student_state
 
     if not sim_state.current_question:
-        sim_state.current_question = initial_question(concept)
-        sim_state.current_question_level = "basic_understanding"
-        sim_state.current_focus_core_point_id = (
-            core_points[0].id if core_points else None
+        initial_turn = await generate_initial_tutor_turn(
+            exercise=exercise,
+            bundle=bundle,
+            transition_kind=sim_state.intro_transition_kind,
+            previous_concept_label=sim_state.previous_concept_label,
         )
+        sim_state.current_question = initial_turn.next_question
+        sim_state.current_question_level = initial_turn.question_level
+        sim_state.current_focus_core_point_id = initial_turn.focus_core_point_id
         sim_state.messages.append(
             {
                 "role": "tutor",
-                "content": f"Question: {sim_state.current_question}",
+                "content": format_tutor_message(initial_turn),
             }
         )
 
@@ -560,10 +620,7 @@ async def simulate_turn(
         sim_state.messages.append(
             {
                 "role": "tutor",
-                "content": (
-                    f"{tutor_turn.feedback_brief}\n\nQuestion: "
-                    f"{tutor_turn.next_question}"
-                ),
+                "content": format_tutor_message(tutor_turn),
             }
         )
 
@@ -687,8 +744,7 @@ def render_markdown(
                 f"- Missing IDs: `{state['missing_core_point_ids']}`",
                 f"- Level status: `{state['level_status']}`",
                 f"- Concept state: `{state['state']}`",
-                "- Active misconceptions: "
-                f"`{state.get('active_misconceptions', [])}`",
+                f"- Active misconceptions: `{state.get('active_misconceptions', [])}`",
                 "- Resolved misconceptions: "
                 f"`{state.get('resolved_misconceptions', [])}`",
                 "",
@@ -735,8 +791,17 @@ async def run_simulation(args: argparse.Namespace) -> None:
 
     trace: list[dict[str, Any]] = []
     total_turns = 0
+    sim_state = SimulationState()
+    previous_label = ""
     for concept_index, bundle in enumerate(bundles, start=1):
-        sim_state = SimulationState()
+        sim_state.current_question = ""
+        sim_state.current_question_level = "basic_understanding"
+        sim_state.current_focus_core_point_id = None
+        sim_state.trace_reference = 0
+        sim_state.intro_transition_kind = (
+            "initial" if concept_index == 1 else "automatic"
+        )
+        sim_state.previous_concept_label = previous_label
         for turn_in_concept in range(1, args.max_turns_per_concept + 1):
             total_turns += 1
             if total_turns > args.max_total_turns:
@@ -762,6 +827,7 @@ async def run_simulation(args: argparse.Namespace) -> None:
                 completed_all=False,
             )
             if bundle.student_state.state == "secure":
+                previous_label = bundle.concept.label
                 break
         if total_turns >= args.max_total_turns:
             break
@@ -788,7 +854,7 @@ def write_outputs(
     """Write report and JSON after each turn so interrupted runs are inspectable."""
     out_dir = Path(args.out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
-    slug = f"beta_ai_simulation_vorlesung1_{args.persona}"
+    slug = f"beta_ai_simulation_{slugify(exercise.title)}_{args.persona}"
     markdown_path = out_dir / f"{slug}.md"
     json_path = out_dir / f"{slug}.json"
     markdown_path.write_text(
