@@ -8,6 +8,7 @@ import aitutor.routes as routes
 from aitutor.auth.state import SessionState
 from aitutor.language_state import LanguageState
 from aitutor.utilities.lecture_permissions import (
+    user_may_edit_lecture,
     user_may_manage_lecture_exercises,
     user_may_view_lecture_submissions,
 )
@@ -40,6 +41,21 @@ class SpecificLectureNavbarState(SessionState):
 
         with rx.session() as session:
             return user_may_manage_lecture_exercises(
+                session,
+                user_id=self.authenticated_user.id,  # type: ignore[union-attr]
+                global_permissions=self.global_permissions,
+                lecture_id=lecture_id,
+            )
+
+    @rx.var(initial_value=False)
+    def can_edit_lecture(self) -> bool:
+        """Whether the current user may see the lecture settings tab."""
+        lecture_id = self._get_current_lecture_id()
+        if lecture_id is None:
+            return False
+
+        with rx.session() as session:
+            return user_may_edit_lecture(
                 session,
                 user_id=self.authenticated_user.id,  # type: ignore[union-attr]
                 global_permissions=self.global_permissions,
@@ -123,6 +139,14 @@ reports_link = SpecificLectureLink(
     disabled=False,
 )
 
+settings_link = SpecificLectureLink(
+    label=LanguageState.settings,
+    route=routes.EDIT_LECTURE,
+    icon="cog",
+    tab_value="settings",
+    disabled=False,
+)
+
 
 def tab_content(link: SpecificLectureLink):
     """
@@ -188,6 +212,10 @@ def specific_lecture_navbar(tab_to_highlight: str, lecture_id) -> rx.Component:
                 rx.cond(
                     SpecificLectureNavbarState.can_view_submissions,
                     tab_trigger(reports_link, lecture_id),
+                ),
+                rx.cond(
+                    SpecificLectureNavbarState.can_edit_lecture,
+                    tab_trigger(settings_link, lecture_id),
                 ),
                 width="100%",
             ),
