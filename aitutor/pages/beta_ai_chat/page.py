@@ -6,9 +6,7 @@ from aitutor import routes
 from aitutor.auth.protection import page_require_role_at_least
 from aitutor.models import UserRole
 from aitutor.pages.beta_ai_chat.components import (
-    beta_chat_header,
     beta_submission_status,
-    diagnosis_status_card,
     message_input,
     messages_panel,
 )
@@ -21,11 +19,10 @@ from aitutor.pages.navbar_beta_ai import with_beta_ai_navbar
 @with_beta_ai_navbar(routes.BETA_AI_STUDENT_EXERCISES)
 @page_require_role_at_least(UserRole.STUDENT)
 def beta_ai_chat_page() -> rx.Component:
-    """Render the Beta AI chat page with normal chat layout plus Beta debug info."""
+    """Render the Beta AI chat page with the student chat layout."""
     return rx.container(
         rx.box(
             rx.vstack(
-                beta_chat_header(),
                 rx.hstack(
                     rx.hstack(
                         rx.button(
@@ -48,7 +45,6 @@ def beta_ai_chat_page() -> rx.Component:
                     rx.box(rx.spinner()),
                 ),
                 message_input(),
-                diagnosis_status_card(),
                 spacing="3",
                 justify="start",
                 width="100%",

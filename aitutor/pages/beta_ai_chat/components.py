@@ -312,10 +312,8 @@ def diagnosis_status_card() -> rx.Component:
 def beta_ai_chat_content() -> rx.Component:
     """Render the full Beta AI chat skeleton content."""
     return rx.vstack(
-        beta_chat_header(),
         messages_panel(),
         message_input(),
-        diagnosis_status_card(),
         spacing="4",
         width="100%",
     )

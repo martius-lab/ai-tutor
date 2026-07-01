@@ -32,19 +32,6 @@ def beta_exercise_card(exercise: BetaExercise) -> rx.Component:
                 width="100%",
                 align="center",
             ),
-            rx.cond(
-                exercise.description,
-                rx.text(exercise.description, color_scheme="gray"),
-                rx.text("No description provided.", color_scheme="gray", size="2"),
-            ),
-            rx.cond(
-                exercise.source_material_filename,
-                rx.callout(
-                    "Source file: " + exercise.source_material_filename,
-                    icon="file-text",
-                    width="100%",
-                ),
-            ),
             rx.hstack(
                 rx.button(
                     rx.icon("message-circle"),
