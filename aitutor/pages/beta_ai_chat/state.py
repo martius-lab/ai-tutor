@@ -722,7 +722,7 @@ class BetaAIChatState(SessionState):
             {
                 "role": "tutor",
                 "content": (
-                    "Great work — you have completed all concepts in this Beta AI "
+                    "Great work! you have completed all concepts in this Beta AI "
                     "exercise across the required levels."
                 ),
             }
@@ -835,7 +835,7 @@ class BetaAIChatState(SessionState):
         if self.current_beta_exercise_id is None or self.current_userinfo_id is None:
             return None
 
-        now = datetime.now(ZoneInfo("UTC"))
+        now = datetime.now(ZoneInfo(TIME_ZONE))
         with rx.session() as session:
             beta_result = session.exec(
                 select(BetaExerciseResult).where(
@@ -926,7 +926,7 @@ class BetaAIChatState(SessionState):
         if self.current_beta_exercise_id is None or self.current_userinfo_id is None:
             return None, self.trace_history_count
 
-        now = datetime.now(ZoneInfo("UTC"))
+        now = datetime.now(ZoneInfo(TIME_ZONE))
         with rx.session() as session:
             existing_logs = list(
                 session.exec(
@@ -976,7 +976,7 @@ class BetaAIChatState(SessionState):
         ):
             return latest_diagnosis
 
-        now = datetime.now(ZoneInfo("UTC"))
+        now = datetime.now(ZoneInfo(TIME_ZONE))
         with rx.session() as session:
             student_state = session.exec(
                 select(BetaStudentConceptState).where(
@@ -1041,7 +1041,7 @@ class BetaAIChatState(SessionState):
         ):
             return
 
-        now = datetime.now(ZoneInfo("UTC"))
+        now = datetime.now(ZoneInfo(TIME_ZONE))
         with rx.session() as session:
             student_state = session.exec(
                 select(BetaStudentConceptState).where(

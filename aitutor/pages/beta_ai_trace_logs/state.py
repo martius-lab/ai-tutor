@@ -4,14 +4,17 @@ import json
 import re
 import unicodedata
 from datetime import datetime
+from zoneinfo import ZoneInfo
 
 import reflex as rx
 from pydantic import BaseModel
 from reflex_local_auth.user import LocalUser
+from sqlalchemy import func
 from sqlmodel import select
 
 from aitutor.auth.protection import state_require_role_at_least
 from aitutor.auth.state import SessionState
+from aitutor.global_vars import TIME_ZONE
 from aitutor.models import (
     BetaExercise,
     BetaExerciseResult,
@@ -37,13 +40,20 @@ def _pretty_json(value) -> str:
 
 
 def _format_datetime(value: datetime | None) -> str:
-    """Format optional datetimes for display."""
-    return value.strftime("%d.%m.%Y, %H:%M:%S") if value else ""
+    """Format optional datetimes for display in the project timezone."""
+    if value is None:
+        return ""
+    if value.tzinfo is None:
+        return value.strftime("%d.%m.%Y, %H:%M:%S")
+    return value.astimezone(ZoneInfo(TIME_ZONE)).strftime("%d.%m.%Y, %H:%M:%S")
 
 
 def _filename_timestamp(value: datetime | None = None) -> str:
     """Return a sortable timestamp suitable for filenames."""
-    return (value or datetime.now()).strftime("%Y-%m-%d_%H-%M-%S")
+    value = value or datetime.now(ZoneInfo(TIME_ZONE))
+    if value.tzinfo is None:
+        return value.strftime("%Y-%m-%d_%H-%M-%S")
+    return value.astimezone(ZoneInfo(TIME_ZONE)).strftime("%Y-%m-%d_%H-%M-%S")
 
 
 def _safe_filename_part(value: str | None, fallback: str = "unknown") -> str:
@@ -114,7 +124,9 @@ class BetaAITraceLogsState(SessionState):
         with rx.session() as session:
             beta_result_ids = list(
                 session.exec(
-                    select(BetaExerciseTraceLog.beta_exercise_result_id).distinct()
+                    select(BetaExerciseTraceLog.beta_exercise_result_id)
+                    .group_by(BetaExerciseTraceLog.beta_exercise_result_id)  # type: ignore[arg-type]
+                    .order_by(func.max(BetaExerciseTraceLog.created_at).desc())
                 ).all()
             )
 
@@ -150,7 +162,7 @@ class BetaAITraceLogsState(SessionState):
                     )
                 )
 
-        self.trace_rows = sorted(rows, key=lambda row: row.updated_at, reverse=True)
+        self.trace_rows = rows
 
     @rx.event
     def select_trace_log(self, beta_exercise_result_id: int | None):
@@ -300,7 +312,7 @@ class BetaAITraceLogsState(SessionState):
             if export_data is not None:
                 results.append(export_data)
 
-        exported_at = datetime.now()
+        exported_at = datetime.now(ZoneInfo(TIME_ZONE))
         return rx.download(
             data=_pretty_json(
                 {
