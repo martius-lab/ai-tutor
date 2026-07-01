@@ -723,7 +723,8 @@ class BetaAIChatState(SessionState):
                 "role": "tutor",
                 "content": (
                     "Great work! you have completed all concepts in this Beta AI "
-                    "exercise across the required levels."
+                    "exercise across the required levels. You can now submit your "
+                    "conversation."
                 ),
             }
         )
