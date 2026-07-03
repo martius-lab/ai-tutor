@@ -16,11 +16,40 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
+from aitutor.beta_ai.student_state import (
+    BASIC_EVIDENCE_COMPLETENESS_THRESHOLD,
+    BASIC_EVIDENCE_CORRECTNESS_THRESHOLD,
+    BASIC_EVIDENCE_RELEVANCE_THRESHOLD,
+    HIGHER_LEVEL_COMPLETENESS_THRESHOLD,
+    HIGHER_LEVEL_CORRECTNESS_THRESHOLD,
+    HIGHER_LEVEL_RELEVANCE_THRESHOLD,
+    MISCONCEPTION_RESOLUTION_COMPLETENESS_THRESHOLD,
+    MISCONCEPTION_RESOLUTION_CORRECTNESS_THRESHOLD,
+    MISCONCEPTION_RESOLUTION_RELEVANCE_THRESHOLD,
+    UNCLEAR_COMPLETENESS_THRESHOLD,
+    UNCLEAR_CORRECTNESS_THRESHOLD,
+    UNCLEAR_RELEVANCE_THRESHOLD,
+)
+
 SCORE_THRESHOLDS = {
     "off_task_relevance_boundary": 0.3,
     "completion_relevance_guard": 0.5,
-    "higher_level_normal_pass": 0.7,
-    "higher_level_unclear_pass": 0.85,
+    "basic_evidence_relevance": BASIC_EVIDENCE_RELEVANCE_THRESHOLD,
+    "basic_evidence_correctness": BASIC_EVIDENCE_CORRECTNESS_THRESHOLD,
+    "basic_evidence_completeness": BASIC_EVIDENCE_COMPLETENESS_THRESHOLD,
+    "higher_level_relevance": HIGHER_LEVEL_RELEVANCE_THRESHOLD,
+    "higher_level_correctness": HIGHER_LEVEL_CORRECTNESS_THRESHOLD,
+    "higher_level_completeness": HIGHER_LEVEL_COMPLETENESS_THRESHOLD,
+    "unclear_relevance": UNCLEAR_RELEVANCE_THRESHOLD,
+    "unclear_correctness": UNCLEAR_CORRECTNESS_THRESHOLD,
+    "unclear_completeness": UNCLEAR_COMPLETENESS_THRESHOLD,
+    "misconception_resolution_relevance": MISCONCEPTION_RESOLUTION_RELEVANCE_THRESHOLD,
+    "misconception_resolution_correctness": (
+        MISCONCEPTION_RESOLUTION_CORRECTNESS_THRESHOLD
+    ),
+    "misconception_resolution_completeness": (
+        MISCONCEPTION_RESOLUTION_COMPLETENESS_THRESHOLD
+    ),
 }
 
 HIGHER_LEVEL_NORMAL_CANDIDATES = [0.7, 0.8, 0.9]
@@ -66,6 +95,7 @@ class PersonaMetrics:
     risky_progress_events: list[str] = field(default_factory=list)
     friction_events: list[str] = field(default_factory=list)
     misconception_events: list[str] = field(default_factory=list)
+    misconception_repair_events: list[str] = field(default_factory=list)
     unclear_events: list[str] = field(default_factory=list)
     repair_or_fallback_events: list[str] = field(default_factory=list)
     higher_level_candidate_events: dict[str, Counter[str]] = field(
@@ -156,8 +186,14 @@ def record_threshold_candidate_events(
     validated_pattern: str,
     relevance: float,
     correctness: float,
+    completeness: float,
 ) -> None:
-    """Record what alternative higher-level thresholds would decide."""
+    """Record what alternative higher-level thresholds would decide.
+
+    Higher-level success is now score-gated by relevance, correctness, and
+    completeness. The report therefore uses the minimum of all three scores as
+    the candidate pass signal instead of only relevance/correctness.
+    """
     level = answered_level(entry)
     if level not in {"explain_reasoning", "apply_or_compare"}:
         return
@@ -171,7 +207,7 @@ def record_threshold_candidate_events(
         candidates = HIGHER_LEVEL_NORMAL_CANDIDATES
         rule_name = "higher_level_normal_pass"
 
-    score = min(relevance, correctness)
+    score = min(relevance, correctness, completeness)
     for candidate in candidates:
         decision = "would_pass" if score >= candidate else "would_block"
         metrics.higher_level_candidate_events[f"{rule_name}@{candidate:.2f}"][
@@ -186,6 +222,7 @@ def record_basic_fairness_events(
     validated_pattern: str,
     relevance: float,
     correctness: float,
+    completeness: float,
 ) -> None:
     """Record evidence about Basic-level strictness/leniency."""
     status = level_status(entry)
@@ -200,23 +237,65 @@ def record_basic_fairness_events(
         basic_status != "passed"
         and relevance >= 0.9
         and correctness >= 0.9
+        and completeness >= 0.9
         and validated_pattern == "correct_but_incomplete"
     ):
         missing = state.get("missing_core_point_ids", [])
         metrics.basic_overhard_events.append(
-            f"{entry_label(entry)}: high rel/corr={relevance:.2f}/{correctness:.2f} "
+            f"{entry_label(entry)}: high rel/corr/comp="
+            f"{relevance:.2f}/{correctness:.2f}/{completeness:.2f} "
             f"but Basic not passed; missing={missing}"
         )
 
     if basic_status == "passed" and (
         is_problematic_pattern(validated_pattern)
-        or relevance < 0.5
-        or correctness < 0.7
+        or relevance < BASIC_EVIDENCE_RELEVANCE_THRESHOLD
+        or correctness < BASIC_EVIDENCE_CORRECTNESS_THRESHOLD
+        or completeness < BASIC_EVIDENCE_COMPLETENESS_THRESHOLD
     ):
         metrics.basic_oversoft_events.append(
             f"{entry_label(entry)}: Basic passed despite pattern={validated_pattern}, "
-            f"rel={relevance:.2f}, corr={correctness:.2f}"
+            f"rel={relevance:.2f}, corr={correctness:.2f}, "
+            f"comp={completeness:.2f}"
         )
+
+
+def record_misconception_repair_events(
+    *,
+    metrics: PersonaMetrics,
+    entry: dict[str, Any],
+    validated_pattern: str,
+    relevance: float,
+    correctness: float,
+    completeness: float,
+) -> None:
+    """Record how active misconceptions move through the repair loop."""
+    state = entry.get("student_state", {})
+    active = state.get("active_misconceptions", []) or []
+    resolved = state.get("resolved_misconceptions", []) or []
+    has_misconception_history = bool(
+        active or resolved or state.get("misconception_hits")
+    )
+    if not has_misconception_history:
+        return
+
+    meets_repair_scores = (
+        relevance >= MISCONCEPTION_RESOLUTION_RELEVANCE_THRESHOLD
+        and correctness >= MISCONCEPTION_RESOLUTION_CORRECTNESS_THRESHOLD
+        and completeness >= MISCONCEPTION_RESOLUTION_COMPLETENESS_THRESHOLD
+    )
+    repair_status = (
+        "resolved_or_no_active_left" if not active and resolved else "active"
+    )
+    score_status = (
+        "meets_repair_scores" if meets_repair_scores else "below_repair_scores"
+    )
+    metrics.misconception_repair_events.append(
+        f"{entry_label(entry)}: pattern={validated_pattern}, "
+        f"repair_status={repair_status}, {score_status}, "
+        f"rel/corr/comp={relevance:.2f}/{correctness:.2f}/{completeness:.2f}, "
+        f"active={len(active)}, resolved={len(resolved)}"
+    )
 
 
 def analyze_simulation(path: Path) -> PersonaMetrics:
@@ -288,17 +367,20 @@ def analyze_simulation(path: Path) -> PersonaMetrics:
         # Friction risk: strong scores but still no higher-level progress.
         relevance = as_float(validated.get("task_relevance")) or 0.0
         correctness = as_float(validated.get("correctness")) or 0.0
+        completeness = as_float(validated.get("completeness")) or 0.0
         question_level = str(tutor_turn.get("question_level") or "")
         if (
             question_level in {"explain_reasoning", "apply_or_compare"}
             and relevance >= 0.9
             and correctness >= 0.9
+            and completeness >= 0.9
             and state.get("state") not in {"satisfactory", "secure"}
             and cumulative_pattern != "sufficient_for_completion"
         ):
             metrics.friction_events.append(
-                f"{entry_label(entry)}: high scores rel={relevance:.2f}/"
-                f"corr={correctness:.2f} but state={state.get('state')} "
+                f"{entry_label(entry)}: high scores rel/corr/comp="
+                f"{relevance:.2f}/{correctness:.2f}/{completeness:.2f} "
+                f"but state={state.get('state')} "
                 f"and cumulative={cumulative_pattern}"
             )
 
@@ -329,6 +411,7 @@ def analyze_simulation(path: Path) -> PersonaMetrics:
             validated_pattern=validated_pattern,
             relevance=relevance,
             correctness=correctness,
+            completeness=completeness,
         )
         record_basic_fairness_events(
             metrics=metrics,
@@ -336,6 +419,15 @@ def analyze_simulation(path: Path) -> PersonaMetrics:
             validated_pattern=validated_pattern,
             relevance=relevance,
             correctness=correctness,
+            completeness=completeness,
+        )
+        record_misconception_repair_events(
+            metrics=metrics,
+            entry=entry,
+            validated_pattern=validated_pattern,
+            relevance=relevance,
+            correctness=correctness,
+            completeness=completeness,
         )
 
         if (
@@ -561,6 +653,7 @@ def render_report(metrics: list[PersonaMetrics], output_json: Path) -> str:
     all_risks: list[str] = []
     all_friction: list[str] = []
     all_misconceptions: list[str] = []
+    all_misconception_repairs: list[str] = []
     all_unclear: list[str] = []
     for metric in metrics:
         aggregate_patterns.update(metric.validated_patterns)
@@ -576,6 +669,9 @@ def render_report(metrics: list[PersonaMetrics], output_json: Path) -> str:
         )
         all_misconceptions.extend(
             f"{metric.persona}: {event}" for event in metric.misconception_events
+        )
+        all_misconception_repairs.extend(
+            f"{metric.persona}: {event}" for event in metric.misconception_repair_events
         )
         all_unclear.extend(
             f"{metric.persona}: {event}" for event in metric.unclear_events
@@ -698,6 +794,17 @@ def render_report(metrics: list[PersonaMetrics], output_json: Path) -> str:
     if len(all_misconceptions) > 30:
         lines.append(f"- ... {len(all_misconceptions) - 30} more")
 
+    lines.extend(["", "### Misconception repair threshold observations", ""])
+    lines.extend(
+        [f"- {event}" for event in all_misconception_repairs[:30]]
+        or [
+            "- none in analyzed traces; run `misconception` or "
+            "`multi_misconception` persona"
+        ]
+    )
+    if len(all_misconception_repairs) > 30:
+        lines.append(f"- ... {len(all_misconception_repairs) - 30} more")
+
     lines.extend(["", "### Unclear-pattern observations", ""])
     lines.extend(
         [f"- {event}" for event in all_unclear[:30]]
@@ -756,6 +863,7 @@ def write_json_summary(metrics: list[PersonaMetrics], output_path: Path) -> None
                 "risky_progress_events": metric.risky_progress_events,
                 "friction_events": metric.friction_events,
                 "misconception_events": metric.misconception_events,
+                "misconception_repair_events": metric.misconception_repair_events,
                 "unclear_events": metric.unclear_events,
             }
             for metric in metrics

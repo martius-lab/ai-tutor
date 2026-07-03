@@ -191,7 +191,7 @@ def test_cumulative_evidence_accumulates_core_points_across_turns():
     first_turn = DiagnosisResponse(
         task_relevance=0.95,
         correctness=0.8,
-        completeness=0.33,
+        completeness=0.5,
         diagnosis_pattern="correct_but_incomplete",
         covered_core_point_ids=[14],
         missing_core_point_ids=[15, 16],
@@ -213,7 +213,7 @@ def test_cumulative_evidence_accumulates_core_points_across_turns():
     second_turn = DiagnosisResponse(
         task_relevance=0.95,
         correctness=0.8,
-        completeness=0.33,
+        completeness=0.5,
         diagnosis_pattern="correct_but_incomplete",
         covered_core_point_ids=[15],
         missing_core_point_ids=[14, 16],
@@ -303,6 +303,7 @@ def test_basic_level_passes_only_after_all_required_core_points_are_covered():
         latest_diagnosis=DiagnosisResponse(
             task_relevance=0.95,
             correctness=0.8,
+            completeness=0.5,
             diagnosis_pattern="correct_but_incomplete",
             covered_core_point_ids=[14, 15],
             evidence_snippets=["sorted input and discarding half"],
@@ -325,6 +326,7 @@ def test_basic_level_passes_only_after_all_required_core_points_are_covered():
         latest_diagnosis=DiagnosisResponse(
             task_relevance=0.95,
             correctness=0.95,
+            completeness=0.5,
             diagnosis_pattern="correct_but_incomplete",
             covered_core_point_ids=[16],
             evidence_snippets=["middle comparison is unreliable"],
@@ -347,6 +349,70 @@ def test_basic_level_passes_only_after_all_required_core_points_are_covered():
     )
 
 
+def test_basic_evidence_requires_minimum_completeness():
+    """Very thin Basic answers should not add coverage even with covered IDs."""
+    student_state = BetaStudentConceptState(
+        userinfo_id=1,
+        beta_exercise_id=1,
+        beta_concept_id=1,
+        state="unseen",
+    )
+
+    cumulative = update_student_concept_state_from_diagnosis(
+        student_state=student_state,
+        latest_diagnosis=DiagnosisResponse(
+            task_relevance=1.0,
+            correctness=0.8,
+            completeness=0.4,
+            diagnosis_pattern="sufficient_for_completion",
+            covered_core_point_ids=[14],
+            evidence_snippets=["I think it needs sorted input, but I am not sure."],
+        ),
+        core_points=core_points(),
+        student_answer="I think it needs sorted input, but I am not sure.",
+        trace_reference=1,
+        now=datetime.now(timezone.utc),
+        question_level="basic_understanding",
+    )
+
+    assert cumulative.covered_core_point_ids == []
+    assert student_state.covered_core_point_ids == []
+    assert (
+        normalized_level_status(student_state.level_status)["basic_understanding"]
+        == "in_progress"
+    )
+
+
+def test_basic_evidence_accepts_fair_partial_completeness_boundary():
+    """Basic can still collect legitimate partial evidence at completeness 0.5."""
+    student_state = BetaStudentConceptState(
+        userinfo_id=1,
+        beta_exercise_id=1,
+        beta_concept_id=1,
+        state="unseen",
+    )
+
+    cumulative = update_student_concept_state_from_diagnosis(
+        student_state=student_state,
+        latest_diagnosis=DiagnosisResponse(
+            task_relevance=0.5,
+            correctness=0.7,
+            completeness=0.5,
+            diagnosis_pattern="correct_but_incomplete",
+            covered_core_point_ids=[14],
+            evidence_snippets=["Binary search needs sorted input."],
+        ),
+        core_points=core_points(),
+        student_answer="Binary search needs sorted input.",
+        trace_reference=1,
+        now=datetime.now(timezone.utc),
+        question_level="basic_understanding",
+    )
+
+    assert cumulative.covered_core_point_ids == [14]
+    assert student_state.covered_core_point_ids == [14]
+
+
 def test_explain_and_apply_levels_drive_satisfactory_and_secure_state():
     """Concept state should advance via holistic explain/apply success."""
     student_state = BetaStudentConceptState(
@@ -367,6 +433,7 @@ def test_explain_and_apply_levels_drive_satisfactory_and_secure_state():
         latest_diagnosis=DiagnosisResponse(
             task_relevance=0.95,
             correctness=0.95,
+            completeness=0.6,
             diagnosis_pattern="correct_but_incomplete",
             covered_core_point_ids=[15],
             missing_core_point_ids=[],
@@ -394,6 +461,7 @@ def test_explain_and_apply_levels_drive_satisfactory_and_secure_state():
         latest_diagnosis=DiagnosisResponse(
             task_relevance=0.95,
             correctness=0.95,
+            completeness=0.6,
             diagnosis_pattern="correct_but_incomplete",
             covered_core_point_ids=[16],
             missing_core_point_ids=[],
@@ -1063,37 +1131,55 @@ def test_completion_relevance_guard_requires_point_five_for_completion_pattern()
 
 
 def test_higher_level_success_threshold_is_point_seven_for_clear_patterns():
-    """Explain/apply answers with clear usable patterns pass from 0.7 upward."""
+    """Clear higher-level answers also need minimum semantic completeness."""
     just_below = DiagnosisResponse(
         task_relevance=0.69,
         correctness=0.70,
+        completeness=0.6,
         diagnosis_pattern="correct_but_incomplete",
     )
     at_boundary = DiagnosisResponse(
         task_relevance=0.70,
         correctness=0.70,
+        completeness=0.6,
+        diagnosis_pattern="correct_but_incomplete",
+    )
+    low_completeness = DiagnosisResponse(
+        task_relevance=0.90,
+        correctness=0.90,
+        completeness=0.59,
         diagnosis_pattern="correct_but_incomplete",
     )
 
     assert is_level_successful_answer(just_below, "explain_reasoning") is False
     assert is_level_successful_answer(at_boundary, "explain_reasoning") is True
+    assert is_level_successful_answer(low_completeness, "explain_reasoning") is False
 
 
 def test_unclear_higher_level_success_requires_point_eighty_five():
-    """Unclear higher-level answers only pass through the high-score safety valve."""
+    """Unclear higher-level answers only pass through the stricter safety valve."""
     just_below = DiagnosisResponse(
         task_relevance=0.84,
         correctness=0.85,
+        completeness=0.7,
         diagnosis_pattern="unclear",
     )
     at_boundary = DiagnosisResponse(
         task_relevance=0.85,
         correctness=0.85,
+        completeness=0.7,
+        diagnosis_pattern="unclear",
+    )
+    low_completeness = DiagnosisResponse(
+        task_relevance=0.95,
+        correctness=0.95,
+        completeness=0.69,
         diagnosis_pattern="unclear",
     )
 
     assert is_level_successful_answer(just_below, "apply_or_compare") is False
     assert is_level_successful_answer(at_boundary, "apply_or_compare") is True
+    assert is_level_successful_answer(low_completeness, "apply_or_compare") is False
 
 
 def test_repeated_misconception_stays_in_automatic_repair_loop():
@@ -1272,3 +1358,65 @@ def test_good_answer_resolves_active_misconceptions_and_can_progress_same_turn()
         == "passed"
     )
     assert cumulative.diagnosis_pattern == "sufficient_for_completion"
+
+
+def test_misconception_repair_requires_stronger_correctness_and_completeness():
+    """Repair answers need stricter score gates before resolving misconceptions."""
+    student_state = BetaStudentConceptState(
+        userinfo_id=1,
+        beta_exercise_id=1,
+        beta_concept_id=1,
+        state="emerging",
+        active_misconceptions=[
+            {
+                "key": "binary search works on unsorted arrays",
+                "label": "Binary search works on unsorted arrays.",
+                "status": "active",
+                "first_seen_turn": 17,
+                "last_seen_turn": 17,
+                "hit_count": 1,
+            }
+        ],
+    )
+
+    weak_repair = update_student_concept_state_from_diagnosis(
+        student_state=student_state,
+        latest_diagnosis=DiagnosisResponse(
+            task_relevance=0.95,
+            correctness=0.7,
+            completeness=0.6,
+            diagnosis_pattern="correct_but_incomplete",
+            covered_core_point_ids=[14],
+            evidence_snippets=["Binary search needs sorted input."],
+        ),
+        core_points=core_points(),
+        student_answer="Binary search needs sorted input.",
+        trace_reference=18,
+        now=datetime.now(timezone.utc),
+        question_level="basic_understanding",
+    )
+
+    assert student_state.active_misconceptions
+    assert student_state.resolved_misconceptions == []
+    assert weak_repair.covered_core_point_ids == []
+
+    strong_repair = update_student_concept_state_from_diagnosis(
+        student_state=student_state,
+        latest_diagnosis=DiagnosisResponse(
+            task_relevance=0.7,
+            correctness=0.8,
+            completeness=0.6,
+            diagnosis_pattern="correct_but_incomplete",
+            covered_core_point_ids=[14],
+            evidence_snippets=["Binary search needs sorted input."],
+        ),
+        core_points=core_points(),
+        student_answer="Binary search needs sorted input.",
+        trace_reference=19,
+        now=datetime.now(timezone.utc),
+        question_level="basic_understanding",
+    )
+
+    assert student_state.active_misconceptions == []
+    assert len(student_state.resolved_misconceptions) == 1
+    assert strong_repair.covered_core_point_ids == [14]

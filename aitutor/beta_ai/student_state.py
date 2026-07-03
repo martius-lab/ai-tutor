@@ -22,8 +22,18 @@ DEFAULT_LEVEL_STATUS = {
     "apply_or_compare": "not_started",
 }
 
+BASIC_EVIDENCE_RELEVANCE_THRESHOLD = 0.5
+BASIC_EVIDENCE_CORRECTNESS_THRESHOLD = 0.7
+BASIC_EVIDENCE_COMPLETENESS_THRESHOLD = 0.5
+HIGHER_LEVEL_RELEVANCE_THRESHOLD = 0.7
+HIGHER_LEVEL_CORRECTNESS_THRESHOLD = 0.7
+HIGHER_LEVEL_COMPLETENESS_THRESHOLD = 0.6
+UNCLEAR_RELEVANCE_THRESHOLD = 0.85
+UNCLEAR_CORRECTNESS_THRESHOLD = 0.85
+UNCLEAR_COMPLETENESS_THRESHOLD = 0.7
 MISCONCEPTION_RESOLUTION_RELEVANCE_THRESHOLD = 0.7
-MISCONCEPTION_RESOLUTION_CORRECTNESS_THRESHOLD = 0.7
+MISCONCEPTION_RESOLUTION_CORRECTNESS_THRESHOLD = 0.8
+MISCONCEPTION_RESOLUTION_COMPLETENESS_THRESHOLD = 0.6
 
 
 def normalized_level_status(level_status: dict[str, Any] | None) -> dict[str, str]:
@@ -120,6 +130,8 @@ def _is_misconception_resolution_answer(
         >= MISCONCEPTION_RESOLUTION_RELEVANCE_THRESHOLD
         and latest_diagnosis.correctness
         >= MISCONCEPTION_RESOLUTION_CORRECTNESS_THRESHOLD
+        and latest_diagnosis.completeness
+        >= MISCONCEPTION_RESOLUTION_COMPLETENESS_THRESHOLD
     )
 
 
@@ -266,10 +278,17 @@ def is_level_successful_answer(
     }:
         return False
 
-    threshold = 0.85 if latest_diagnosis.diagnosis_pattern == "unclear" else 0.7
+    if latest_diagnosis.diagnosis_pattern == "unclear":
+        return (
+            latest_diagnosis.task_relevance >= UNCLEAR_RELEVANCE_THRESHOLD
+            and latest_diagnosis.correctness >= UNCLEAR_CORRECTNESS_THRESHOLD
+            and latest_diagnosis.completeness >= UNCLEAR_COMPLETENESS_THRESHOLD
+        )
+
     return (
-        latest_diagnosis.task_relevance >= threshold
-        and latest_diagnosis.correctness >= threshold
+        latest_diagnosis.task_relevance >= HIGHER_LEVEL_RELEVANCE_THRESHOLD
+        and latest_diagnosis.correctness >= HIGHER_LEVEL_CORRECTNESS_THRESHOLD
+        and latest_diagnosis.completeness >= HIGHER_LEVEL_COMPLETENESS_THRESHOLD
     )
 
 
@@ -292,9 +311,31 @@ def update_student_concept_state_from_diagnosis(
     all_core_point_ids = valid_core_point_ids(core_points)
     required_ids = required_core_point_ids(core_points)
     all_core_point_id_set = set(all_core_point_ids)
+    has_active_misconception_before_turn = bool(student_state.active_misconceptions)
+    evidence_relevance_threshold = (
+        MISCONCEPTION_RESOLUTION_RELEVANCE_THRESHOLD
+        if has_active_misconception_before_turn
+        else BASIC_EVIDENCE_RELEVANCE_THRESHOLD
+    )
+    evidence_correctness_threshold = (
+        MISCONCEPTION_RESOLUTION_CORRECTNESS_THRESHOLD
+        if has_active_misconception_before_turn
+        else BASIC_EVIDENCE_CORRECTNESS_THRESHOLD
+    )
+    evidence_completeness_threshold = (
+        MISCONCEPTION_RESOLUTION_COMPLETENESS_THRESHOLD
+        if has_active_misconception_before_turn
+        else BASIC_EVIDENCE_COMPLETENESS_THRESHOLD
+    )
     is_evidence_eligible = (
         latest_diagnosis.is_answer_attempt
         and latest_diagnosis.is_student_owned_evidence
+        and not latest_diagnosis.misconception_flag
+        and latest_diagnosis.integrity_risk == "none"
+        and not latest_diagnosis.requires_integrity_reset
+        and latest_diagnosis.task_relevance >= evidence_relevance_threshold
+        and latest_diagnosis.correctness >= evidence_correctness_threshold
+        and latest_diagnosis.completeness >= evidence_completeness_threshold
         and latest_diagnosis.diagnosis_pattern
         in {
             "correct_but_incomplete",
