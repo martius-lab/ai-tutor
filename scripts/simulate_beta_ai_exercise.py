@@ -767,8 +767,7 @@ def render_markdown(
             lines.append(f"- {finding}")
     else:
         lines.append(
-            "- No automatic ambiguity finding was triggered. "
-            "Manual review still recommended."
+            "- No automatic ambiguity finding was triggered."
         )
     lines.append("")
     return "\n".join(lines)

@@ -11,9 +11,7 @@ from typing import Any, Literal
 from aitutor.beta_ai.diagnosis import DiagnosisPattern, DiagnosisResponse
 from aitutor.models import BetaCorePoint, BetaStudentConceptState
 
-ConceptState = Literal[
-    "unseen", "emerging", "satisfactory", "secure", "review_required"
-]
+ConceptState = Literal["unseen", "emerging", "satisfactory", "secure"]
 QuestionLevel = Literal["basic_understanding", "explain_reasoning", "apply_or_compare"]
 
 DEFAULT_LEVEL_STATUS = {
@@ -461,10 +459,10 @@ def update_student_concept_state_from_diagnosis(
         student_state.misconception_hits += 1
         # Misconceptions are handled by the tutor's automatic repair loop
         # (contrast question / targeted misconception repair). They should be
-        # logged for diagnostics, but they should not move the concept into a
-        # human-review terminal state: the Beta AI design goal is that the tutor
-        # pauses normal progression and keeps repairing until the current answer
-        # no longer contains the misconception.
+        # logged for diagnostics, but they should not create a separate terminal
+        # state: the Beta AI design goal is that the tutor pauses normal
+        # progression and keeps repairing until the current answer no longer
+        # contains the misconception.
         if student_state.state not in {"satisfactory", "secure"}:
             student_state.state = "emerging"
     elif cumulative_pattern == "correct_but_incomplete":

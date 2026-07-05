@@ -1275,12 +1275,6 @@ class BetaAIChatState(SessionState):
                         self.last_trace_log_id = trace_log_id
                         self.trace_history_count = trace_history_count
                     self.running_diagnosis = False
-                yield rx.toast.success(
-                    description="Concept completed. Moving to the next concept.",
-                    duration=5000,
-                    position="bottom-center",
-                    invert=True,
-                )
                 return
             except Exception as exc:
                 async with self:

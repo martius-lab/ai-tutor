@@ -61,7 +61,7 @@ OTHER_HEURISTICS = {
     "copy_similarity_threshold": 0.82,
     "copy_min_text_length": 24,
     "copy_recent_message_window": 8,
-    "misconception_repair_loop": "no human-review threshold",
+    "misconception_repair_loop": "automatic targeted repair",
     "tutor_leak_min_core_text_length": 24,
 }
 
@@ -392,12 +392,6 @@ def analyze_simulation(path: Path) -> PersonaMetrics:
                 f"action={policy.get('action')}, state={state.get('state')}, "
                 f"hits={state.get('misconception_hits')}"
             )
-            if state.get("state") == "review_required":
-                metrics.risky_progress_events.append(
-                    f"{entry_label(entry)}: misconception caused review_required "
-                    "instead of automatic repair loop."
-                )
-
         if validated_pattern == "unclear" or raw.get("diagnosis_pattern") == "unclear":
             metrics.unclear_events.append(
                 f"{entry_label(entry)}: raw={raw.get('diagnosis_pattern')}, "
@@ -465,25 +459,13 @@ def recommendation_for_threshold(
     )
     risky_count = sum(len(metric.risky_progress_events) for metric in all_metrics)
     friction_count = sum(len(metric.friction_events) for metric in all_metrics)
-    misconception_review = sum(
-        1
-        for metric in all_metrics
-        for event in metric.risky_progress_events
-        if "review_required" in event
-    )
     unclear_events = sum(len(metric.unclear_events) for metric in all_metrics)
 
     if name == "misconception_repair_loop":
-        if misconception_review:
-            return (
-                "ändern",
-                "Simulationen zeigen review_required bei Misconceptions; "
-                "das widerspricht dem Ziel einer automatischen Repair-Schleife.",
-            )
         return (
             "behalten",
             "Misconceptions werden geloggt und mit ask_contrast_question "
-            "repariert, ohne in einen Human-Review-Zustand zu wechseln.",
+            "repariert, während normale Progression pausiert bleibt.",
         )
     if name == "higher_level_unclear_pass":
         if unclear_events:
@@ -524,7 +506,7 @@ def recommendation_for_threshold(
             )
         return (
             "prüfen",
-            "Es gibt Grenzfälle um 0.3; manuelle Trace-Review empfohlen.",
+                "Es gibt Grenzfälle um 0.3; Trace-Inspektion empfohlen.",
         )
     if name == "completion_relevance_guard":
         return (
@@ -820,13 +802,13 @@ def render_report(metrics: list[PersonaMetrics], output_json: Path) -> str:
             "",
             "The current evidence should be framed as engineering calibration, "
             "not as a literature-derived universal threshold proof. Stronger "
-            "claims require multiple persona traces, boundary tests, and manual "
-            "review of representative turns.",
+            "claims require multiple persona traces, boundary tests, and "
+            "inspection of representative turns.",
             "",
             "Preliminary architectural conclusion: required-core-point completion "
             "is more defensible than an arbitrary 80% threshold. Misconception "
-            "handling should likely remain an automatic repair loop rather than "
-            "moving the concept into a human-review state. The `unclear` "
+            "handling should remain an automatic repair loop that pauses normal "
+            "progression until the misconception is resolved. The `unclear` "
             "high-score pass rule requires targeted evidence before it can be "
             "justified.",
             "",
