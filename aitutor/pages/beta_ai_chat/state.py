@@ -19,6 +19,7 @@ from aitutor.beta_ai.diagnosis import (
 )
 from aitutor.beta_ai.policy import (
     PolicyPreview,
+    policy_preview_for_level_repair,
     policy_preview_for_next_level,
     preview_policy_action,
 )
@@ -95,7 +96,8 @@ class BetaAIChatState(SessionState):
     conversation_is_submitted: bool = False
     submit_time_stamp: str = ""
     generic_processing_error_message: str = (
-        "Something went wrong while processing your answer. Please try again."
+        "Beim Verarbeiten deiner Antwort ist etwas schiefgelaufen. "
+        "Bitte versuche es noch einmal."
     )
 
     @rx.event
@@ -420,15 +422,16 @@ class BetaAIChatState(SessionState):
         """Return the initial tutor message based on concept availability."""
         if self.selected_concept_id is None:
             return (
-                "This Beta AI exercise has no concept registry yet. "
-                "Please ask a tutor to generate and save concepts first."
+                "Diese Beta-AI-Aufgabe hat noch keine gespeicherten Konzepte. "
+                "Bitte frage eine Tutor/in, zuerst Konzepte zu erzeugen und zu "
+                "speichern."
             )
         return (
-            "Beta chat diagnosis mode active. I will diagnose your answer against "
-            f"{self.concept_progress_label}: {self.selected_concept_label}. "
-            "I will keep cumulative evidence across turns, so you can cover missing "
-            "core points step by step.\n\n"
-            f"Question: {self.initial_tutor_question}"
+            f"Wir starten mit {self.concept_progress_label}: "
+            f"{self.selected_concept_label}. Ich begleite dich Schritt für Schritt "
+            "und achte darauf, welche Ideen du schon in eigenen Worten erklärt "
+            "hast.\n\n"
+            f"Frage: {self.initial_tutor_question}"
         )
 
     @rx.var
@@ -437,9 +440,9 @@ class BetaAIChatState(SessionState):
         if self.selected_concept_id is None:
             return ""
         return (
-            f"Let's start with {self.selected_concept_label}. "
-            "Can you explain the main idea in your own words, including "
-            "one concrete detail?"
+            f"Lass uns mit {self.selected_concept_label} starten. "
+            "Kannst du die Grundidee in eigenen Worten erklären und ein konkretes "
+            "Detail nennen?"
         )
 
     @rx.event
@@ -490,14 +493,15 @@ class BetaAIChatState(SessionState):
             return ""
         if question_level == "explain_reasoning":
             return (
-                f"You have covered the basic points for {self.selected_concept_label}. "
-                "Can you explain why one of these ideas matters, or how it affects "
-                "the way we reason about this concept?"
+                f"Die Grundpunkte zu {self.selected_concept_label} sind abgedeckt. "
+                "Kannst du begründen, warum eine dieser Ideen für das Konzept "
+                "wichtig ist?"
             )
         if question_level == "apply_or_compare":
             return (
-                f"Now apply {self.selected_concept_label} to a small example or "
-                "compare it with a related case. What changes, and why?"
+                f"Wende {self.selected_concept_label} auf ein kleines Beispiel an "
+                "oder vergleiche es mit einem verwandten Fall. Was verändert sich "
+                "dabei?"
             )
         return self.initial_tutor_question
 
@@ -526,7 +530,7 @@ class BetaAIChatState(SessionState):
     def append_tutor_turn_message(self, tutor_turn) -> None:
         """Append a generated tutor turn and update current-question state."""
         tutor_response = (
-            f"{tutor_turn.feedback_brief}\n\nQuestion: {tutor_turn.next_question}"
+            f"{tutor_turn.feedback_brief}\n\nFrage: {tutor_turn.next_question}"
         )
         self.messages.append({"role": "tutor", "content": tutor_response})
         self.current_question = tutor_turn.next_question
@@ -702,16 +706,21 @@ class BetaAIChatState(SessionState):
         self, *, previous_label: str, automatic: bool
     ) -> None:
         """Append a deterministic concept-transition tutor message."""
-        transition_type = "completed" if automatic else "switched away from"
+        transition_intro = (
+            f"Das vorherige Konzept ist abgeschlossen: {previous_label}."
+            if automatic
+            else (
+                f"Du hast das Konzept gewechselt. Vorheriges Konzept: {previous_label}."
+            )
+        )
         self.messages.append(
             {
                 "role": "tutor",
                 "content": (
-                    f"You have {transition_type} the previous concept: "
-                    f"{previous_label}.\n\n"
-                    f"Let's continue with {self.concept_progress_label}: "
+                    f"{transition_intro}\n\n"
+                    f"Wir machen weiter mit {self.concept_progress_label}: "
                     f"{self.selected_concept_label}.\n\n"
-                    f"Question: {self.current_question}"
+                    f"Frage: {self.current_question}"
                 ),
             }
         )
@@ -722,9 +731,9 @@ class BetaAIChatState(SessionState):
             {
                 "role": "tutor",
                 "content": (
-                    "Great work! you have completed all concepts in this Beta AI "
-                    "exercise across the required levels. You can now submit your "
-                    "conversation."
+                    "Sehr gut, du hast alle Konzepte dieser Beta-AI-Aufgabe auf den "
+                    "erforderlichen Ebenen bearbeitet. Du kannst deine Unterhaltung "
+                    "jetzt einreichen."
                 ),
             }
         )
@@ -878,7 +887,9 @@ class BetaAIChatState(SessionState):
             or self.current_userinfo_id is None
         ):
             return rx.toast.error(
-                description="Complete all Beta AI concepts before submitting.",
+                description=(
+                    "Bearbeite zuerst alle Beta-AI-Konzepte, bevor du einreichst."
+                ),
                 duration=5000,
                 position="bottom-center",
                 invert=True,
@@ -914,7 +925,7 @@ class BetaAIChatState(SessionState):
         self.conversation_is_submitted = True
         self.submit_time_stamp = now.strftime(TIME_FORMAT)
         return rx.toast.success(
-            description="Beta AI exercise submitted.",
+            description="Beta-AI-Aufgabe eingereicht.",
             duration=5000,
             position="bottom-center",
             invert=True,
@@ -1193,7 +1204,7 @@ class BetaAIChatState(SessionState):
                         "step is to advance to the next incomplete concept."
                     ),
                     feedback_brief=(
-                        f"You have completed '{concept_label}' across all "
+                        f"The student has completed '{concept_label}' across the "
                         "required levels."
                     ),
                     suggested_prompt="Advance to the next concept.",
@@ -1300,10 +1311,20 @@ class BetaAIChatState(SessionState):
                 self.level_status,
                 current_question_level=current_question_level,  # type: ignore[arg-type]
             )
-            level_transition_policy_preview = policy_preview_for_next_level(
+            level_repair_policy_preview = policy_preview_for_level_repair(
+                diagnosis=cumulative_diagnosis,
                 concept_label=concept_label,
                 concept_description=concept_description,
-                next_question_level=next_question_level,
+                question_level=next_question_level,
+            )
+            level_transition_policy_preview = (
+                policy_preview_for_next_level(
+                    concept_label=concept_label,
+                    concept_description=concept_description,
+                    next_question_level=next_question_level,
+                )
+                if level_repair_policy_preview is None
+                else None
             )
         except Exception as exc:
             async with self:
@@ -1321,7 +1342,11 @@ class BetaAIChatState(SessionState):
                 invert=True,
             )
             return
-        if level_transition_policy_preview is not None:
+        if level_repair_policy_preview is not None:
+            policy_preview = level_repair_policy_preview
+            async with self:
+                self.save_last_policy_action_to_student_state(policy_preview.action)
+        elif level_transition_policy_preview is not None:
             policy_preview = level_transition_policy_preview
             async with self:
                 self.save_last_policy_action_to_student_state(policy_preview.action)
@@ -1333,6 +1358,9 @@ class BetaAIChatState(SessionState):
                     core_points=core_points,
                     policy_preview=policy_preview,
                     next_question_level=next_question_level,
+                    cumulative_evidence_summary=cumulative_evidence_summary,
+                    current_question=current_question,
+                    student_answer=message,
                 )
             else:
                 tutor_turn = await run_tutor_turn_generation(
@@ -1412,7 +1440,7 @@ class BetaAIChatState(SessionState):
             trace_entry["resolved_misconceptions"] = self.resolved_misconceptions
 
             tutor_response = (
-                f"{tutor_turn.feedback_brief}\n\nQuestion: {tutor_turn.next_question}"
+                f"{tutor_turn.feedback_brief}\n\nFrage: {tutor_turn.next_question}"
             )
 
             async with self:

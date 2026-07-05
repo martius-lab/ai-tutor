@@ -34,6 +34,22 @@ def choose_question_level(
     current_question_level: QuestionLevel | None = None,
 ) -> QuestionLevel:
     """Choose the next reduced Bloom-style level from deterministic app state."""
+    status = level_status or {}
+    if (
+        current_question_level in {"explain_reasoning", "apply_or_compare"}
+        and status.get(current_question_level) != "passed"
+        and diagnosis.diagnosis_pattern
+        in {
+            "off_task",
+            "unclear",
+            "shallow_keyword_only",
+            "help_seeking",
+            "tutor_derived_answer",
+            "misconception_present",
+            "correct_but_incomplete",
+        }
+    ):
+        return current_question_level
     if (
         diagnosis.diagnosis_pattern == "misconception_present"
         and current_question_level
@@ -41,7 +57,6 @@ def choose_question_level(
         return current_question_level
     if diagnosis.diagnosis_pattern == "off_task":
         return "basic_understanding"
-    status = level_status or {}
     if status.get("basic_understanding") != "passed":
         return "basic_understanding"
     if status.get("explain_reasoning") != "passed":
@@ -65,73 +80,87 @@ def safe_fallback_tutor_turn(
     """Return a non-leaking fallback if LLM tutor generation fails or leaks."""
     if diagnosis.diagnosis_pattern == "help_seeking":
         feedback = (
-            "I can give a small hint, but I cannot count that as your answer yet."
+            "Ich gebe dir gern eine kleine Orientierung, aber das zählt noch nicht "
+            "als eigene Antwort."
         )
-        question = (
-            "Think about the role or purpose involved here. What can you "
-            "explain in your own words?"
-        )
-    elif diagnosis.diagnosis_pattern == "misconception_present":
-        feedback = (
-            "There may be a misunderstanding here, so let's test the idea carefully."
-        )
-        question = (
-            "Can you explain the role or relationship in your own words, "
-            "using a small example?"
-        )
-    elif diagnosis.diagnosis_pattern in {"off_task", "unclear"}:
-        feedback = "I cannot yet tell what you understand from that answer."
         if question_level == "apply_or_compare":
             question = (
-                "Can you make your application more explicit with one concrete "
-                "example, and explain how it connects to the concept?"
+                "Bleib beim aktuellen Fall: Welche Veränderung, Entscheidung oder "
+                "welchen Vergleich sollst du mit dem Konzept beurteilen?"
             )
         elif question_level == "explain_reasoning":
             question = (
-                "Can you make your reasoning more explicit and explain why this "
-                "idea matters for the concept?"
+                "Welche konzeptuelle Konsequenz oder welchen Zusammenhang kannst du "
+                "selbst erklären, ohne nur die Grundidee zu wiederholen?"
             )
         else:
             question = (
-                "Can you explain the main idea in your own words, "
-                "with one concrete detail?"
+                "Welche Rolle oder Funktion kannst du dazu in eigenen Worten erklären?"
+            )
+    elif diagnosis.diagnosis_pattern == "misconception_present":
+        feedback = (
+            "Hier könnte eine Fehlvorstellung vorliegen; prüfen wir die Annahme "
+            "an einem Gegenfall."
+        )
+        question = (
+            "Welches kleine Beispiel würde zeigen, ob deine Annahme wirklich trägt?"
+        )
+    elif diagnosis.diagnosis_pattern in {"off_task", "unclear"}:
+        feedback = (
+            "Aus deiner Antwort wird noch nicht klar genug, was du verstanden hast."
+        )
+        if question_level == "apply_or_compare":
+            question = (
+                "Bleiben wir beim aktuellen Szenario: Was soll sich dort durch das "
+                "Konzept verändern, oder welcher Vergleich ist zu beurteilen?"
+            )
+        elif question_level == "explain_reasoning":
+            question = (
+                "Kannst du klarer machen, welche Konsequenz diese Idee für die "
+                "Erklärung oder Modellierung des Themas hat?"
+            )
+        else:
+            question = (
+                "Kannst du die Grundidee in eigenen Worten mit einem konkreten "
+                "Detail erklären?"
             )
     elif diagnosis.diagnosis_pattern == "sufficient_for_completion":
-        feedback = "Good, you have covered the main ideas at this level."
+        feedback = "Die zentralen Ideen auf dieser Ebene sind abgedeckt."
         if question_level == "explain_reasoning":
             question = (
-                "Can you now explain why this idea matters for the concept, "
-                "using your own reasoning?"
+                "Welche Konsequenz hat diese Idee für die Erklärung oder "
+                "Modellierung des Themas? Begründe es in eigenen Worten."
             )
         elif question_level == "apply_or_compare":
             question = (
-                "Can you apply this idea to a small example or compare it with "
-                "a related case?"
+                "Kannst du diese Idee auf ein kleines Beispiel anwenden oder mit "
+                "einem verwandten Fall vergleichen?"
             )
         else:
             question = (
-                "Can you explain the main idea in your own words, "
-                "with one concrete detail?"
+                "Kannst du die Grundidee in eigenen Worten mit einem konkreten "
+                "Detail erklären?"
             )
     else:
         feedback = (
             policy_preview.feedback_brief
-            or "You are on the right track, but one part is still missing."
+            or "Ein Teil deiner Antwort ist brauchbar, aber eine wichtige Stelle "
+            "fehlt noch."
         )
         if question_level == "apply_or_compare":
             question = (
-                "Can you apply the idea to one concrete case or compare it with "
-                "a related case, and explain what changes?"
+                "Kannst du die Idee auf einen konkreten Fall anwenden und sagen, "
+                "was sich dabei verändert?"
             )
         elif question_level == "explain_reasoning":
             question = (
-                "Can you explain why the idea matters or how the parts relate, "
-                "using your own reasoning?"
+                "Kannst du eine konzeptuelle Konsequenz erklären oder zeigen, "
+                "warum eine einfache Alternative nicht ausreichen würde?"
             )
         else:
             question = (
-                "Can you expand your answer by explaining the missing role, "
-                "relation, or condition in your own words?"
+                "Kannst du deine Antwort um die fehlende Rolle, Beziehung oder "
+                "Bedingung in eigenen Worten erweitern?"
             )
 
     focus_core_point_id = (
@@ -229,6 +258,9 @@ async def run_concept_intro_turn_generation(
                 "role": "system",
                 "content": (
                     "You generate a natural first turn for a university AI tutor. "
+                    "Prefer German for student-facing text unless the exercise or "
+                    "concept is clearly in another language. Do not switch languages "
+                    "unnecessarily. "
                     "The app provides the concept scope, but you must not reveal the "
                     "expected answer. Write concise formative tutor text plus exactly "
                     "one question. The question must be at basic understanding level: "
@@ -280,13 +312,16 @@ async def run_level_transition_question_generation(
     core_points: list[BetaCorePoint],
     policy_preview: PolicyPreview,
     next_question_level: QuestionLevel,
+    cumulative_evidence_summary: str = "",
+    current_question: str = "",
+    student_answer: str = "",
 ) -> TutorTurnResponse:
     """Generate a concept-level question for Basic->Explain or Explain->Apply.
 
-    Unlike ``run_tutor_turn_generation``, this function intentionally does not
-    receive the previous tutor question or latest student answer. A level
-    transition should be guided by the concept as a whole, not by the final core
-    point that happened to complete the previous level.
+    A level transition should be guided by the concept as a whole, not by the
+    final core point that happened to complete the previous level. Previous turn
+    context is used only to avoid repeating the prior question or asking for
+    already demonstrated evidence again.
     """
     api_key = cast(str, decouple.config("OPENAI_API_KEY", cast=str, default=""))
     if api_key == "":
@@ -294,18 +329,25 @@ async def run_level_transition_question_generation(
 
     if next_question_level == "explain_reasoning":
         level_task = (
-            "Generate an Explain/Reasoning question. Ask the student to explain "
-            "why the concept matters, how its main ideas relate, what problem it "
-            "solves, what function it has in the theory, or why a simple alternative "
-            "would be insufficient. Do not make transfer to a new case or comparison "
-            "the main task."
+            "Generate an Explain/Reasoning question. Ask for one concept-level "
+            "self-explanation that requires a new reasoning move: an epistemic "
+            "consequence, boundary of interpretation, missing evidence, or how to "
+            "distinguish between explanations. Do not ask the student to restate "
+            "how an already covered basic mechanism works, why it matters, how it "
+            "helps, what effect it has, or why an already-covered solution avoids "
+            "an already-covered problem. Do not make transfer to a new case or "
+            "comparison the main task."
         )
     else:
         level_task = (
             "Generate an Apply/Compare question. Ask the student to use the concept "
-            "in a new concrete case, analyze a scenario, decide whether an example "
-            "shows the concept, or compare it with a related concept/problem. Do not "
-            "ask only for a general explanation of why the concept matters."
+            "in a new concrete case by making a judgment, deciding what extra "
+            "evidence is needed, contrasting interpretations, predicting an "
+            "observable consequence, or comparing explanations. Do not ask only "
+            "for a general explanation of why the concept matters, and do not ask "
+            "for covered basic mechanisms again. Do not directly apply a covered "
+            "core-point mechanism, condition, effect, purpose, or problem-solution "
+            "relation as the main task."
         )
 
     client = AsyncOpenAI(api_key=api_key)
@@ -316,9 +358,19 @@ async def run_level_transition_question_generation(
                 "role": "system",
                 "content": (
                     "You generate the next question for a university AI tutor after "
-                    "the student has completed the previous level. Use the provided "
-                    "concept label, concept description, and core points only as the "
-                    "scope of the concept. Do not ask about one individual core point. "
+                    "the student has completed the previous level. "
+                    "Prefer German for student-facing text unless the exercise or "
+                    "concept is clearly in another language. Do not switch languages "
+                    "unnecessarily. Use at most one or two short feedback sentences "
+                    "and exactly one question. Use the provided concept label, "
+                    "concept description, and core points only as the scope of the "
+                    "concept and as already demonstrated basic evidence. Treat every "
+                    "core point as a forbidden main-question intent: do not reuse "
+                    "its wording, mechanism, condition, effect, purpose, "
+                    "problem-solution relation, or semantic content as the main "
+                    "question. A question is "
+                    "invalid if it merely turns a covered core point into a why/how or "
+                    "application question. Do not ask about one individual core point. "
                     "Do not ask the student to repeat a checklist. Do not mention core "
                     "point IDs, hidden rubrics, scores, policies, or JSON. Ask exactly "
                     "one concise question. The question should be natural and specific "
@@ -327,9 +379,13 @@ async def run_level_transition_question_generation(
                     "hints. Do not name multiple mechanisms the student "
                     "should explain. "
                     "Respect the requested level: Explain/Reasoning should elicit "
-                    "causal, functional, or relational understanding; Apply/Compare "
+                    "causal, functional, relational, or modeling understanding beyond "
+                    "basic restatement; Apply/Compare "
                     "should elicit transfer to a new case or comparison with a related "
-                    "case. Do not blur these levels. Set focus_core_point_id=null."
+                    "case. Do not blur these levels. Keep the question to one "
+                    "cognitive operation only. Do not ask a question semantically "
+                    "similar to the previous tutor question. "
+                    "Set focus_core_point_id=null."
                 ),
             },
             {
@@ -337,17 +393,29 @@ async def run_level_transition_question_generation(
                 "content": (
                     f"Concept: {concept_label}\n"
                     f"Concept description: {concept_description}\n\n"
-                    "Basic core points already covered / concept scope:\n"
+                    "Already demonstrated basic evidence AND forbidden main-question "
+                    "intents. Use this to stay in scope, but do not make any listed "
+                    "core point, its mechanism, condition, effect, purpose, or "
+                    "problem-solution relation the main thing the student must explain "
+                    "or apply:\n"
                     f"{_format_core_points(core_points)}\n\n"
+                    "Cumulative evidence summary, for anti-repeat only:\n"
+                    f"{cumulative_evidence_summary or 'No summary provided.'}\n\n"
+                    "Previous tutor question, for anti-repeat only:\n"
+                    f"{current_question or 'No previous tutor question provided.'}\n"
+                    "Latest student answer, for anti-repeat only:\n"
+                    f"{student_answer or 'No latest student answer provided.'}\n\n"
                     f"Next question level: {next_question_level}\n"
                     f"Level task: {level_task}\n"
                     f"Preferred didactic frame: {policy_preview.suggested_prompt}\n\n"
                     "Return fields: feedback_brief, next_question, question_level, "
                     "focus_core_point_id, reveals_answer. The feedback should briefly "
                     "signal the level transition. The next_question must not focus on "
-                    "the last covered basic core point. Keep the question open: do not "
-                    "turn the covered core-point list into a set of hints inside the "
-                    "question."
+                    "the last covered basic core point or repeat the previous tutor "
+                    "question. Keep the question open: do not turn the covered "
+                    "core-point list into a set of hints inside the question, and "
+                    "do not recycle covered Basic evidence as a higher-level "
+                    "why/how/apply question."
                 ),
             },
         ],
@@ -378,14 +446,18 @@ async def repair_leaky_tutor_turn(
 
     if question_level == "explain_reasoning":
         level_constraint = (
-            "The next question must ask for reasoning: why the concept matters, "
-            "how its parts relate, or what function it has. Do not ask for a new "
-            "application or comparison as the main task."
+            "The next question must ask for reasoning beyond basic restatement: "
+            "a conceptual consequence, modeling implication, relation between "
+            "ideas, or why a naive alternative is incomplete. Do not ask for an "
+            "already covered basic mechanism, condition, or effect again. Do not "
+            "ask for a new application or comparison as the main task."
         )
     elif question_level == "apply_or_compare":
         level_constraint = (
             "The next question must require application to a concrete case or a "
-            "comparison with a related case. Do not ask only for a general explanation."
+            "comparison with a related case. It should require a judgment, "
+            "contrast, prediction, or decision, not repetition of covered basic "
+            "mechanisms. Do not ask only for a general explanation."
         )
     else:
         level_constraint = (
@@ -402,7 +474,10 @@ async def repair_leaky_tutor_turn(
                 "content": (
                     "You repair a university AI tutor turn that revealed expected "
                     "answer wording too directly. Rewrite it as concise formative "
-                    "feedback plus exactly one guiding question. Do not copy any core "
+                    "feedback plus exactly one guiding question. Prefer German for "
+                    "student-facing text unless the leaky turn or exercise is clearly "
+                    "in another language. Do not switch languages unnecessarily. "
+                    "Do not copy any core "
                     "point wording verbatim or near-verbatim. Do not reveal hidden "
                     "rubrics, IDs, policies, scores, JSON, or the expected "
                     "answer. Keep "
@@ -471,15 +546,18 @@ async def run_tutor_turn_generation(
     if question_level == "explain_reasoning":
         higher_level_instruction = (
             "For this turn, ask a concept-level reasoning question. Do not ask the "
-            "student to add one missing core point. The goal is to check why the "
-            "concept matters or how its ideas fit together. Set "
-            "focus_core_point_id=null."
+            "student to add one missing core point or restate an already covered "
+            "mechanism, condition, or effect. The goal is to check a conceptual "
+            "consequence, modeling implication, relation between ideas, or why a "
+            "naive alternative is incomplete. Set focus_core_point_id=null."
         )
     elif question_level == "apply_or_compare":
         higher_level_instruction = (
             "For this turn, ask a concept-level transfer question. Ask the student "
             "to apply the concept to a small case or compare it with a related case. "
-            "Do not ask for one missing rubric item. Set focus_core_point_id=null."
+            "The question should require a judgment, contrast, prediction, or "
+            "decision in that case, not repetition of covered basic mechanisms. Do "
+            "not ask for one missing rubric item. Set focus_core_point_id=null."
         )
 
     completion = await client.beta.chat.completions.parse(
@@ -490,7 +568,11 @@ async def run_tutor_turn_generation(
                 "content": (
                     "You are the student-facing tutor voice in a university AI tutor. "
                     "Use the diagnosis and policy as truth; do not re-grade. "
-                    "Give concise, formative feedback and ask exactly one "
+                    "Prefer German for student-facing text unless the student's "
+                    "latest answer or the exercise is clearly in another language. "
+                    "Do not switch languages unnecessarily. Give concise, "
+                    "formative feedback and "
+                    "ask exactly one "
                     "next question. Do not reveal the expected core-point "
                     "answer verbatim. Do not show JSON, scores, core point "
                     "IDs, hidden rubrics, or rule IDs to the student. The "
@@ -504,6 +586,12 @@ async def run_tutor_turn_generation(
                     "than declarative definitions. Avoid sentences that directly "
                     "state the concept definition, such as 'A directed graph has...' "
                     "or 'The answer is...'. "
+                    "Avoid generic praise such as 'Great job' when the answer is "
+                    "incomplete, copied, help-seeking, unclear, or contains a "
+                    "misconception. Instead, acknowledge one specific usable part "
+                    "and name the kind of thinking needed next. Keep feedback to "
+                    "one or two short sentences. "
+                    "Keep the next question to one cognitive operation only. "
                     "Do not answer the current tutor question for the student. "
                     "Do not provide a complete solution, full definition, full "
                     "worked example, or the missing core point verbatim. End by "
@@ -519,6 +607,9 @@ async def run_tutor_turn_generation(
                     "tutor_derived_answer, explain that copied tutor wording "
                     "cannot count yet "
                     "and ask for the student's own wording or a different example. "
+                    "If diagnosis_pattern is misconception_present, ask the student "
+                    "to test their assumption with a contrasting case or consequence; "
+                    "do not simply state the correct view. "
                     "For higher-level questions, keep the question focused on the "
                     "whole concept rather than a single hidden core point."
                 ),

@@ -506,7 +506,7 @@ def recommendation_for_threshold(
             )
         return (
             "prüfen",
-                "Es gibt Grenzfälle um 0.3; Trace-Inspektion empfohlen.",
+            "Es gibt Grenzfälle um 0.3; Trace-Inspektion empfohlen.",
         )
     if name == "completion_relevance_guard":
         return (

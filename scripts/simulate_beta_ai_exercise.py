@@ -224,14 +224,14 @@ def load_concept_bundles(session: Session, exercise_id: int) -> list[ConceptBund
 def fallback_initial_question(concept: BetaConcept) -> str:
     """Return the deterministic fallback first tutor question for a concept."""
     return (
-        f"Let's start with {concept.label}. Can you explain the main idea in your "
-        "own words, including one concrete detail?"
+        f"Lass uns mit {concept.label} starten. Kannst du die Grundidee in "
+        "eigenen Worten erklären und ein konkretes Detail nennen?"
     )
 
 
 def format_tutor_message(tutor_turn: TutorTurnResponse) -> str:
     """Format a tutor turn exactly like the Beta AI chat page."""
-    return f"{tutor_turn.feedback_brief}\n\nQuestion: {tutor_turn.next_question}"
+    return f"{tutor_turn.feedback_brief}\n\nFrage: {tutor_turn.next_question}"
 
 
 async def generate_initial_tutor_turn(
@@ -524,9 +524,10 @@ async def simulate_turn(
     if student_state.state == "secure":
         tutor_turn = TutorTurnResponse(
             feedback_brief=(
-                f"You have completed '{concept.label}' across all required levels."
+                f"Du hast '{concept.label}' auf den erforderlichen Ebenen sicher "
+                "bearbeitet."
             ),
-            next_question="Advance to the next concept.",
+            next_question="Wir gehen zum nächsten Konzept über.",
             question_level=cast(Any, sim_state.current_question_level),
             focus_core_point_id=None,
             reveals_answer=False,
@@ -535,6 +536,10 @@ async def simulate_turn(
             rule_id="R-CONCEPT-SECURE-01",
             action="advance_to_next_concept",
             rationale="Concept reached secure state in simulation.",
+            feedback_brief=(
+                f"The student has completed '{concept.label}' across the required "
+                "levels."
+            ),
             suggested_prompt="Advance to the next concept.",
         )
     else:
@@ -766,9 +771,7 @@ def render_markdown(
         for finding in findings:
             lines.append(f"- {finding}")
     else:
-        lines.append(
-            "- No automatic ambiguity finding was triggered."
-        )
+        lines.append("- No automatic ambiguity finding was triggered.")
     lines.append("")
     return "\n".join(lines)
 

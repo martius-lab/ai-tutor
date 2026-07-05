@@ -8,7 +8,11 @@ from aitutor.beta_ai.diagnosis import (
     detect_non_answer_intent,
     validate_and_normalize_diagnosis,
 )
-from aitutor.beta_ai.policy import preview_policy_action
+from aitutor.beta_ai.policy import (
+    policy_preview_for_level_repair,
+    policy_preview_for_next_level,
+    preview_policy_action,
+)
 from aitutor.beta_ai.student_state import (
     build_cumulative_evidence_summary,
     is_level_successful_answer,
@@ -112,7 +116,13 @@ def test_correct_but_incomplete_targets_missing_core_point():
     assert policy_preview.rule_id == "R-INCOMPLETE-01"
     assert policy_preview.action == "ask_targeted_followup"
     assert policy_preview.focus_core_point_id == 15
-    assert "Sorted order allows discarding half" in policy_preview.suggested_prompt
+    assert policy_preview.focus_core_point_text == (
+        "Sorted order allows discarding half the interval."
+    )
+    assert (
+        "focus_core_point_text as the hidden target" in policy_preview.suggested_prompt
+    )
+    assert policy_preview.focus_core_point_text not in policy_preview.suggested_prompt
 
 
 def test_misconception_takes_priority_over_incomplete_coverage():
@@ -411,6 +421,37 @@ def test_basic_evidence_accepts_fair_partial_completeness_boundary():
 
     assert cumulative.covered_core_point_ids == [14]
     assert student_state.covered_core_point_ids == [14]
+
+
+def test_cumulative_completeness_keeps_latest_answer_score_not_coverage_ratio():
+    """Cumulative diagnosis completeness is semantic, not 1/3 coverage ratio."""
+    student_state = BetaStudentConceptState(
+        userinfo_id=1,
+        beta_exercise_id=1,
+        beta_concept_id=1,
+        state="unseen",
+    )
+
+    cumulative = update_student_concept_state_from_diagnosis(
+        student_state=student_state,
+        latest_diagnosis=DiagnosisResponse(
+            task_relevance=0.95,
+            correctness=0.8,
+            completeness=0.7,
+            diagnosis_pattern="correct_but_incomplete",
+            covered_core_point_ids=[14],
+            evidence_snippets=["Binary search needs sorted input."],
+        ),
+        core_points=core_points(),
+        student_answer="Binary search needs sorted input.",
+        trace_reference=1,
+        now=datetime.now(timezone.utc),
+        question_level="basic_understanding",
+    )
+
+    assert cumulative.completeness == 0.7
+    assert cumulative.covered_core_point_ids == [14]
+    assert cumulative.missing_core_point_ids == [15, 16]
 
 
 def test_explain_and_apply_levels_drive_satisfactory_and_secure_state():
@@ -947,6 +988,195 @@ def test_unclear_apply_repair_stays_on_apply_level_instead_of_basic():
     )
 
 
+def test_off_task_apply_repair_stays_on_apply_level_instead_of_basic():
+    """Off-task answers to active Apply questions should not reset to Basic."""
+    diagnosis = DiagnosisResponse(
+        task_relevance=0.1,
+        correctness=0.0,
+        diagnosis_pattern="off_task",
+    )
+
+    assert (
+        choose_question_level(
+            diagnosis,
+            {
+                "basic_understanding": "passed",
+                "explain_reasoning": "passed",
+                "apply_or_compare": "in_progress",
+            },
+            current_question_level="apply_or_compare",
+        )
+        == "apply_or_compare"
+    )
+
+
+def test_off_task_explain_repair_stays_on_explain_level_instead_of_basic():
+    """Off-task answers to active Explain questions should not reset to Basic."""
+    diagnosis = DiagnosisResponse(
+        task_relevance=0.1,
+        correctness=0.0,
+        diagnosis_pattern="off_task",
+    )
+
+    assert (
+        choose_question_level(
+            diagnosis,
+            {
+                "basic_understanding": "passed",
+                "explain_reasoning": "in_progress",
+                "apply_or_compare": "not_started",
+            },
+            current_question_level="explain_reasoning",
+        )
+        == "explain_reasoning"
+    )
+
+
+def test_off_task_before_basic_passed_still_refocuses_basic():
+    """Off-task answers before Basic mastery should still use Basic refocus."""
+    diagnosis = DiagnosisResponse(
+        task_relevance=0.1,
+        correctness=0.0,
+        diagnosis_pattern="off_task",
+    )
+
+    assert (
+        choose_question_level(
+            diagnosis,
+            {
+                "basic_understanding": "in_progress",
+                "explain_reasoning": "not_started",
+                "apply_or_compare": "not_started",
+            },
+            current_question_level="basic_understanding",
+        )
+        == "basic_understanding"
+    )
+
+
+def test_apply_off_task_fallback_keeps_scenario_level():
+    """Apply fallback should re-anchor the current scenario, not ask Basic."""
+    tutor_turn = safe_fallback_tutor_turn(
+        diagnosis=DiagnosisResponse(diagnosis_pattern="off_task"),
+        policy_preview=preview_policy_action(
+            DiagnosisResponse(diagnosis_pattern="off_task"),
+            concept_label="Morphological Computation",
+            concept_description="Body mechanics simplify control.",
+            core_points=core_points(),
+            misconceptions=misconceptions(),
+        ),
+        question_level="apply_or_compare",
+    )
+
+    question = tutor_turn.next_question.lower()
+    assert tutor_turn.question_level == "apply_or_compare"
+    assert "szenario" in question
+    assert "verändern" in question or "vergleich" in question
+    assert "grundidee" not in question
+
+
+def test_apply_off_task_uses_specific_repair_policy():
+    """Apply off-task should use scenario refocus, not generic Basic policy."""
+    policy_preview = policy_preview_for_level_repair(
+        diagnosis=DiagnosisResponse(diagnosis_pattern="off_task"),
+        concept_label="Morphological Computation",
+        concept_description="Body mechanics simplify control.",
+        question_level="apply_or_compare",
+    )
+
+    assert policy_preview is not None
+    assert policy_preview.rule_id == "R-APPLY-REFOCUS-OFFTASK-01"
+    assert policy_preview.action == "ask_application_or_comparison"
+    prompt = policy_preview.suggested_prompt.lower()
+    assert "scenario" in prompt
+    assert "basic definition" in prompt
+    assert "what changes" in prompt
+
+
+def test_apply_shallow_keyword_uses_application_repair_policy():
+    """Apply keyword-only answers should be pushed into scenario use."""
+    policy_preview = policy_preview_for_level_repair(
+        diagnosis=DiagnosisResponse(diagnosis_pattern="shallow_keyword_only"),
+        concept_label="Morphological Computation",
+        concept_description="Body mechanics simplify control.",
+        question_level="apply_or_compare",
+    )
+
+    assert policy_preview is not None
+    assert policy_preview.rule_id == "R-APPLY-SHALLOW-01"
+    assert policy_preview.action == "ask_application_or_comparison"
+    prompt = policy_preview.suggested_prompt.lower()
+    assert "current scenario" in prompt
+    assert "what changes" in prompt
+    assert "basic restatement" in prompt
+
+
+def test_apply_help_seeking_uses_scaffold_without_progress_policy():
+    """Apply help requests should receive a scenario cue without progress."""
+    policy_preview = policy_preview_for_level_repair(
+        diagnosis=DiagnosisResponse(diagnosis_pattern="help_seeking"),
+        concept_label="Morphological Computation",
+        concept_description="Body mechanics simplify control.",
+        question_level="apply_or_compare",
+    )
+
+    assert policy_preview is not None
+    assert policy_preview.rule_id == "R-APPLY-HELP-SEEKING-01"
+    assert policy_preview.action == "give_scaffold_without_progress"
+    assert "minimal scenario cue" in policy_preview.suggested_prompt.lower()
+
+
+def test_apply_misconception_uses_scenario_contrast_policy():
+    """Apply misconceptions should trigger contrast within the scenario."""
+    policy_preview = policy_preview_for_level_repair(
+        diagnosis=DiagnosisResponse(diagnosis_pattern="misconception_present"),
+        concept_label="Morphological Computation",
+        concept_description="Body mechanics simplify control.",
+        question_level="apply_or_compare",
+    )
+
+    assert policy_preview is not None
+    assert policy_preview.rule_id == "R-APPLY-MISCONCEPTION-01"
+    assert policy_preview.action == "ask_contrast_question"
+    prompt = policy_preview.suggested_prompt.lower()
+    assert "scenario-based contrast" in prompt
+    assert "countercase" in prompt
+
+
+def test_explain_off_task_uses_specific_repair_policy():
+    """Explain off-task should re-anchor reasoning, not Basic definition."""
+    policy_preview = policy_preview_for_level_repair(
+        diagnosis=DiagnosisResponse(diagnosis_pattern="off_task"),
+        concept_label="Morphological Computation",
+        concept_description="Body mechanics simplify control.",
+        question_level="explain_reasoning",
+    )
+
+    assert policy_preview is not None
+    assert policy_preview.rule_id == "R-EXPLAIN-REFOCUS-OFFTASK-01"
+    assert policy_preview.action == "ask_holistic_explanation"
+    prompt = policy_preview.suggested_prompt.lower()
+    assert "conceptual consequence" in prompt
+    assert "basic definition" in prompt
+
+
+def test_explain_shallow_keyword_uses_reasoning_repair_policy():
+    """Explain keyword-only answers should require self-explanation."""
+    policy_preview = policy_preview_for_level_repair(
+        diagnosis=DiagnosisResponse(diagnosis_pattern="shallow_keyword_only"),
+        concept_label="Morphological Computation",
+        concept_description="Body mechanics simplify control.",
+        question_level="explain_reasoning",
+    )
+
+    assert policy_preview is not None
+    assert policy_preview.rule_id == "R-EXPLAIN-SHALLOW-01"
+    assert policy_preview.action == "ask_for_explanation"
+    prompt = policy_preview.suggested_prompt.lower()
+    assert "self-explanation" in prompt
+    assert "basic restatement" in prompt
+
+
 def test_misconception_repair_stays_on_current_higher_level():
     """Misconception repair should not reset an active higher-level question."""
     diagnosis = DiagnosisResponse(
@@ -1006,7 +1236,8 @@ def test_explain_fallback_does_not_mix_apply_instruction():
         question_level="explain_reasoning",
     )
 
-    assert "why" in tutor_turn.next_question.lower()
+    assert "konsequenz" in tutor_turn.next_question.lower()
+    assert "modellierung" in tutor_turn.next_question.lower()
     assert "apply" not in tutor_turn.next_question.lower()
 
 
@@ -1025,7 +1256,7 @@ def test_apply_fallback_for_incomplete_stays_on_apply_or_compare_level():
     )
 
     question = tutor_turn.next_question.lower()
-    assert "apply" in question or "compare" in question
+    assert "anwenden" in question or "vergleichen" in question
     assert "missing role" not in question
     assert tutor_turn.focus_core_point_id is None
 
@@ -1056,6 +1287,46 @@ def test_policy_does_not_fallback_to_first_core_point_when_no_missing_ids():
     assert policy_preview.action == "ask_holistic_explanation"
     assert policy_preview.focus_core_point_id is None
     assert "14" not in policy_preview.suggested_prompt
+    assert "already covered basic mechanism" in policy_preview.suggested_prompt
+    assert "why" not in policy_preview.suggested_prompt.lower()
+
+
+def test_explain_transition_prompt_avoids_repeating_basic_core_points():
+    """Explain transition should ask for self-explanation beyond Basic evidence."""
+    policy_preview = policy_preview_for_next_level(
+        concept_label="Morphological Computation",
+        concept_description="Body mechanics simplify control.",
+        next_question_level="explain_reasoning",
+    )
+
+    assert policy_preview is not None
+    assert policy_preview.rule_id == "R-ASK-HOLISTIC-EXPLAIN-01"
+    assert policy_preview.action == "ask_holistic_explanation"
+    prompt = policy_preview.suggested_prompt.lower()
+    assert "self-explanation" in prompt
+    assert "conceptual consequence" in prompt
+    assert "modeling implication" in prompt
+    assert "already covered core-point mechanism" in prompt
+    assert "restate" in prompt
+
+
+def test_apply_transition_prompt_requires_transfer_not_restatement():
+    """Apply/compare transition should require transfer instead of Basic replay."""
+    policy_preview = policy_preview_for_next_level(
+        concept_label="Morphological Computation",
+        concept_description="Body mechanics simplify control.",
+        next_question_level="apply_or_compare",
+    )
+
+    assert policy_preview is not None
+    assert policy_preview.rule_id == "R-ASK-APPLY-01"
+    assert policy_preview.action == "ask_application_or_comparison"
+    prompt = policy_preview.suggested_prompt.lower()
+    assert "new transfer" in prompt
+    assert "comparison" in prompt
+    assert "judging" in prompt
+    assert "predicting" in prompt
+    assert "not repeating covered core-point mechanisms" in prompt
 
 
 def test_task_relevance_boundary_around_point_three_controls_off_task():

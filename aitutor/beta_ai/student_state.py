@@ -376,11 +376,6 @@ def update_student_concept_state_from_diagnosis(
         required_core_point_ids=required_ids,
         student_answer=student_answer,
     )
-    coverage_ratio = (
-        len(cumulative_covered_ids) / len(all_core_point_ids)
-        if all_core_point_ids
-        else 0.0
-    )
     all_required_covered = set(required_ids).issubset(set(cumulative_covered_ids))
     active_misconceptions, resolved_misconceptions, resolved_this_turn = (
         update_misconception_memory(
@@ -509,7 +504,7 @@ def update_student_concept_state_from_diagnosis(
         is_student_owned_evidence=latest_diagnosis.is_student_owned_evidence,
         task_relevance=latest_diagnosis.task_relevance,
         correctness=latest_diagnosis.correctness,
-        completeness=coverage_ratio,
+        completeness=latest_diagnosis.completeness,
         misconception_flag=latest_diagnosis.misconception_flag,
         misconception_label=latest_diagnosis.misconception_label,
         diagnosis_pattern=policy_pattern,
