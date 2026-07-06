@@ -408,7 +408,10 @@ class ManageExercisesState(FilterMixin, SessionState):
                     original_title = title
                     counter = 1
                     while session.exec(
-                        select(Exercise).where(Exercise.title == title)
+                        select(Exercise).where(
+                            Exercise.title == title,
+                            Exercise.lecture_id == None,  # noqa: E711
+                        )
                     ).first():
                         title = f"{original_title} (imported {counter})"
                         counter += 1
@@ -510,11 +513,12 @@ class ManageExercisesState(FilterMixin, SessionState):
     @rx.event
     def add_exercise(self, form_data: dict):
         """Add exercises to db."""
-        existing_titles = {exercise.title for exercise in self.exercises}
         with rx.session() as session:
             if not form_data["title"]:
                 return rx.window_alert("Please enter a title for the exercise.")
-            if form_data["title"] in existing_titles:
+            if self._global_exercise_title_conflicts_with_db(
+                set(), [form_data["title"]]
+            ):
                 return rx.window_alert(
                     f"The title '{form_data['title']}' is already used by another"
                     + "exercise. Please choose a different title."
@@ -651,14 +655,10 @@ class ManageExercisesState(FilterMixin, SessionState):
     @rx.event
     def update_exercise(self, form_data: dict):
         """Update exercises in db."""
-        existing_titles = {
-            exercise.title
-            for exercise in self.exercises
-            if exercise.id != self.current_exercise.id
-        }
-
         with rx.session() as session:
-            if form_data["title"] in existing_titles:
+            if self._global_exercise_title_conflicts_with_db(
+                {self.current_exercise.id}, [form_data["title"]]
+            ):
                 return rx.window_alert(
                     f"The title '{form_data['title']}' is already used by another"
                     + "exercise. Please choose a different title."
@@ -795,6 +795,19 @@ class ManageExercisesState(FilterMixin, SessionState):
                     None,
                 )
         return None, deadline, days_to_complete
+
+    def _global_exercise_title_conflicts_with_db(
+        self, exercise_ids: set[int | None], titles: list[str]
+    ) -> bool:
+        """Return whether a title conflicts with global exercises outside ids."""
+        with rx.session() as session:
+            db_exercises = session.exec(
+                select(Exercise).where(Exercise.lecture_id == None)  # noqa: E711
+            ).all()
+        return any(
+            exercise.id not in exercise_ids and exercise.title in titles
+            for exercise in db_exercises
+        )
 
 
 class ManageTagsState(ManageExercisesState):

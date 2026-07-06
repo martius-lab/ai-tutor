@@ -139,6 +139,14 @@ reports_link = SpecificLectureLink(
     disabled=False,
 )
 
+token_analyzer_link = SpecificLectureLink(
+    label=LanguageState.token_analyzer,
+    route=routes.LECTURE_TOKEN_ANALYZER,
+    icon="chart-column",
+    tab_value="token_analyzer",
+    disabled=False,
+)
+
 settings_link = SpecificLectureLink(
     label=LanguageState.settings,
     route=routes.EDIT_LECTURE,
@@ -212,6 +220,10 @@ def specific_lecture_navbar(tab_to_highlight: str, lecture_id) -> rx.Component:
                 rx.cond(
                     SpecificLectureNavbarState.can_view_submissions,
                     tab_trigger(reports_link, lecture_id),
+                ),
+                rx.cond(
+                    SpecificLectureNavbarState.can_view_submissions,
+                    tab_trigger(token_analyzer_link, lecture_id),
                 ),
                 rx.cond(
                     SpecificLectureNavbarState.can_edit_lecture,

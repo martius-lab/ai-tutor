@@ -89,6 +89,11 @@ app.add_page(
     on_load=pages.LectureReportsState.on_load,
 )
 app.add_page(
+    pages.lecture_token_analyzer_page,
+    route=routes.LECTURE_TOKEN_ANALYZER + "/[lecture_id]",
+    on_load=pages.LectureTokenAnalyzerState.on_load,
+)
+app.add_page(
     pages.all_lectures_page,
     route=routes.ALL_LECTURES + "/[lecture_id]",
     on_load=pages.AllLecturesState.on_load,

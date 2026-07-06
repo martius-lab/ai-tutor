@@ -92,6 +92,7 @@ class SessionState(reflex_local_auth.LocalAuthState):
             pages.LectureReportsState,
             pages.LectureReportViewState,
             pages.LectureSubmissionsState,
+            pages.LectureTokenAnalyzerState,
             pages.ManageConfigState,
             pages.ManageExercisesState,
             pages.ManageTagsState,
