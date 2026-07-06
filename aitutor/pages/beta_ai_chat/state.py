@@ -22,6 +22,7 @@ from aitutor.beta_ai.policy import (
     policy_preview_for_level_repair,
     policy_preview_for_next_level,
     preview_policy_action,
+    should_use_level_transition_policy,
 )
 from aitutor.beta_ai.student_state import (
     build_cumulative_evidence_summary,
@@ -1100,6 +1101,7 @@ class BetaAIChatState(SessionState):
             current_question = self.current_question
             current_question_level = self.current_question_level
             current_focus_core_point_id = self.current_focus_core_point_id
+            previous_level_status = dict(self.level_status)
             cumulative_evidence_summary = build_cumulative_evidence_summary(
                 core_points=core_points,
                 covered_core_point_ids=self.cumulative_covered_core_point_ids,
@@ -1311,11 +1313,11 @@ class BetaAIChatState(SessionState):
                 self.level_status,
                 current_question_level=current_question_level,  # type: ignore[arg-type]
             )
-            level_repair_policy_preview = policy_preview_for_level_repair(
-                diagnosis=cumulative_diagnosis,
-                concept_label=concept_label,
-                concept_description=concept_description,
-                question_level=next_question_level,
+            use_level_transition_policy = should_use_level_transition_policy(
+                previous_level_status=previous_level_status,
+                current_level_status=self.level_status,
+                current_question_level=current_question_level,
+                next_question_level=next_question_level,
             )
             level_transition_policy_preview = (
                 policy_preview_for_next_level(
@@ -1323,8 +1325,18 @@ class BetaAIChatState(SessionState):
                     concept_description=concept_description,
                     next_question_level=next_question_level,
                 )
-                if level_repair_policy_preview is None
+                if use_level_transition_policy
                 else None
+            )
+            level_repair_policy_preview = (
+                None
+                if level_transition_policy_preview is not None
+                else policy_preview_for_level_repair(
+                    diagnosis=cumulative_diagnosis,
+                    concept_label=concept_label,
+                    concept_description=concept_description,
+                    question_level=current_question_level,
+                )
             )
         except Exception as exc:
             async with self:

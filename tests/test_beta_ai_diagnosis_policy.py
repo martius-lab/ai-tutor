@@ -12,6 +12,7 @@ from aitutor.beta_ai.policy import (
     policy_preview_for_level_repair,
     policy_preview_for_next_level,
     preview_policy_action,
+    should_use_level_transition_policy,
 )
 from aitutor.beta_ai.student_state import (
     build_cumulative_evidence_summary,
@@ -1220,6 +1221,71 @@ def test_unclear_after_explain_passed_advances_to_apply_instead_of_repeating_exp
         )
         == "apply_or_compare"
     )
+
+
+def test_successful_explain_transition_uses_apply_transition_not_apply_repair():
+    """Explain->Apply should be a transition, not an Apply incomplete repair."""
+    previous_status = {
+        "basic_understanding": "passed",
+        "explain_reasoning": "in_progress",
+        "apply_or_compare": "not_started",
+    }
+    current_status = {
+        "basic_understanding": "passed",
+        "explain_reasoning": "passed",
+        "apply_or_compare": "not_started",
+    }
+
+    assert should_use_level_transition_policy(
+        previous_level_status=previous_status,
+        current_level_status=current_status,
+        current_question_level="explain_reasoning",
+        next_question_level="apply_or_compare",
+    )
+
+    transition_policy = policy_preview_for_next_level(
+        concept_label="Emergent Behavior",
+        concept_description="Behavior generated indirectly.",
+        next_question_level="apply_or_compare",
+    )
+    repair_policy = policy_preview_for_level_repair(
+        diagnosis=DiagnosisResponse(diagnosis_pattern="correct_but_incomplete"),
+        concept_label="Emergent Behavior",
+        concept_description="Behavior generated indirectly.",
+        question_level="apply_or_compare",
+    )
+
+    assert transition_policy is not None
+    assert repair_policy is not None
+    assert transition_policy.rule_id == "R-ASK-APPLY-01"
+    assert repair_policy.rule_id == "R-APPLY-INCOMPLETE-01"
+
+
+def test_unpassed_explain_still_uses_explain_repair_policy():
+    """Weak Explain answers should stay in Explain repair instead of transition."""
+    previous_status = {
+        "basic_understanding": "passed",
+        "explain_reasoning": "in_progress",
+        "apply_or_compare": "not_started",
+    }
+    current_status = dict(previous_status)
+
+    assert not should_use_level_transition_policy(
+        previous_level_status=previous_status,
+        current_level_status=current_status,
+        current_question_level="explain_reasoning",
+        next_question_level="explain_reasoning",
+    )
+
+    repair_policy = policy_preview_for_level_repair(
+        diagnosis=DiagnosisResponse(diagnosis_pattern="unclear"),
+        concept_label="Emergent Behavior",
+        concept_description="Behavior generated indirectly.",
+        question_level="explain_reasoning",
+    )
+
+    assert repair_policy is not None
+    assert repair_policy.rule_id == "R-EXPLAIN-CLARIFY-01"
 
 
 def test_explain_fallback_does_not_mix_apply_instruction():

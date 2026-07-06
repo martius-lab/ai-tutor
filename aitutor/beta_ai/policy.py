@@ -355,6 +355,27 @@ def policy_preview_for_next_level(
     return None
 
 
+def should_use_level_transition_policy(
+    *,
+    previous_level_status: dict[str, str],
+    current_level_status: dict[str, str],
+    current_question_level: str,
+    next_question_level: str,
+) -> bool:
+    """Return whether this turn just passed a level and should use transition policy.
+
+    Repair policies describe how to fix the level the student just attempted.
+    They should not be selected for the *next* level after a successful level
+    transition, e.g. Explain passed -> ask Apply must use ``R-ASK-APPLY-01``
+    rather than an Apply repair rule.
+    """
+    return (
+        next_question_level != current_question_level
+        and previous_level_status.get(current_question_level) != "passed"
+        and current_level_status.get(current_question_level) == "passed"
+    )
+
+
 def policy_preview_for_level_repair(
     *,
     diagnosis: DiagnosisResponse,
