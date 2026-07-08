@@ -27,7 +27,7 @@ def upgrade() -> None:
 
     with op.batch_alter_table('betaexerciseresult', schema=None) as batch_op:
         batch_op.add_column(sa.Column('finished_conversation', sa.JSON(), nullable=True))
-        batch_op.add_column(sa.Column('completion_unlocked', sa.Boolean(), server_default=sa.text('0'), nullable=False))
+        batch_op.add_column(sa.Column('completion_unlocked', sa.Boolean(), server_default=sa.sql.false(), nullable=False))
         batch_op.add_column(sa.Column('completed_at', sa.DateTime(timezone=True), nullable=True))
         batch_op.add_column(sa.Column('submit_time_stamp', sa.DateTime(timezone=True), nullable=True))
 
