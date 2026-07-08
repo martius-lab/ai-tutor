@@ -1231,6 +1231,13 @@ Please test the chat for functionality after changing the model.
     def report_submitted_conversation(self) -> str:
         return self.translate(de="Eingereichter Chat:", en="Submitted Conversation:")
 
+    @rx.var
+    def beta_ai_privacy_addendum(self) -> str:
+        return self.translate(
+            de="**Ergänzung zur Datenschutzerklärung:** Eingereichte Konversationen von \"Beta AI\"-Übungen können in anonymisierter Form über den in der Datenschutzerklärung angegebenen Zeitraum hinaus gespeichert und für Tests bei der Entwicklung neue Funktionen verwendet werden.",
+            en="**Addendum to the Privacy Policy:** Conversations submitted from \"Beta AI\" exercises may be stored in anonymized form beyond the period specified in the Privacy Policy and used for testing during the development of new features.",
+        )
+
 
 class BackendTranslations:
     """Translations for use in the backend (where LanguageState is not available)."""
