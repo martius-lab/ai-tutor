@@ -158,6 +158,12 @@ class SessionState(reflex_local_auth.LocalAuthState):
             or GlobalPermission.ADMIN in self.global_permissions
         )
 
+    def _get_router_params(self) -> dict[str, str]:
+        # Wrap this in a method so we only directly access self.router.page in one
+        # place.  RouterData.page is deprecated and thus triggers a deprecation warning.
+        # However, the suggestion to use RouterData.url instead is not helpful, as it
+        # does not (yet?) provide access to the route parameters.
+        return self.router.page.params
 
     def get_route_param_or_default[T](
         self, param_name: str, default: T, dtype: Callable[..., T] = str
@@ -169,8 +175,8 @@ class SessionState(reflex_local_auth.LocalAuthState):
             default_value: The value to return if the parameter is not present.
             output_type: The type to which the parameter value should be cast.
         """
-        if param_name in self.router.page.params:
-            return dtype(self.router.page.params[param_name])
+        if param_name in self._get_router_params():
+            return dtype(self._get_router_params()[param_name])
         else:
             return default
 
@@ -186,6 +192,6 @@ class SessionState(reflex_local_auth.LocalAuthState):
         Raises:
             KeyError: If the parameter is not provided in the route.
         """
-        if param_name not in self.router.page.params:
+        if param_name not in self._get_router_params():
             raise KeyError(f"Route parameter '{param_name}' not found.")
-        return dtype(self.router.page.params[param_name])
+        return dtype(self._get_router_params()[param_name])
