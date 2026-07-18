@@ -154,7 +154,7 @@ class LectureManageExercisesState(FilterMixin, SessionState):
 
         self.current_lecture_id = lecture_id
         with rx.session() as session:
-            # Sort prompts at database level: default first, then by id
+            # Sort prompts at database level: default first, then by name
             self.prompts = (
                 list(
                     session.exec(
@@ -168,13 +168,13 @@ class LectureManageExercisesState(FilterMixin, SessionState):
                         .order_by(
                             Prompt.is_default_prompt.desc(),  # type: ignore
                             Prompt.lecture_id.is_not(None).desc(),  # type: ignore
+                            func.lower(Prompt.name),  # type: ignore
                             Prompt.id,  # type: ignore
                         )
                     ).all()
                 )
                 or []
             )
-        self._sort_prompts_by_default()
         self.load_tags()
         self.load_exercises()
         self.extracting_lesson_material = False
@@ -256,17 +256,19 @@ class LectureManageExercisesState(FilterMixin, SessionState):
         self, exercise_ids: set[int | None], titles: list[str]
     ) -> bool:
         """Return whether a title conflicts with exercises in this lecture."""
-        if self.current_lecture_id is None:
+        if self.current_lecture_id is None or not titles:
             return False
 
-        with rx.session() as session:
-            db_exercises = session.exec(
-                select(Exercise).where(Exercise.lecture_id == self.current_lecture_id)
-            ).all()
-        return any(
-            exercise.id not in exercise_ids and exercise.title in titles
-            for exercise in db_exercises
+        query = select(Exercise.id).where(
+            Exercise.lecture_id == self.current_lecture_id,
+            Exercise.title.in_(titles),  # type: ignore
         )
+
+        if exercise_ids:
+            query = query.where(Exercise.id.not_in(exercise_ids))  # type: ignore
+
+        with rx.session() as session:
+            return session.exec(query).first() is not None
 
     @rx.event
     def delete_selected_exercises(self):
@@ -284,16 +286,6 @@ class LectureManageExercisesState(FilterMixin, SessionState):
             duration=2500,
             position="bottom-center",
             invert=True,
-        )
-
-    def _sort_prompts_by_default(self) -> None:
-        """Sort prompts with the lecture default first, then global default, then id."""
-        self.prompts.sort(
-            key=lambda prompt: (
-                prompt.id != self.current_default_prompt_id,
-                not prompt.is_default_prompt,
-                prompt.id or 0,
-            )
         )
 
     @rx.event
