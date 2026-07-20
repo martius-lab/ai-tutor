@@ -222,24 +222,30 @@ class ExercisesState(FilterMixin, SessionState):
 
             # sort open_deadline_exercises by deadline ascending
             self.open_deadline_exercises.sort(
-                key=lambda ex_wth_res: ex_wth_res[0].deadline
-                if ex_wth_res[0].deadline is not None
-                else datetime.max
+                key=lambda ex_wth_res: (
+                    ex_wth_res[0].deadline
+                    if ex_wth_res[0].deadline is not None
+                    else datetime.max
+                )
             )
 
             # sort closed_deadline_exercises by deadline descending
             self.closed_deadline_exercises.sort(
-                key=lambda ex_wth_res: ex_wth_res[0].deadline
-                if ex_wth_res[0].deadline is not None
-                else datetime.min,
+                key=lambda ex_wth_res: (
+                    ex_wth_res[0].deadline
+                    if ex_wth_res[0].deadline is not None
+                    else datetime.min
+                ),
                 reverse=True,
             )
 
             # sort no_deadline_exercises by submitted vs not submitted
             self.no_deadline_exercises.sort(
-                key=lambda ex_wth_res: ex_wth_res[1].submit_time_stamp is not None
-                if ex_wth_res[1] is not None
-                else False,
+                key=lambda ex_wth_res: (
+                    ex_wth_res[1].submit_time_stamp is not None
+                    if ex_wth_res[1] is not None
+                    else False
+                ),
             )
 
             self.update_time_left_strings()

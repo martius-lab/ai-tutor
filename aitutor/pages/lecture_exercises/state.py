@@ -23,6 +23,7 @@ ExerciseWithResult = tuple[Exercise, Optional[ExerciseResult]]
 class LectureExercisesState(FilterMixin, SessionState):
     """State for managing exercises belonging to one lecture."""
 
+    _lecture_id: int
     exercises_with_result: list[ExerciseWithResult] = []
     open_deadline_exercises: list[ExerciseWithResult] = []
     no_deadline_exercises: list[ExerciseWithResult] = []
@@ -60,15 +61,16 @@ class LectureExercisesState(FilterMixin, SessionState):
         assert self.authenticated_user_info is not None
         self._clear_exercises()
 
-        lecture_id = self._parse_route_lecture_id()
-        if lecture_id is None:
+        try:
+            self._lecture_id = self.get_route_param_or_error("lecture_id", dtype=int)
+        except Exception:
             return rx.redirect(routes.NOT_FOUND)
 
-        if not self._user_may_view_lecture(lecture_id):
+        if not self._user_may_view_lecture(self._lecture_id):
             return rx.redirect(routes.MY_LECTURES)
 
         with rx.session() as session:
-            if session.get(Lecture, lecture_id) is None:
+            if session.get(Lecture, self._lecture_id) is None:
                 return rx.redirect(routes.NOT_FOUND)
 
         self.load_exercises()
@@ -80,22 +82,16 @@ class LectureExercisesState(FilterMixin, SessionState):
     @rx.var
     def route_lecture_id(self) -> str:
         """Return the lecture id route parameter for lecture-specific navigation."""
-        return str(self.lecture_id)
+        return str(self._lecture_id)
 
     def _clear_exercises(self):
         """Clear loaded exercise lists."""
+        self._lecture_id = -1
         self.exercises_with_result = []
         self.open_deadline_exercises = []
         self.no_deadline_exercises = []
         self.closed_deadline_exercises = []
         self.time_left_strings = {}
-
-    def _parse_route_lecture_id(self) -> int | None:
-        """Return the numeric lecture id from the route, or None if invalid."""
-        try:
-            return int(self.lecture_id)
-        except ValueError:
-            return None
 
     def _user_may_view_lecture(self, lecture_id: int) -> bool:
         """Check whether the current user may view this lecture."""
@@ -166,8 +162,7 @@ class LectureExercisesState(FilterMixin, SessionState):
         """
         Get exercises from db based on the current search values and the user role.
         """
-        lecture_id = self._parse_route_lecture_id()
-        if lecture_id is None:
+        if self._lecture_id is None:
             self._clear_exercises()
             return
 
@@ -185,7 +180,7 @@ class LectureExercisesState(FilterMixin, SessionState):
                     ),
                     isouter=True,
                 )
-                .where(Exercise.lecture_id == lecture_id)
+                .where(Exercise.lecture_id == self._lecture_id)
             )
 
             # Don't load hidden exercises for students
@@ -270,24 +265,30 @@ class LectureExercisesState(FilterMixin, SessionState):
 
             # sort open_deadline_exercises by deadline ascending
             self.open_deadline_exercises.sort(
-                key=lambda ex_wth_res: ex_wth_res[0].deadline
-                if ex_wth_res[0].deadline is not None
-                else datetime.max
+                key=lambda ex_wth_res: (
+                    ex_wth_res[0].deadline
+                    if ex_wth_res[0].deadline is not None
+                    else datetime.max
+                )
             )
 
             # sort closed_deadline_exercises by deadline descending
             self.closed_deadline_exercises.sort(
-                key=lambda ex_wth_res: ex_wth_res[0].deadline
-                if ex_wth_res[0].deadline is not None
-                else datetime.min,
+                key=lambda ex_wth_res: (
+                    ex_wth_res[0].deadline
+                    if ex_wth_res[0].deadline is not None
+                    else datetime.min
+                ),
                 reverse=True,
             )
 
             # sort no_deadline_exercises by submitted vs not submitted
             self.no_deadline_exercises.sort(
-                key=lambda ex_wth_res: ex_wth_res[1].submit_time_stamp is not None
-                if ex_wth_res[1] is not None
-                else False,
+                key=lambda ex_wth_res: (
+                    ex_wth_res[1].submit_time_stamp is not None
+                    if ex_wth_res[1] is not None
+                    else False
+                ),
             )
 
             self.update_time_left_strings()

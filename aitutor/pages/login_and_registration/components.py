@@ -54,6 +54,7 @@ def login_form() -> rx.Component:
                 "username",
                 placeholder=LanguageState.username,
                 required=True,
+                auto_focus=True,
                 custom_attrs={"auto_complete": "username"},
             ),
             rx.text(LanguageState.password),

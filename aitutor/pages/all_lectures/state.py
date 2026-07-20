@@ -157,15 +157,17 @@ class AllLecturesState(SessionState):
         self._reset_page_state()
         self.load_lectures()
 
-        lecture_id_param = self._get_route_lecture_id_param()
-        if not lecture_id_param:
+        lecture_id_str = self.get_route_param_or_default("lecture_id", default="")
+        if not lecture_id_str:
+            # this is the normal case where no lecture is specified, so we just show the
+            # list of lectures
             return
 
+        # in case a lecture is given as parameter, open the join dialog for that lecture
         try:
-            lecture_id = int(lecture_id_param)
+            lecture_id = int(lecture_id_str)
         except ValueError:
             return rx.redirect(routes.NOT_FOUND)
-
         return self.open_join_dialog(lecture_id)
 
     def on_logout(self):
@@ -260,7 +262,3 @@ class AllLecturesState(SessionState):
             ).all()
 
         self.lectures = self._serialize_lectures(lectures)
-
-    def _get_route_lecture_id_param(self) -> str:
-        """Return the lecture id route parameter or an empty string."""
-        return str(self.lecture_id)

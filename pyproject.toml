@@ -11,15 +11,14 @@ authors = [
     {name = "AL Group", email = "georg.martius@uni-tuebingen.de"},
 ]
 
-requires-python = ">=3.13"
+requires-python = ">=3.14"
 dependencies = [
     "reflex[db]",
     "pytest",
     "passlib",
-    "python-decouple",
+    "pydantic-settings",
     "openai",
     "pdfplumber",
-    "dotenv",
     "bcrypt",
     "reflex-local-auth>=0.4.0",
     "variconf[toml]>=1.0.1",

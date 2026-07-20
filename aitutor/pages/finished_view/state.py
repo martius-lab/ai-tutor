@@ -17,6 +17,7 @@ from aitutor.utilities.lecture_permissions import user_may_view_lecture
 class FinishedViewState(SessionState):
     """The State for the finished view."""
 
+    _exercise_id: int
     messages: list[ChatMessage] = []
     current_exercise: Optional[Exercise] = None
     exercise_title: str = "No Exercise Selected"
@@ -32,7 +33,9 @@ class FinishedViewState(SessionState):
         userinfo = self.authenticated_user_info
         if userinfo:
             try:
-                exercise_id = int(self.exercise_id)
+                self._exercise_id = self.get_route_param_or_error(
+                    "exercise_id", dtype=int
+                )
             except ValueError:
                 yield rx.redirect(routes.NOT_FOUND)
                 return
@@ -45,7 +48,7 @@ class FinishedViewState(SessionState):
                     )
                     .join(ExerciseResult)
                     .where(
-                        Exercise.id == exercise_id,
+                        Exercise.id == self._exercise_id,
                         ExerciseResult.userinfo_id == userinfo.id,
                     )
                 )
@@ -78,6 +81,7 @@ class FinishedViewState(SessionState):
 
     def on_logout(self):
         """Clears the state when the user logs out."""
+        self._exercise_id = -1
         self.messages = []
         self.current_exercise = None
         self.exercise_title = "No Exercise Selected"
@@ -86,7 +90,7 @@ class FinishedViewState(SessionState):
     @rx.var
     def chat_url(self) -> str:
         """Returns the URL for the chat page."""
-        return f"{routes.CHAT}/{self.exercise_id}"
+        return f"{routes.CHAT}/{self._exercise_id}"
 
     @rx.event
     def delete_submisssion(self):
