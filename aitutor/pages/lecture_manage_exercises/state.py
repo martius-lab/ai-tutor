@@ -44,6 +44,7 @@ class LectureManageExercisesState(FilterMixin, SessionState):
     add_exercise_dialog_is_open: bool = False
     edit_exercise_dialog_is_open: bool = False
     current_lecture_id: int | None = None
+    current_default_prompt_id: int | None = None
 
     exercises: list[Exercise] = []
     tag_list: list[Tag] = []
@@ -58,12 +59,10 @@ class LectureManageExercisesState(FilterMixin, SessionState):
     lesson_context: str = ""
     #: name of the extracted PDF
     lesson_file_name: str = ""
-    #: the currently selected prompt name
-    current_prompt_name: str = ""
+    #: the currently selected prompt id
+    current_prompt_id: str = ""
     #: the prompt templates
     prompts: list[Prompt] = []
-    #: the prompt names that can be selected
-    prompt_names: list[str] = []
     #: Flag to control if lesson material is being extracted
     extracting_lesson_material: bool = False
     #: Flag to control if the current exercise is hidden
@@ -97,9 +96,9 @@ class LectureManageExercisesState(FilterMixin, SessionState):
         self.lesson_context = context
 
     @rx.event
-    def set_current_prompt_name(self, prompt_name: str):
-        """Set the current prompt name."""
-        self.current_prompt_name = prompt_name
+    def set_current_prompt_id(self, prompt_id: str):
+        """Set the current prompt id."""
+        self.current_prompt_id = prompt_id
 
     @rx.event
     def set_current_hidden_state(self, hidden: bool):
@@ -148,17 +147,28 @@ class LectureManageExercisesState(FilterMixin, SessionState):
             return rx.redirect(routes.MY_LECTURES)
 
         with rx.session() as session:
-            if session.get(Lecture, lecture_id) is None:
+            lecture = session.get(Lecture, lecture_id)
+            if lecture is None:
                 return rx.redirect(routes.NOT_FOUND)
+            self.current_default_prompt_id = lecture.default_prompt_id
 
         self.current_lecture_id = lecture_id
         with rx.session() as session:
-            # Sort prompts at database level: default first, then by id
+            # Sort prompts at database level: default first, then by name
             self.prompts = (
                 list(
                     session.exec(
-                        select(Prompt).order_by(
+                        select(Prompt)
+                        .where(
+                            or_(
+                                Prompt.lecture_id == None,  # noqa: E711
+                                Prompt.lecture_id == lecture_id,
+                            )
+                        )
+                        .order_by(
                             Prompt.is_default_prompt.desc(),  # type: ignore
+                            Prompt.lecture_id.is_not(None).desc(),  # type: ignore
+                            func.lower(Prompt.name),  # type: ignore
                             Prompt.id,  # type: ignore
                         )
                     ).all()
@@ -166,7 +176,6 @@ class LectureManageExercisesState(FilterMixin, SessionState):
                 or []
             )
         self.load_tags()
-        self.prompt_names = [prompt.name for prompt in self.prompts]
         self.load_exercises()
         self.extracting_lesson_material = False
 
@@ -187,6 +196,7 @@ class LectureManageExercisesState(FilterMixin, SessionState):
         """Clears the state when the user logs out."""
         self.exercises = []
         self.current_lecture_id = None
+        self.current_default_prompt_id = None
         self.tag_list = []
         self.tag_names = []
         self.search_values = []  # from FilterMixin
@@ -194,9 +204,8 @@ class LectureManageExercisesState(FilterMixin, SessionState):
         self.selected_tags = []
         self.lesson_context = ""
         self.lesson_file_name = ""
-        self.current_prompt_name = ""
+        self.current_prompt_id = ""
         self.prompts = []
-        self.prompt_names = []
         self.extracting_lesson_material = False
         self.current_hidden_state = False
         self.current_deadline = ""
@@ -230,11 +239,36 @@ class LectureManageExercisesState(FilterMixin, SessionState):
 
     @rx.var
     def get_current_prompt_template(self) -> str:
-        """Return the prompt template for the currently selected prompt name."""
+        """Return the prompt template for the currently selected prompt id."""
         for prompt in self.prompts:
-            if prompt.name == self.current_prompt_name:
+            if str(prompt.id) == self.current_prompt_id:
                 return prompt.prompt_template
         return "prompt selection error!"
+
+    def get_current_prompt_id(self) -> int | None:
+        """Return the currently selected prompt id."""
+        try:
+            return int(self.current_prompt_id)
+        except ValueError:
+            return None
+
+    def _lecture_exercise_title_conflicts_with_db(
+        self, exercise_ids: set[int | None], titles: list[str]
+    ) -> bool:
+        """Return whether a title conflicts with exercises in this lecture."""
+        if self.current_lecture_id is None or not titles:
+            return False
+
+        query = select(Exercise.id).where(
+            Exercise.lecture_id == self.current_lecture_id,
+            Exercise.title.in_(titles),  # type: ignore
+        )
+
+        if exercise_ids:
+            query = query.where(Exercise.id.not_in(exercise_ids))  # type: ignore
+
+        with rx.session() as session:
+            return session.exec(query).first() is not None
 
     @rx.event
     def delete_selected_exercises(self):
@@ -253,13 +287,6 @@ class LectureManageExercisesState(FilterMixin, SessionState):
             position="bottom-center",
             invert=True,
         )
-
-    def get_prompt_id_by_name(self, prompt_name: str) -> int | None:
-        """Return the prompt id for a given prompt name."""
-        for prompt in self.prompts:
-            if prompt.name == prompt_name:
-                return prompt.id
-        return None
 
     @rx.event
     def export_selected_exercises(self):
@@ -378,7 +405,13 @@ class LectureManageExercisesState(FilterMixin, SessionState):
 
                 for p_name, p_template in prompt_templates.items():
                     existing_prompt = session.exec(
-                        select(Prompt).where(Prompt.name == p_name)
+                        select(Prompt).where(
+                            Prompt.name == p_name,
+                            or_(
+                                Prompt.lecture_id == None,  # noqa: E711
+                                Prompt.lecture_id == self.current_lecture_id,
+                            ),
+                        )
                     ).first()
 
                     if existing_prompt:
@@ -390,13 +423,21 @@ class LectureManageExercisesState(FilterMixin, SessionState):
                             new_name = p_name
                             counter = 1
                             while session.exec(
-                                select(Prompt).where(Prompt.name == new_name)
+                                select(Prompt).where(
+                                    Prompt.name == new_name,
+                                    or_(
+                                        Prompt.lecture_id == None,  # noqa: E711
+                                        Prompt.lecture_id == self.current_lecture_id,
+                                    ),
+                                )
                             ).first():
                                 new_name = f"{p_name} (imported {counter})"
                                 counter += 1
 
                             new_prompt = Prompt(
-                                name=new_name, prompt_template=p_template
+                                name=new_name,
+                                prompt_template=p_template,
+                                lecture_id=self.current_lecture_id,
                             )
                             session.add(new_prompt)
                             session.flush()  # Flush to get the ID
@@ -404,7 +445,11 @@ class LectureManageExercisesState(FilterMixin, SessionState):
                             prompt_renames.append((p_name, new_name))
                     else:
                         # New prompt
-                        new_prompt = Prompt(name=p_name, prompt_template=p_template)
+                        new_prompt = Prompt(
+                            name=p_name,
+                            prompt_template=p_template,
+                            lecture_id=self.current_lecture_id,
+                        )
                         session.add(new_prompt)
                         session.flush()
                         prompt_name_to_id[p_name] = new_prompt.id
@@ -436,7 +481,10 @@ class LectureManageExercisesState(FilterMixin, SessionState):
                     original_title = title
                     counter = 1
                     while session.exec(
-                        select(Exercise).where(Exercise.title == title)
+                        select(Exercise).where(
+                            Exercise.title == title,
+                            Exercise.lecture_id == self.current_lecture_id,
+                        )
                     ).first():
                         title = f"{original_title} (imported {counter})"
                         counter += 1
@@ -541,11 +589,12 @@ class LectureManageExercisesState(FilterMixin, SessionState):
         """Add exercises to db."""
         if self.current_lecture_id is None:
             return rx.redirect(routes.MY_LECTURES)
-        existing_titles = {exercise.title for exercise in self.exercises}
         with rx.session() as session:
             if not form_data["title"]:
                 return rx.window_alert("Please enter a title for the exercise.")
-            if form_data["title"] in existing_titles:
+            if self._lecture_exercise_title_conflicts_with_db(
+                set(), [form_data["title"]]
+            ):
                 return rx.window_alert(
                     f"The title '{form_data['title']}' is already used by another"
                     + "exercise. Please choose a different title."
@@ -556,7 +605,7 @@ class LectureManageExercisesState(FilterMixin, SessionState):
                 return rx.window_alert(
                     "Please add some lesson context to the exercise."
                 )
-            if self.current_prompt_name == "":
+            if self.current_prompt_id == "":
                 return rx.window_alert(
                     "Please select a prompt template for the exercise."
                 )
@@ -564,7 +613,7 @@ class LectureManageExercisesState(FilterMixin, SessionState):
                 lesson_context=self.lesson_context,
                 title=form_data["title"],
                 description=form_data["description"],
-                prompt_id=self.get_prompt_id_by_name(self.current_prompt_name),
+                prompt_id=self.get_current_prompt_id(),
                 lecture_id=self.current_lecture_id,
                 is_hidden=self.current_hidden_state,
                 tags=session.exec(
@@ -693,14 +742,10 @@ class LectureManageExercisesState(FilterMixin, SessionState):
     @rx.event
     def update_exercise(self, form_data: dict):
         """Update exercises in db."""
-        existing_titles = {
-            exercise.title
-            for exercise in self.exercises
-            if exercise.id != self.current_exercise.id
-        }
-
         with rx.session() as session:
-            if form_data["title"] in existing_titles:
+            if self._lecture_exercise_title_conflicts_with_db(
+                {self.current_exercise.id}, [form_data["title"]]
+            ):
                 return rx.window_alert(
                     f"The title '{form_data['title']}' is already used by another"
                     + "exercise. Please choose a different title."
@@ -717,9 +762,7 @@ class LectureManageExercisesState(FilterMixin, SessionState):
             updated_exercise.tags = session.exec(
                 select(Tag).where(Tag.name.in_(self.selected_tags))  # type: ignore
             ).all()
-            updated_exercise.prompt_id = self.get_prompt_id_by_name(
-                self.current_prompt_name
-            )
+            updated_exercise.prompt_id = self.get_current_prompt_id()
             updated_exercise.lesson_context = self.lesson_context
             updated_exercise.is_hidden = self.current_hidden_state
 
@@ -754,7 +797,7 @@ class LectureManageExercisesState(FilterMixin, SessionState):
         self.lesson_context = ""
         self.lesson_file_name = ""
         self.selected_tags = []
-        self.current_prompt_name = ""
+        self.current_prompt_id = ""
         self.current_hidden_state = False
         self.current_deadline = ""
         self.current_days_to_complete = ""
@@ -786,9 +829,7 @@ class LectureManageExercisesState(FilterMixin, SessionState):
                 exercise = self.exercises[i]
                 break
         self.current_exercise = exercise
-        self.current_prompt_name = (
-            exercise.prompt.name if exercise.prompt else "error loading prompt!"
-        )
+        self.current_prompt_id = str(exercise.prompt_id or "")
         self.lesson_context = exercise.lesson_context
         self.selected_tags = [tag.name for tag in exercise.tags]
         self.lesson_file_name = ""  # reset lesson_file_name
@@ -807,7 +848,16 @@ class LectureManageExercisesState(FilterMixin, SessionState):
     def open_add_dialog(self):
         """Open the add/edit dialog."""
         self.reset_exercise_form()
-        self.current_prompt_name = self.prompt_names[0] if self.prompt_names else ""
+        default_prompt = next(
+            (
+                prompt
+                for prompt in self.prompts
+                if prompt.id == self.current_default_prompt_id
+            ),
+            None,
+        )
+        selected_prompt = default_prompt or (self.prompts[0] if self.prompts else None)
+        self.current_prompt_id = str(selected_prompt.id) if selected_prompt else ""
         self.add_exercise_dialog_is_open = True
 
     @rx.event

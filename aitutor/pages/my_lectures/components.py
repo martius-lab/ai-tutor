@@ -184,25 +184,6 @@ def enter_lecture_button(lecture: Lecture, *, width: str | None = None) -> rx.Co
     )
 
 
-def edit_lecture_button(lecture: Lecture, *, width: str | None = None) -> rx.Component:
-    """Render the button for editing a lecture."""
-    assert lecture.id is not None, "Lecture must be persisted to render edit button."
-    return rx.link(
-        rx.button(
-            rx.flex(
-                rx.icon("pen", size=15),
-                LS.edit,
-                gap="0.5em",
-                align="center",
-            ),
-            width=width,
-            _hover={"cursor": "pointer"},
-        ),
-        href=f"{routes.EDIT_LECTURE}/{lecture.id}",
-        width=width,
-    )
-
-
 def lecture_role_filter_text(role: int | None) -> rx.Component:
     """Render the clickable role label that also applies the role filter."""
     return role_filter_text(
@@ -222,10 +203,6 @@ def lecture_action_buttons(
 
     return rx.hstack(
         enter_lecture_button(lecture, width=button_width),
-        rx.cond(
-            (role == LectureRole.OWNER.value) | MyLecturesState.is_global_admin,
-            edit_lecture_button(lecture, width=button_width),
-        ),
         rx.cond(
             role is not None,
             leave_lecture_button(lecture, width=button_width),

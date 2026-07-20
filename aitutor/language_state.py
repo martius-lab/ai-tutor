@@ -1871,6 +1871,28 @@ class BackendTranslations:
             en="Error: Replacement prompt not found.",
         )
 
+    @staticmethod
+    def prompt_used_in_lectures_cannot_delete(language: Language) -> str:
+        return translate(
+            language,
+            de=(
+                "Fehler: Dieser Prompt wird noch in einer Vorlesung verwendet "
+                "und kann nicht global gelöscht werden."
+            ),
+            en=(
+                "Error: This prompt is still used in a lecture and cannot be "
+                "deleted globally."
+            ),
+        )
+
+    @staticmethod
+    def invalid_replacement_prompt(language: Language) -> str:
+        return translate(
+            language,
+            de="Fehler: Ungültiger Ersatzprompt.",
+            en="Error: Invalid replacement prompt.",
+        )
+
     # TokenAnalyzerState ----------------------------------------------------------------
     @staticmethod
     def all_option(language: Language) -> str:

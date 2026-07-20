@@ -143,3 +143,7 @@ uploaded_files
 
 # vscode settings
 .vscode/
+
+.DS_Store
+**/.DS_Store
+tmp/
