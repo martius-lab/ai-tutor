@@ -158,6 +158,7 @@ async def get_check_conversation_response(
 class ChatState(SessionState):
     """Handles the ChatState."""
 
+    _exercise_id: int
     messages: list[ChatMessage] = []
     current_exercise: Optional[Exercise] = None
     exercise_title: str = "No Exercise Selected"
@@ -221,7 +222,7 @@ class ChatState(SessionState):
         self._userinfo_id = userinfo.id
 
         try:
-            exercise_id = int(self.exercise_id)
+            self._exercise_id = self.get_route_param_or_error("exercise_id", dtype=int)
         except ValueError:
             yield rx.redirect(routes.NOT_FOUND)
             return
@@ -230,7 +231,7 @@ class ChatState(SessionState):
             config = get_config()
             self.token_limit = max(1, config.exercise_token_limit)
             exercise = session.exec(
-                select(Exercise).where(Exercise.id == exercise_id)
+                select(Exercise).where(Exercise.id == self._exercise_id)
             ).one_or_none()
             if exercise is None:
                 yield rx.redirect(routes.NOT_FOUND)
@@ -253,7 +254,7 @@ class ChatState(SessionState):
 
             exercise_result = session.exec(
                 select(ExerciseResult).where(
-                    ExerciseResult.exercise_id == exercise_id,
+                    ExerciseResult.exercise_id == self._exercise_id,
                     ExerciseResult.userinfo_id == self._userinfo_id,
                 )
             ).one_or_none()
@@ -313,6 +314,7 @@ class ChatState(SessionState):
 
     def on_logout(self):
         """Clears the state when the user logs out."""
+        self._exercise_id = -1
         self.messages = []
         self.current_exercise = None
         self.exercise_title = "No Exercise Selected"
@@ -343,7 +345,7 @@ class ChatState(SessionState):
         The exercise_id is used to identify the current exercise.
         It is set by the route parameter in the URL.
         """
-        return f"{routes.FINISHED_VIEW}/{self.exercise_id}"
+        return f"{routes.FINISHED_VIEW}/{self._exercise_id}"
 
     @rx.var
     def exercises_url(self) -> str:

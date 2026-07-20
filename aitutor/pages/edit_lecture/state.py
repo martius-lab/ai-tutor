@@ -17,6 +17,8 @@ from aitutor.models import (
 )
 from aitutor.utilities.lecture_permissions import user_may_edit_lecture
 
+MAGIC_ID_NEW = "new"
+
 
 class EditLectureState(SessionState):
     """State for the edit lecture page."""
@@ -29,7 +31,7 @@ class EditLectureState(SessionState):
     check_conversation_prompt: str = ""
     unsaved_changes: bool = False
     is_new: bool = True
-    lecture_id_param: str = "new"
+    lecture_id_param: str = MAGIC_ID_NEW
     delete_confirmation_password: str = ""
 
     @rx.event
@@ -53,10 +55,12 @@ class EditLectureState(SessionState):
     def on_load(self):
         """Initialize the page state."""
         self.global_load()
-        lecture_id_param = self._get_route_lecture_id_param()
-        self.lecture_id_param = lecture_id_param
 
-        if lecture_id_param == "new":
+        self.lecture_id_param = self.get_route_param_or_default(
+            "lecture_id", default=MAGIC_ID_NEW
+        )
+
+        if self.lecture_id_param == MAGIC_ID_NEW:
             if not self._user_may_create_lecture():
                 return rx.redirect(routes.MY_LECTURES)
 
@@ -66,7 +70,7 @@ class EditLectureState(SessionState):
             return
 
         try:
-            lecture_id = int(lecture_id_param)
+            lecture_id = int(self.lecture_id_param)
         except ValueError:
             return rx.redirect(routes.NOT_FOUND)
 
@@ -82,7 +86,7 @@ class EditLectureState(SessionState):
     def on_logout(self):
         """Clear lecture-specific state on logout."""
         self._reset_form()
-        self.lecture_id_param = "new"
+        self.lecture_id_param = MAGIC_ID_NEW
         self.delete_confirmation_password = ""
 
     @rx.event
@@ -219,7 +223,7 @@ class EditLectureState(SessionState):
             session.commit()
 
         self._reset_form()
-        self.lecture_id_param = "new"
+        self.lecture_id_param = MAGIC_ID_NEW
         self.delete_confirmation_password = ""
         return [
             rx.toast.success(
@@ -267,10 +271,6 @@ class EditLectureState(SessionState):
         lecture.registration_code = self.registration_code
         lecture.lecture_information_text = self.lecture_information_text
         lecture.check_conversation_prompt = self.check_conversation_prompt
-
-    def _get_route_lecture_id_param(self) -> str:
-        """Return the lecture id route parameter or 'new' for the create page."""
-        return str(self.lecture_id or "new")
 
     def _normalized_lecture_name(self) -> str:
         """Return the trimmed lecture name used for validation and persistence."""

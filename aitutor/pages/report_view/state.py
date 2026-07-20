@@ -13,6 +13,7 @@ from aitutor.pages.chat.state import ChatMessage, Role
 class ReportViewState(SessionState):
     """State for viewing a specific report."""
 
+    _report_id: int
     report_text: str = ""
     looked_at: bool = False
     exercise_title: str | None = None
@@ -24,10 +25,13 @@ class ReportViewState(SessionState):
     def on_load(self):
         """Load report details when page opens."""
         self.global_load()
+
+        self._report_id = self.get_route_param_or_error("report_id", dtype=int)
         self.load_report()
 
     def on_logout(self):
         """Clear state when user logs out."""
+        self._report_id = -1
         self.report_text = ""
         self.looked_at = False
         self.exercise_title = ""
@@ -41,7 +45,7 @@ class ReportViewState(SessionState):
             # Load report with all needed relationships
             report = session.exec(
                 select(Report)
-                .where(Report.id == int(self.report_id))
+                .where(Report.id == self._report_id)
                 .options(
                     selectinload(Report.exercise),  # type: ignore
                     selectinload(Report.userinfo).selectinload(UserInfo.local_user),  # type: ignore
@@ -84,7 +88,7 @@ class ReportViewState(SessionState):
         """Toggle the looked_at status of the report."""
         with rx.session() as session:
             report = session.exec(
-                select(Report).where(Report.id == int(self.report_id))
+                select(Report).where(Report.id == self._report_id)
             ).first()
 
             if report:

@@ -31,10 +31,9 @@ class LectureOverviewState(SessionState):
         self.global_load()
         self._reset_lecture_state()
 
-        lecture_id_param = self._get_route_lecture_id_param()
         try:
-            lecture_id = int(lecture_id_param)
-        except ValueError:
+            lecture_id = self.get_route_param_or_error("lecture_id", dtype=int)
+        except Exception:
             return rx.redirect(routes.NOT_FOUND)
 
         if not self._user_may_view_lecture(lecture_id):
@@ -139,10 +138,6 @@ class LectureOverviewState(SessionState):
 
         title, deadline = min(tasks, key=lambda t: t[1])
         return f"{title} – {deadline.strftime('%d.%m.%Y, %H:%M')}"
-
-    def _get_route_lecture_id_param(self) -> str:
-        """Return the lecture id route parameter."""
-        return str(self.lecture_id)
 
     def _user_may_view_lecture(self, lecture_id: int) -> bool:
         """Check whether the current user may open this lecture."""
