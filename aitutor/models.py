@@ -78,6 +78,9 @@ class Lecture(SQLModel, table=True):
     exercises: List["Exercise"] = Relationship(
         back_populates="lecture", sa_relationship_kwargs={"passive_deletes": True}
     )
+    tags: List["Tag"] = Relationship(
+        back_populates="lecture", sa_relationship_kwargs={"passive_deletes": True}
+    )
 
 
 class LinkUserLecture(SQLModel, table=True):
@@ -119,12 +122,16 @@ class Tag(SQLModel, table=True):
     """Tag model for storing allowed tags."""
 
     id: Optional[int] = Field(default=None, primary_key=True)
-    name: str = Field(unique=True, nullable=False, index=True)
+    name: str = Field(nullable=False, index=True)
+    lecture_id: Optional[int] = Field(
+        default=None, foreign_key="lecture.id", ondelete="CASCADE", index=True
+    )
 
     # ORM relationship
     exercises: List["Exercise"] = Relationship(
         back_populates="tags", link_model=ExerciseTagLink
     )
+    lecture: Optional[Lecture] = Relationship(back_populates="tags")
 
     def __repr__(self):
         return f"<Tag(name='{self.name}')>"
