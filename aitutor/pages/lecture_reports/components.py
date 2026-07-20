@@ -74,7 +74,7 @@ def show_table_row(table_row: LectureReportTableRow) -> rx.Component:
                             rx.icon("mail", size=22),
                         ),
                         size="2",
-                        color_scheme=rx.cond(
+                        color=rx.cond(
                             table_row.looked_at,
                             "gray",
                             "accent",
