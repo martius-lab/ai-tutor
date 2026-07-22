@@ -141,6 +141,7 @@ def register_form() -> rx.Component:
                 custom_attrs={"auto_complete": "username"},
                 value=MyRegisterState.username,
                 on_change=MyRegisterState.set_username,
+                disabled=MyRegisterState.registration_in_progress,
             ),
             rx.text(LanguageState.email),
             input(
@@ -151,6 +152,7 @@ def register_form() -> rx.Component:
                 custom_attrs={"auto_complete": "email"},
                 value=MyRegisterState.email,
                 on_change=MyRegisterState.set_email,
+                disabled=MyRegisterState.registration_in_progress,
             ),
             rx.text(LanguageState.password),
             password_input(
@@ -160,6 +162,7 @@ def register_form() -> rx.Component:
                 custom_attrs={"auto_complete": "new-password"},
                 value=MyRegisterState.password,
                 on_change=MyRegisterState.set_password,
+                disabled=MyRegisterState.registration_in_progress,
             ),
             rx.text(LanguageState.confirm_password),
             password_input(
@@ -169,6 +172,7 @@ def register_form() -> rx.Component:
                 custom_attrs={"auto_complete": "new-password"},
                 value=MyRegisterState.confirm_password,
                 on_change=MyRegisterState.set_confirm_password,
+                disabled=MyRegisterState.registration_in_progress,
             ),
             rx.text(LanguageState.registration_code),
             input(
@@ -177,6 +181,7 @@ def register_form() -> rx.Component:
                 required=True,
                 value=MyRegisterState.registration_code,
                 on_change=MyRegisterState.set_registration_code,
+                disabled=MyRegisterState.registration_in_progress,
             ),
             rx.cond(
                 privacy_notice,
