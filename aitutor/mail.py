@@ -74,15 +74,14 @@ class SmtpSettings:
 
 def build_text_email(
     *,
+    from_email: str,
     to_email: str,
     subject: str,
     body: str,
-    settings: SmtpSettings | None = None,
 ) -> EmailMessage:
     """Build a plain text email message."""
-    active_settings = settings or SmtpSettings.from_env()
     message = EmailMessage()
-    message["From"] = active_settings.from_email
+    message["From"] = from_email
     message["To"] = to_email
     message["Subject"] = subject
     message.set_content(body)
@@ -100,10 +99,10 @@ def send_text_email(
     active_settings = settings or SmtpSettings.from_env()
     send_email(
         build_text_email(
+            from_email=active_settings.from_email,
             to_email=to_email,
             subject=subject,
             body=body,
-            settings=active_settings,
         ),
         settings=active_settings,
     )

@@ -112,17 +112,11 @@ def test_smtp_settings_reject_partial_credentials():
 
 
 def test_build_text_email_uses_configured_sender():
-    settings = SmtpSettings(
-        host="smtp.example.com",
-        port=587,
-        from_email="AI Tutor <noreply@example.com>",
-    )
-
     message = build_text_email(
+        from_email="AI Tutor <noreply@example.com>",
         to_email="student@example.com",
         subject="Confirm your AI Tutor account",
         body="Welcome to AI Tutor.",
-        settings=settings,
     )
 
     assert message["From"] == "AI Tutor <noreply@example.com>"
