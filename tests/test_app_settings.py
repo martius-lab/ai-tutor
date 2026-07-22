@@ -78,20 +78,94 @@ def test_app_settings_treats_empty_openai_base_url_as_none(monkeypatch):
     assert make_settings(env_file=None).openai_base_url is None
 
 
-def test_app_settings_defaults_optional_smtp_fields_to_none(monkeypatch):
-    """Unset optional SMTP strings remain distinguishable from configured values."""
+def test_app_settings_smtp_optional(monkeypatch):
+    """If no SMTP values are set, the settings object will be None."""
     monkeypatch.setenv("OPENAI_API_KEY", "env-key")
     for env_var in (
         "SMTP_HOST",
         "SMTP_FROM_EMAIL",
         "SMTP_USERNAME",
         "SMTP_PASSWORD",
+        "SMTP_USE_TLS",
+        "SMTP_USE_SSL",
     ):
         monkeypatch.delenv(env_var, raising=False)
 
     settings = make_settings(env_file=None)
 
-    assert settings.smtp_host is None
-    assert settings.smtp_from_email is None
-    assert settings.smtp_username is None
-    assert settings.smtp_password is None
+    assert settings.SMTP is None
+
+
+def test_smtp_settings_from_env(monkeypatch):
+    monkeypatch.setenv("OPENAI_API_KEY", "test-key")
+    monkeypatch.setenv("SMTP_HOST", "smtpserv.uni-tuebingen.de")
+    monkeypatch.setenv("SMTP_PORT", "587")
+    monkeypatch.setenv("SMTP_FROM_EMAIL", "AI Tutor <noreply@example.com>")
+    monkeypatch.setenv("SMTP_USERNAME", "smtp-user")
+    monkeypatch.setenv("SMTP_PASSWORD", "smtp-password")
+    monkeypatch.setenv("SMTP_USE_TLS", "true")
+    monkeypatch.setenv("SMTP_USE_SSL", "false")
+
+    settings = make_settings(env_file=None)
+
+    assert settings.SMTP is not None
+    assert settings.SMTP.HOST == "smtpserv.uni-tuebingen.de"
+    assert settings.SMTP.PORT == 587
+    assert settings.SMTP.FROM_EMAIL == "AI Tutor <noreply@example.com>"
+    assert settings.SMTP.USERNAME == "smtp-user"
+    assert settings.SMTP.PASSWORD == "smtp-password"
+    assert settings.SMTP.USE_TLS is True
+    assert settings.SMTP.USE_SSL is False
+
+
+def test_smtp_settings_default_to_no_tls(monkeypatch):
+    monkeypatch.setenv("OPENAI_API_KEY", "test-key")
+    monkeypatch.setenv("SMTP_HOST", "smtp.example.com")
+    monkeypatch.setenv("SMTP_PORT", "587")
+    monkeypatch.setenv("SMTP_FROM_EMAIL", "noreply@example.com")
+    monkeypatch.delenv("SMTP_USE_TLS", raising=False)
+    monkeypatch.delenv("SMTP_USE_SSL", raising=False)
+
+    settings = make_settings(env_file=None)
+
+    assert settings.SMTP is not None
+    assert settings.SMTP.USE_TLS is False
+    assert settings.SMTP.USE_SSL is False
+
+
+def test_smtp_settings_require_host(monkeypatch):
+    monkeypatch.setenv("OPENAI_API_KEY", "test-key")
+    monkeypatch.delenv("SMTP_HOST", raising=False)
+    monkeypatch.setenv("SMTP_FROM_EMAIL", "noreply@example.com")
+
+    with pytest.raises(ValidationError, match="HOST"):
+        make_settings(env_file=None)
+
+
+def test_smtp_settings_require_port(monkeypatch):
+    monkeypatch.setenv("OPENAI_API_KEY", "test-key")
+    monkeypatch.delenv("SMTP_PORT", raising=False)
+    monkeypatch.setenv("SMTP_FROM_EMAIL", "noreply@example.com")
+
+    with pytest.raises(ValidationError, match="PORT"):
+        make_settings(env_file=None)
+
+
+def test_smtp_settings_require_from_email(monkeypatch):
+    monkeypatch.setenv("OPENAI_API_KEY", "test-key")
+    monkeypatch.delenv("SMTP_FROM_EMAIL", raising=False)
+    monkeypatch.setenv("SMTP_HOST", "smtp@example.com")
+
+    with pytest.raises(ValidationError, match="FROM_EMAIL"):
+        make_settings(env_file=None)
+
+
+def test_smtp_settings_reject_partial_credentials(monkeypatch):
+    monkeypatch.setenv("OPENAI_API_KEY", "test-key")
+    monkeypatch.setenv("SMTP_HOST", "smtp.example.com")
+    monkeypatch.setenv("SMTP_PORT", "123")
+    monkeypatch.setenv("SMTP_FROM_EMAIL", "noreply@example.com")
+    monkeypatch.setenv("SMTP_USERNAME", "foobar")
+
+    with pytest.raises(ValidationError, match="SMTP_PASSWORD"):
+        make_settings(env_file=None)

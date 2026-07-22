@@ -11,7 +11,7 @@ from reflex_local_auth.user import LocalUser
 from aitutor.account_emails import send_signup_welcome_email
 from aitutor.config import get_config
 from aitutor.language_state import language_from_value
-from aitutor.mail import EmailConfigurationError, EmailDeliveryError
+from aitutor.mail import EmailDeliveryError
 from aitutor.models import UserInfo, UserRole
 
 logger = logging.getLogger(__name__)
@@ -147,7 +147,7 @@ class MyRegisterState(reflex_local_auth.RegistrationState):
                             language=user_info.language,
                         )
                         welcome_email_sent = True
-                except (EmailConfigurationError, EmailDeliveryError):
+                except EmailDeliveryError:
                     logger.exception(
                         "Failed to send signup welcome email for user_id=%s.",
                         self.new_user_id,
