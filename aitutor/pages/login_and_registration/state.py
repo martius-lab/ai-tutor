@@ -137,22 +137,26 @@ class MyRegisterState(reflex_local_auth.RegistrationState):
                 )
                 session.add(user_info)
                 session.commit()
-                try:
-                    local_user = session.get(LocalUser, self.new_user_id)
-                    if local_user is not None:
-                        await asyncio.to_thread(
-                            send_signup_welcome_email,
-                            to_email=user_info.email,
-                            username=local_user.username,
-                            language=user_info.language,
-                        )
-                        welcome_email_sent = True
-                except EmailDeliveryError:
-                    logger.exception(
-                        "Failed to send signup welcome email for user_id=%s.",
-                        self.new_user_id,
+                session.refresh(user_info)
+
+                local_user = session.get(LocalUser, self.new_user_id)
+                username = local_user.username if local_user else None
+
+            try:
+                if username:
+                    await asyncio.to_thread(
+                        send_signup_welcome_email,
+                        to_email=user_info.email,
+                        username=username,
+                        language=user_info.language,
                     )
-                    welcome_email_failed = True
+                    welcome_email_sent = True
+            except EmailDeliveryError:
+                logger.exception(
+                    "Failed to send signup welcome email for user_id=%s.",
+                    self.new_user_id,
+                )
+                welcome_email_failed = True
 
             self.clear_state_vars()
             self.welcome_email_sent = welcome_email_sent
