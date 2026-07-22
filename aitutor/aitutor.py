@@ -199,6 +199,12 @@ def initialize():
     if settings.openai_base_url:
         print(f"Using OPENAI_BASE_URL={settings.openai_base_url}")
 
+    if not settings.SMTP:
+        cprint(
+            "Warning: SMTP is not configured. Emails will not be sent.",
+            fg="yellow",
+        )
+
     create_default_users()
 
     with rx.session() as session:

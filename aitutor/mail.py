@@ -35,14 +35,31 @@ def send_text_email(
     settings: SmtpSettings | None = None,
 ) -> None:
     """Build and send a plain text email message."""
-    settings = settings or get_settings().smtp
+    settings = settings or get_settings().SMTP
+
+    # settings may be None, which means no SMTP is configured.  In this case, simply
+    # print the email to stdout for debugging.
+
+    from_email = settings.FROM_EMAIL if settings else "Testing <test@localhost>"
     mail = build_text_email(
-        from_email=settings.from_email,
+        from_email=from_email,
         to_email=to_email,
         subject=subject,
         body=body,
     )
-    send_email(mail, settings=settings)
+    if settings:
+        send_email(mail, settings=settings)
+    else:
+        print_mail(mail)
+
+
+def print_mail(
+    message: EmailMessage,
+) -> None:
+    """Print the email message to stdout for debugging."""
+    print("=== Email Message ===")
+    print(message)
+    print("=====================")
 
 
 def send_email(
