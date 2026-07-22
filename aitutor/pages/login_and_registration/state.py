@@ -1,6 +1,7 @@
 """State for the login and for the registration page."""
 
 import asyncio
+import email.utils
 import logging
 import re
 
@@ -111,6 +112,17 @@ class MyRegisterState(reflex_local_auth.RegistrationState):
                     "Username can only contain letters, numbers and '. _ -'"
                 )
                 self.username = ""
+                return
+
+            # Very basic email syntax validation, mostly to catch erroneous user input.
+            # For a somewhat valid email address, parseaddr returns the address as
+            # second element of a tuple.  In addition, we check if there is at least an
+            # '@' in it.  For a syntactically invalid email address, parseaddr returns
+            # an empty string, thus always making the '@' in ...' check fail in this
+            # case.
+            if "@" not in email.utils.parseaddr(form_data["email"], strict=True)[1]:
+                self.error_message = "Email address is not valid."
+                self.email = ""
                 return
 
             # check for the correct registration code
