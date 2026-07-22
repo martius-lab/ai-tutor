@@ -67,7 +67,6 @@ class SmtpSettings:
                 "SMTP_USERNAME and SMTP_PASSWORD must be configured together."
             )
 
-    @property
     def uses_authentication(self) -> bool:
         """Whether SMTP username/password authentication is configured."""
         return bool(self.username and self.password)
@@ -130,7 +129,7 @@ def send_email(
             if active_settings.use_tls:
                 smtp.starttls()
                 smtp.ehlo()
-            if active_settings.uses_authentication:
+            if active_settings.uses_authentication():
                 smtp.login(active_settings.username, active_settings.password)
             smtp.send_message(message)
     except (OSError, SMTPException) as exc:

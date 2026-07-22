@@ -74,7 +74,7 @@ def test_smtp_settings_from_env(monkeypatch):
     assert settings.password == "smtp-password"
     assert settings.use_tls is True
     assert settings.use_ssl is False
-    assert settings.uses_authentication is True
+    assert settings.uses_authentication() is True
 
 
 def test_smtp_settings_default_to_no_tls(monkeypatch):
