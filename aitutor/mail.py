@@ -4,7 +4,7 @@ from email.message import EmailMessage
 from smtplib import SMTP, SMTP_SSL, SMTPException
 from typing import Any, Callable
 
-from aitutor.app_settings import SmtpSettings, get_settings
+from aitutor.env_settings import SmtpSettings, get_env_settings
 
 
 class EmailDeliveryError(RuntimeError):
@@ -35,7 +35,7 @@ def send_text_email(
     settings: SmtpSettings | None = None,
 ) -> None:
     """Build and send a plain text email message."""
-    settings = settings or get_settings().SMTP
+    settings = settings or get_env_settings().SMTP
 
     # settings may be None, which means no SMTP is configured.  In this case, simply
     # print the email to stdout for debugging.

@@ -10,8 +10,8 @@ from sqlmodel import select
 
 import aitutor.routes as routes
 from aitutor import pages
-from aitutor.app_settings import get_settings
 from aitutor.config import add_configprompts_to_db, get_config, initialize_config_db
+from aitutor.env_settings import get_env_settings
 from aitutor.models import Prompt
 from aitutor.utilities.cprint import cprint
 from aitutor.utilities.create_default_users import create_default_users
@@ -191,7 +191,7 @@ def initialize():
         sys.exit(1)
 
     try:
-        settings = get_settings()
+        settings = get_env_settings()
     except ValueError as e:
         cprint(f"Error loading settings: {e}", fg="white", bg="red")
         sys.exit(1)

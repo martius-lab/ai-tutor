@@ -55,7 +55,7 @@ class SmtpSettings(BaseModel):
         return self
 
 
-class AppSettings(BaseSettings):
+class EnvSettings(BaseSettings):
     """Settings loaded from environment variables and the project `.env` file."""
 
     model_config = SettingsConfigDict(
@@ -88,6 +88,6 @@ class AppSettings(BaseSettings):
 
 
 @lru_cache
-def get_settings() -> AppSettings:
+def get_env_settings() -> EnvSettings:
     """Return cached app settings."""
-    return AppSettings()  # pyright: ignore[reportCallIssue]
+    return EnvSettings()  # pyright: ignore[reportCallIssue]

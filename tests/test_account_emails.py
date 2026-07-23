@@ -3,16 +3,16 @@ from email.message import EmailMessage
 import pytest
 
 from aitutor.account_emails import send_signup_welcome_email
-from aitutor.app_settings import get_settings
+from aitutor.env_settings import get_env_settings
 from aitutor.language_state import BackendTranslations as BT
 from aitutor.models import Language
 
 
 @pytest.fixture(autouse=True)
 def clear_settings_cache():
-    get_settings.cache_clear()
+    get_env_settings.cache_clear()
     yield
-    get_settings.cache_clear()
+    get_env_settings.cache_clear()
 
 
 @pytest.mark.parametrize(

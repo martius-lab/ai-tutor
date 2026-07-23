@@ -4,13 +4,13 @@ import pytest
 from pydantic import ValidationError
 from pydantic_settings import SettingsConfigDict
 
-from aitutor.app_settings import AppSettings
+from aitutor.env_settings import EnvSettings
 
 
-def make_settings(env_file: str | Path | None) -> AppSettings:
+def make_settings(env_file: str | Path | None) -> EnvSettings:
     """Create settings with a test-controlled dotenv source."""
 
-    class TestSettings(AppSettings):
+    class TestSettings(EnvSettings):
         model_config = SettingsConfigDict(
             env_file=env_file,
             env_file_encoding="utf-8",
@@ -20,14 +20,14 @@ def make_settings(env_file: str | Path | None) -> AppSettings:
     return TestSettings()  # pyright: ignore[reportCallIssue]
 
 
-def test_app_settings_reads_openai_api_key_from_env(monkeypatch):
+def test_env_settings_reads_openai_api_key_from_env(monkeypatch):
     """OPENAI_API_KEY can come from the real process environment."""
     monkeypatch.setenv("OPENAI_API_KEY", "env-key")
 
     assert make_settings(env_file=None).openai_api_key == "env-key"
 
 
-def test_app_settings_reads_openai_api_key_from_cwd_dotenv(tmp_path, monkeypatch):
+def test_env_settings_reads_openai_api_key_from_cwd_dotenv(tmp_path, monkeypatch):
     """OPENAI_API_KEY can come from the current working directory dotenv file."""
     monkeypatch.delenv("OPENAI_API_KEY", raising=False)
     monkeypatch.chdir(tmp_path)
@@ -36,7 +36,7 @@ def test_app_settings_reads_openai_api_key_from_cwd_dotenv(tmp_path, monkeypatch
     assert make_settings(env_file=".env").openai_api_key == "dotenv-key"
 
 
-def test_app_settings_requires_openai_api_key(monkeypatch):
+def test_env_settings_requires_openai_api_key(monkeypatch):
     """Missing OPENAI_API_KEY raises a clear configuration error."""
     monkeypatch.delenv("OPENAI_API_KEY", raising=False)
 
@@ -44,7 +44,7 @@ def test_app_settings_requires_openai_api_key(monkeypatch):
         make_settings(env_file=None)
 
 
-def test_app_settings_rejects_empty_openai_api_key(monkeypatch):
+def test_env_settings_rejects_empty_openai_api_key(monkeypatch):
     """OPENAI_API_KEY cannot be empty."""
     monkeypatch.setenv("OPENAI_API_KEY", " ")
 
@@ -52,7 +52,7 @@ def test_app_settings_rejects_empty_openai_api_key(monkeypatch):
         make_settings(env_file=None)
 
 
-def test_app_settings_reads_optional_openai_base_url(tmp_path, monkeypatch):
+def test_env_settings_reads_optional_openai_base_url(tmp_path, monkeypatch):
     """OPENAI_BASE_URL can come from a dotenv file when configured."""
     monkeypatch.setenv("OPENAI_API_KEY", "env-key")
     monkeypatch.delenv("OPENAI_BASE_URL", raising=False)
@@ -62,7 +62,7 @@ def test_app_settings_reads_optional_openai_base_url(tmp_path, monkeypatch):
     assert make_settings(env_file=env_file).openai_base_url == "https://example.test/v1"
 
 
-def test_app_settings_defaults_openai_base_url_to_none(monkeypatch):
+def test_env_settings_defaults_openai_base_url_to_none(monkeypatch):
     """OPENAI_BASE_URL is optional."""
     monkeypatch.setenv("OPENAI_API_KEY", "env-key")
     monkeypatch.delenv("OPENAI_BASE_URL", raising=False)
@@ -70,7 +70,7 @@ def test_app_settings_defaults_openai_base_url_to_none(monkeypatch):
     assert make_settings(env_file=None).openai_base_url is None
 
 
-def test_app_settings_treats_empty_openai_base_url_as_none(monkeypatch):
+def test_env_settings_treats_empty_openai_base_url_as_none(monkeypatch):
     """Empty OPENAI_BASE_URL is equivalent to leaving it unset."""
     monkeypatch.setenv("OPENAI_API_KEY", "env-key")
     monkeypatch.setenv("OPENAI_BASE_URL", " ")
@@ -78,7 +78,7 @@ def test_app_settings_treats_empty_openai_base_url_as_none(monkeypatch):
     assert make_settings(env_file=None).openai_base_url is None
 
 
-def test_app_settings_smtp_optional(monkeypatch):
+def test_env_settings_smtp_optional(monkeypatch):
     """If no SMTP values are set, the settings object will be None."""
     monkeypatch.setenv("OPENAI_API_KEY", "env-key")
     for env_var in (
