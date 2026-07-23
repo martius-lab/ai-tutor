@@ -39,7 +39,7 @@ def role_select(member: LectureMemberRow) -> rx.Component:
 
 def editable_role_cell(member: LectureMemberRow) -> rx.Component:
     """Render role dropdown and row-local action buttons when changed."""
-    return rx.vstack(
+    return rx.hstack(
         role_select(member),
         rx.cond(
             member.role != member.selected_role,
@@ -64,7 +64,7 @@ def editable_role_cell(member: LectureMemberRow) -> rx.Component:
                 spacing="2",
             ),
         ),
-        align="start",
+        align="center",
         spacing="2",
     )
 
