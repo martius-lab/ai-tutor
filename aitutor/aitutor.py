@@ -196,8 +196,8 @@ def initialize():
         cprint(f"Error loading settings: {e}", fg="white", bg="red")
         sys.exit(1)
 
-    if settings.openai_base_url:
-        print(f"Using OPENAI_BASE_URL={settings.openai_base_url}")
+    if settings.OPENAI_BASE_URL:
+        print(f"Using OPENAI_BASE_URL={settings.OPENAI_BASE_URL}")
 
     if not settings.SMTP:
         cprint(

@@ -66,19 +66,19 @@ class EnvSettings(BaseSettings):
         extra="ignore",
     )
 
-    openai_api_key: Annotated[
+    OPENAI_API_KEY: Annotated[
         str, StringConstraints(strip_whitespace=True, min_length=1)
     ] = Field(validation_alias="OPENAI_API_KEY")
-    openai_base_url: str | None = Field(
+    OPENAI_BASE_URL: str | None = Field(
         default=None, validation_alias="OPENAI_BASE_URL"
     )
-    domain: Annotated[str, StringConstraints(strip_whitespace=True)] = Field(
+    DOMAIN: Annotated[str, StringConstraints(strip_whitespace=True)] = Field(
         default="localhost", validation_alias="DOMAIN"
     )
 
     SMTP: SmtpSettings | None = None
 
-    @field_validator("openai_base_url", mode="before")
+    @field_validator("OPENAI_BASE_URL", mode="before")
     @classmethod
     def _empty_openai_base_url_as_none(cls, value: object) -> object:
         """Treat an empty optional base URL as unset."""

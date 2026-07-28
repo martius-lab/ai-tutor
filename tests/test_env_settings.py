@@ -24,7 +24,7 @@ def test_env_settings_reads_openai_api_key_from_env(monkeypatch):
     """OPENAI_API_KEY can come from the real process environment."""
     monkeypatch.setenv("OPENAI_API_KEY", "env-key")
 
-    assert make_settings(env_file=None).openai_api_key == "env-key"
+    assert make_settings(env_file=None).OPENAI_API_KEY == "env-key"
 
 
 def test_env_settings_reads_openai_api_key_from_cwd_dotenv(tmp_path, monkeypatch):
@@ -33,7 +33,7 @@ def test_env_settings_reads_openai_api_key_from_cwd_dotenv(tmp_path, monkeypatch
     monkeypatch.chdir(tmp_path)
     Path(".env").write_text("OPENAI_API_KEY=dotenv-key\nOTHER_VALUE=ignored\n")
 
-    assert make_settings(env_file=".env").openai_api_key == "dotenv-key"
+    assert make_settings(env_file=".env").OPENAI_API_KEY == "dotenv-key"
 
 
 def test_env_settings_requires_openai_api_key(monkeypatch):
@@ -59,7 +59,7 @@ def test_env_settings_reads_optional_openai_base_url(tmp_path, monkeypatch):
     env_file = tmp_path / ".env"
     env_file.write_text("OPENAI_BASE_URL=https://example.test/v1\n")
 
-    assert make_settings(env_file=env_file).openai_base_url == "https://example.test/v1"
+    assert make_settings(env_file=env_file).OPENAI_BASE_URL == "https://example.test/v1"
 
 
 def test_env_settings_defaults_openai_base_url_to_none(monkeypatch):
@@ -67,7 +67,7 @@ def test_env_settings_defaults_openai_base_url_to_none(monkeypatch):
     monkeypatch.setenv("OPENAI_API_KEY", "env-key")
     monkeypatch.delenv("OPENAI_BASE_URL", raising=False)
 
-    assert make_settings(env_file=None).openai_base_url is None
+    assert make_settings(env_file=None).OPENAI_BASE_URL is None
 
 
 def test_env_settings_treats_empty_openai_base_url_as_none(monkeypatch):
@@ -75,7 +75,7 @@ def test_env_settings_treats_empty_openai_base_url_as_none(monkeypatch):
     monkeypatch.setenv("OPENAI_API_KEY", "env-key")
     monkeypatch.setenv("OPENAI_BASE_URL", " ")
 
-    assert make_settings(env_file=None).openai_base_url is None
+    assert make_settings(env_file=None).OPENAI_BASE_URL is None
 
 
 def test_env_settings_smtp_optional(monkeypatch):

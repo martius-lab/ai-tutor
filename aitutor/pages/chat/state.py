@@ -70,8 +70,8 @@ def init_async_openai_client() -> AsyncOpenAI:
     """
     settings = get_env_settings()
     return AsyncOpenAI(
-        api_key=settings.openai_api_key,
-        base_url=settings.openai_base_url,
+        api_key=settings.OPENAI_API_KEY,
+        base_url=settings.OPENAI_BASE_URL,
     )
 
 

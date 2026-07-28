@@ -7,7 +7,7 @@ from aitutor.models import Language
 
 def public_base_url() -> str:
     """Public base URL used for links in account emails."""
-    return f"https://{get_env_settings().domain}".rstrip("/")
+    return f"https://{get_env_settings().DOMAIN}".rstrip("/")
 
 
 def send_signup_welcome_email(
