@@ -29,15 +29,6 @@ class ReportViewState(SessionState):
         self._report_id = self.get_route_param_or_error("report_id", dtype=int)
         self.load_report()
 
-    def on_logout(self):
-        """Clear state when user logs out."""
-        self._report_id = -1
-        self.report_text = ""
-        self.looked_at = False
-        self.exercise_title = ""
-        self.username = ""
-        self.messages = []
-
     @rx.event
     def load_report(self):
         """Load report and associated conversation from database."""

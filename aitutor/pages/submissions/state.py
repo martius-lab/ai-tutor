@@ -49,11 +49,6 @@ class SubmissionsState(FilterMixin, SessionState):
         self.global_load()
         self.load_submissions()
 
-    def on_logout(self):
-        """Clears the state when the user logs out."""
-        self.table_rows = []
-        self.search_values = []  # from FilterMixin
-
     @override
     @rx.event
     def load_filtered_data(self):

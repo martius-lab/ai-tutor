@@ -84,16 +84,6 @@ class ManagePromptsState(SessionState):
         self.global_load()
         self.load_prompts_from_db()
 
-    def on_logout(self):
-        """Clears the state when the user logs out."""
-        self.unsaved_changes = False
-        self.prompts = {}
-        self.replacement_prompt_name = ""
-        self.prompt_to_delete = ""
-        self.new_prompt_name = ""
-        self.new_prompt_template = ""
-        self.add_prompt_dialog_open = False
-
     @rx.var
     def remaining_prompt_names(self) -> list[str]:
         """Returns the names of the prompts excluding the one to delete."""

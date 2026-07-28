@@ -52,11 +52,6 @@ class ReportsState(FilterMixin, SessionState):
         self.global_load()
         self.load_reports()
 
-    def on_logout(self):
-        """Clear state when user logs out."""
-        self.table_rows = []
-        self.search_values = []
-
     @override
     @rx.event
     def load_filtered_data(self):

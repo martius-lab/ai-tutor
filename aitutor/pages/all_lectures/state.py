@@ -170,11 +170,6 @@ class AllLecturesState(SessionState):
             return rx.redirect(routes.NOT_FOUND)
         return self.open_join_dialog(lecture_id)
 
-    def on_logout(self):
-        """Clear page-specific state on logout."""
-        self.lectures = []
-        self._reset_page_state()
-
     @rx.var(initial_value=[])
     def filtered_lectures(self) -> list[LectureWithRole]:
         """Return loaded lectures filtered locally by the search text."""

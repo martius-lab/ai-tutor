@@ -36,13 +36,6 @@ class ManageUsersState(SessionState):
         self.global_load()
         self.load_users()
 
-    def on_logout(self):
-        """Clears the state when the user logs out."""
-        self.users = []
-        self.edited_user = None
-        self.edited_user_permissions = []
-        self.edit_dialog_is_open = False
-
     def load_users(self):
         """Load the users from the database."""
         # Define role order for sorting (based on definition order in the database enum,

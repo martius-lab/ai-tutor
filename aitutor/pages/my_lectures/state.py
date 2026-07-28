@@ -100,10 +100,6 @@ class MyLecturesState(SessionState):
         self._reset_filters()
         self.load_joined_lectures()
 
-    def on_logout(self):
-        """Clear page-specific state on logout."""
-        self._reset_filters()
-
     @rx.var(initial_value=[])
     def filtered_lectures(self) -> list[LectureWithRole]:
         """Return lectures filtered by search text and role."""

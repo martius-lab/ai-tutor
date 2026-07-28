@@ -59,14 +59,6 @@ class ExercisesState(FilterMixin, SessionState):
         assert self.authenticated_user_info is not None
         self.load_exercises()
 
-    def on_logout(self):
-        """Clears the state when the user logs out."""
-        self.exercises_with_result = []
-        self.open_deadline_exercises = []
-        self.no_deadline_exercises = []
-        self.closed_deadline_exercises = []
-        self.time_left_strings = {}
-
     @rx.var
     def submit_time_stamps(self) -> dict[int, str]:
         """
