@@ -12,7 +12,7 @@ from aitutor.pages.lecture_members.state import (
 )
 
 
-def lecture_role_text(role: str):
+def lecture_role_text(role: rx.Var[str] | str):
     """Convert a lecture role value to localized text."""
     return rx.match(
         role,
@@ -38,30 +38,17 @@ def role_select(member: LectureMemberRow) -> rx.Component:
 
 
 def editable_role_cell(member: LectureMemberRow) -> rx.Component:
-    """Render role dropdown and row-local action buttons when changed."""
+    """Render role text and an edit icon button to open the edit role dialog."""
     return rx.hstack(
-        role_select(member),
+        rx.text(lecture_role_text(member.role)),
         rx.cond(
-            member.role != member.selected_role,
-            rx.hstack(
-                rx.button(
-                    LS.cancel,
-                    size="1",
-                    variant="outline",
-                    on_click=LectureMembersState.cancel_member_role_change(
-                        member.user_id
-                    ),
-                    _hover={"cursor": "pointer"},
-                ),
-                rx.button(
-                    LS.save,
-                    size="1",
-                    on_click=LectureMembersState.save_member_role_change(
-                        member.user_id
-                    ),
-                    _hover={"cursor": "pointer"},
-                ),
-                spacing="2",
+            LectureMembersState.can_manage_members,
+            rx.icon_button(
+                "pencil",
+                size="1",
+                variant="ghost",
+                on_click=LectureMembersState.open_edit_role_dialog(member.user_id),
+                _hover={"cursor": "pointer"},
             ),
         ),
         align="center",
@@ -282,11 +269,90 @@ def members_table() -> rx.Component:
     )
 
 
+def edit_role_dialog() -> rx.Component:
+    """Render the edit role dialog."""
+    return rx.dialog.root(
+        rx.dialog.content(
+            rx.cond(
+                LectureMembersState.editing_member,
+                rx.vstack(
+                    rx.dialog.title(
+                        LS.edit_role,
+                        size="5",
+                        weight="bold",
+                    ),
+                    rx.vstack(
+                        rx.hstack(
+                            rx.text(LS.label_username),
+                            rx.text(LectureMembersState.editing_member.username),
+                            spacing="2",
+                        ),
+                        rx.hstack(
+                            rx.text(LS.label_role),
+                            rx.text(
+                                lecture_role_text(
+                                    LectureMembersState.editing_member.role
+                                ),
+                            ),
+                            spacing="2",
+                        ),
+                        rx.hstack(
+                            rx.text(LS.label_new_role),
+                            rx.select(
+                                (
+                                    LectureRole.STUDENT.name,
+                                    LectureRole.TUTOR.name,
+                                    LectureRole.OWNER.name,
+                                ),
+                                value=LectureMembersState.editing_member.selected_role,
+                                on_change=LectureMembersState.set_editing_member_role,
+                                size="2",
+                            ),
+                            align="center",
+                            spacing="2",
+                        ),
+                        spacing="3",
+                        align="start",
+                        width="100%",
+                    ),
+                    rx.hstack(
+                        rx.button(
+                            LS.cancel,
+                            size="3",
+                            variant="outline",
+                            on_click=LectureMembersState.close_edit_role_dialog,
+                            _hover={"cursor": "pointer"},
+                        ),
+                        rx.button(
+                            LS.save,
+                            size="3",
+                            disabled=~LectureMembersState.editing_member_has_changes,
+                            on_click=LectureMembersState.save_editing_member_role,
+                            _hover=rx.cond(
+                                LectureMembersState.editing_member_has_changes,
+                                {"cursor": "pointer"},
+                                {"cursor": "not-allowed"},
+                            ),
+                        ),
+                        spacing="3",
+                        justify="end",
+                        width="100%",
+                    ),
+                    spacing="4",
+                ),
+            ),
+        ),
+        open=LectureMembersState.edit_role_dialog_is_open,
+        on_open_change=LectureMembersState.set_edit_role_dialog_is_open,
+    )
+
+
 def lecture_members_content() -> rx.Component:
     """Main content for the lecture members page."""
     return rx.vstack(
         members_header(),
         members_table(),
+        rx.cond(LectureMembersState.can_manage_members, edit_role_dialog()),
         spacing="3",
         align="center",
         width="100%",

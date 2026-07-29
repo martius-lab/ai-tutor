@@ -937,16 +937,20 @@ class LanguageState(SessionState):
     @rx.var
     def roles_description(self) -> str:
         return self.translate(
-            de=textwrap.dedent("""
+            de=textwrap.dedent(
+                """
                 - STUDENT: Kann Übungen ansehen und bearbeiten.
                 - TUTOR: Kann zusätzlich Abgaben aller Nutzer einsehen.
                 - ADMIN: Kann alles (Übungen anlegen, Benutzer verwalten...).
-            """),
-            en=textwrap.dedent("""
+            """
+            ),
+            en=textwrap.dedent(
+                """
                 - STUDENT: Can view and work on exercises.
                 - TUTOR: Can also view submissions by all users.
                 - ADMIN: Can do everything (create exercises, manage users...).
-            """),
+            """
+            ),
         )
 
     @rx.var
@@ -1505,6 +1509,35 @@ Please test the chat for functionality after changing the model.
         return self.translate(
             de="Übersicht",
             en="Overview",
+        )
+
+    @rx.var
+    def edit_role(self) -> str:
+        """Edit role string."""
+        return self.translate(
+            de="Rolle Bearbeiten",
+            en="Edit Role",
+        )
+
+    @rx.var
+    def label_username(self) -> str:
+        return self.translate(
+            de="Benutzername:",
+            en="Username:",
+        )
+
+    @rx.var
+    def label_role(self) -> str:
+        return self.translate(
+            de="Aktuelle Rolle:",
+            en="Current Role:",
+        )
+
+    @rx.var
+    def label_new_role(self) -> str:
+        return self.translate(
+            de="Neue Rolle:",
+            en="New role:",
         )
 
 
