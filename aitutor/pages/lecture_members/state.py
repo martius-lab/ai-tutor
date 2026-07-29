@@ -45,6 +45,8 @@ class LectureMembersState(SessionState):
     available_users: list[AvailableLectureUser] = []
     available_user_filter_query: str = ""
     add_member_dialog_is_open: bool = False
+    editing_member_user_id: int | None = None
+    edit_role_dialog_is_open: bool = False
     current_user_lecture_role: int | None = None
 
     @rx.event
@@ -110,6 +112,21 @@ class LectureMembersState(SessionState):
         """Return loaded members as a list for rendering."""
         return list(self.members.values())
 
+    @rx.var
+    def editing_member(self) -> LectureMemberRow | None:
+        """Return the member currently being edited in the edit-role dialog."""
+        if self.editing_member_user_id is None:
+            return None
+        return self.members.get(self.editing_member_user_id)
+
+    @rx.var(initial_value=False)
+    def editing_member_has_changes(self) -> bool:
+        """Return whether the member currently being edited has pending role changes."""
+        member = self.editing_member
+        if member is None:
+            return False
+        return member.selected_role != member.role
+
     @rx.var(initial_value=[])
     def filtered_available_users(self) -> list[AvailableLectureUser]:
         """Return users available to add, filtered by the search query."""
@@ -144,6 +161,45 @@ class LectureMembersState(SessionState):
             return
 
         self.close_add_member_dialog()
+
+    @rx.event
+    def open_edit_role_dialog(self, user_id: int):
+        """Open the edit role dialog for a specific user ID."""
+        self.editing_member_user_id = user_id
+        self.edit_role_dialog_is_open = True
+
+    @rx.event
+    def close_edit_role_dialog(self):
+        """Close the edit role dialog and reset editing state."""
+        self.edit_role_dialog_is_open = False
+        self.editing_member_user_id = None
+
+    @rx.event
+    def set_editing_member_role(self, role_name: str):
+        """Update the selected role for the member currently being edited."""
+        if (
+            self.editing_member_user_id is not None
+            and self.editing_member_user_id in self.members
+        ):
+            self.members[self.editing_member_user_id].selected_role = role_name
+
+    @rx.event
+    def set_edit_role_dialog_is_open(self, value: bool):
+        """Toggle or set open state for edit role dialog."""
+        if value:
+            self.edit_role_dialog_is_open = True
+        else:
+            self.close_edit_role_dialog()
+
+    @rx.event
+    def save_editing_member_role(self):
+        """Save the role change for the member currently being edited."""
+        if self.editing_member_user_id is not None:
+            user_id = self.editing_member_user_id
+            result = self.save_member_role_change(user_id)
+            self.close_edit_role_dialog()
+            return result
+        self.close_edit_role_dialog()
 
     @rx.event
     @state_require_role_or_permission(required_role=UserRole.STUDENT)
@@ -253,6 +309,8 @@ class LectureMembersState(SessionState):
         self.available_users = []
         self.available_user_filter_query = ""
         self.add_member_dialog_is_open = False
+        self.editing_member_user_id = None
+        self.edit_role_dialog_is_open = False
         self.current_user_lecture_role = None
 
     def _user_may_view_lecture(self, lecture_id: int) -> bool:
