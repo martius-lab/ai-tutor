@@ -263,34 +263,16 @@ def edit_role_dialog() -> rx.Component:
                 LectureMembersState.editing_member,
                 rx.vstack(
                     rx.dialog.title(
-                        LS.edit_role,
+                        LectureMembersState.edit_role_title,
                         size="5",
                         weight="bold",
                     ),
                     rx.vstack(
                         rx.hstack(
-                            rx.text(LS.label_username),
-                            rx.text(LectureMembersState.editing_member.username),
-                            spacing="2",
-                        ),
-                        rx.hstack(
-                            rx.text(LS.label_role),
-                            rx.text(
-                                lecture_role_text(
-                                    LectureMembersState.editing_member.role
-                                ),
-                            ),
-                            spacing="2",
-                        ),
-                        rx.hstack(
                             rx.text(LS.label_new_role),
                             rx.select(
-                                (
-                                    LectureRole.STUDENT.name,
-                                    LectureRole.TUTOR.name,
-                                    LectureRole.OWNER.name,
-                                ),
-                                value=LectureMembersState.editing_member.selected_role,
+                                items=LectureMembersState.role_option_labels,
+                                value=LectureMembersState.selected_role_option,
                                 on_change=LectureMembersState.set_editing_member_role,
                                 size="2",
                             ),
@@ -300,6 +282,13 @@ def edit_role_dialog() -> rx.Component:
                         spacing="3",
                         align="start",
                         width="100%",
+                    ),
+                    rx.vstack(
+                        rx.markdown(
+                            LS.roles_description,
+                            font_size="0.9em",
+                            color=rx.color("gray", 11),
+                        ),
                     ),
                     rx.hstack(
                         rx.button(
@@ -324,7 +313,7 @@ def edit_role_dialog() -> rx.Component:
                         justify="end",
                         width="100%",
                     ),
-                    spacing="4",
+                    spacing="3",
                 ),
             ),
         ),

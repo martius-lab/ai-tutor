@@ -10,6 +10,7 @@ import aitutor.routes as routes
 from aitutor.auth.protection import state_require_role_or_permission
 from aitutor.auth.state import SessionState
 from aitutor.language_state import BackendTranslations as BT
+from aitutor.language_state import translate
 from aitutor.models import Lecture, LectureRole, LinkUserLecture, UserRole
 from aitutor.utilities.lecture_permissions import (
     count_lecture_owners,
@@ -115,6 +116,38 @@ class LectureMembersState(SessionState):
             return False
         return member.selected_role != member.role
 
+    @rx.var(initial_value="")
+    def edit_role_title(self) -> str:
+        """Return localized edit role title with username."""
+        username = self.editing_member.username if self.editing_member else ""
+        return translate(
+            self.language,
+            de=f"Rolle von {username} Bearbeiten",
+            en=f"Edit Role of {username}",
+        )
+
+    def _format_role_label(self, role: str) -> str:
+        """Format a role, appending (current) if matching the persisted role."""
+        member = self.editing_member
+        if member and role == member.role:
+            current_tag = translate(self.language, de="aktuell", en="current")
+            return f"{role} ({current_tag})"
+        return role
+
+    @rx.var(initial_value="")
+    def selected_role_option(self) -> str:
+        """Return the option label matching the currently selected role."""
+        member = self.editing_member
+        return self._format_role_label(member.selected_role) if member else ""
+
+    @rx.var(initial_value=[])
+    def role_option_labels(self) -> list[str]:
+        """Return role select option labels with (current) suffix on the active role."""
+        return [
+            self._format_role_label(role.name)
+            for role in (LectureRole.STUDENT, LectureRole.TUTOR, LectureRole.OWNER)
+        ]
+
     @rx.var(initial_value=[])
     def filtered_available_users(self) -> list[AvailableLectureUser]:
         """Return users available to add, filtered by the search query."""
@@ -171,11 +204,12 @@ class LectureMembersState(SessionState):
     @rx.event
     def set_editing_member_role(self, role_name: str):
         """Update the selected role for the member currently being edited."""
+        clean_role = role_name.split()[0]
         if (
             self.editing_member_user_id is not None
             and self.editing_member_user_id in self.members
         ):
-            self.members[self.editing_member_user_id].selected_role = role_name
+            self.members[self.editing_member_user_id].selected_role = clean_role
 
     @rx.event
     def set_edit_role_dialog_is_open(self, value: bool):
