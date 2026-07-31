@@ -34,6 +34,17 @@ metadata = SQLModel.metadata
 metadata.naming_convention = NAMING_CONVENTION
 
 
+class BannerMessageType(StrEnum):
+    """
+    Enum for allowed banner message types.
+    """
+
+    INFO = "info"
+    WARNING = "warning"
+    ERROR = "error"
+    SUCCESS = "success"
+
+
 class Language(StrEnum):
     """
     Enum for supported languages.
@@ -315,6 +326,19 @@ class Config(SQLModel, table=True):
     impressum_text: str
     registration_code: str
     exercise_token_limit: int
+    banner_message: str = Field(default="")
+    banner_message_type: BannerMessageType = Field(
+        default=BannerMessageType.INFO,
+        sa_column=Column(
+            sa.Enum(
+                BannerMessageType,
+                values_callable=lambda x: [e.value for e in x],
+            ),
+            nullable=False,
+            server_default="info",
+        ),
+    )
+    banner_is_open: bool = Field(default=False)
 
     def __repr__(self):
         return f"<Config(id={self.id})>"

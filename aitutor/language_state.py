@@ -1204,6 +1204,48 @@ Please test the chat for functionality after changing the model.
             ),
         )
 
+    @rx.var
+    def banner_message(self) -> str:
+        return self.translate(
+            en="Banner message",
+            de="Banner-Nachricht",
+        )
+
+    @rx.var
+    def banner_message_type(self) -> str:
+        return self.translate(
+            en="Banner type",
+            de="Art des Banners",
+        )
+
+    @rx.var
+    def banner_section_title(self) -> str:
+        return self.translate(
+            en="Announcement Banner",
+            de="Ankündigungs-Banner",
+        )
+
+    @rx.var
+    def banner_is_open_label(self) -> str:
+        return self.translate(
+            en="Show Banner",
+            de="Banner anzeigen",
+        )
+
+    @rx.var
+    def banner_section_info(self) -> str:
+        return self.translate(
+            en="Configure a site-wide announcement banner visible to all users. The message is in markdown format.",
+            de="Konfigurieren Sie einen seitenweiten Ankündigungsbanner, der für alle Benutzer sichtbar ist. Der Text wird im Markdown-Format dargestellt.",
+        )
+
+    @rx.var
+    def banner_message_required_error(self) -> str:
+        return self.translate(
+            en="Banner message cannot be empty when banner is enabled.",
+            de="Der Banner-Text darf nicht leer sein, wenn der Banner aktiviert ist.",
+        )
+
     # Report Strings -------------------------------------------------------------------
     @rx.var
     def status(self) -> str:
@@ -1928,6 +1970,14 @@ class BackendTranslations:
             language,
             de="Konfiguration erfolgreich gespeichert.",
             en="Configuration saved successfully.",
+        )
+
+    @staticmethod
+    def banner_message_empty(language: Language) -> str:
+        return translate(
+            language,
+            de="Der Banner-Text darf nicht leer sein, wenn der Banner aktiviert ist.",
+            en="Banner message cannot be empty when banner is enabled.",
         )
 
     @staticmethod
