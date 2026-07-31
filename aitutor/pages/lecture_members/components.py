@@ -23,6 +23,16 @@ def lecture_role_text(role: rx.Var[str] | str):
     )
 
 
+def role_select(member: LectureMemberRow) -> rx.Component:
+    """Render the owner-only role dropdown for one member."""
+    return rx.select(
+        LectureRole.names(),
+        value=member.selected_role,
+        on_change=LectureMembersState.set_member_role(member.user_id),
+        size="2",
+    )
+
+
 def editable_role_cell(member: LectureMemberRow) -> rx.Component:
     """Render role text and an edit icon button to open the edit role dialog."""
     return rx.hstack(
@@ -257,6 +267,7 @@ def members_table() -> rx.Component:
 
 def edit_role_dialog() -> rx.Component:
     """Render the edit role dialog."""
+    editing_role = LectureMembersState.editing_member.role
     return rx.dialog.root(
         rx.dialog.content(
             rx.cond(
@@ -270,11 +281,32 @@ def edit_role_dialog() -> rx.Component:
                     rx.vstack(
                         rx.hstack(
                             rx.text(LS.label_new_role),
-                            rx.select(
-                                items=LectureMembersState.role_option_labels,
-                                value=LectureMembersState.selected_role_option,
+                            rx.select.root(
+                                rx.select.trigger(size="2"),
+                                rx.select.content(
+                                    rx.foreach(
+                                        LectureRole.names(),
+                                        lambda role: rx.select.item(
+                                            rx.hstack(
+                                                rx.text(role),
+                                                rx.cond(
+                                                    role == editing_role,
+                                                    rx.badge(
+                                                        LS.current_tag,
+                                                        size="1",
+                                                        variant="soft",
+                                                        radius="large",
+                                                    ),
+                                                ),
+                                                spacing="2",
+                                                align="center",
+                                            ),
+                                            value=role,
+                                        ),
+                                    ),
+                                ),
+                                value=LectureMembersState.editing_member.selected_role,
                                 on_change=LectureMembersState.set_editing_member_role,
-                                size="2",
                             ),
                             align="center",
                             spacing="2",

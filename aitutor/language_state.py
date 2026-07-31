@@ -1502,6 +1502,20 @@ Please test the chat for functionality after changing the model.
             en="This person will be removed from the lecture.",
         )
 
+    @rx.var
+    def label_new_role(self) -> str:
+        return self.translate(
+            de="Neue Rolle:",
+            en="New role:",
+        )
+
+    @rx.var
+    def current_tag(self) -> str:
+        return self.translate(
+            de="aktuell",
+            en="current",
+        )
+
     # Lecture_overview Strings --------------------------------------------------------------------------------
     @rx.var
     def overview(self) -> str:
@@ -1509,35 +1523,6 @@ Please test the chat for functionality after changing the model.
         return self.translate(
             de="Übersicht",
             en="Overview",
-        )
-
-    @rx.var
-    def edit_role(self) -> str:
-        """Edit role string."""
-        return self.translate(
-            de="Rolle Bearbeiten",
-            en="Edit Role",
-        )
-
-    @rx.var
-    def label_username(self) -> str:
-        return self.translate(
-            de="Benutzername:",
-            en="Username:",
-        )
-
-    @rx.var
-    def label_role(self) -> str:
-        return self.translate(
-            de="Aktuelle Rolle:",
-            en="Current Role:",
-        )
-
-    @rx.var
-    def label_new_role(self) -> str:
-        return self.translate(
-            de="Neue Rolle:",
-            en="New role:",
         )
 
 
@@ -1682,15 +1667,6 @@ class BackendTranslations:
             de=f"Rolle von {username} bearbeiten",
             en=f"Edit Role of {username}",
         )
-
-    @staticmethod
-    def current_tag(language: Language) -> str:
-        return translate(
-            language,
-            de="aktuell",
-            en="current",
-        )
-
 
     @staticmethod
     def invalid_password(language: Language) -> str:

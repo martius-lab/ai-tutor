@@ -59,6 +59,11 @@ class LectureRole(IntEnum):
     TUTOR = 2
     OWNER = 3
 
+    @classmethod
+    def names(cls) -> tuple[str, ...]:
+        """Return a tuple of all role name strings."""
+        return tuple(role.name for role in cls)
+
 
 class Lecture(SQLModel, table=True):
     """Lecture model for storing lecture-specific settings."""
