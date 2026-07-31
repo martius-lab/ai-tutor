@@ -10,7 +10,6 @@ import aitutor.routes as routes
 from aitutor.auth.protection import state_require_role_or_permission
 from aitutor.auth.state import SessionState
 from aitutor.language_state import BackendTranslations as BT
-from aitutor.language_state import translate
 from aitutor.models import Lecture, LectureRole, LinkUserLecture, UserRole
 from aitutor.utilities.lecture_permissions import (
     count_lecture_owners,
@@ -120,17 +119,13 @@ class LectureMembersState(SessionState):
     def edit_role_title(self) -> str:
         """Return localized edit role title with username."""
         username = self.editing_member.username if self.editing_member else ""
-        return translate(
-            self.language,
-            de=f"Rolle von {username} Bearbeiten",
-            en=f"Edit Role of {username}",
-        )
+        return BT.edit_role_title(self.language, username)
 
     def _format_role_label(self, role: str) -> str:
         """Format a role, appending (current) if matching the persisted role."""
         member = self.editing_member
         if member and role == member.role:
-            current_tag = translate(self.language, de="aktuell", en="current")
+            current_tag = BT.current_tag(self.language)
             return f"{role} ({current_tag})"
         return role
 

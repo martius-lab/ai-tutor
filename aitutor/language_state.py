@@ -1676,6 +1676,23 @@ class BackendTranslations:
         )
 
     @staticmethod
+    def edit_role_title(language: Language, username: str) -> str:
+        return translate(
+            language,
+            de=f"Rolle von {username} bearbeiten",
+            en=f"Edit Role of {username}",
+        )
+
+    @staticmethod
+    def current_tag(language: Language) -> str:
+        return translate(
+            language,
+            de="aktuell",
+            en="current",
+        )
+
+
+    @staticmethod
     def invalid_password(language: Language) -> str:
         return translate(
             language,
