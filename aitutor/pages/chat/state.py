@@ -11,10 +11,10 @@ from pydantic import BaseModel
 from sqlmodel import select
 
 import aitutor.routes as routes
-from aitutor.app_settings import get_settings
 from aitutor.auth.protection import state_require_role_or_permission
 from aitutor.auth.state import SessionState
 from aitutor.config import get_config
+from aitutor.env_settings import get_env_settings
 from aitutor.global_vars import (
     CHAT_MESSAGE_CHAR_LIMIT,
     CHAT_TOKEN_WARNING_THRESHOLD,
@@ -68,10 +68,10 @@ def init_async_openai_client() -> AsyncOpenAI:
     Uses settings so the API key and optional base URL can be set either as environment
     variables or in a .env file.
     """
-    settings = get_settings()
+    settings = get_env_settings()
     return AsyncOpenAI(
-        api_key=settings.openai_api_key,
-        base_url=settings.openai_base_url,
+        api_key=settings.OPENAI_API_KEY,
+        base_url=settings.OPENAI_BASE_URL,
     )
 
 

@@ -18,17 +18,17 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class SmtpSettings(BaseModel):
     """Settings for SMTP email sending."""
 
-    HOST: str = Field(validation_alias="HOST")
-    PORT: int = Field(validation_alias="PORT")
-    FROM_EMAIL: str = Field(validation_alias="FROM_EMAIL")
+    HOST: str
+    PORT: int
+    FROM_EMAIL: str
 
-    USERNAME: str | None = Field(default=None, validation_alias="USERNAME")
-    PASSWORD: str | None = Field(default=None, validation_alias="PASSWORD")
+    USERNAME: str | None = Field(default=None)
+    PASSWORD: str | None = Field(default=None)
 
-    USE_TLS: bool = Field(default=False, validation_alias="USE_TLS")
-    USE_SSL: bool = Field(default=False, validation_alias="USE_SSL")
+    USE_TLS: bool = Field(default=False)
+    USE_SSL: bool = Field(default=False)
 
-    TIMEOUT: int = Field(default=10, validation_alias="TIMEOUT")
+    TIMEOUT: int = Field(default=10)
 
     @field_validator("PORT", "TIMEOUT", mode="after")
     @classmethod
@@ -55,7 +55,7 @@ class SmtpSettings(BaseModel):
         return self
 
 
-class AppSettings(BaseSettings):
+class EnvSettings(BaseSettings):
     """Settings loaded from environment variables and the project `.env` file."""
 
     model_config = SettingsConfigDict(
@@ -66,19 +66,15 @@ class AppSettings(BaseSettings):
         extra="ignore",
     )
 
-    openai_api_key: Annotated[
+    OPENAI_API_KEY: Annotated[
         str, StringConstraints(strip_whitespace=True, min_length=1)
-    ] = Field(validation_alias="OPENAI_API_KEY")
-    openai_base_url: str | None = Field(
-        default=None, validation_alias="OPENAI_BASE_URL"
-    )
-    domain: Annotated[str, StringConstraints(strip_whitespace=True)] = Field(
-        default="localhost", validation_alias="DOMAIN"
-    )
+    ]
+    OPENAI_BASE_URL: str | None = Field(default=None)
+    DOMAIN: str = Field(default="localhost")
 
     SMTP: SmtpSettings | None = None
 
-    @field_validator("openai_base_url", mode="before")
+    @field_validator("OPENAI_BASE_URL", mode="before")
     @classmethod
     def _empty_openai_base_url_as_none(cls, value: object) -> object:
         """Treat an empty optional base URL as unset."""
@@ -88,6 +84,6 @@ class AppSettings(BaseSettings):
 
 
 @lru_cache
-def get_settings() -> AppSettings:
+def get_env_settings() -> EnvSettings:
     """Return cached app settings."""
-    return AppSettings()  # pyright: ignore[reportCallIssue]
+    return EnvSettings()  # pyright: ignore[reportCallIssue]

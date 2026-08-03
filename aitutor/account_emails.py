@@ -1,13 +1,13 @@
 """Account welcome email helpers."""
 
-from aitutor.app_settings import get_settings
+from aitutor.env_settings import get_env_settings
 from aitutor.mail import send_text_email
 from aitutor.models import Language
 
 
 def public_base_url() -> str:
     """Public base URL used for links in account emails."""
-    return f"https://{get_settings().domain}".rstrip("/")
+    return f"https://{get_env_settings().DOMAIN}".rstrip("/")
 
 
 def send_signup_welcome_email(

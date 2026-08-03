@@ -2,7 +2,7 @@ from email.message import EmailMessage
 
 import pytest
 
-from aitutor.app_settings import SmtpSettings, get_settings
+from aitutor.env_settings import SmtpSettings, get_env_settings
 from aitutor.mail import (
     build_text_email,
     send_email,
@@ -11,9 +11,9 @@ from aitutor.mail import (
 
 @pytest.fixture(autouse=True)
 def clear_settings_cache():
-    get_settings.cache_clear()
+    get_env_settings.cache_clear()
     yield
-    get_settings.cache_clear()
+    get_env_settings.cache_clear()
 
 
 class FakeSmtpClient:
