@@ -35,16 +35,6 @@ class DisplayConfigState(rx.State):
         return get_config().general_information_text
 
     @rx.var(cache=True, initial_value="")
-    def lecture_information_text(self) -> str:
-        self.trigger_var
-        return get_config().lecture_information_text
-
-    @rx.var(cache=True, initial_value="")
-    def course_name(self) -> str:
-        self.trigger_var
-        return get_config().course_name
-
-    @rx.var(cache=True, initial_value="")
     def impressum_text(self) -> str:
         self.trigger_var
         return get_config().impressum_text

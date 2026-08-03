@@ -18,11 +18,12 @@ from aitutor.env_settings import get_env_settings
 from aitutor.global_vars import (
     CHAT_MESSAGE_CHAR_LIMIT,
     CHAT_TOKEN_WARNING_THRESHOLD,
+    DEFAULT_CHECK_CONVERSATION_PROMPT,
     TIME_FORMAT,
     TIME_ZONE,
 )
 from aitutor.language_state import BackendTranslations as BT
-from aitutor.models import Exercise, ExerciseResult, Report, UserRole
+from aitutor.models import Exercise, ExerciseResult, Lecture, Report, UserRole
 from aitutor.utilities.lecture_permissions import user_may_view_lecture
 
 
@@ -113,6 +114,7 @@ async def get_chat_response(conversation):
 
 async def get_check_conversation_response(
     conversation,
+    check_conversation_prompt: str,
 ) -> tuple[CheckConversationResponse | None, int]:
     """
     Sends request to OpenAI.
@@ -123,10 +125,8 @@ async def get_check_conversation_response(
     Returns:
         tuple: (CheckConversationResponse or None, tokens_used)
     """
-    config = get_config()
-    check_conversation_prompt = config.check_conversation_prompt
     if not check_conversation_prompt:
-        raise ValueError("Check Conversation prompt not set in config.")
+        raise ValueError("Check Conversation prompt not set.")
 
     # filter out messages with role 'check_result' from the conversation
     conversation = [
@@ -144,7 +144,7 @@ async def get_check_conversation_response(
     )
     client = init_async_openai_client()
     completion = await client.beta.chat.completions.parse(
-        model=config.check_ai_model,
+        model=get_config().check_ai_model,
         messages=conversation,
         response_format=CheckConversationResponse,
     )
@@ -507,13 +507,21 @@ class ChatState(SessionState):
         async with self:
             if self.token_limit_reached:
                 return
+            if self.current_exercise is None:
+                return
             self.waiting_for_response = True
             conversation = self.get_messages_dict_gpt()
+            check_conversation_prompt = self.get_check_conversation_prompt_for_exercise(
+                self.current_exercise
+            )
         yield
         (
             check_conversation_response,
             tokens_used,
-        ) = await get_check_conversation_response(conversation)
+        ) = await get_check_conversation_response(
+            conversation,
+            check_conversation_prompt=check_conversation_prompt,
+        )
         async with self:
             self.waiting_for_response = False
             self.check_passed = (
@@ -538,6 +546,23 @@ class ChatState(SessionState):
             conversation = self.get_messages_dict_gpt()
             self.save_conversation_to_db(
                 conversation=conversation, tokens_to_add=tokens_used
+            )
+
+    def get_check_conversation_prompt_for_exercise(self, exercise: Exercise) -> str:
+        """Return the check prompt for an exercise.
+
+        Lecture exercises use their lecture-specific prompt. Global exercises do not
+        belong to a lecture, so they use the fixed default prompt from ``global_vars``.
+        """
+        if exercise.lecture_id is None:
+            return DEFAULT_CHECK_CONVERSATION_PROMPT
+
+        with rx.session() as session:
+            lecture = session.get(Lecture, exercise.lecture_id)
+            if lecture is None:
+                raise ValueError("Lecture not found for exercise.")
+            return (
+                lecture.check_conversation_prompt or DEFAULT_CHECK_CONVERSATION_PROMPT
             )
 
     @rx.event

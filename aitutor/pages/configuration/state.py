@@ -9,13 +9,10 @@ from aitutor.models import Config, UserRole
 
 empty_config: Config = Config(
     id=None,
-    check_conversation_prompt="failed to load!",
     response_ai_model="failed to load!",
     check_ai_model="failed to load!",
     how_to_use_text="failed to load!",
     general_information_text="failed to load!",
-    lecture_information_text="failed to load!",
-    course_name="failed to load!",
     impressum_text="failed to load!",
     registration_code="failed to load!",
     exercise_token_limit=0,
@@ -76,19 +73,12 @@ class ManageConfigState(SessionState):
         with rx.session() as session:
             db_config = session.get(Config, 1)
             if db_config:
-                db_config.check_conversation_prompt = (
-                    self.current_config.check_conversation_prompt
-                )
                 db_config.response_ai_model = self.current_config.response_ai_model
                 db_config.check_ai_model = self.current_config.check_ai_model
                 db_config.how_to_use_text = self.current_config.how_to_use_text
                 db_config.general_information_text = (
                     self.current_config.general_information_text
                 )
-                db_config.lecture_information_text = (
-                    self.current_config.lecture_information_text
-                )
-                db_config.course_name = self.current_config.course_name
                 db_config.impressum_text = self.current_config.impressum_text
                 db_config.registration_code = self.current_config.registration_code
                 db_config.exercise_token_limit = (

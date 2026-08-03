@@ -7,8 +7,6 @@
 # defaults.
 
 # TODO
-course_name = "<Enter name of the lecture here>"
-# TODO
 registration_code = "<Enter some code which users need to know to register>"
 
 response_ai_model = "gpt-4.1-mini"
@@ -18,16 +16,6 @@ exercise_token_limit = 100_000
 # TODO
 impressum_text = """
 <Enter name of responsible person and other stuff for the impressum>
-"""
-
-# You can use markdown here
-# TODO
-lecture_information_text = """
-# Lecture: Example Lecture XY
-
-- Lecturer: Prof. Dr. Max Mustermann
-- Contact: max.mustermann@uni-tuebingen.de
-- Content: This lecture is intended to provide an understanding of basic methods and concepts of XY.
 """
 
 how_to_use_text = """
@@ -43,14 +31,6 @@ general_information_text = """
 - The AI tutor should only be used for working on the tasks.
 - Tutors and professors can view conversations that have been submitted.
 """
-
-
-check_conversation_prompt = """
-Check if the answers of the student answered the exercise correctly.
-If the student did not answer correctly, respond with what the errors are but do not give the solution.
-If the student answered correctly, you can write one sentence that the student answered correctly and the task is finished.
-"""
-
 
 # TODO
 [[default_users]]

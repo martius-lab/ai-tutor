@@ -36,13 +36,10 @@ class ConfigExercisePrompt:
 class ConfigFile:
     """Configuration class for the AiTutor config file."""
 
-    check_conversation_prompt: str
     response_ai_model: str
     check_ai_model: str
     how_to_use_text: str
     general_information_text: str
-    lecture_information_text: str
-    course_name: str
     impressum_text: str
     registration_code: str
     exercise_token_limit: int
@@ -110,13 +107,10 @@ def initialize_config_db():
             config_file = get_config_from_file()
             config = Config(
                 id=1,
-                check_conversation_prompt=config_file.check_conversation_prompt,
                 response_ai_model=config_file.response_ai_model,
                 check_ai_model=config_file.check_ai_model,
                 how_to_use_text=config_file.how_to_use_text,
                 general_information_text=config_file.general_information_text,
-                lecture_information_text=config_file.lecture_information_text,
-                course_name=config_file.course_name,
                 impressum_text=config_file.impressum_text,
                 registration_code=config_file.registration_code,
                 exercise_token_limit=config_file.exercise_token_limit,
@@ -133,13 +127,10 @@ def get_config() -> Config:
         if _config is None:
             raise ValueError("Configuration not found in the database.")
         return Config(
-            check_conversation_prompt=_config.check_conversation_prompt,
             response_ai_model=_config.response_ai_model,
             check_ai_model=_config.check_ai_model,
             how_to_use_text=_config.how_to_use_text,
             general_information_text=_config.general_information_text,
-            lecture_information_text=_config.lecture_information_text,
-            course_name=_config.course_name,
             impressum_text=_config.impressum_text,
             registration_code=_config.registration_code,
             exercise_token_limit=_config.exercise_token_limit,
