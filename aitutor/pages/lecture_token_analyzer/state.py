@@ -135,11 +135,6 @@ class LectureTokenAnalyzerState(SessionState):
         self.load_user_token_rows()
         self.load_exercise_token_rows()
 
-    def on_logout(self):
-        """Clears the state when the user logs out."""
-        self.current_lecture_id = None
-        self._clear_token_analyzer_state()
-
     def _clear_token_analyzer_state(self):
         """Clear loaded token analyzer state."""
         self.user_table_rows = []

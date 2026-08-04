@@ -83,12 +83,6 @@ class EditLectureState(SessionState):
                 return rx.redirect(routes.NOT_FOUND)
             self._apply_lecture_to_state(lecture)
 
-    def on_logout(self):
-        """Clear lecture-specific state on logout."""
-        self._reset_form()
-        self.lecture_id_param = MAGIC_ID_NEW
-        self.delete_confirmation_password = ""
-
     @rx.event
     @state_require_role_or_permission(required_role=UserRole.STUDENT)
     def save_lecture(self):

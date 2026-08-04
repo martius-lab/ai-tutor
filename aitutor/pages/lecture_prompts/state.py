@@ -102,18 +102,6 @@ class LectureManagePromptsState(SessionState):
         self.current_lecture_id = lecture_id
         self.load_prompts_from_db()
 
-    def on_logout(self):
-        """Clear state when the user logs out."""
-        self.current_lecture_id = None
-        self.current_default_prompt_id = None
-        self.unsaved_changes = False
-        self.prompts = {}
-        self.replacement_prompt_id = ""
-        self.prompt_to_delete_id = None
-        self.new_prompt_name = ""
-        self.new_prompt_template = ""
-        self.add_prompt_dialog_open = False
-
     def _user_may_manage_lecture(self, lecture_id: int) -> bool:
         """Return whether the current user may manage prompts in this lecture."""
         if self.authenticated_user is None or self.authenticated_user.id is None:

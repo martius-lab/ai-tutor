@@ -53,13 +53,6 @@ class LectureReportViewState(SessionState):
         self.reports_route = f"{routes.LECTURE_REPORTS}/{lecture_id}"
         self.load_report()
 
-    def on_logout(self):
-        """Clear state when user logs out."""
-        self._report_id = -1
-        self.current_lecture_id = None
-        self.reports_route = routes.MY_LECTURES
-        self._clear_report_data()
-
     @rx.event
     def load_report(self):
         """Load lecture-specific report and associated conversation from database."""
