@@ -18,6 +18,14 @@ branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
 
+def _unique_constraint_on(inspector, table, column):
+    """Return the name of the unique constraint covering exactly `column`."""
+    for uc in inspector.get_unique_constraints(table):
+        if uc["column_names"] == [column]:
+            return uc["name"]
+    return None
+
+
 def upgrade() -> None:
     """Upgrade schema."""
     # Need to disable foreign key constraints for SQLite. SQLite recreates tables
@@ -30,12 +38,14 @@ def upgrade() -> None:
     with op.batch_alter_table('lecture', schema=None) as batch_op:
         batch_op.add_column(sa.Column('default_prompt_id', sa.Integer(), nullable=True))
 
+    inspector = sa.inspect(conn)
+    uq_name = _unique_constraint_on(inspector, "prompt", "name")
+
     with op.batch_alter_table(
         'prompt',
         schema=None,
-        naming_convention={'uq': 'uq_%(table_name)s_%(column_0_name)s'},
     ) as batch_op:
-        batch_op.drop_constraint('uq_prompt_name', type_='unique')
+        batch_op.drop_constraint(uq_name, type_="unique")
         batch_op.add_column(sa.Column('lecture_id', sa.Integer(), nullable=True))
         batch_op.create_index(batch_op.f('ix_prompt_lecture_id'), ['lecture_id'], unique=False)
         batch_op.create_foreign_key('fk_prompt_lecture_id_lecture', 'lecture', ['lecture_id'], ['id'], ondelete='CASCADE')
