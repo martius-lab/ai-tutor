@@ -60,12 +60,6 @@ class LectureMembersState(SessionState):
         self.available_user_filter_query = ""
 
     @rx.event
-    def set_member_role(self, user_id: int, role_name: str):
-        """Update the selected role for one loaded member."""
-        if user_id in self.members:
-            self.members[user_id].selected_role = role_name
-
-    @rx.event
     def cancel_member_role_change(self, user_id: int):
         """Reset one selected role to the persisted role."""
         if user_id in self.members:
@@ -171,6 +165,12 @@ class LectureMembersState(SessionState):
     @rx.event
     def close_edit_role_dialog(self):
         """Close the edit role dialog and reset editing state."""
+        if (
+            self.editing_member_user_id is not None
+            and self.editing_member_user_id in self.members
+        ):
+            member = self.members[self.editing_member_user_id]
+            member.selected_role = member.role
         self.edit_role_dialog_is_open = False
         self.editing_member_user_id = None
 
