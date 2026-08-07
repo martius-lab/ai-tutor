@@ -23,16 +23,6 @@ def lecture_role_text(role: rx.Var[str] | str):
     )
 
 
-def role_select(member: LectureMemberRow) -> rx.Component:
-    """Render the owner-only role dropdown for one member."""
-    return rx.select(
-        LectureRole.names(),
-        value=member.selected_role,
-        on_change=LectureMembersState.set_member_role(member.user_id),
-        size="2",
-    )
-
-
 def editable_role_cell(member: LectureMemberRow) -> rx.Component:
     """Render role text and an edit icon button to open the edit role dialog."""
     return rx.hstack(
@@ -292,7 +282,7 @@ def edit_role_dialog() -> rx.Component:
                                                 rx.cond(
                                                     role == editing_role,
                                                     rx.badge(
-                                                        LS.current_tag,
+                                                        LS.current,
                                                         size="1",
                                                         variant="soft",
                                                         radius="large",
@@ -317,7 +307,7 @@ def edit_role_dialog() -> rx.Component:
                     ),
                     rx.vstack(
                         rx.markdown(
-                            LS.roles_description,
+                            LS.lecture_roles_description,
                             font_size="0.9em",
                             color=rx.color("gray", 11),
                         ),

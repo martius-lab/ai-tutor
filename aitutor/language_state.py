@@ -1435,6 +1435,25 @@ Please test the chat for functionality after changing the model.
         """Localized student role label."""
         return self.translate(de="Student", en="Student")
 
+    @rx.var
+    def lecture_roles_description(self) -> str:
+        return self.translate(
+            de=textwrap.dedent(
+                """
+                - STUDENT: Kann Übungen ansehen und bearbeiten.
+                - TUTOR: Kann zusätzlich Abgaben der Übungen einsehen.
+                - OWNER: Kann alles (Vorlesungseinstellungen ändern, Übungen anlegen, Mitglieder verwalten...).
+            """
+            ),
+            en=textwrap.dedent(
+                """
+                - STUDENT: Can work on exercises.
+                - TUTOR: Can also view exercise submissions.
+                - OWNER: Can do everything (change lecture settings, create exercises, manage members...).
+            """
+            ),
+        )
+
     # All Lectures Strings ------------------------------------------------------------------------
     @rx.var
     def all_lectures(self) -> str:
@@ -1510,7 +1529,7 @@ Please test the chat for functionality after changing the model.
         )
 
     @rx.var
-    def current_tag(self) -> str:
+    def current(self) -> str:
         return self.translate(
             de="aktuell",
             en="current",
