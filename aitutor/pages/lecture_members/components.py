@@ -23,20 +23,6 @@ def lecture_role_text(role: rx.Var[str] | str):
     )
 
 
-def role_select(member: LectureMemberRow) -> rx.Component:
-    """Render the owner-only role dropdown for one member."""
-    return rx.select(
-        (
-            LectureRole.STUDENT.name,
-            LectureRole.TUTOR.name,
-            LectureRole.OWNER.name,
-        ),
-        value=member.selected_role,
-        on_change=LectureMembersState.set_member_role(member.user_id),
-        size="2",
-    )
-
-
 def editable_role_cell(member: LectureMemberRow) -> rx.Component:
     """Render role text and an edit icon button to open the edit role dialog."""
     return rx.hstack(
