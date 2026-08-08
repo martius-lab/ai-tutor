@@ -73,12 +73,6 @@ class LectureReportsState(FilterMixin, SessionState):
         self.current_lecture_id = lecture_id
         self.load_reports()
 
-    def on_logout(self):
-        """Clear state when user logs out."""
-        self.current_lecture_id = None
-        self.table_rows = []
-        self.search_values = []
-
     @override
     @rx.event
     def load_filtered_data(self):

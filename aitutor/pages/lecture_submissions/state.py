@@ -88,12 +88,6 @@ class LectureSubmissionsState(FilterMixin, SessionState):
                 lecture_id=lecture_id,
             )
 
-    def on_logout(self):
-        """Clears the state when the user logs out."""
-        self.current_lecture_id = None
-        self.table_rows = []
-        self.search_values = []  # from FilterMixin
-
     @override
     @rx.event
     def load_filtered_data(self):

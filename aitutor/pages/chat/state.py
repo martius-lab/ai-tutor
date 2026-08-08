@@ -312,23 +312,6 @@ class ChatState(SessionState):
         else:
             yield
 
-    def on_logout(self):
-        """Clears the state when the user logs out."""
-        self._exercise_id = -1
-        self.messages = []
-        self.current_exercise = None
-        self.exercise_title = "No Exercise Selected"
-        self.system_message_gpt = ""
-        self.waiting_for_response = False
-        self.check_passed = False
-        self.conversation_is_submitted = False
-        self.submit_time_stamp = ""
-        self.user_input = ""
-        self.last_user_message_index = -1
-        self.is_overdue = False
-        self._userinfo_id = -1
-        self.current_lecture_id = None
-
     @rx.var
     def report_char_count(self) -> int:
         """Get the current character count of the report text."""

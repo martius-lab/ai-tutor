@@ -109,24 +109,6 @@ class TokenAnalyzerState(SessionState):
         self.load_user_token_rows()
         self.load_exercise_token_rows()
 
-    def on_logout(self):
-        """Clears the state when the user logs out."""
-        self.user_table_rows = []
-        self.user_chart_data = []
-        self.user_chart_ticks = []
-        self.active_analysis_view = USER_ANALYSIS_VIEW
-        self.exercise_options = []
-        self.selected_exercise_name = ALL_EXERCISES_OPTION
-        self.exercise_filter_query = ""
-        self.exercise_table_rows = []
-        self.exercise_chart_data = []
-        self.exercise_chart_ticks = []
-        self.exercise_bar_size = 3
-        self.user_options = []
-        self.selected_user_name = ALL_USERS_OPTION
-        self.user_filter_query = ""
-        self.user_bar_size = 3
-
     @rx.var(initial_value="All")
     def all_option_label(self) -> str:
         """Localized label for the 'all' select option."""

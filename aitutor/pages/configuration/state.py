@@ -62,11 +62,6 @@ class ManageConfigState(SessionState):
         self.global_load()
         self.unsaved_changes = False
 
-    def on_logout(self):
-        """Clears the state when the user logs out."""
-        self.unsaved_changes = False
-        self.current_config = empty_config
-
     @rx.event
     def save_config_to_db(self):
         """Saves the current configuration to the database."""

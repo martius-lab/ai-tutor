@@ -75,10 +75,6 @@ class LectureExercisesState(FilterMixin, SessionState):
 
         self.load_exercises()
 
-    def on_logout(self):
-        """Clears the state when the user logs out."""
-        self._clear_exercises()
-
     @rx.var
     def route_lecture_id(self) -> str:
         """Return the lecture id route parameter for lecture-specific navigation."""

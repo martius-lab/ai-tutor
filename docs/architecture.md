@@ -25,17 +25,19 @@ State files contain the functions that are used to process data and handle user 
 
 A state usually always has these two functions:
 - an `on_load()` function that is called when the page is loaded and therefore can be used to initialize variables. This function needs to be protected with the `@state_require_role_at_least(userrole)` decorator so that no data is loaded for unauthorized users.
-- an `on_logout()` function to ensure that all user-specific data is cleared when the user logs out.
 
 To keep the state classes readable for everyone, we always order its content in the following order:
 - state variables
 - setters for state variables
 - on_load function
-- on_logout function
 - @rx.var functions
 - regular functions
 
 Information that is needed globally (e.g. the user language) is stored in the SessionState that is located in `aitutor/auth/state.py`. This state also handles the logout process. It has a function `global_load()` that should be called in every pages `on_load()` function to ensure that global data is consistent.
+
+All substates that are derived from `SessionState` are automatically reset upon logout.
+State information that should be preserved when the user logs out, needs to be saved in
+a State class that does not inherit (directly or indirectly) from `SessionState`.
 
 ## Languages
 
