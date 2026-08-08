@@ -54,7 +54,7 @@ def get_links():
             | has_permission(GlobalPermission.MAINTAINER),
             NavbarLink(
                 LanguageState.admin_settings_link,
-                routes.MANAGE_EXERCISES,
+                routes.MANAGE_USERS,
                 "shield-check",
             ),
             None,

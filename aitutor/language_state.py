@@ -1695,7 +1695,7 @@ class BackendTranslations:
             ).lstrip(),
         )
 
-    # ManageExercisesState -------------------------------------------------------------
+    # LectureManageExercisesState ------------------------------------------------------
     @staticmethod
     def tagname_already_exists(language: Language) -> str:
         return translate(

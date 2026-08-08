@@ -41,8 +41,6 @@ from aitutor.pages.login_and_registration.page import (
     custom_register_page,
 )
 from aitutor.pages.login_and_registration.state import MyLoginState, MyRegisterState
-from aitutor.pages.manage_exercises.page import manage_exercises_page
-from aitutor.pages.manage_exercises.state import ManageExercisesState, ManageTagsState
 from aitutor.pages.manage_users.page import manage_users_page
 from aitutor.pages.manage_users.state import ManageUsersState
 from aitutor.pages.my_lectures.page import my_lectures_page
@@ -64,7 +62,6 @@ __all__ = [
     # pages
     "chat_page",
     "home_page",
-    "manage_exercises_page",
     "manage_users_page",
     "my_lectures_page",
     "all_lectures_page",
@@ -99,8 +96,6 @@ __all__ = [
     "ExercisesState",
     "FinishedViewState",
     "FinishedViewTutorState",
-    "ManageExercisesState",
-    "ManageTagsState",
     "ManageUsersState",
     "MyLecturesState",
     "AllLecturesState",

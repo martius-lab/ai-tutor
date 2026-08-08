@@ -17,7 +17,6 @@ SUBMISSIONS = "/submissions"
 FINISHED_VIEW_TUTOR = "/finished_view_tutor"
 
 ADMIN_SETTINGS = "/admin_settings"
-MANAGE_EXERCISES = ADMIN_SETTINGS + "/manage_exercises"
 MANAGE_USERS = ADMIN_SETTINGS + "/manage_users"
 CONFIGURATION = ADMIN_SETTINGS + "/configuration"
 PROMPTS = ADMIN_SETTINGS + "/prompts"
