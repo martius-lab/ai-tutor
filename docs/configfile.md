@@ -3,18 +3,6 @@ The config file is only used to initialize the application by setting the config
 If no config.toml file is found, the default config is used for initialization. Changes can be made in the admin interface later on.
 
 # What needs to be in the config.toml file?
-## check_conversation_prompt
-
-Here you define the prompt that should be given to the AI when the check conversation
-button is pressed.
-```toml
-check_conversation_prompt = """
-Check if the answers of the student answered the exercise correctly.
-If the student did not answer correctly, respond with what the errors are but do not give the solution.
-If the student answered correctly, you can write one sentence that the student answered correctly and the task is finished.
-"""
-```
-
 ## AI models
 
 You can define which AI model should be used for the normal responses and which for the check conversation responses. To see which models you can use, please refer to the OpenAI [documentation](https://platform.openai.com/docs/models).
@@ -42,10 +30,9 @@ exercise_token_limit = 100_000
 Choose a value that fits your expected exercise complexity and model cost.
 
 ## info text on the home page
-The homepage has 3 sections to display your information.
+The homepage has 2 sections to display your information.
 - One section to explain how to use the AI Tutor
 - One section with general information
-- One section with specific information about the lecture
 
 These information texts can be set in the configfile and get rendered in markdown format.
 They are **optional**. If you don't want to use one of them. Just set them to: `""`
@@ -64,18 +51,6 @@ general_information_text = """
 - The AI tutor should only be used for working on the tasks.
 - Tutors and professors can view chats that have been submitted.
 """
-lecture_information_text = """
-# Lecture: Example Lecture XY
-- Lecturer: Prof. Dr. Max Mustermann
-- Contact: max.mustermann@uni-tuebingen.de
-- Content: This lecture is intended to provide an understanding of basic methods and concepts of XY.
-"""
-```
-
-The lecture title also gets displayed. You can set it in the variable `course_name`. This is mandatory.
-
-```toml
-course_name = "Example Lecture XY"
 ```
 
 ## Impressum
