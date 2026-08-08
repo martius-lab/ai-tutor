@@ -146,4 +146,10 @@ uploaded_files
 
 .DS_Store
 **/.DS_Store
+
 tmp/
+*~
+*.swp
+
+.claude/settings.local.json
+.agents/

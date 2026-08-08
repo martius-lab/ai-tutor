@@ -204,7 +204,7 @@ def lecture_action_buttons(
     return rx.hstack(
         enter_lecture_button(lecture, width=button_width),
         rx.cond(
-            role is not None,
+            role != None,
             leave_lecture_button(lecture, width=button_width),
         ),
         spacing="2",

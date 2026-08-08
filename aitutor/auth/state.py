@@ -9,7 +9,6 @@ import reflex_local_auth
 from sqlmodel import select
 
 import aitutor.routes as routes
-from aitutor import pages
 from aitutor.models import GlobalPermission, Language, Permission, UserInfo, UserRole
 
 
@@ -75,43 +74,15 @@ class SessionState(reflex_local_auth.LocalAuthState):
         """
         Handles the logout process for the authenticated user.
         """
-        states = [
-            pages.AllLecturesState,
-            pages.ChatState,
-            pages.EditLectureState,
-            pages.HomeState,
-            pages.ExercisesState,
-            pages.FinishedViewState,
-            pages.FinishedViewTutorState,
-            pages.LectureExercisesState,
-            pages.LectureManageExercisesState,
-            pages.LectureManagePromptsState,
-            pages.LectureManageTagsState,
-            pages.LectureMembersState,
-            pages.LectureOverviewState,
-            pages.LectureReportsState,
-            pages.LectureReportViewState,
-            pages.LectureSubmissionsState,
-            pages.LectureTokenAnalyzerState,
-            pages.ManageConfigState,
-            pages.ManageExercisesState,
-            pages.ManageTagsState,
-            pages.ManagePromptsState,
-            pages.ManageUsersState,
-            pages.MyLecturesState,
-            pages.ReportsState,
-            pages.ReportViewState,
-            pages.SubmissionsState,
-            pages.TokenAnalyzerState,
-        ]
-        for state in states:
-            # get the state
-            state_instance = await self.get_state(state)
-            # clear the state
-            state_instance.on_logout()
-
-        # logout
         self.do_logout()
+
+        # Reset all base vars to their default (this also covers substates).
+        # We want to keep the language setting after logout, so restore that after
+        # resetting.
+        language = self.language
+        self.reset()
+        self.language = language
+
         return rx.redirect(routes.HOME, replace=True)
 
     @rx.var(cache=True, initial_value=None)

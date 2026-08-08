@@ -64,14 +64,6 @@ class FinishedViewTutorState(SessionState):
             self.messages = []
             self.set_messages_from_conversation(finished_conversation)
 
-    def on_logout(self):
-        """Clears the state when the user logs out."""
-        self.messages = []
-        self.current_exercise = None
-        self.username = ""
-        self.exercise_title = "No Exercise Selected"
-        self.current_lecture_id = None
-
     @rx.var
     def submissions_url(self) -> str:
         """Return to the matching global or lecture-specific submissions page."""

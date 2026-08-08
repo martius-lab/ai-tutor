@@ -24,6 +24,16 @@ def translate(language: Language, *, de: str, en: str) -> str:
             return en
 
 
+def language_from_value(value: object) -> Language:
+    """Parse a language value from form data, falling back to English."""
+    if isinstance(value, Language):
+        return value
+    try:
+        return Language(str(value))
+    except ValueError:
+        return Language.EN
+
+
 class LanguageState(SessionState):
     """State that returns all strings in the current language."""
 
@@ -850,6 +860,20 @@ class LanguageState(SessionState):
         )
 
     @rx.var
+    def successful_registration_with_email(self) -> str:
+        return self.translate(
+            de="Registrierung erfolgreich. Wir haben Ihnen eine Willkommens-E-Mail gesendet.",
+            en="Registration successful. We sent you a welcome email.",
+        )
+
+    @rx.var
+    def successful_registration_email_failed(self) -> str:
+        return self.translate(
+            de="Registrierung erfolgreich, aber die Willkommens-E-Mail konnte nicht gesendet werden.",
+            en="Registration successful, but the welcome email could not be sent.",
+        )
+
+    @rx.var
     def registration_code(self) -> str:
         """Registration Code string"""
         return self.translate(de="Registrierungscode", en="Registration code")
@@ -1636,6 +1660,51 @@ class BackendTranslations:
             language,
             de="Fehler: Das eingegebene Passwort ist falsch.",
             en="Error: The entered password is incorrect.",
+        )
+
+    # Account email flows ---------------------------------------------------------------
+    @staticmethod
+    def signup_welcome_subject(language: Language) -> str:
+        return translate(
+            language,
+            de="Willkommen bei AI Tutor",
+            en="Welcome to AI Tutor",
+        )
+
+    @staticmethod
+    def signup_welcome_body(
+        language: Language, *, username: str, login_url: str
+    ) -> str:
+        return translate(
+            language,
+            de=textwrap.dedent(
+                f"""
+                Hallo {username},
+
+                Ihr AI Tutor Konto wurde erfolgreich erstellt.
+
+                Benutzername: {username}
+
+                Sie können sich hier anmelden:
+                {login_url}
+
+                Falls Sie dieses Konto nicht erstellt haben, kontaktieren Sie bitte das AI Tutor Team.
+                """
+            ).lstrip(),
+            en=textwrap.dedent(
+                f"""
+                Hello {username},
+
+                Your AI Tutor account has been created successfully.
+
+                Username: {username}
+
+                You can log in here:
+                {login_url}
+
+                If you did not create this account, please contact the AI Tutor team.
+                """
+            ).lstrip(),
         )
 
     # ManageExercisesState -------------------------------------------------------------

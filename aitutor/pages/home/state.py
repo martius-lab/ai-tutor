@@ -56,10 +56,6 @@ class HomeState(SessionState):
                 if not exercise.is_hidden and exercise.is_started
             ]
 
-    def on_logout(self):
-        """Clears the state when the user logs out."""
-        self.exercises_with_result = []
-
     @rx.var
     def completed_exercises_num(self) -> int:
         """Number of completed exercises."""

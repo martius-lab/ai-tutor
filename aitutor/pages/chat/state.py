@@ -11,10 +11,10 @@ from pydantic import BaseModel
 from sqlmodel import select
 
 import aitutor.routes as routes
-from aitutor.app_settings import get_settings
 from aitutor.auth.protection import state_require_role_or_permission
 from aitutor.auth.state import SessionState
 from aitutor.config import get_config
+from aitutor.env_settings import get_env_settings
 from aitutor.global_vars import (
     CHAT_MESSAGE_CHAR_LIMIT,
     CHAT_TOKEN_WARNING_THRESHOLD,
@@ -68,10 +68,10 @@ def init_async_openai_client() -> AsyncOpenAI:
     Uses settings so the API key and optional base URL can be set either as environment
     variables or in a .env file.
     """
-    settings = get_settings()
+    settings = get_env_settings()
     return AsyncOpenAI(
-        api_key=settings.openai_api_key,
-        base_url=settings.openai_base_url,
+        api_key=settings.OPENAI_API_KEY,
+        base_url=settings.OPENAI_BASE_URL,
     )
 
 
@@ -311,23 +311,6 @@ class ChatState(SessionState):
             error_when_loading_prompt = False
         else:
             yield
-
-    def on_logout(self):
-        """Clears the state when the user logs out."""
-        self._exercise_id = -1
-        self.messages = []
-        self.current_exercise = None
-        self.exercise_title = "No Exercise Selected"
-        self.system_message_gpt = ""
-        self.waiting_for_response = False
-        self.check_passed = False
-        self.conversation_is_submitted = False
-        self.submit_time_stamp = ""
-        self.user_input = ""
-        self.last_user_message_index = -1
-        self.is_overdue = False
-        self._userinfo_id = -1
-        self.current_lecture_id = None
 
     @rx.var
     def report_char_count(self) -> int:

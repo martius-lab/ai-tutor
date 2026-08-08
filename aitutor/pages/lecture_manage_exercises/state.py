@@ -192,29 +192,6 @@ class LectureManageExercisesState(FilterMixin, SessionState):
                 lecture_id=lecture_id,
             )
 
-    def on_logout(self):
-        """Clears the state when the user logs out."""
-        self.exercises = []
-        self.current_lecture_id = None
-        self.current_default_prompt_id = None
-        self.tag_list = []
-        self.tag_names = []
-        self.search_values = []  # from FilterMixin
-        self.current_exercise = Exercise()
-        self.selected_tags = []
-        self.lesson_context = ""
-        self.lesson_file_name = ""
-        self.current_prompt_id = ""
-        self.prompts = []
-        self.extracting_lesson_material = False
-        self.current_hidden_state = False
-        self.current_deadline = ""
-        self.current_days_to_complete = ""
-        self.use_deadline = True
-        self.editing_periods = {}
-        self.exercise_is_started = {}
-        self.exercise_is_selected = {}
-
     @rx.var
     def selectable_tags(self) -> list[str]:
         """Return the list of tags that can be selected (not already selected)."""
@@ -943,12 +920,6 @@ class LectureManageTagsState(LectureManageExercisesState):
     def set_new_renamed_tag_name(self, tag_name: str):
         """Set the renamed tag name."""
         self.new_renamed_tag_name = tag_name
-
-    def on_logout(self):
-        """Clears the state when the user logs out."""
-        self.new_tag_name = ""
-        self.new_renamed_tag_name = ""
-        self.editing_tag_id = None
 
     @rx.var(initial_value={})
     def exercises_per_tag(self) -> dict[int, int]:

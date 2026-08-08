@@ -95,10 +95,6 @@ class LectureMembersState(SessionState):
         self.load_members()
         self.load_available_users()
 
-    def on_logout(self):
-        """Clear page-specific state on logout."""
-        self._reset_page_state()
-
     @rx.var(initial_value=False)
     def is_owner(self) -> bool:
         """Whether the current user is an owner of this lecture."""

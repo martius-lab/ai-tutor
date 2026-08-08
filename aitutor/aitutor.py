@@ -10,9 +10,10 @@ from sqlmodel import select
 
 import aitutor.routes as routes
 from aitutor import pages
-from aitutor.app_settings import get_settings
 from aitutor.config import add_configprompts_to_db, get_config, initialize_config_db
+from aitutor.env_settings import get_env_settings
 from aitutor.models import Prompt
+from aitutor.utilities.cprint import cprint
 from aitutor.utilities.create_default_users import create_default_users
 
 app = rx.App(
@@ -177,7 +178,7 @@ app.add_page(pages.privacy_notice_page, route=routes.PRIVACY_NOTICE)
 def initialize():
     """Initialization steps that are run once when the app starts."""
 
-    print("Executing initialization tasks:")
+    print("Executing initialization tasks")
 
     # ensure there is a config row in the database
     initialize_config_db()
@@ -186,17 +187,23 @@ def initialize():
     try:
         _ = get_config()
     except Exception as e:
-        print("\033[91m" + f"Error loading config: {e}" + "\033[0m")
+        cprint(f"Error loading config: {e}", fg="white", bg="red")
         sys.exit(1)
 
     try:
-        settings = get_settings()
+        settings = get_env_settings()
     except ValueError as e:
-        print("\033[91m" + str(e) + "\033[0m")
+        cprint(f"Error loading settings: {e}", fg="white", bg="red")
         sys.exit(1)
 
-    if settings.openai_base_url:
-        print(f"Using OPENAI_BASE_URL={settings.openai_base_url}")
+    if settings.OPENAI_BASE_URL:
+        print(f"Using OPENAI_BASE_URL={settings.OPENAI_BASE_URL}")
+
+    if not settings.SMTP:
+        cprint(
+            "Warning: SMTP is not configured. Emails will not be sent.",
+            fg="yellow",
+        )
 
     create_default_users()
 
@@ -208,7 +215,7 @@ def initialize():
             print("No prompts found in the database. Adding default prompts...")
             add_configprompts_to_db()
 
-    print("\033[92m" + "Initialization tasks completed." + "\033[0m")
+    cprint("Initialization tasks completed.", fg="green")
 
 
 app.register_lifespan_task(initialize)

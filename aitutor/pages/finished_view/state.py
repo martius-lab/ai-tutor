@@ -79,14 +79,6 @@ class FinishedViewState(SessionState):
                 self.messages = []
                 self.set_messages_from_conversation(finished_conversation)
 
-    def on_logout(self):
-        """Clears the state when the user logs out."""
-        self._exercise_id = -1
-        self.messages = []
-        self.current_exercise = None
-        self.exercise_title = "No Exercise Selected"
-        self.current_lecture_id = None
-
     @rx.var
     def chat_url(self) -> str:
         """Returns the URL for the chat page."""

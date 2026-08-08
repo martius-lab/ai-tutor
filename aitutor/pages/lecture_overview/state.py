@@ -48,10 +48,6 @@ class LectureOverviewState(SessionState):
         assert self.authenticated_user_info is not None
         self._load_lecture_exercises()
 
-    def on_logout(self):
-        """Clear lecture-specific state when the user logs out."""
-        self._reset_lecture_state()
-
     def _reset_lecture_state(self) -> None:
         """Reset all page-local state values."""
         self.current_lecture_id = None
