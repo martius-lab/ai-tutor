@@ -121,10 +121,18 @@ class ExerciseTagLink(SQLModel, table=True):
 class Tag(SQLModel, table=True):
     """Tag model for storing allowed tags."""
 
+    __table_args__ = (
+        sa.UniqueConstraint(
+            "lecture_id",
+            "name",
+            name="uq_tag_lecture_id_name",
+        ),
+    )
+
     id: Optional[int] = Field(default=None, primary_key=True)
-    name: str = Field(nullable=False, index=True)
+    name: str = Field(nullable=False)
     lecture_id: Optional[int] = Field(
-        default=None, foreign_key="lecture.id", ondelete="CASCADE", index=True
+        default=None, foreign_key="lecture.id", ondelete="CASCADE"
     )
 
     # ORM relationship

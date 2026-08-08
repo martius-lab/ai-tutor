@@ -727,10 +727,12 @@ class LectureManageExercisesState(FilterMixin, SessionState):
 
         with rx.session() as session:
             # load tags
-            query_tags = select(Tag).where(Tag.lecture_id == self.current_lecture_id)
-            self.tag_list = sorted(
-                session.exec(query_tags).all(), key=lambda tag: tag.name.lower()
+            query_tags = (
+                select(Tag)
+                .where(Tag.lecture_id == self.current_lecture_id)
+                .order_by(func.lower(Tag.name))
             )
+            self.tag_list = list(session.exec(query_tags).all())
             self.tag_names = [tag.name for tag in self.tag_list]
 
     @rx.event
