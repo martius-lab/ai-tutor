@@ -8,7 +8,6 @@ HOME = "/"
 IMPRESSUM = "/impressum"
 PRIVACY_NOTICE = "/privacy_notice"
 
-EXERCISES = "/exercises"
 CHAT = "/chat"  # needs to be /chat/[exercise_id] to work
 FINISHED_VIEW = "/finished_view"  # needs to be /finished_view/[exercise_id] to work
 

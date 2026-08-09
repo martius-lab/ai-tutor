@@ -237,20 +237,23 @@ class ChatState(SessionState):
                 yield rx.redirect(routes.NOT_FOUND)
                 return
 
-            if exercise.lecture_id is not None:
-                if (
-                    self.authenticated_user is None
-                    or self.authenticated_user.id is None
-                    or not user_may_view_lecture(
-                        session,
-                        user_id=self.authenticated_user.id,
-                        global_permissions=self.global_permissions,
-                        lecture_id=exercise.lecture_id,
-                    )
-                ):
-                    yield rx.redirect(routes.MY_LECTURES)
-                    return
-                self.current_lecture_id = exercise.lecture_id
+            if exercise.lecture_id is None:
+                yield rx.redirect(routes.MY_LECTURES)
+                return
+
+            if (
+                self.authenticated_user is None
+                or self.authenticated_user.id is None
+                or not user_may_view_lecture(
+                    session,
+                    user_id=self.authenticated_user.id,
+                    global_permissions=self.global_permissions,
+                    lecture_id=exercise.lecture_id,
+                )
+            ):
+                yield rx.redirect(routes.MY_LECTURES)
+                return
+            self.current_lecture_id = exercise.lecture_id
 
             exercise_result = session.exec(
                 select(ExerciseResult).where(
@@ -332,10 +335,10 @@ class ChatState(SessionState):
 
     @rx.var
     def exercises_url(self) -> str:
-        """Return the exercise list URL for the current chat context."""
-        if self.current_lecture_id is not None:
-            return f"{routes.LECTURE_EXERCISES}/{self.current_lecture_id}"
-        return routes.EXERCISES
+        """Return the exercise list URL for the current lecture."""
+        if self.current_lecture_id is None:
+            return routes.MY_LECTURES
+        return f"{routes.LECTURE_EXERCISES}/{self.current_lecture_id}"
 
     @rx.event
     def submit_report(self):

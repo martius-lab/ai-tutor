@@ -66,10 +66,10 @@ class FinishedViewTutorState(SessionState):
 
     @rx.var
     def submissions_url(self) -> str:
-        """Return to the matching global or lecture-specific submissions page."""
-        if self.current_lecture_id is not None:
-            return f"{routes.LECTURE_SUBMISSIONS}/{self.current_lecture_id}"
-        return routes.SUBMISSIONS
+        """Return to the submissions page for the current lecture."""
+        if self.current_lecture_id is None:
+            return routes.MY_LECTURES
+        return f"{routes.LECTURE_SUBMISSIONS}/{self.current_lecture_id}"
 
     def _user_may_view_submission(self, exercise: Exercise) -> bool:
         """Return whether the current user may view this submitted exercise."""
@@ -77,9 +77,7 @@ class FinishedViewTutorState(SessionState):
             return False
 
         if exercise.lecture_id is None:
-            return self.is_global_admin or (
-                self.user_role is not None and self.user_role >= UserRole.TUTOR
-            )
+            return False
 
         with rx.session() as session:
             return user_may_view_lecture_submissions(

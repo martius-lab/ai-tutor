@@ -12,7 +12,7 @@ from aitutor.pages.navbar import with_navbar
 
 
 @page_require_role_or_permission(required_role=UserRole.STUDENT)
-@with_navbar(routes.SUBMISSIONS)
+@with_navbar(routes.MY_LECTURES)
 def finished_view_tutor_page() -> rx.Component:
     """Renders the web page."""
     return rx.container(

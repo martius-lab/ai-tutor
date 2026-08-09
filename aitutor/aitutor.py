@@ -135,11 +135,6 @@ app.add_page(
     on_load=pages.ManagePromptsState.on_load,
 )
 app.add_page(
-    pages.exercises_page,
-    route=routes.EXERCISES,
-    on_load=pages.ExercisesState.on_load,
-)
-app.add_page(
     pages.user_settings_page,
     route=routes.USER_SETTINGS,
 )

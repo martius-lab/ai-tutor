@@ -40,7 +40,6 @@ def get_links():
     """
     return [
         NavbarLink(LanguageState.home_link, routes.HOME, "house"),
-        NavbarLink(LanguageState.exercises_link, routes.EXERCISES, "book"),
         NavbarLink(LanguageState.lectures_link, routes.MY_LECTURES, "graduation-cap"),
         rx.cond(
             lecture_has_role_at_least(UserRole.TUTOR),

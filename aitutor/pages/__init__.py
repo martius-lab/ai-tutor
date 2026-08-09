@@ -6,8 +6,6 @@ from aitutor.pages.configuration.page import configuration_page
 from aitutor.pages.configuration.state import ManageConfigState
 from aitutor.pages.edit_lecture.page import edit_lecture_page
 from aitutor.pages.edit_lecture.state import EditLectureState
-from aitutor.pages.exercises.page import exercises_page
-from aitutor.pages.exercises.state import ExercisesState
 from aitutor.pages.finished_view.page import finished_view_page
 from aitutor.pages.finished_view.state import FinishedViewState
 from aitutor.pages.finished_view_tutor.page import finished_view_tutor_page
@@ -74,7 +72,6 @@ __all__ = [
     "lecture_reports_page",
     "lecture_report_view_page",
     "lecture_token_analyzer_page",
-    "exercises_page",
     "navbar",
     "not_found_page",
     "prompts_page",
@@ -93,7 +90,6 @@ __all__ = [
     # states
     "ChatState",
     "HomeState",
-    "ExercisesState",
     "FinishedViewState",
     "FinishedViewTutorState",
     "ManageUsersState",
