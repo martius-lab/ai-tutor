@@ -7,7 +7,6 @@ from aitutor.language_state import LanguageState
 
 admin_links = [
     (LanguageState.manage_users, routes.MANAGE_USERS, "users"),
-    (LanguageState.reports, routes.REPORTS, "flag"),
     (LanguageState.manage_prompts, routes.PROMPTS, "text-search"),
     (LanguageState.configuration, routes.CONFIGURATION, "file-sliders"),
 ]

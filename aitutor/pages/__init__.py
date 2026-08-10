@@ -47,10 +47,6 @@ from aitutor.pages.navbar import navbar
 from aitutor.pages.not_found.page import not_found_page
 from aitutor.pages.prompts.page import prompts_page
 from aitutor.pages.prompts.state import ManagePromptsState
-from aitutor.pages.report_view.page import report_view_page
-from aitutor.pages.report_view.state import ReportViewState
-from aitutor.pages.reports.page import reports_page
-from aitutor.pages.reports.state import ReportsState
 from aitutor.pages.submissions.page import submissions_page
 from aitutor.pages.submissions.state import SubmissionsState
 from aitutor.pages.user_settings.page import user_settings_page
@@ -85,8 +81,6 @@ __all__ = [
     "user_settings_page",
     "configuration_page",
     "edit_lecture_page",
-    "reports_page",
-    "report_view_page",
     # states
     "ChatState",
     "HomeState",
@@ -111,7 +105,5 @@ __all__ = [
     "UserSettingsState",
     "ManageConfigState",
     "EditLectureState",
-    "ReportsState",
-    "ReportViewState",
     "ManagePromptsState",
 ]
