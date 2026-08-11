@@ -1,107 +1,120 @@
 # Run with Docker
 
-This repository contains a docker compose setup for easy deployment.  This is based on
+This repository contains a Docker Compose setup for easy deployment.  This is based on
 one of the [examples in the Reflex
 repo](https://github.com/reflex-dev/reflex/tree/main/docker-example/production-compose).
 
+The basic `compose.yaml` only starts the Reflex application.  With the additional
+`compose.prod.yaml`, a PostgreSQL database is used instead of SQLite and Redis server
+for something related to the front end, which the author of this text never fully
+understood...
+
+
 ## Basic usage
 
-To test locally, simply run (from the projects root directory)
-```
-COMPOSE_BAKE=true docker compose build
-```
-to build images using the current state of the code and run with
-```
-# with sqlite
-docker compose up
-```
+A `Makefile` is provided for the most basic tasks.  The following commands have to be
+called from the root directory of the package.  See the Makefile itself for the actual
+docker commands which are called.
 
-Then open [https://localhost](https://localhost) in your browser to access the application.
+The config files `config.toml` and `.env` (see section "Configuration" below) are
+expected to be found in the projects root directory and are mounted into the container
+from the host system.  This means that the configuration can easily be changed without
+the need of rebuilding the images.
 
-The config files `config.toml` and `.env` are expected to be found in the projects root directory and are mounted into the container from the host system.  This means that the configuration can easily be changed without the need of rebuilding the images.
 
-## Email setup
-
-Signup welcome emails are sent through SMTP.  Configure the following values in
-`.env`:
+**Build the container:**
 
 ```
-SMTP_HOST=smtp.example.com
-SMTP_PORT=587
-SMTP_FROM_EMAIL="AI Tutor <noreply@example.com>"
-SMTP_USERNAME=your-smtp-user
-SMTP_PASSWORD=your-smtp-password
-SMTP_USE_TLS=true
+# make build
+```
+
+**Start production setup with PostgreSQL:**
+
+```
+# make up
+```
+When testing locally, open [https://localhost](https://localhost) in your browser to
+access the application.
+
+**Stop everything:**
+
+```
+# make down
+```
+
+**View the logs:**
+
+```
+# make logs
+```
+
+
+## Configuration
+
+### config.toml
+
+The Docker setup currently still requires a `config.toml` to be present for the initial
+configuration (i.e. just the `default_config.toml` is not enough).  This file is really
+only used at the first start to populate the settings in the database.  To change things
+later, use the admin facilities in AI-Tutor itself.
+
+### .env
+
+The `.env` file contains additional configuration, which cannot be changed in the
+AI-Tutor UI.  Below is an example with explanation of the individual variables.  All
+variables are required unless explicitly specified otherwise.
+
+```sh
+# The domain of the server on which AI-Tutor is running.  Use 'localhost' for local
+# testing
+DOMAIN=ai-tutor.example.de
+
+# API key for the LLM access
+OPENAI_API_KEY=<secret key>
+# [Optional] Base URL for the OpenAI API.  Set this when using a model provider other
+# than OpenAI.  If not set, OpenAI is used.
+OPENAI_BASE_URL=example-ai-company.com
+
+# Password for the PostgreSQL database (will be used when creating the database if it
+# doesn't exist yet).
+POSTGRES_PASSWORD=<secret password>
+
+# [Optional] SMTP settings for sending emails.  If not set, emails are printed to stdout
+# (only use this for local testing).
+# The example values below assume that the host has postfix configured for sending
+# emails and that the IP of the docker0 interface is 172.17.0.1.
+SMTP_HOST=172.17.0.1
+SMTP_PORT=25
+SMTP_FROM_EMAIL="noreply@ai-tutor.cs.uni-tuebingen.de"
+SMTP_USE_TLS=false
 SMTP_USE_SSL=false
 SMTP_TIMEOUT=10
-DOMAIN=your-ai-tutor.example
+# Credentials if the SMTP server requires authentication
+#SMTP_USERNAME=your-smtp-user
+#SMTP_PASSWORD=your-smtp-password
+
+# [Optional] The subnet used by the docker containers.  This is explicitly set to
+configuration of postfix on the host easier.  It defaults to 172.18.0.0/16.  In case
+that range is already used, you may specify a different range here.
+AITUTOR_DOCKER_SUBNET=172.22.0.0/16
 ```
 
-`SMTP_USERNAME` and `SMTP_PASSWORD` are optional only if the SMTP server allows
-unauthenticated sending.  If one is set, the other must be set as well.
+**Local testing with emails:**  To test sending of emails locally (during development),
+you may run Mailpit using
 
-Signup welcome emails use `DOMAIN` to build HTTPS login links.  Set it to the
-public domain users open in their browser.
+```
+# docker compose -f compose.mailpit.yaml up -d
+```
 
-Do not commit real SMTP credentials to the repository.
+and configure SMTP settings as follows:
 
-For local email testing without sending real mail, configure the app container
-to send signup emails to Mailpit:
 
 ```
 SMTP_HOST=mailpit
 SMTP_PORT=1025
-SMTP_FROM_EMAIL="AI Tutor <noreply@example.test>"
+SMTP_FROM_EMAIL="AI Tutor <noreply@example.com>"
 SMTP_USE_TLS=false
 SMTP_USE_SSL=false
-DOMAIN=localhost
-```
-
-Leave `SMTP_USERNAME` and `SMTP_PASSWORD` unset unless you configure Mailpit to
-require authentication.
-
-Then start the optional Mailpit compose override:
-
-```
-docker compose -f compose.yaml -f compose.mailpit.yaml up
 ```
 
 Open [http://localhost:8025](http://localhost:8025) to inspect captured emails.
-
-
-## Production environment with Postgresql
-
-```
-docker compose -f compose.yaml -f compose.prod.yaml up
-
-# or to add additional debug tools
-docker compose -f compose.yaml -f compose.prod.yaml -f compose.tools.yaml up
-```
-You can then access it locally on `https://localhost`.
-
-Note that for Postgresql, a password needs to be set using `POSTGRES_PASSWORD`
-in the `.env` file.
-
-## On the server
-
-To deploy on a server
-- Copy the project code and config files (`config.toml` and `.env`) to the
-  server
-- Add `DOMAIN=your-domain.com` to `.env`
-- Build the images
-  ```
-  COMPOSE_BAKE=true docker compose build
-  ```
-- Run in production mode:
-  ```
-  docker compose -f compose.yaml -f compose.prod.yaml up -d
-  ```
-  The `-d` flag detaches the process from the terminal.  You can view the
-  output with
-  ```
-  docker compose -f compose.yaml -f compose.prod.yaml logs
-  ```
-- To shut it down:
-  ```
-  docker compose -f compose.yaml -f compose.prod.yaml down
-  ```
