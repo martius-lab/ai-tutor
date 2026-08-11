@@ -470,10 +470,16 @@ class LectureManageExercisesState(FilterMixin, SessionState):
                     tags = []
                     for tag_name in ex_data.get("tags", []):
                         tag = session.exec(
-                            select(Tag).where(Tag.name == tag_name)
+                            select(Tag).where(
+                                Tag.name == tag_name,
+                                Tag.lecture_id == self.current_lecture_id,
+                            )
                         ).first()
                         if not tag:
-                            tag = Tag(name=tag_name)
+                            tag = Tag(
+                                name=tag_name,
+                                lecture_id=self.current_lecture_id,
+                            )
                             session.add(tag)
                             session.flush()
                         tags.append(tag)
@@ -594,7 +600,10 @@ class LectureManageExercisesState(FilterMixin, SessionState):
                 lecture_id=self.current_lecture_id,
                 is_hidden=self.current_hidden_state,
                 tags=session.exec(
-                    select(Tag).where(Tag.name.in_(self.selected_tags))  # type: ignore
+                    select(Tag).where(
+                        Tag.lecture_id == self.current_lecture_id,
+                        Tag.name.in_(self.selected_tags),  # type: ignore
+                    )
                 ).all(),
             )
             # set deadline and days to complete
@@ -688,12 +697,19 @@ class LectureManageExercisesState(FilterMixin, SessionState):
     @rx.event
     def load_tags(self):
         """Get tags from db."""
+        if self.current_lecture_id is None:
+            self.tag_list = []
+            self.tag_names = []
+            return
+
         with rx.session() as session:
             # load tags
-            query_tags = select(Tag)
-            self.tag_list = sorted(
-                session.exec(query_tags).all(), key=lambda tag: tag.name.lower()
+            query_tags = (
+                select(Tag)
+                .where(Tag.lecture_id == self.current_lecture_id)
+                .order_by(func.lower(Tag.name))
             )
+            self.tag_list = list(session.exec(query_tags).all())
             self.tag_names = [tag.name for tag in self.tag_list]
 
     @rx.event
@@ -737,7 +753,10 @@ class LectureManageExercisesState(FilterMixin, SessionState):
             updated_exercise.title = form_data["title"]
             updated_exercise.description = form_data["description"]
             updated_exercise.tags = session.exec(
-                select(Tag).where(Tag.name.in_(self.selected_tags))  # type: ignore
+                select(Tag).where(
+                    Tag.lecture_id == self.current_lecture_id,
+                    Tag.name.in_(self.selected_tags),  # type: ignore
+                )
             ).all()
             updated_exercise.prompt_id = self.get_current_prompt_id()
             updated_exercise.lesson_context = self.lesson_context
@@ -936,18 +955,27 @@ class LectureManageTagsState(LectureManageExercisesState):
     @rx.event
     def add_new_tag(self):
         """Add tags to db."""
+        if self.current_lecture_id is None:
+            return rx.redirect(routes.MY_LECTURES)
+
         if not self.new_tag_name:
             return rx.window_alert("Please enter a tag name.")
 
         with rx.session() as session:
             existing_tag = session.exec(
-                select(Tag).where(Tag.name == self.new_tag_name)
+                select(Tag).where(
+                    Tag.name == self.new_tag_name,
+                    Tag.lecture_id == self.current_lecture_id,
+                )
             ).one_or_none()
 
             if existing_tag is not None:
                 return rx.window_alert("Tag exists already.")
 
-            new_tag = Tag(name=self.new_tag_name)
+            new_tag = Tag(
+                name=self.new_tag_name,
+                lecture_id=self.current_lecture_id,
+            )
             session.add(new_tag)
             session.commit()
             self.load_tags()
@@ -970,16 +998,21 @@ class LectureManageTagsState(LectureManageExercisesState):
     @rx.event
     def edit_tag_name(self):
         """Edit a tag's name in the db."""
+        if self.current_lecture_id is None:
+            return rx.redirect(routes.MY_LECTURES)
+
         with rx.session() as session:
             tag_to_edit = session.get(Tag, self.editing_tag_id)
 
-            if tag_to_edit is None:
+            if tag_to_edit is None or tag_to_edit.lecture_id != self.current_lecture_id:
                 return rx.window_alert("Tag not found.")
 
             # check if new name already exists
             existing_tag = session.exec(
                 select(Tag).where(
-                    Tag.name == self.new_renamed_tag_name, Tag.id != self.editing_tag_id
+                    Tag.name == self.new_renamed_tag_name,
+                    Tag.lecture_id == self.current_lecture_id,
+                    Tag.id != self.editing_tag_id,
                 )
             ).one_or_none()
 
@@ -1012,10 +1045,16 @@ class LectureManageTagsState(LectureManageExercisesState):
     @rx.event
     def delete_tag(self, tag_id):
         """Delete a tag from the db."""
+        if self.current_lecture_id is None:
+            return rx.redirect(routes.MY_LECTURES)
+
         with rx.session() as session:
             tag_to_delete = session.get(Tag, tag_id)
 
-            if tag_to_delete is None:
+            if (
+                tag_to_delete is None
+                or tag_to_delete.lecture_id != self.current_lecture_id
+            ):
                 return rx.window_alert("Tag not found.")
 
             session.delete(tag_to_delete)
