@@ -996,10 +996,6 @@ class LanguageState(SessionState):
         )
 
     @rx.var
-    def course_name(self) -> str:
-        return self.translate(de="Kursname", en="Course Name")
-
-    @rx.var
     def response_ai_model(self) -> str:
         return self.translate(de="Antwort KI-Modell", en="Response AI Model")
 
@@ -1050,14 +1046,6 @@ Please test the chat for functionality after changing the model.
     def check_conversation_prompt(self) -> str:
         return self.translate(
             de="Konversations-Überprüfungs-Prompt", en="Check Conversation Prompt"
-        )
-
-    @rx.var
-    def check_conversation_prompt_info(self) -> str:
-        return self.translate(
-            de="Der Prompt, der verwendet wird, um die Konversation auf Korrektheit zu "
-            "überprüfen.",
-            en="The prompt used to check the conversation for correctness.",
         )
 
     @rx.var

@@ -8,7 +8,6 @@ from typing import Optional
 import reflex as rx
 
 import aitutor.routes as routes
-from aitutor import DisplayConfigState
 from aitutor.auth.protection import has_permission, lecture_has_role_at_least
 from aitutor.auth.state import SessionState
 from aitutor.language_state import LanguageState
@@ -301,7 +300,6 @@ def navbar(route_to_highlight: Optional[str]) -> rx.Component:
                     align_items="center",
                 ),
                 rx.vstack(
-                    rx.text(DisplayConfigState.course_name, weight="bold"),
                     rx.hstack(
                         rx.foreach(
                             get_links(),
@@ -346,15 +344,6 @@ def navbar(route_to_highlight: Optional[str]) -> rx.Component:
                             _hover={"cursor": "pointer"},
                         ),
                         rx.menu.content(
-                            rx.box(
-                                rx.text(
-                                    DisplayConfigState.course_name,
-                                    color_scheme="gray",
-                                    weight="bold",
-                                ),
-                                padding="0.5em",
-                            ),
-                            rx.separator(),
                             rx.foreach(
                                 get_links(),
                                 lambda link: rx.cond(

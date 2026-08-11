@@ -290,19 +290,16 @@ class Config(SQLModel, table=True):
     __table_args__ = (CheckConstraint("id = 1", name="only_one_row"),)
 
     id: Optional[int] = Field(default=1, primary_key=True)
-    check_conversation_prompt: str
     response_ai_model: str
     check_ai_model: str
     how_to_use_text: str
     general_information_text: str
-    lecture_information_text: str
-    course_name: str
     impressum_text: str
     registration_code: str
     exercise_token_limit: int
 
     def __repr__(self):
-        return f"<Config(id={self.id}, course_name='{self.course_name}')>"
+        return f"<Config(id={self.id})>"
 
 
 class Prompt(SQLModel, table=True):

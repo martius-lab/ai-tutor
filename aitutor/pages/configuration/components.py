@@ -94,14 +94,6 @@ def config_form() -> rx.Component:
         rx.form(
             rx.vstack(
                 input(
-                    name="course_name",
-                    heading=LS.course_name,
-                    value=ManageConfigState.current_config.course_name,
-                    on_change=lambda value: ManageConfigState.set_config_value(
-                        "course_name", value
-                    ),
-                ),
-                input(
                     name="registration_code",
                     heading=LS.registration_code,
                     value=ManageConfigState.current_config.registration_code,
@@ -138,15 +130,6 @@ def config_form() -> rx.Component:
                     info=info_icon(LS.exercise_token_limit_info),
                 ),
                 text_area(
-                    name="check_conversation_prompt",
-                    heading=LS.check_conversation_prompt,
-                    value=ManageConfigState.current_config.check_conversation_prompt,
-                    on_change=lambda value: ManageConfigState.set_config_value(
-                        "check_conversation_prompt", value
-                    ),
-                    info=info_icon(LS.check_conversation_prompt_info),
-                ),
-                text_area(
                     name="how_to_use_text",
                     heading=LS.how_to_use_text,
                     value=ManageConfigState.current_config.how_to_use_text,
@@ -161,15 +144,6 @@ def config_form() -> rx.Component:
                     value=ManageConfigState.current_config.general_information_text,
                     on_change=lambda value: ManageConfigState.set_config_value(
                         "general_information_text", value
-                    ),
-                    info=info_icon(LS.info_texts_info),
-                ),
-                text_area(
-                    name="lecture_info_text",
-                    heading=LS.lecture_info_text,
-                    value=ManageConfigState.current_config.lecture_information_text,
-                    on_change=lambda value: ManageConfigState.set_config_value(
-                        "lecture_information_text", value
                     ),
                     info=info_icon(LS.info_texts_info),
                 ),

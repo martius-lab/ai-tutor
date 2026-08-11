@@ -115,7 +115,6 @@ def info_accordion():
         rx.cond(
             (DisplayConfigState.how_to_use_text != "")
             | (DisplayConfigState.general_information_text != "")
-            | (DisplayConfigState.lecture_information_text != "")
             | (privacy_notice_short != ""),
             rx.accordion.root(
                 rx.cond(
@@ -131,15 +130,6 @@ def info_accordion():
                         header=LanguageState.general_info,
                         content=rx.markdown(
                             DisplayConfigState.general_information_text
-                        ),
-                    ),
-                ),
-                rx.cond(
-                    DisplayConfigState.lecture_information_text != "",
-                    rx.accordion.item(
-                        header=LanguageState.lecture_info,
-                        content=rx.markdown(
-                            DisplayConfigState.lecture_information_text
                         ),
                     ),
                 ),
