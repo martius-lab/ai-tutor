@@ -59,12 +59,9 @@ class FinishedViewState(SessionState):
                     return
 
                 exercise, finished_conversation = result  # type: ignore
-                if exercise.lecture_id is None:
-                    yield rx.redirect(routes.MY_LECTURES)
-                    return
-
                 if (
-                    self.authenticated_user is None
+                    exercise.lecture_id is None
+                    or self.authenticated_user is None
                     or self.authenticated_user.id is None
                     or not user_may_view_lecture(
                         session,
