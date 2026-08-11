@@ -1,11 +1,16 @@
 # Configuration File
-The config file is only used to initialize the application by setting the configuration values in the database. This makes the first time setup faster.
-If no config.toml file is found, the default config is used for initialization. Changes can be made in the admin interface later on.
+
+The config file is only used to initialize the application by setting the configuration
+values in the database. This makes the first time setup faster.
+If no config.toml file is found, the default config is used for initialization. Changes
+can be made in the admin interface later on.
 
 # What needs to be in the config.toml file?
 ## AI models
 
-You can define which AI model should be used for the normal responses and which for the check conversation responses. To see which models you can use, please refer to the OpenAI [documentation](https://platform.openai.com/docs/models).
+You can define which AI model should be used for the normal responses and which for the
+check conversation responses. To see which models you can use, please refer to the
+OpenAI [documentation](https://platform.openai.com/docs/models).
 
 ```toml
 response_ai_model = "gpt-4.1-mini"
@@ -126,5 +131,3 @@ prompt = """
 useless prompt
 """
 ```
-
-

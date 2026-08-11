@@ -60,3 +60,10 @@ volumes:
   # TLS keys and certificates
   caddy-data:
   caddy-config:
+
+networks:
+  default:
+    ipam:
+      config:
+        # hard-code the subnet, so we can configure postfix on the host accordingly
+        - subnet: ${AITUTOR_DOCKER_SUBNET:-172.18.0.0/16}
