@@ -105,11 +105,6 @@ app.add_page(
     on_load=pages.EditLectureState.on_load,
 )
 app.add_page(
-    pages.submissions_page,
-    route=routes.SUBMISSIONS,
-    on_load=pages.SubmissionsState.on_load,
-)
-app.add_page(
     pages.home_page,
     route=routes.HOME,
     on_load=pages.HomeState.on_load,

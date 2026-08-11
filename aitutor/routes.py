@@ -11,7 +11,6 @@ PRIVACY_NOTICE = "/privacy_notice"
 CHAT = "/chat"  # needs to be /chat/[exercise_id] to work
 FINISHED_VIEW = "/finished_view"  # needs to be /finished_view/[exercise_id] to work
 
-SUBMISSIONS = "/submissions"
 # needs to be /finished_view_tutor/[exercise_id]/[url_user_id]
 FINISHED_VIEW_TUTOR = "/finished_view_tutor"
 

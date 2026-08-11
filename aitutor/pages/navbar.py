@@ -42,13 +42,6 @@ def get_links():
         NavbarLink(LanguageState.home_link, routes.HOME, "house"),
         NavbarLink(LanguageState.lectures_link, routes.MY_LECTURES, "graduation-cap"),
         rx.cond(
-            lecture_has_role_at_least(UserRole.TUTOR),
-            NavbarLink(
-                LanguageState.submissions_link, routes.SUBMISSIONS, "search-check"
-            ),
-            None,
-        ),
-        rx.cond(
             lecture_has_role_at_least(UserRole.ADMIN)
             | has_permission(GlobalPermission.MAINTAINER),
             NavbarLink(
