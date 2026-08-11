@@ -60,12 +60,6 @@ class LectureMembersState(SessionState):
         self.available_user_filter_query = ""
 
     @rx.event
-    def cancel_member_role_change(self, user_id: int):
-        """Reset one selected role to the persisted role."""
-        if user_id in self.members:
-            self.members[user_id].selected_role = self.members[user_id].role
-
-    @rx.event
     @state_require_role_or_permission(required_role=UserRole.STUDENT)
     def on_load(self):
         """Initialize the members page."""
