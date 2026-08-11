@@ -1695,7 +1695,7 @@ class BackendTranslations:
             ).lstrip(),
         )
 
-    # ManageExercisesState -------------------------------------------------------------
+    # LectureManageExercisesState ------------------------------------------------------
     @staticmethod
     def tagname_already_exists(language: Language) -> str:
         return translate(
@@ -1950,7 +1950,7 @@ class BackendTranslations:
             en="Error: Invalid replacement prompt.",
         )
 
-    # TokenAnalyzerState ----------------------------------------------------------------
+    # LectureTokenAnalyzerState ---------------------------------------------------------
     @staticmethod
     def all_option(language: Language) -> str:
         return translate(language, de="Alle", en="All")

@@ -30,11 +30,6 @@ app.add_page(
     on_load=pages.FinishedViewTutorState.on_load,
 )
 app.add_page(
-    pages.report_view_page,
-    route=routes.REPORT_VIEW + "/[report_id]",
-    on_load=pages.ReportViewState.on_load,
-)
-app.add_page(
     pages.lecture_report_view_page,
     route=routes.LECTURE_REPORT_VIEW + "/[lecture_id]/[report_id]",
     on_load=pages.LectureReportViewState.on_load,
@@ -110,19 +105,9 @@ app.add_page(
     on_load=pages.EditLectureState.on_load,
 )
 app.add_page(
-    pages.submissions_page,
-    route=routes.SUBMISSIONS,
-    on_load=pages.SubmissionsState.on_load,
-)
-app.add_page(
     pages.home_page,
     route=routes.HOME,
     on_load=pages.HomeState.on_load,
-)
-app.add_page(
-    pages.manage_exercises_page,
-    route=routes.MANAGE_EXERCISES,
-    on_load=pages.ManageExercisesState.on_load,
 )
 app.add_page(
     pages.manage_users_page,
@@ -140,23 +125,8 @@ app.add_page(
     on_load=pages.ManagePromptsState.on_load,
 )
 app.add_page(
-    pages.exercises_page,
-    route=routes.EXERCISES,
-    on_load=pages.ExercisesState.on_load,
-)
-app.add_page(
     pages.user_settings_page,
     route=routes.USER_SETTINGS,
-)
-app.add_page(
-    pages.reports_page,
-    route=routes.REPORTS,
-    on_load=pages.ReportsState.on_load,
-)
-app.add_page(
-    pages.token_analyzer_page,
-    route=routes.TOKEN_ANALYZER,
-    on_load=pages.TokenAnalyzerState.on_load,
 )
 
 # reflex_local_auth pages
