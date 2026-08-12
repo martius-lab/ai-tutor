@@ -42,6 +42,16 @@ class MyRegisterState(reflex_local_auth.RegistrationState):
     welcome_email_failed: bool = False
     registration_in_progress: bool = False
 
+    magic_token: str = ""
+
+    @rx.event
+    def on_load(self):
+        """function that gets called when the register page loads"""
+        self.clear_state_vars()
+        self.error_message = ""
+        self.success = False
+        self.magic_token = self.router.url.query_parameters.get("m", "")
+
     @rx.event
     def set_username(self, value: str):
         """Set the username."""
@@ -66,13 +76,6 @@ class MyRegisterState(reflex_local_auth.RegistrationState):
     def set_registration_code(self, value: str):
         """Set the registration code."""
         self.registration_code = value
-
-    @rx.event
-    def on_load(self):
-        """function that gets called when the register page loads"""
-        self.clear_state_vars()
-        self.error_message = ""
-        self.success = False
 
     def clear_state_vars(self):
         """Clear the state variables."""

@@ -125,14 +125,21 @@ def register_form() -> rx.Component:
     privacy_notice = get_privacy_notice_short()
     return rx.form(
         rx.vstack(
+            rx.heading(LanguageState.register_heading, size="7"),
+            register_error(),
+            register_success(),
             rx.input(
                 type="hidden",
                 name="language",
                 value=LanguageState.language,
+                style={"display": "none"},
             ),
-            rx.heading(LanguageState.register_heading, size="7"),
-            register_error(),
-            register_success(),
+            rx.input(
+                type="hidden",
+                name="magic_token",
+                value=MyRegisterState.magic_token,
+                style={"display": "none"},
+            ),
             rx.text(LanguageState.username),
             input(
                 "username",

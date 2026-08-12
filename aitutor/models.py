@@ -392,3 +392,30 @@ class Report(SQLModel, table=True):
 
     exercise: Optional["Exercise"] = Relationship()
     userinfo: "UserInfo" = Relationship()
+
+
+class LecturerRegistrationToken(SQLModel, table=True):
+    """
+    Registration tokens for lecturers.
+
+    With this token, a user can register an account that directly has the lecturer
+    permission.
+
+    Attributes:
+        token: The unique registration token (primary key).
+        created_at: Timestamp when the token was created.
+        expires_at: Timestamp when the token expires.
+    """
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    token: str
+    created_by: int = Field(
+        foreign_key="localuser.id", nullable=False, ondelete="CASCADE"
+    )
+    created_at: datetime = Field(
+        sa_column=Column(DateTime(timezone=True), nullable=False),
+        default_factory=lambda: datetime.now(ZoneInfo(TIME_ZONE)),
+    )
+    expires_at: datetime = Field(
+        sa_column=Column(DateTime(timezone=True), nullable=False),
+    )

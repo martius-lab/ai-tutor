@@ -1,11 +1,17 @@
 """The state for the configuration page."""
 
+import uuid
+from datetime import datetime, timedelta
+from zoneinfo import ZoneInfo
+
 import reflex as rx
+from sqlmodel import select
 
 from aitutor.auth.protection import state_require_role_or_permission
 from aitutor.auth.state import SessionState
+from aitutor.global_vars import TIME_ZONE
 from aitutor.language_state import BackendTranslations as BT
-from aitutor.models import Config, UserRole
+from aitutor.models import Config, LecturerRegistrationToken, UserRole
 
 empty_config: Config = Config(
     id=None,
@@ -90,3 +96,40 @@ class ManageConfigState(SessionState):
             position="bottom-center",
             invert=True,
         )
+
+
+class LecturerRegistrationTokenState(SessionState):
+    """The State for the lecturer registration token management."""
+
+    tokens: list[LecturerRegistrationToken] = []
+
+    @rx.event
+    @state_require_role_or_permission(required_role=UserRole.TUTOR)
+    def on_load(self):
+        """Initialize the state"""
+        self.global_load()
+
+        with rx.session() as session:
+            stmt = select(LecturerRegistrationToken).order_by(
+                LecturerRegistrationToken.created_at
+            )
+            self.tokens = list(session.exec(stmt).all())
+
+    @rx.event
+    def generate_new_token(self):
+        """Generates a new lecturer registration token."""
+        if self.authenticated_user is None or self.authenticated_user.id is None:
+            raise ValueError("User must be authenticated to generate a token.")
+
+        with rx.session() as session:
+            now = datetime.now(ZoneInfo(TIME_ZONE))
+            new_token = LecturerRegistrationToken(
+                token=str(uuid.uuid4()),
+                created_by=self.authenticated_user.id,
+                created_at=now,
+                expires_at=now + timedelta(days=7),  # TODO configurable
+            )
+            session.add(new_token)
+            session.commit()
+            session.refresh(new_token)
+            self.tokens.append(new_token)

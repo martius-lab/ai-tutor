@@ -985,6 +985,10 @@ class LanguageState(SessionState):
     # configuration page ---------------------------------------------------------------
 
     @rx.var
+    def general_settings(self) -> str:
+        return self.translate(de="Allgemeine Einstellungen", en="General Settings")
+
+    @rx.var
     def unsaved_changes_info(self) -> str:
         return self.translate(
             de="Sie haben ungespeicherte Änderungen.",
@@ -1196,6 +1200,26 @@ Please test the chat for functionality after changing the model.
             en=(
                 "Maximum number of tokens a user can spend on a single exercise. "
                 "Once the limit is reached, no more messages or checks are allowed."
+            ),
+        )
+
+    @rx.var
+    def lecturer_registration_token_management(self) -> str:
+        return self.translate(
+            de="Registrierungstokens für Dozenten",
+            en="Registration Tokens for Lecturers",
+        )
+
+    @rx.var
+    def lecturer_registration_token_management_info(self) -> str:
+        return self.translate(
+            de=(
+                "Mit dem Token können Benutzerkonten registriert werden, "
+                "die direkt die Berechtigung 'LECTURER' haben."
+            ),
+            en=(
+                "With the token, users can register accounts which directly "
+                "have the 'LECTURER' permission."
             ),
         )
 
