@@ -121,6 +121,7 @@ class ExerciseTagLink(SQLModel, table=True):
     tag_id: Optional[int] = Field(
         foreign_key="tag.id", primary_key=True, ondelete="CASCADE"
     )
+    foobar: str
 
 
 class Tag(SQLModel, table=True):
