@@ -985,6 +985,10 @@ class LanguageState(SessionState):
     # configuration page ---------------------------------------------------------------
 
     @rx.var
+    def general_settings(self) -> str:
+        return self.translate(de="Allgemeine Einstellungen", en="General Settings")
+
+    @rx.var
     def unsaved_changes_info(self) -> str:
         return self.translate(
             de="Sie haben ungespeicherte Änderungen.",
@@ -1244,6 +1248,56 @@ Please test the chat for functionality after changing the model.
         return self.translate(
             en="Banner message cannot be empty when banner is enabled.",
             de="Der Banner-Text darf nicht leer sein, wenn der Banner aktiviert ist.",
+        )
+
+    @rx.var
+    def lecturer_registration_token_management(self) -> str:
+        return self.translate(
+            de="Registrierungstokens für Dozenten",
+            en="Registration Tokens for Lecturers",
+        )
+
+    @rx.var
+    def lecturer_registration_token_management_info(self) -> str:
+        return self.translate(
+            de=(
+                "Mit dem Token können Benutzerkonten registriert werden, "
+                "die direkt die Berechtigung 'LECTURER' haben."
+            ),
+            en=(
+                "With the token, users can register accounts which directly "
+                "have the 'LECTURER' permission."
+            ),
+        )
+
+    @rx.var
+    def token(self) -> str:
+        return self.translate(de="Token", en="Token")
+
+    @rx.var
+    def expires_at(self) -> str:
+        return self.translate(de="Gültig bis", en="Expires at")
+
+    @rx.var
+    def expired(self) -> str:
+        return self.translate(de="abgelaufen", en="expired")
+
+    @rx.var
+    def copy_link(self) -> str:
+        return self.translate(de="Link kopieren", en="Copy link")
+
+    @rx.var
+    def delete_token_description(self) -> str:
+        return self.translate(
+            de="Registrierungstoken löschen?",
+            en="Delete registration token?",
+        )
+
+    @rx.var
+    def lecturer_registration_token_dialog_title(self) -> str:
+        return self.translate(
+            de="Neues Registrierungstoken für Dozenten erstellen",
+            en="Create new registration token for lecturers",
         )
 
     # Report Strings -------------------------------------------------------------------
@@ -2048,6 +2102,16 @@ class BackendTranslations:
             language,
             de="Fehler: Ungültiger Ersatzprompt.",
             en="Error: Invalid replacement prompt.",
+        )
+
+    @staticmethod
+    def lecturer_registration_token_expiration_too_long(
+        language: Language, days: int
+    ) -> str:
+        return translate(
+            language,
+            de=f"Das Ablaufdatum darf maximal {days} Tage in der Zukunft liegen.",
+            en=f"The expiration date cannot be more than {days} days in the future.",
         )
 
     # LectureTokenAnalyzerState ---------------------------------------------------------
