@@ -1,6 +1,5 @@
 name: "reflex db"
 
-# Run on pull requests and when merging to main branch
 on:
   pull_request:
 
@@ -8,7 +7,7 @@ permissions:
   contents: read
 
 jobs:
-  migrate:
+  migrate_and_makemigrations:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -21,3 +20,9 @@ jobs:
 
       - name: Run reflex db migrate
         run: uv run reflex db migrate
+
+      - name: Run reflex db makemigrations
+        run: |
+          out=$(uv run reflex db makemigrations 2>&1)
+          echo $out
+          test -z "$out"
