@@ -11,7 +11,7 @@ jobs:
   docker-build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: docker compose build
         run: COMPOSE_BAKE=true docker compose build
