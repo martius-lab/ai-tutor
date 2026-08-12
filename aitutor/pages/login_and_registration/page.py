@@ -6,7 +6,7 @@ from reflex_local_auth.pages.registration import RegistrationState
 
 from aitutor.pages.login_and_registration.components import (
     login_form,
-    register_form,
+    register_form_wrapper,
 )
 from aitutor.pages.navbar import with_navbar
 
@@ -36,7 +36,7 @@ def custom_register_page() -> rx.Component:
     return rx.center(
         rx.cond(
             RegistrationState.is_hydrated,
-            rx.card(register_form()),
+            rx.card(register_form_wrapper()),
         ),
         margin_top="2em",
         margin_bottom="2em",

@@ -1294,10 +1294,24 @@ Please test the chat for functionality after changing the model.
         )
 
     @rx.var
+    def registration_with_lecturer_token_info(self) -> str:
+        return self.translate(
+            de="Registrierung als Dozent/-in",
+            en="Registration as lecturer",
+        )
+
+    @rx.var
     def lecturer_registration_token_dialog_title(self) -> str:
         return self.translate(
             de="Neues Registrierungstoken für Dozenten erstellen",
             en="Create new registration token for lecturers",
+        )
+
+    @rx.var
+    def lecturer_registration_token_invalid(self) -> str:
+        return self.translate(
+            de="Ungültiges oder abgelaufenes Registrierungstoken für Dozenten",
+            en="Invalid or expired lecturer registration token.",
         )
 
     # Report Strings -------------------------------------------------------------------
