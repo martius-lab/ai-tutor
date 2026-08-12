@@ -4,6 +4,9 @@ name: Tests
 on:
   pull_request:
 
+permissions:
+  contents: read
+
 jobs:
   docker-build:
     runs-on: ubuntu-latest
