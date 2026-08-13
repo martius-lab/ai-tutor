@@ -29,7 +29,7 @@ def upgrade() -> None:
     sa.Column('lecture_information_text', sqlmodel.sql.sqltypes.AutoString(), nullable=False),
     sa.Column('check_conversation_prompt', sqlmodel.sql.sqltypes.AutoString(), nullable=False),
     sa.PrimaryKeyConstraint('id'),
-    sa.UniqueConstraint('lecture_name')
+    sa.UniqueConstraint('lecture_name', name='uq_lecture_lecture_name')
     )
     op.create_table('linkuserlecture',
     sa.Column('lecture_id', sa.Integer(), nullable=False),
