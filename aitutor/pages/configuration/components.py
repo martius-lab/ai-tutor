@@ -93,14 +93,14 @@ def banner_form_group() -> rx.Component:
     return rx.card(
         rx.vstack(
             rx.hstack(
-                rx.heading(LS.banner_section_title, size="5", weight="bold"),
+                rx.heading(LS.banner_section_title, weight="bold", as_="h2"),
                 info_icon(LS.banner_section_info),
                 align="center",
                 spacing="2",
             ),
             rx.hstack(
                 rx.text(LS.banner_is_open_label, weight="medium"),
-                rx.switch(
+                rx.checkbox(
                     checked=ManageConfigState.current_config.banner_is_open,
                     on_change=ManageConfigState.set_banner_is_open,
                 ),
@@ -108,35 +108,40 @@ def banner_form_group() -> rx.Component:
                 justify="between",
                 width="100%",
             ),
-            text_area(
-                name="banner_message",
-                heading=LS.banner_message,
-                value=ManageConfigState.current_config.banner_message,
-                on_change=lambda value: ManageConfigState.set_config_value(
-                    "banner_message", value
-                ),
-                color_scheme=rx.cond(
-                    ManageConfigState.is_banner_message_invalid, "red", "gray"
-                ),
-            ),
             rx.cond(
-                ManageConfigState.is_banner_message_invalid,
-                rx.text(
-                    LS.banner_message_required_error,
-                    color_scheme="red",
-                    size="2",
+                ManageConfigState.current_config.banner_is_open,
+                rx.fragment(
+                    text_area(
+                        name="banner_message",
+                        heading=LS.banner_message,
+                        value=ManageConfigState.current_config.banner_message,
+                        on_change=lambda value: ManageConfigState.set_config_value(
+                            "banner_message", value
+                        ),
+                        color_scheme=rx.cond(
+                            ManageConfigState.is_banner_message_invalid, "red", "gray"
+                        ),
+                    ),
+                    rx.cond(
+                        ManageConfigState.is_banner_message_invalid,
+                        rx.text(
+                            LS.banner_message_required_error,
+                            color_scheme="red",
+                            size="2",
+                        ),
+                    ),
+                    rx.hstack(
+                        rx.text(LS.banner_message_type, weight="medium"),
+                        rx.select(
+                            [e.value for e in BannerMessageType],
+                            value=ManageConfigState.current_config.banner_message_type,
+                            on_change=ManageConfigState.set_banner_message_type,
+                        ),
+                        width="100%",
+                        align="center",
+                        justify="between",
+                    ),
                 ),
-            ),
-            rx.hstack(
-                rx.text(LS.banner_message_type, weight="medium"),
-                rx.select(
-                    [e.value for e in BannerMessageType],
-                    value=ManageConfigState.current_config.banner_message_type,
-                    on_change=ManageConfigState.set_banner_message_type,
-                ),
-                width="100%",
-                align="center",
-                justify="between",
             ),
             spacing="4",
             width="100%",

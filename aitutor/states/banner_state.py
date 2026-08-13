@@ -11,6 +11,11 @@ from aitutor.models import BannerMessageType
 
 BannerColor = Literal["blue", "amber", "red", "green"]
 
+INITIAL_BANNER_MESSAGE: str = ""
+INITIAL_BANNER_MESSAGE_TYPE: BannerMessageType = BannerMessageType.INFO
+INITIAL_BANNER_IS_OPEN: bool = False
+
+
 BANNER_TYPE_COLORS: dict[BannerMessageType, BannerColor] = {
     BannerMessageType.INFO: "blue",
     BannerMessageType.WARNING: "amber",
@@ -33,41 +38,32 @@ class BannerState(SessionState):
 
     trigger_var: bool = False
 
-    @rx.var(initial_value="")
+    @rx.var(initial_value=INITIAL_BANNER_MESSAGE)
     def message(self) -> str:
         self.trigger_var
-        try:
-            return get_config().banner_message
-        except Exception:
-            return ""
+        return get_config().banner_message
 
-    @rx.var(initial_value=BannerMessageType.INFO)
+    @rx.var(initial_value=INITIAL_BANNER_MESSAGE_TYPE)
     def message_type(self) -> BannerMessageType:
         self.trigger_var
-        try:
-            return get_config().banner_message_type
-        except Exception:
-            return BannerMessageType.INFO
+        return get_config().banner_message_type
 
-    @rx.var(initial_value=False)
+    @rx.var(initial_value=INITIAL_BANNER_IS_OPEN)
     def is_open(self) -> bool:
         self.trigger_var
-        try:
-            return get_config().banner_is_open
-        except Exception:
-            return False
+        return get_config().banner_is_open
 
     @rx.event
     def refresh_banner(self):
         """Refresh the banner vars by toggling the trigger_var."""
         self.trigger_var = not self.trigger_var
 
-    @rx.var
+    @rx.var(initial_value=BANNER_TYPE_COLORS[INITIAL_BANNER_MESSAGE_TYPE])
     def color_scheme(self) -> BannerColor:
         """Return the corresponding color scheme for the message type."""
-        return BANNER_TYPE_COLORS.get(self.message_type, "blue")
+        return BANNER_TYPE_COLORS[self.message_type]
 
-    @rx.var
+    @rx.var(initial_value=BANNER_TYPE_ICONS[INITIAL_BANNER_MESSAGE_TYPE])
     def icon(self) -> BannerIcon:
         """Return the corresponding icon name for the message type."""
-        return BANNER_TYPE_ICONS.get(self.message_type, "info")
+        return BANNER_TYPE_ICONS[self.message_type]

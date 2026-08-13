@@ -102,13 +102,8 @@ def add_configprompts_to_db():
 # Config DB ----------------------------------------------------------------------------
 
 
-def _parse_banner_message_type(val: str | BannerMessageType) -> BannerMessageType:
-    if isinstance(val, BannerMessageType):
-        return val
-    try:
-        return BannerMessageType(val.lower())
-    except ValueError:
-        return BannerMessageType.INFO
+def _parse_banner_message_type(val: str) -> BannerMessageType:
+    return BannerMessageType(val)
 
 
 def initialize_config_db():
