@@ -6,7 +6,12 @@ from aitutor.auth.protection import state_require_role_or_permission
 from aitutor.auth.state import SessionState
 from aitutor.language_state import BackendTranslations as BT
 from aitutor.models import BannerMessageType, Config, UserRole
-from aitutor.states.banner_state import BannerState
+from aitutor.states.banner_state import (
+    INITIAL_BANNER_IS_OPEN,
+    INITIAL_BANNER_MESSAGE,
+    INITIAL_BANNER_MESSAGE_TYPE,
+    BannerState,
+)
 from aitutor.states.config_state import DisplayConfigState
 
 empty_config: Config = Config(
@@ -18,9 +23,9 @@ empty_config: Config = Config(
     impressum_text="failed to load!",
     registration_code="failed to load!",
     exercise_token_limit=0,
-    banner_message="failed to load!",
-    banner_message_type=BannerMessageType.ERROR,
-    banner_is_open=False,
+    banner_message=INITIAL_BANNER_MESSAGE,
+    banner_message_type=INITIAL_BANNER_MESSAGE_TYPE,
+    banner_is_open=INITIAL_BANNER_IS_OPEN,
 )
 
 

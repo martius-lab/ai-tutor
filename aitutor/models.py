@@ -39,10 +39,10 @@ class BannerMessageType(StrEnum):
     Enum for allowed banner message types.
     """
 
-    INFO = "info"
-    WARNING = "warning"
-    ERROR = "error"
-    SUCCESS = "success"
+    INFO = "INFO"
+    WARNING = "WARNING"
+    ERROR = "ERROR"
+    SUCCESS = "SUCCESS"
 
 
 class Language(StrEnum):
@@ -327,17 +327,7 @@ class Config(SQLModel, table=True):
     registration_code: str
     exercise_token_limit: int
     banner_message: str = Field(default="")
-    banner_message_type: BannerMessageType = Field(
-        default=BannerMessageType.INFO,
-        sa_column=Column(
-            sa.Enum(
-                BannerMessageType,
-                values_callable=lambda x: [e.value for e in x],
-            ),
-            nullable=False,
-            server_default="info",
-        ),
-    )
+    banner_message_type: BannerMessageType = Field(default=BannerMessageType.INFO)
     banner_is_open: bool = Field(default=False)
 
     def __repr__(self):

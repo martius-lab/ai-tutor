@@ -20,10 +20,10 @@ branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
 banner_message_type_enum = sa.Enum(
-    "info",
-    "warning",
-    "error",
-    "success",
+    "INFO",
+    "WARNING",
+    "ERROR",
+    "SUCCESS",
     name="bannermessagetype",
 )
 
@@ -52,7 +52,7 @@ def upgrade() -> None:
             sa.Column(
                 "banner_message_type",
                 banner_message_type_enum,
-                server_default=sa.text("'info'"),
+                server_default=sa.text("'INFO'"),
                 nullable=False,
             )
         )
