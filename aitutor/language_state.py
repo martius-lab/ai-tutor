@@ -1223,6 +1223,29 @@ Please test the chat for functionality after changing the model.
             ),
         )
 
+    @rx.var
+    def token(self) -> str:
+        return self.translate(de="Token", en="Token")
+
+    @rx.var
+    def expires_at(self) -> str:
+        return self.translate(de="Gültig bis", en="Expires at")
+
+    @rx.var
+    def expired(self) -> str:
+        return self.translate(de="abgelaufen", en="expired")
+
+    @rx.var
+    def copy_link(self) -> str:
+        return self.translate(de="Link kopieren", en="Copy link")
+
+    @rx.var
+    def delete_token_description(self) -> str:
+        return self.translate(
+            de="Registrierungstoken löschen?",
+            en="Delete registration token?",
+        )
+
     # Report Strings -------------------------------------------------------------------
     @rx.var
     def status(self) -> str:

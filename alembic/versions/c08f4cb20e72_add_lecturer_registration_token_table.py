@@ -1,8 +1,8 @@
-"""empty message
+"""Add lecturer-registration-token table
 
-Revision ID: b03f19c66fbe
+Revision ID: c08f4cb20e72
 Revises: 9ba4232eeb54
-Create Date: 2026-08-13 09:58:04.241822
+Create Date: 2026-08-14 10:00:18.566507
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 import sqlmodel
 
 # revision identifiers, used by Alembic.
-revision: str = 'b03f19c66fbe'
+revision: str = 'c08f4cb20e72'
 down_revision: Union[str, None] = '9ba4232eeb54'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -28,7 +28,8 @@ def upgrade() -> None:
     sa.Column('created_at', sa.DateTime(timezone=True), nullable=False),
     sa.Column('expires_at', sa.DateTime(timezone=True), nullable=False),
     sa.ForeignKeyConstraint(['created_by'], ['localuser.id'], name=op.f('fk_lecturerregistrationtoken_created_by_localuser'), ondelete='CASCADE'),
-    sa.PrimaryKeyConstraint('id', name=op.f('pk_lecturerregistrationtoken'))
+    sa.PrimaryKeyConstraint('id', name=op.f('pk_lecturerregistrationtoken')),
+    sa.UniqueConstraint('token', name=op.f('uq_lecturerregistrationtoken_token'))
     )
     # ### end Alembic commands ###
 

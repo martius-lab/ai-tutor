@@ -4,15 +4,25 @@ import asyncio
 import email.utils
 import logging
 import re
+from datetime import datetime
+from zoneinfo import ZoneInfo
 
 import reflex as rx
 import reflex_local_auth
 from reflex_local_auth.user import LocalUser
+from sqlmodel import func, select
 
 from aitutor.account_emails import send_signup_welcome_email
 from aitutor.config import get_config
+from aitutor.global_vars import TIME_ZONE
 from aitutor.language_state import language_from_value
-from aitutor.models import UserInfo, UserRole
+from aitutor.models import (
+    GlobalPermission,
+    LecturerRegistrationToken,
+    Permission,
+    UserInfo,
+    UserRole,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -42,7 +52,7 @@ class MyRegisterState(reflex_local_auth.RegistrationState):
     welcome_email_failed: bool = False
     registration_in_progress: bool = False
 
-    magic_token: str = ""
+    lecturer_registration_token: str = ""
 
     @rx.event
     def on_load(self):
@@ -50,7 +60,18 @@ class MyRegisterState(reflex_local_auth.RegistrationState):
         self.clear_state_vars()
         self.error_message = ""
         self.success = False
-        self.magic_token = self.router.url.query_parameters.get("m", "")
+        self.lecturer_registration_token = self.router.url.query_parameters.get(
+            "lrt", ""
+        )
+
+        if (
+            self.lecturer_registration_token
+            and not self._validate_lecturer_registration_token(
+                self.lecturer_registration_token
+            )
+        ):
+            # TODO: multiple messages
+            self.error_message = "Invalid or expired lecturer registration token."
 
     @rx.event
     def set_username(self, value: str):
@@ -140,8 +161,6 @@ class MyRegisterState(reflex_local_auth.RegistrationState):
                 yield registration_result
                 return
 
-            welcome_email_sent = False
-            welcome_email_failed = False
             with rx.session() as session:
                 user_info = UserInfo(
                     email=form_data["email"],
@@ -150,12 +169,33 @@ class MyRegisterState(reflex_local_auth.RegistrationState):
                     language=language,
                 )
                 session.add(user_info)
+
+                # if valid 'lecturer registration token' is provided, assign the
+                # 'lecturer' permission
+                lecturer_registration_token = form_data.get(
+                    "lecturer_registration_token"
+                )
+                if (
+                    lecturer_registration_token
+                    and self._validate_lecturer_registration_token(
+                        lecturer_registration_token
+                    )
+                ):
+                    session.add(
+                        Permission(
+                            user_id=self.new_user_id,
+                            permission=GlobalPermission.LECTURER,
+                        )
+                    )
+
                 session.commit()
                 session.refresh(user_info)
 
                 local_user = session.get(LocalUser, self.new_user_id)
                 username = local_user.username if local_user else None
 
+            welcome_email_sent = False
+            welcome_email_failed = False
             try:
                 if username:
                     await asyncio.to_thread(
@@ -181,3 +221,22 @@ class MyRegisterState(reflex_local_auth.RegistrationState):
                 yield registration_result
         finally:
             self.registration_in_progress = False
+
+    def _validate_lecturer_registration_token(self, token: str) -> bool:
+        """
+        Check whether the given lecturer registration token exists and hasn't expired.
+
+        Args:
+            token: The lecturer registration token to validate.
+
+        Returns:
+            bool: True if the token is valid, False otherwise.
+        """
+        now = datetime.now(ZoneInfo(TIME_ZONE))
+        with rx.session() as session:
+            stmt = select(func.count()).where(
+                LecturerRegistrationToken.token == token,
+                LecturerRegistrationToken.expires_at > now,
+            )
+            result = session.exec(stmt).one()
+            return result == 1

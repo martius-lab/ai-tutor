@@ -117,7 +117,10 @@ app.add_page(
 app.add_page(
     pages.configuration_page,
     route=routes.CONFIGURATION,
-    on_load=pages.ManageConfigState.on_load,
+    on_load=[
+        pages.ManageConfigState.on_load,
+        pages.LecturerRegistrationTokenState.on_load,
+    ],
 )
 app.add_page(
     pages.prompts_page,

@@ -4,6 +4,7 @@ from typing import Optional
 
 import reflex as rx
 
+from aitutor.components.dialogs import destructive_confirm
 from aitutor.language_state import LanguageState as LS
 from aitutor.pages.configuration.state import (
     ManageConfigState,
@@ -215,30 +216,60 @@ def config_form() -> rx.Component:
     )
 
 
+def btn_delete_lecturer_registration_token(
+    token: LecturerRegistrationToken,
+) -> rx.Component:
+    """Button to delete a lecturer registration token with confirmation dialog."""
+
+    return destructive_confirm(
+        title=LS.delete,
+        description=LS.delete_token_description,
+        confirm_text=LS.delete,
+        cancel_text=LS.cancel,
+        on_confirm=LecturerRegistrationTokenState.delete_token(token.id),  # type: ignore
+        trigger=rx.icon_button(
+            "trash",
+            title=LS.delete,
+            color_scheme="red",
+            variant="outline",
+            size="1",
+        ),
+    )
+
+
 def lecturer_registration_token_table_row(
     token: LecturerRegistrationToken,
 ) -> rx.Component:
+    is_expired = token.is_expired
     return rx.table.row(
         rx.table.cell(token.token),
-        rx.table.cell(token.expires_at.strftime("%Y-%m-%d %H:%M:%S")),
         rx.table.cell(
             rx.hstack(
-                rx.icon_button(
-                    "clipboard_copy",
-                    title="Copy link",
-                    variant="outline",
-                    size="1",
+                rx.moment(token.expires_at, format="YYYY-MM-DD HH:mm"),
+                rx.cond(is_expired, rx.badge(LS.expired, color_scheme="red")),
+                spacing="2",
+            ),
+        ),
+        rx.table.cell(
+            rx.hstack(
+                rx.cond(
+                    ~is_expired,
+                    rx.icon_button(
+                        "clipboard_copy",
+                        title=LS.copy_link,
+                        variant="outline",
+                        size="1",
+                        on_click=rx.set_clipboard(
+                            LecturerRegistrationTokenState.link_base + token.token
+                        ),
+                    ),
                 ),
-                rx.icon_button(
-                    "trash",
-                    title="Delete",
-                    color_scheme="red",
-                    variant="outline",
-                    size="1",
-                ),
+                btn_delete_lecturer_registration_token(token),
+                spacing="1",
             ),
             align="right",
         ),
+        color=rx.cond(is_expired, rx.color("gray", 8), None),
     )
 
 
@@ -247,54 +278,20 @@ def lecturer_registraton_token_table() -> rx.Component:
     return rx.table.root(
         rx.table.header(
             rx.table.row(
-                rx.table.column_header_cell("XX Token"),
-                rx.table.column_header_cell("XX Valid until"),
-                rx.table.column_header_cell(),
+                rx.table.column_header_cell(LS.token),
+                rx.table.column_header_cell(LS.expires_at),
+                rx.table.column_header_cell(
+                    rx.button(
+                        rx.hstack(rx.icon("plus", size=16), LS.add),
+                        on_click=LecturerRegistrationTokenState.generate_new_token,
+                        _hover={"cursor": "pointer"},
+                        variant="outline",
+                        size="1",
+                    )
+                ),
             ),
         ),
         rx.table.body(
-            rx.table.row(
-                rx.table.cell("f74dcd59-78ad-47a2-ad9c-5701caf030ad"),
-                rx.table.cell(
-                    rx.hstack(
-                        "2024-12-31 23:59:59",
-                        rx.badge("expired", color_scheme="red"),
-                    )
-                ),
-                rx.table.cell(
-                    rx.icon_button(
-                        "trash",
-                        title="Delete",
-                        color_scheme="red",
-                        variant="outline",
-                        size="1",
-                    ),
-                    align="right",
-                ),
-                style={"color": "gray"},
-            ),
-            rx.table.row(
-                rx.table.cell("eede0a6a-cf03-423c-b540-0d51418edf1f"),
-                rx.table.cell("2026-09-31 23:59:59"),
-                rx.table.cell(
-                    rx.hstack(
-                        rx.icon_button(
-                            "clipboard_copy",
-                            title="Copy link",
-                            variant="outline",
-                            size="1",
-                        ),
-                        rx.icon_button(
-                            "trash",
-                            title="Delete",
-                            color_scheme="red",
-                            variant="outline",
-                            size="1",
-                        ),
-                    ),
-                    align="right",
-                ),
-            ),
             rx.foreach(
                 LecturerRegistrationTokenState.tokens,
                 lecturer_registration_token_table_row,
@@ -309,15 +306,7 @@ def lecturer_registration_token_management() -> rx.Component:
         rx.heading(LS.lecturer_registration_token_management, as_="h2"),
         rx.spacer(height="1em"),
         rx.text(LS.lecturer_registration_token_management_info),
-        rx.vstack(
-            rx.button(
-                rx.hstack(rx.icon("plus", size=20), LS.add),
-                on_click=LecturerRegistrationTokenState.generate_new_token,
-                _hover={"cursor": "pointer"},
-                variant="outline",
-            ),
-            lecturer_registraton_token_table(),
-        ),
+        lecturer_registraton_token_table(),
         spacing="2",
         padding="4",
     )

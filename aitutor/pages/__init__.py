@@ -4,6 +4,7 @@ from aitutor.pages.chat.page import chat_page
 from aitutor.pages.chat.state import ChatState
 from aitutor.pages.configuration.page import configuration_page
 from aitutor.pages.configuration.state import ManageConfigState
+from aitutor.pages.configuration.state import LecturerRegistrationTokenState
 from aitutor.pages.edit_lecture.page import edit_lecture_page
 from aitutor.pages.edit_lecture.state import EditLectureState
 from aitutor.pages.finished_view.page import finished_view_page
@@ -100,6 +101,7 @@ __all__ = [
     "MyRegisterState",
     "UserSettingsState",
     "ManageConfigState",
+    "LecturerRegistrationTokenState",
     "EditLectureState",
     "ManagePromptsState",
 ]

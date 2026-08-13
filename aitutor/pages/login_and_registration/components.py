@@ -134,11 +134,14 @@ def register_form() -> rx.Component:
                 value=LanguageState.language,
                 style={"display": "none"},
             ),
-            rx.input(
-                type="hidden",
-                name="magic_token",
-                value=MyRegisterState.magic_token,
-                style={"display": "none"},
+            rx.cond(
+                MyRegisterState.lecturer_registration_token != "",
+                rx.input(
+                    type="hidden",
+                    name="lecturer_registration_token",
+                    value=MyRegisterState.lecturer_registration_token,
+                    style={"display": "none"},
+                ),
             ),
             rx.text(LanguageState.username),
             input(

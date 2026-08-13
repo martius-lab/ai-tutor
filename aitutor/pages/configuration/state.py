@@ -102,12 +102,15 @@ class LecturerRegistrationTokenState(SessionState):
     """The State for the lecturer registration token management."""
 
     tokens: list[LecturerRegistrationToken] = []
+    link_base: str
 
     @rx.event
     @state_require_role_or_permission(required_role=UserRole.TUTOR)
     def on_load(self):
         """Initialize the state"""
         self.global_load()
+
+        self.link_base = f"{self.router.url.origin}/register?lrt="
 
         with rx.session() as session:
             stmt = select(LecturerRegistrationToken).order_by(
@@ -133,3 +136,13 @@ class LecturerRegistrationTokenState(SessionState):
             session.commit()
             session.refresh(new_token)
             self.tokens.append(new_token)
+
+    @rx.event
+    def delete_token(self, token_id: int):
+        """Deletes a lecturer registration token."""
+        with rx.session() as session:
+            token = session.get(LecturerRegistrationToken, token_id)
+            if token:
+                session.delete(token)
+                session.commit()
+                self.tokens = [t for t in self.tokens if t.id != token_id]

@@ -5,6 +5,7 @@ from enum import IntEnum, StrEnum
 from typing import Any, Dict, List, Optional
 from zoneinfo import ZoneInfo
 
+import pydantic
 import sqlalchemy as sa
 from reflex_local_auth.user import LocalUser
 from sqlalchemy import ForeignKey as SAForeignKey
@@ -400,15 +401,10 @@ class LecturerRegistrationToken(SQLModel, table=True):
 
     With this token, a user can register an account that directly has the lecturer
     permission.
-
-    Attributes:
-        token: The unique registration token (primary key).
-        created_at: Timestamp when the token was created.
-        expires_at: Timestamp when the token expires.
     """
 
     id: Optional[int] = Field(default=None, primary_key=True)
-    token: str
+    token: str = Field(nullable=False, unique=True)
     created_by: int = Field(
         foreign_key="localuser.id", nullable=False, ondelete="CASCADE"
     )
@@ -419,3 +415,15 @@ class LecturerRegistrationToken(SQLModel, table=True):
     expires_at: datetime = Field(
         sa_column=Column(DateTime(timezone=True), nullable=False),
     )
+
+    @pydantic.computed_field
+    @property
+    def is_expired(self) -> bool:
+        """Check if the token is expired."""
+        # For comparison, both datetimes need to be timezone-aware.  Since sqlite
+        # doesn't store the time zone, we need to set it explicitly here.  On postgres,
+        # the time zone is stored, so this is not necessary, but it doesn't hurt either
+        # (assuming the used time zone isn't changed).
+        return datetime.now(ZoneInfo(TIME_ZONE)) > self.expires_at.replace(
+            tzinfo=ZoneInfo(TIME_ZONE)
+        )
