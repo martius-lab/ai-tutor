@@ -41,9 +41,9 @@ def upgrade() -> None:
             sa.Column(
                 "banner_message_type",
                 sa.Enum(
-                    "info", "warning", "error", "success", name="bannermessagetype"
+                    "INFO", "WARNING", "ERROR", "SUCCESS", name="bannermessagetype"
                 ),
-                server_default=sa.text("'info'"),
+                server_default=sa.text("'INFO'"),
                 nullable=False,
             )
         )
