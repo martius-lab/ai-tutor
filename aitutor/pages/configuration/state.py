@@ -103,6 +103,14 @@ class LecturerRegistrationTokenState(SessionState):
 
     tokens: list[LecturerRegistrationToken] = []
     link_base: str
+    default_expires_at: str
+
+    add_dialog_is_open: bool = False
+
+    @rx.event
+    def set_add_dialog_is_open(self, is_open: bool):
+        """Sets the state of the add dialog."""
+        self.add_dialog_is_open = is_open
 
     @rx.event
     @state_require_role_or_permission(required_role=UserRole.TUTOR)
@@ -111,6 +119,9 @@ class LecturerRegistrationTokenState(SessionState):
         self.global_load()
 
         self.link_base = f"{self.router.url.origin}/register?lrt="
+        self.default_expires_at = (
+            datetime.now(ZoneInfo(TIME_ZONE)) + timedelta(days=14)
+        ).strftime("%Y-%m-%d")
 
         with rx.session() as session:
             stmt = select(LecturerRegistrationToken).order_by(
@@ -119,23 +130,29 @@ class LecturerRegistrationTokenState(SessionState):
             self.tokens = list(session.exec(stmt).all())
 
     @rx.event
-    def generate_new_token(self):
+    def generate_new_token(self, form_data: dict):
         """Generates a new lecturer registration token."""
         if self.authenticated_user is None or self.authenticated_user.id is None:
             raise ValueError("User must be authenticated to generate a token.")
 
+        now = datetime.now(ZoneInfo(TIME_ZONE))
+        expires_at = datetime.strptime(form_data["expires_at"], "%Y-%m-%d").replace(
+            tzinfo=ZoneInfo(TIME_ZONE)
+        )
+
         with rx.session() as session:
-            now = datetime.now(ZoneInfo(TIME_ZONE))
             new_token = LecturerRegistrationToken(
                 token=str(uuid.uuid4()),
                 created_by=self.authenticated_user.id,
                 created_at=now,
-                expires_at=now + timedelta(days=7),  # TODO configurable
+                expires_at=expires_at,
             )
             session.add(new_token)
             session.commit()
             session.refresh(new_token)
             self.tokens.append(new_token)
+
+        self.add_dialog_is_open = False
 
     @rx.event
     def delete_token(self, token_id: int):

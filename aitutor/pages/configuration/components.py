@@ -237,9 +237,48 @@ def btn_delete_lecturer_registration_token(
     )
 
 
+def btn_add_lecturer_registration_token() -> rx.Component:
+    """Dialog to add a new lecturer registration token."""
+    return rx.dialog.root(
+        rx.dialog.trigger(
+            rx.button(
+                rx.hstack(rx.icon("plus", size=16), LS.add),
+                _hover={"cursor": "pointer"},
+                variant="outline",
+                size="1",
+            )
+        ),
+        rx.dialog.content(
+            rx.dialog.title("XX Create new lecturer registration token"),
+            rx.dialog.description("XX Valid until:"),
+            rx.form(
+                rx.flex(
+                    rx.input(
+                        name="expires_at",
+                        type="date",
+                        default_value=LecturerRegistrationTokenState.default_expires_at,
+                    ),
+                    rx.flex(
+                        rx.dialog.close(rx.button(LS.cancel, variant="outline")),
+                        rx.form.submit(rx.button(LS.add, type="submit"), as_child=True),
+                        spacing="3",
+                        justify="end",
+                    ),
+                    spacing="4",
+                    direction="column",
+                ),
+                on_submit=LecturerRegistrationTokenState.generate_new_token,
+            ),
+        ),
+        open=LecturerRegistrationTokenState.add_dialog_is_open,
+        on_open_change=LecturerRegistrationTokenState.set_add_dialog_is_open,
+    )
+
+
 def lecturer_registration_token_table_row(
     token: LecturerRegistrationToken,
 ) -> rx.Component:
+    """A row for the lecturer registration token table."""
     is_expired = token.is_expired
     return rx.table.row(
         rx.table.cell(token.token),
@@ -280,15 +319,7 @@ def lecturer_registraton_token_table() -> rx.Component:
             rx.table.row(
                 rx.table.column_header_cell(LS.token),
                 rx.table.column_header_cell(LS.expires_at),
-                rx.table.column_header_cell(
-                    rx.button(
-                        rx.hstack(rx.icon("plus", size=16), LS.add),
-                        on_click=LecturerRegistrationTokenState.generate_new_token,
-                        _hover={"cursor": "pointer"},
-                        variant="outline",
-                        size="1",
-                    )
-                ),
+                rx.table.column_header_cell(btn_add_lecturer_registration_token()),
             ),
         ),
         rx.table.body(
