@@ -20,6 +20,19 @@ from sqlmodel import (
 
 from aitutor.global_vars import TIME_ZONE
 
+# For alembic to properly work, we need to set explicit naming conventions for
+# constraints.  See https://alembic.sqlalchemy.org/en/latest/naming.html
+NAMING_CONVENTION = {
+    "ix": "ix_%(column_0_label)s",
+    "uq": "uq_%(table_name)s_%(column_0_name)s",
+    "ck": "ck_%(table_name)s_`%(constraint_name)s`",
+    "fk": "fk_%(table_name)s_%(column_0_name)s_%(referred_table_name)s",
+    "pk": "pk_%(table_name)s",
+}
+# metadata is stored separately here, so we can access it in alembic/env.py
+metadata = SQLModel.metadata
+metadata.naming_convention = NAMING_CONVENTION
+
 
 class Language(StrEnum):
     """
@@ -58,6 +71,11 @@ class LectureRole(IntEnum):
     STUDENT = 1
     TUTOR = 2
     OWNER = 3
+
+    @classmethod
+    def names(cls) -> tuple[str, ...]:
+        """Return a tuple of all role name strings."""
+        return tuple(role.name for role in cls)
 
 
 class Lecture(SQLModel, table=True):

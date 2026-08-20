@@ -937,16 +937,20 @@ class LanguageState(SessionState):
     @rx.var
     def roles_description(self) -> str:
         return self.translate(
-            de=textwrap.dedent("""
+            de=textwrap.dedent(
+                """
                 - STUDENT: Kann Übungen ansehen und bearbeiten.
                 - TUTOR: Kann zusätzlich Abgaben aller Nutzer einsehen.
                 - ADMIN: Kann alles (Übungen anlegen, Benutzer verwalten...).
-            """),
-            en=textwrap.dedent("""
+            """
+            ),
+            en=textwrap.dedent(
+                """
                 - STUDENT: Can view and work on exercises.
                 - TUTOR: Can also view submissions by all users.
                 - ADMIN: Can do everything (create exercises, manage users...).
-            """),
+            """
+            ),
         )
 
     @rx.var
@@ -1431,6 +1435,25 @@ Please test the chat for functionality after changing the model.
         """Localized student role label."""
         return self.translate(de="Student", en="Student")
 
+    @rx.var
+    def lecture_roles_description(self) -> str:
+        return self.translate(
+            de=textwrap.dedent(
+                """
+                - STUDENT: Kann Übungen ansehen und bearbeiten.
+                - TUTOR: Kann zusätzlich Abgaben der Übungen einsehen.
+                - OWNER: Kann alles (Vorlesungseinstellungen ändern, Übungen anlegen, Mitglieder verwalten...).
+            """
+            ),
+            en=textwrap.dedent(
+                """
+                - STUDENT: Can work on exercises.
+                - TUTOR: Can also view exercise submissions.
+                - OWNER: Can do everything (change lecture settings, create exercises, manage members...).
+            """
+            ),
+        )
+
     # All Lectures Strings ------------------------------------------------------------------------
     @rx.var
     def all_lectures(self) -> str:
@@ -1496,6 +1519,20 @@ Please test the chat for functionality after changing the model.
         return self.translate(
             de="Diese Person wird aus der Vorlesung entfernt.",
             en="This person will be removed from the lecture.",
+        )
+
+    @rx.var
+    def label_new_role(self) -> str:
+        return self.translate(
+            de="Neue Rolle:",
+            en="New role:",
+        )
+
+    @rx.var
+    def current(self) -> str:
+        return self.translate(
+            de="aktuell",
+            en="current",
         )
 
     # Lecture_overview Strings --------------------------------------------------------------------------------
@@ -1640,6 +1677,14 @@ class BackendTranslations:
             language,
             de="Fehler: Diese Aktion ist nicht möglich, da jede Vorlesung mindestens einen Besitzer behalten muss.",
             en="Error: This action is not possible because every lecture must keep at least one owner.",
+        )
+
+    @staticmethod
+    def edit_role_title(language: Language, username: str) -> str:
+        return translate(
+            language,
+            de=f"Rolle von {username} bearbeiten",
+            en=f"Edit Role of {username}",
         )
 
     @staticmethod
