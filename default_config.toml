@@ -13,6 +13,13 @@ response_ai_model = "gpt-4.1-mini"
 check_ai_model = "gpt-4.1"
 exercise_token_limit = 100_000
 
+# --------------------------
+# banner 
+# --------------------------
+banner_message  = "System maintenance is scheduled for tonight at 10 PM UTC."
+banner_message_type = "WARNING"
+banner_is_open = true
+
 # TODO
 impressum_text = """
 <Enter name of responsible person and other stuff for the impressum>

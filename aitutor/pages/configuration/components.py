@@ -5,8 +5,8 @@ from typing import Optional
 import reflex as rx
 
 from aitutor.language_state import LanguageState as LS
+from aitutor.models import BannerMessageType
 from aitutor.pages.configuration.state import ManageConfigState
-from aitutor.states.config_state import DisplayConfigState
 
 
 def input(
@@ -88,6 +88,65 @@ def info_icon(info_text: str | rx.Var[str]) -> rx.Component:
     )
 
 
+def banner_form_group() -> rx.Component:
+    """Returns a form group card wrapping banner-related controls."""
+    return rx.card(
+        rx.vstack(
+            rx.hstack(
+                rx.heading(LS.banner_section_title, size="5", weight="bold"),
+                info_icon(LS.banner_section_info),
+                align="center",
+                spacing="2",
+            ),
+            rx.hstack(
+                rx.text(LS.banner_is_open_label, weight="medium"),
+                rx.switch(
+                    checked=ManageConfigState.current_config.banner_is_open,
+                    on_change=ManageConfigState.set_banner_is_open,
+                ),
+                align="center",
+                justify="between",
+                width="100%",
+            ),
+            text_area(
+                name="banner_message",
+                heading=LS.banner_message,
+                value=ManageConfigState.current_config.banner_message,
+                on_change=lambda value: ManageConfigState.set_config_value(
+                    "banner_message", value
+                ),
+                color_scheme=rx.cond(
+                    ManageConfigState.is_banner_message_invalid, "red", "gray"
+                ),
+            ),
+            rx.cond(
+                ManageConfigState.is_banner_message_invalid,
+                rx.text(
+                    LS.banner_message_required_error,
+                    color_scheme="red",
+                    size="2",
+                ),
+            ),
+            rx.hstack(
+                rx.text(LS.banner_message_type, weight="medium"),
+                rx.select(
+                    [e.value for e in BannerMessageType],
+                    value=ManageConfigState.current_config.banner_message_type,
+                    on_change=ManageConfigState.set_banner_message_type,
+                ),
+                width="100%",
+                align="center",
+                justify="between",
+            ),
+            spacing="4",
+            width="100%",
+        ),
+        width="100%",
+        padding="4",
+        variant="surface",
+    )
+
+
 def config_form() -> rx.Component:
     """Returns input fields for configuration settings."""
     return rx.card(
@@ -156,6 +215,7 @@ def config_form() -> rx.Component:
                     ),
                     info=info_icon(LS.impressum_info),
                 ),
+                banner_form_group(),
                 rx.cond(
                     ManageConfigState.unsaved_changes,
                     rx.callout(
@@ -191,12 +251,9 @@ def config_form() -> rx.Component:
                     justify="end",
                     width="100%",
                 ),
-                spacing="3",
+                spacing="4",
             ),
-            on_submit=[
-                ManageConfigState.save_config_to_db(),
-                DisplayConfigState.refresh_config_strings(),
-            ],
+            on_submit=ManageConfigState.save_config_to_db,
             width="40em",
             max_width="90vw",
         ),
