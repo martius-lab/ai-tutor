@@ -16,9 +16,9 @@ exercise_token_limit = 100_000
 # --------------------------
 # banner 
 # --------------------------
-banner_message  = "System maintenance is scheduled for tonight at 10 PM UTC."
-banner_message_type = "WARNING"
-banner_is_open = true
+banner_message  = ""
+banner_message_type = "INFO"
+banner_is_open = false
 
 # TODO
 impressum_text = """
