@@ -5,6 +5,7 @@ import reflex as rx
 from aitutor import routes
 from aitutor.pages.home.components import (
     dashboard_card,
+    global_exercises_overview,
     info_accordion,
     legal_info_links,
 )
@@ -19,6 +20,7 @@ def home_page() -> rx.Component:
         rx.vstack(
             # Dashboard Card
             dashboard_card(),
+            global_exercises_overview(),
             info_accordion(),
             legal_info_links(),
             width="100%",

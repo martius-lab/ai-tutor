@@ -3,7 +3,7 @@
 import reflex as rx
 
 import aitutor.global_vars as gv
-from aitutor import DisplayConfigState, routes
+from aitutor import routes
 from aitutor.language_state import LanguageState as LS
 from aitutor.pages.lecture_overview.state import LectureOverviewState
 from aitutor.pages.legal_infos.loader_functions import get_privacy_notice_short
@@ -88,35 +88,15 @@ def lecture_dashboard_card() -> rx.Component:
 
 
 def lecture_info_accordion() -> rx.Component:
-    """Render the overview information accordion.
-
-    This is copied from the home page structure for now. The lecture information panel
-    uses the selected lecture's text instead of the global lecture information text.
-    """
+    """Render lecture-specific information and the privacy summary."""
     privacy_notice_short: str = get_privacy_notice_short()
     return rx.cond(
-        (DisplayConfigState.how_to_use_text != "")
-        | (DisplayConfigState.general_information_text != "")
-        | (LectureOverviewState.lecture_information_text != "")
+        (LectureOverviewState.lecture_information_text != "")
         | (privacy_notice_short != ""),
         rx.accordion.root(
             rx.accordion.item(
                 header=LS.lecture_info,
                 content=lecture_information_content(),
-            ),
-            rx.cond(
-                DisplayConfigState.how_to_use_text != "",
-                rx.accordion.item(
-                    header=LS.how_to_use_aitutor,
-                    content=rx.markdown(DisplayConfigState.how_to_use_text),
-                ),
-            ),
-            rx.cond(
-                DisplayConfigState.general_information_text != "",
-                rx.accordion.item(
-                    header=LS.general_info,
-                    content=rx.markdown(DisplayConfigState.general_information_text),
-                ),
             ),
             rx.cond(
                 privacy_notice_short != "",
