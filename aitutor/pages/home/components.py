@@ -235,17 +235,3 @@ def info_accordion():
             ),
         ),
     )
-
-
-def legal_info_links():
-    """Render the links for Impressum and privacy notice"""
-    return rx.hstack(
-        rx.link(
-            LanguageState.impressum,
-            href=routes.IMPRESSUM,
-        ),
-        rx.link(
-            LanguageState.privacy_notice,
-            href=routes.PRIVACY_NOTICE,
-        ),
-    )

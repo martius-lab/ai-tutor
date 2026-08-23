@@ -113,14 +113,6 @@ def lecture_info_accordion() -> rx.Component:
     )
 
 
-def lecture_legal_info_links() -> rx.Component:
-    """Render Impressum and privacy notice links."""
-    return rx.hstack(
-        rx.link(LS.impressum, href=routes.IMPRESSUM),
-        rx.link(LS.privacy_notice, href=routes.PRIVACY_NOTICE),
-    )
-
-
 def lecture_overview_content() -> rx.Component:
     """Main content for the lecture overview page."""
     return rx.vstack(
@@ -136,7 +128,6 @@ def lecture_overview_content() -> rx.Component:
         ),
         lecture_dashboard_card(),
         lecture_info_accordion(),
-        lecture_legal_info_links(),
         spacing="4",
         align="center",
         width="100%",

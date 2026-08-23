@@ -7,7 +7,6 @@ from aitutor.pages.home.components import (
     dashboard_card,
     global_exercises_overview,
     info_accordion,
-    legal_info_links,
 )
 from aitutor.pages.navbar import with_navbar
 
@@ -22,7 +21,6 @@ def home_page() -> rx.Component:
             dashboard_card(),
             global_exercises_overview(),
             info_accordion(),
-            legal_info_links(),
             width="100%",
             align="center",
             justify="center",
