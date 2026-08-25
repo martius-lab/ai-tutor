@@ -1,5 +1,5 @@
 #!/usr/bin/env xonsh
-# Script to restore the dockerized postgres database from some SQL dump
+# Script to manage the dockerized postgres database from some SQL dump
 
 import argparse
 import pathlib
@@ -38,7 +38,7 @@ def psql(container_id):
 
 
 # create the top-level parser
-ap = argparse.ArgumentParser(description="TODO")
+ap = argparse.ArgumentParser(description="Manage a dockerized PostgreSQL database.")
 ap.add_argument(
     "--container",
     "-c",
@@ -79,7 +79,7 @@ parser_dump.add_argument(
     required=True,
 )
 
-parser_pqsl = subparsers.add_parser(
+parser_psql = subparsers.add_parser(
     "psql",
     help="Run interactive postgres terminal.",
 )
