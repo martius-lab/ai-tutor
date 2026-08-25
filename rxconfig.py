@@ -20,7 +20,16 @@ def set_sqlite_pragma(dbapi_conn, connection_record):
 config = rx.Config(
     app_name="aitutor",
     db_url="sqlite:///reflex.db",
-    plugins=[rx.plugins.SitemapPlugin()],
+    plugins=[
+        rx.plugins.SitemapPlugin(),
+        rx.plugins.RadixThemesPlugin(
+            theme=rx.theme(
+                accent_color="indigo",
+                gray_color="slate",
+                radius="medium",
+            )
+        ),
+    ],
     telemetry_enabled=False,
     show_built_with_reflex=False,
 )
