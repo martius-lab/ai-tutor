@@ -42,6 +42,9 @@ class MyRegisterState(reflex_local_auth.RegistrationState):
     welcome_email_failed: bool = False
     registration_in_progress: bool = False
 
+    #: Whether a registration code is required for registration.
+    needs_registration_code: bool = False
+
     @rx.event
     def set_username(self, value: str):
         """Set the username."""
@@ -73,6 +76,7 @@ class MyRegisterState(reflex_local_auth.RegistrationState):
         self.clear_state_vars()
         self.error_message = ""
         self.success = False
+        self.needs_registration_code = bool(get_config().registration_code)
 
     def clear_state_vars(self):
         """Clear the state variables."""
@@ -84,6 +88,7 @@ class MyRegisterState(reflex_local_auth.RegistrationState):
         self.welcome_email_sent = False
         self.welcome_email_failed = False
         self.registration_in_progress = False
+        self.needs_registration_code = False
 
     # This event handler must be named something besides `handle_registration`!!!
     @rx.event
@@ -127,7 +132,10 @@ class MyRegisterState(reflex_local_auth.RegistrationState):
 
             # check for the correct registration code
             registration_code = get_config().registration_code
-            if form_data["registration_code"] != registration_code:
+            if (
+                registration_code
+                and form_data["registration_code"] != registration_code
+            ):
                 self.error_message = "The registration code is wrong."
                 self.registration_code = ""
                 return

@@ -882,8 +882,8 @@ class LanguageState(SessionState):
     def registration_code_placeholder(self) -> str:
         """Registration code placeholder string"""
         return self.translate(
-            de="Sie bekommen diesen Code von Ihrem Lehrer",
-            en="You get this code from your teacher",
+            de="Sie bekommen diesen Code von Ihrer Dozentin/Ihrem Dozenten",
+            en="You get this code from your lecturer",
         )
 
     # Manage Users Page Strings --------------------------------------------------------
@@ -994,9 +994,14 @@ class LanguageState(SessionState):
     @rx.var
     def registration_code_info(self) -> str:
         return self.translate(
-            de="Der Registrierungscode, den Studenten bei der Registrierung "
-            "eingeben müssen.",
-            en="The registration code that students have to enter during registration.",
+            de=(
+                "Code der für die Registrierung eines Kontos erforderlich ist."
+                "  Leer lassen, um die Registrierung ohne Code zu ermöglichen."
+            ),
+            en=(
+                "Code that is required to register an account.  Leave empty to allow"
+                " registration without a code."
+            ),
         )
 
     @rx.var
