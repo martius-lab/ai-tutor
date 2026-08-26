@@ -37,10 +37,11 @@ def build_home_exercises_statement(
             isouter=True,
         )
         .where(
+            Exercise.is_hidden.is_(False),  # type: ignore[attr-defined]
             or_(
                 Exercise.deadline == None,
                 Exercise.deadline > now,  # type: ignore[operator]
-            )
+            ),
         )
     )
 
@@ -83,30 +84,17 @@ class HomeState(SessionState):
             )
             rows = session.exec(stmt).all()
 
-            visible_rows = [
+            started_rows = [
                 (exercise, result, lecture)
                 for exercise, result, lecture in rows
-                if not exercise.is_hidden and exercise.is_started
+                if exercise.is_started
             ]
             self.exercises_with_result = [
-                (exercise, result) for exercise, result, _ in visible_rows
+                (exercise, result) for exercise, result, _ in started_rows
             ]
             self.lecture_exercise_groups = self._group_exercises_by_lecture(
-                visible_rows
+                started_rows
             )
-
-    def _group_exercises_by_lecture(
-        self,
-        rows: Sequence[tuple[Exercise, Optional[ExerciseResult], Lecture]],
-    ) -> list[LectureExerciseGroup]:
-        """Group exercise rows by lecture while preserving query order."""
-        grouped: dict[int, LectureExerciseGroup] = {}
-        for exercise, result, lecture in rows:
-            assert lecture.id is not None
-            if lecture.id not in grouped:
-                grouped[lecture.id] = (lecture, [])
-            grouped[lecture.id][1].append((exercise, result))
-        return list(grouped.values())
 
     @rx.var
     def deadline_strings(self) -> dict[int, str]:
@@ -152,3 +140,16 @@ class HomeState(SessionState):
 
         title, deadline = min(tasks, key=lambda t: t[1])
         return f"{title} – {deadline.strftime('%d.%m.%Y, %H:%M')}"
+
+    def _group_exercises_by_lecture(
+        self,
+        rows: Sequence[tuple[Exercise, Optional[ExerciseResult], Lecture]],
+    ) -> list[LectureExerciseGroup]:
+        """Group exercise rows by lecture while preserving query order."""
+        grouped: dict[int, LectureExerciseGroup] = {}
+        for exercise, result, lecture in rows:
+            assert lecture.id is not None
+            if lecture.id not in grouped:
+                grouped[lecture.id] = (lecture, [])
+            grouped[lecture.id][1].append((exercise, result))
+        return list(grouped.values())

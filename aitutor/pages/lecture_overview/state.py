@@ -80,7 +80,10 @@ class LectureOverviewState(SessionState):
                     ),
                     isouter=True,
                 )
-                .where(Exercise.lecture_id == self.current_lecture_id)
+                .where(
+                    Exercise.lecture_id == self.current_lecture_id,
+                    Exercise.is_hidden.is_(False),  # type: ignore[attr-defined]
+                )
                 # only load exercises that have no deadline
                 # or the deadline is in the future
                 .where(
@@ -94,11 +97,10 @@ class LectureOverviewState(SessionState):
 
             self.exercises_with_result = [(x[0], x[1]) for x in exercises_with_result]
 
-            # remove hidden exercises and not started exercises
             self.exercises_with_result = [
                 (exercise, result)
                 for exercise, result in self.exercises_with_result
-                if not exercise.is_hidden and exercise.is_started
+                if exercise.is_started
             ]
 
     @rx.var
