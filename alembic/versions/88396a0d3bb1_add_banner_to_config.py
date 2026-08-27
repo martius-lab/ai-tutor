@@ -1,7 +1,7 @@
 """add_banner_to_config
 
 Revision ID: 88396a0d3bb1
-Revises: 208f54325bba
+Revises: 9ba4232eeb54
 Create Date: 2026-08-08 13:25:53.003311
 
 """

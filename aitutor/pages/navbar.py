@@ -401,7 +401,7 @@ def with_navbar(route_to_highlight: Optional[str] = None):
         """
         return lambda: rx.flex(
             navbar(route_to_highlight),
-<<<<<<< HEAD
+            announcement_banner(),
             rx.center(
                 component_factory(),
                 width="100%",
@@ -410,10 +410,6 @@ def with_navbar(route_to_highlight: Optional[str] = None):
             ),
             legal_footer(),
             direction="column",
-=======
-            announcement_banner(),
-            component_factory(),
->>>>>>> bfd3d1e (feat: add global announcement banner component and state management)
             spacing="0",
             padding="0",
             align="center",
