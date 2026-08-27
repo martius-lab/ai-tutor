@@ -7,7 +7,10 @@ from reflex_local_auth.pages.components import MIN_WIDTH
 from aitutor import components, routes
 from aitutor.language_state import LanguageState
 from aitutor.pages.legal_infos.loader_functions import get_privacy_notice_short
-from aitutor.pages.login_and_registration.state import MyRegisterState
+from aitutor.pages.login_and_registration.state import (
+    AUTH_FIELD_MAX_LENGTHS,
+    MyRegisterState,
+)
 
 
 def input(name, placeholder, **props) -> rx.Component:
@@ -167,6 +170,7 @@ def register_form() -> rx.Component:
                 value=MyRegisterState.username,
                 on_change=MyRegisterState.set_username,
                 disabled=MyRegisterState.registration_in_progress,
+                max_length=AUTH_FIELD_MAX_LENGTHS["username"],
             ),
             rx.text(LanguageState.email),
             input(
@@ -178,6 +182,7 @@ def register_form() -> rx.Component:
                 value=MyRegisterState.email,
                 on_change=MyRegisterState.set_email,
                 disabled=MyRegisterState.registration_in_progress,
+                max_length=AUTH_FIELD_MAX_LENGTHS["email"],
             ),
             rx.text(LanguageState.password),
             password_input(
@@ -210,6 +215,7 @@ def register_form() -> rx.Component:
                         value=MyRegisterState.registration_code,
                         on_change=MyRegisterState.set_registration_code,
                         disabled=MyRegisterState.registration_in_progress,
+                        max_length=AUTH_FIELD_MAX_LENGTHS["registration_code"],
                     ),
                 ),
             ),
