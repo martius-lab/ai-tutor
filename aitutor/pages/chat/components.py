@@ -4,9 +4,13 @@ import reflex as rx
 
 import aitutor.global_vars as gv
 from aitutor.components.dialogs import confirm, destructive_confirm
-from aitutor.global_vars import CHAT_MESSAGE_CHAR_LIMIT
 from aitutor.language_state import LanguageState
-from aitutor.pages.chat.state import ChatMessage, ChatState, Role
+from aitutor.pages.chat.state import (
+    CHAT_FIELD_MAX_LENGTHS,
+    ChatMessage,
+    ChatState,
+    Role,
+)
 
 
 def message_box(chat_message: ChatMessage) -> rx.Component:
@@ -110,7 +114,7 @@ def chat_form() -> rx.Component:
             enter_key_submit=with_key_submit,
             resize="vertical",
             rows="4",
-            max_length=CHAT_MESSAGE_CHAR_LIMIT,
+            max_length=CHAT_FIELD_MAX_LENGTHS["chat_message"],
         )
 
     return rx.form(
@@ -331,15 +335,17 @@ def report_conversation_button() -> rx.Component:
                         on_change=ChatState.set_report_text,
                         width="100%",
                         rows="4",
+                        max_length=CHAT_FIELD_MAX_LENGTHS["report_text"],
                     ),
                     rx.text(
                         f"{ChatState.report_char_count} / "
-                        f"{ChatState.MAX_REPORT_LENGTH}",
+                        f"{CHAT_FIELD_MAX_LENGTHS['report_text']}",
                         size="2",
                         text_align="right",
                         width="100%",
                         color=rx.cond(
-                            ChatState.report_char_count > ChatState.MAX_REPORT_LENGTH,
+                            ChatState.report_char_count
+                            > CHAT_FIELD_MAX_LENGTHS["report_text"],
                             rx.color("red", 11),
                             rx.color("gray", 11),
                         ),

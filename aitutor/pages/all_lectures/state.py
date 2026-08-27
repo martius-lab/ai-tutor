@@ -5,6 +5,7 @@ from collections.abc import Sequence
 import reflex as rx
 from sqlmodel import and_, select
 
+import aitutor.global_vars as GV
 import aitutor.routes as routes
 from aitutor.auth.protection import state_require_role_or_permission
 from aitutor.auth.state import SessionState
@@ -12,6 +13,12 @@ from aitutor.language_state import BackendTranslations as BT
 from aitutor.models import Lecture, LectureRole, LinkUserLecture, UserRole
 
 LectureWithRole = tuple[Lecture, int | None]
+
+
+ALL_LECTURES_FIELD_MAX_LENGTHS: dict[str, int] = {
+    "search_text": GV.SEARCH_TEXT_MAX_LEN,
+    "registration_code": GV.REGISTRATION_CODE_MAX_LEN,
+}
 
 
 class AllLecturesState(SessionState):
@@ -30,12 +37,14 @@ class AllLecturesState(SessionState):
     @rx.event
     def update_search_text(self, value: str):
         """Update the lecture search text."""
-        self.search_text = value
+        self.search_text = value[: ALL_LECTURES_FIELD_MAX_LENGTHS["search_text"]]
 
     @rx.event
     def set_entered_registration_code(self, value: str):
         """Update the entered registration code for the join dialog."""
-        self.entered_registration_code = value
+        self.entered_registration_code = value[
+            : ALL_LECTURES_FIELD_MAX_LENGTHS["registration_code"]
+        ]
 
     @rx.event
     def toggle_lecture_details(self, lecture_id: int):

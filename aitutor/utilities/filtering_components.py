@@ -10,6 +10,7 @@ from aitutor.global_vars import (
     SEARCH_EXERCISE_KEY,
     SEARCH_EXERCISE_TITLE_KEY,
     SEARCH_TAG_KEY,
+    SEARCH_TEXT_MAX_LEN,
     SEARCH_USER_KEY,
 )
 from aitutor.language_state import LanguageState
@@ -34,7 +35,8 @@ class FilterMixin(rx.State, mixin=True):
     @rx.event
     def add_search_value(self, form_data: dict):
         """Adds a search value to the list of search values."""
-        parsed = parse_query_keys(form_data["search_value"], self.search_keys)
+        raw_val = form_data["search_value"][:SEARCH_TEXT_MAX_LEN]
+        parsed = parse_query_keys(raw_val, self.search_keys)
         if parsed not in self.search_values:
             self.search_values.append(parsed)
         self.load_filtered_data()
@@ -77,6 +79,7 @@ def search_bar(state: type[FilterMixin]) -> rx.Component:
                 placeholder=LanguageState.search_placeholder,
                 required=True,
                 max_width="60vw",
+                max_length=SEARCH_TEXT_MAX_LEN,
             ),
             rx.button(
                 rx.icon("plus"),
