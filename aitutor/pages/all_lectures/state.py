@@ -5,7 +5,7 @@ from collections.abc import Sequence
 import reflex as rx
 from sqlmodel import and_, select
 
-import aitutor.global_vars as GV
+import aitutor.global_vars as gv
 import aitutor.routes as routes
 from aitutor.auth.protection import state_require_role_or_permission
 from aitutor.auth.state import SessionState
@@ -14,10 +14,12 @@ from aitutor.models import Lecture, LectureRole, LinkUserLecture, UserRole
 
 LectureWithRole = tuple[Lecture, int | None]
 
+ALL_LECTURES_FIELD_MAX_LENGTHS = {"registration_code": gv.REGISTRATION_CODE_MAX_LEN}
+
 
 ALL_LECTURES_FIELD_MAX_LENGTHS: dict[str, int] = {
-    "search_text": GV.SEARCH_TEXT_MAX_LEN,
-    "registration_code": GV.REGISTRATION_CODE_MAX_LEN,
+    "search_text": gv.SEARCH_TEXT_MAX_LEN,
+    "registration_code": gv.REGISTRATION_CODE_MAX_LEN,
 }
 
 
@@ -96,6 +98,10 @@ class AllLecturesState(SessionState):
         """Validate the selected lecture and join it as a student."""
         if self.authenticated_user is None or self.authenticated_user.id is None:
             return
+
+        self.entered_registration_code = self.entered_registration_code[
+            : ALL_LECTURES_FIELD_MAX_LENGTHS["registration_code"]
+        ]
 
         lecture_id = self.selected_lecture_id
         if lecture_id is None:
