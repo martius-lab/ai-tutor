@@ -16,13 +16,7 @@ from aitutor.models import Prompt
 from aitutor.utilities.cprint import cprint
 from aitutor.utilities.create_default_users import create_default_users
 
-app = rx.App(
-    theme=rx.theme(
-        accent_color="indigo",
-        gray_color="slate",
-        radius="medium",
-    )
-)
+app = rx.App()
 # info: add dynamic routes first
 app.add_page(
     pages.finished_view_tutor_page,
