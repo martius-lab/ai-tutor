@@ -20,3 +20,12 @@ CHAT_MESSAGE_CHAR_LIMIT = 15000
 
 """colors"""
 GREEN_CHECK_COLOR = rx.color("green", 9)
+
+
+# --- max length for UI input fields ---
+
+# Auth
+USERNAME_MAX_LEN = 100
+EMAIL_MAX_LEN = 254
+PASSWORD_MAX_LEN = 128
+REGISTRATION_MAX_LEN = 150
