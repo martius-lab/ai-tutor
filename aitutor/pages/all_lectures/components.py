@@ -156,6 +156,7 @@ def join_lecture_dialog() -> rx.Component:
                             placeholder=LS.registration_code_placeholder,
                             on_change=AllLecturesState.set_entered_registration_code,
                             width="100%",
+                            max_length=150,
                         ),
                         width="100%",
                         align="start",

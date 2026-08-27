@@ -34,6 +34,7 @@ def lecture_input_field(
     heading: rx.Var[str],
     value: str | rx.Var[str],
     required: bool = False,
+    max_length: int | None = None,
 ) -> rx.Component:
     """Render a standard one-line input for the edit lecture form."""
     return input(
@@ -42,6 +43,7 @@ def lecture_input_field(
         value=value,
         on_change=lambda value: EditLectureState.set_lecture_value(name, value),
         required=required,
+        max_length=max_length,
     )
 
 
@@ -49,6 +51,7 @@ def lecture_text_area_field(
     name: str,
     heading: rx.Var[str],
     value: str,
+    max_length: int | None = None,
 ) -> rx.Component:
     """Render a standard textarea for the edit lecture form."""
     return text_area(
@@ -56,6 +59,7 @@ def lecture_text_area_field(
         heading=heading,
         value=value,
         on_change=lambda value: EditLectureState.set_lecture_value(name, value),
+        max_length=max_length,
     )
 
 
@@ -169,27 +173,32 @@ def edit_lecture_form() -> rx.Component:
                     heading=LS.lecture_name,
                     value=EditLectureState.lecture_name,
                     required=True,
+                    max_length=150,
                 ),
                 lecture_input_field(
                     name="lecturer_name",
                     heading=LS.lecture_lecturer,
                     value=EditLectureState.lecturer_name,
                     required=True,
+                    max_length=100,
                 ),
                 lecture_input_field(
                     name="registration_code",
                     heading=LS.registration_code,
                     value=EditLectureState.registration_code,
+                    max_length=150,
                 ),
                 lecture_text_area_field(
                     name="lecture_information_text",
                     heading=LS.lecture_info_text,
                     value=EditLectureState.lecture_information_text,
+                    max_length=5_000,
                 ),
                 lecture_text_area_field(
                     name="check_conversation_prompt",
                     heading=LS.check_conversation_prompt,
                     value=EditLectureState.check_conversation_prompt,
+                    max_length=5_000,
                 ),
                 rx.cond(
                     EditLectureState.unsaved_changes,
