@@ -1,5 +1,7 @@
 """The Components for the home page."""
 
+from datetime import datetime
+
 import reflex as rx
 
 import aitutor.global_vars as gv
@@ -113,7 +115,9 @@ def global_exercise_card(exercise_with_result: ExerciseWithResult) -> rx.Compone
     """Render one exercise on the global home page."""
     exercise: Exercise = exercise_with_result[0]
     result: ExerciseResult | None = exercise_with_result[1]
-    is_submitted = result is not None and result.finished_conversation.length() > 0  # type: ignore
+    is_submitted = (result != None) & (  # noqa: E711
+        result.finished_conversation.length() > 0  # type: ignore
+    )
 
     return rx.card(
         rx.vstack(
@@ -123,7 +127,13 @@ def global_exercise_card(exercise_with_result: ExerciseWithResult) -> rx.Compone
                 rx.text(LanguageState.deadline, weight="bold", size="2"),
                 rx.cond(
                     exercise.deadline,
-                    rx.text(HomeState.deadline_strings[exercise.id], size="2"),  # type: ignore
+                    rx.text(
+                        rx.moment(
+                            date=exercise.deadline.to(datetime),  # type: ignore[union-attr]
+                            format=gv.MOMENT_DEADLINE_FORMAT,
+                        ),
+                        size="2",
+                    ),
                     rx.text(LanguageState.no_deadline, size="2"),
                 ),
                 align="center",

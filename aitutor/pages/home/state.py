@@ -97,17 +97,6 @@ class HomeState(SessionState):
             )
 
     @rx.var
-    def deadline_strings(self) -> dict[int, str]:
-        """Return formatted deadlines keyed by exercise id."""
-        return {
-            exercise.id: exercise.deadline.strftime("%d.%m.%Y, %H:%M")
-            if exercise.deadline is not None
-            else ""
-            for exercise, _ in self.exercises_with_result
-            if exercise.id is not None
-        }
-
-    @rx.var
     def completed_exercises_num(self) -> int:
         """Number of completed exercises."""
         return sum(
