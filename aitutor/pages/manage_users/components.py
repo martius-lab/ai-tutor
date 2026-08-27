@@ -135,6 +135,7 @@ def edit_user_dialog() -> rx.Component:
                             placeholder=LS.new_password_placeholder,
                             size="3",
                             width="100%",
+                            max_length=MANAGE_USERS_FIELD_MAX_LENGTHS["new_password"],
                         ),
                         form_label(LS.role),
                         rx.hstack(

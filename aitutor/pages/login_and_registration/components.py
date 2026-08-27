@@ -193,6 +193,7 @@ def register_form() -> rx.Component:
                 value=MyRegisterState.password,
                 on_change=MyRegisterState.set_password,
                 disabled=MyRegisterState.registration_in_progress,
+                max_length=AUTH_FIELD_MAX_LENGTHS["password"],
             ),
             rx.text(LanguageState.confirm_password),
             password_input(
@@ -203,6 +204,7 @@ def register_form() -> rx.Component:
                 value=MyRegisterState.confirm_password,
                 on_change=MyRegisterState.set_confirm_password,
                 disabled=MyRegisterState.registration_in_progress,
+                max_length=AUTH_FIELD_MAX_LENGTHS["confirm_password"],
             ),
             rx.cond(
                 MyRegisterState.needs_registration_code,

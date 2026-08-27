@@ -86,12 +86,12 @@ class MyRegisterState(reflex_local_auth.RegistrationState):
     @rx.event
     def set_password(self, value: str):
         """Set the password."""
-        self.password = value
+        self.password = value[: AUTH_FIELD_MAX_LENGTHS["password"]]
 
     @rx.event
     def set_confirm_password(self, value: str):
         """Set the confirm password."""
-        self.confirm_password = value
+        self.confirm_password = value[: AUTH_FIELD_MAX_LENGTHS["confirm_password"]]
 
     @rx.event
     def set_registration_code(self, value: str):
