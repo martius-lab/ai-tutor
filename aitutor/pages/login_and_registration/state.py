@@ -31,7 +31,7 @@ AUTH_FIELD_MAX_LENGTHS: dict[str, int] = {
     "email": GV.EMAIL_MAX_LEN,
     "password": GV.PASSWORD_MAX_LEN,
     "confirm_password": GV.PASSWORD_MAX_LEN,
-    "registration_code": GV.REGISTRATION_MAX_LEN,
+    "registration_code": GV.REGISTRATION_CODE_MAX_LEN,
 }
 
 

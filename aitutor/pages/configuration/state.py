@@ -27,7 +27,7 @@ from aitutor.states.banner_state import (
 from aitutor.states.config_state import DisplayConfigState
 
 CONFIG_FIELD_MAX_LENGTHS: dict[str, int] = {
-    "registration_code": GV.REGISTRATION_MAX_LEN,
+    "registration_code": GV.REGISTRATION_CODE_MAX_LEN,
     "response_ai_model": 100,
     "check_ai_model": 100,
     "how_to_use_text": 10_000,

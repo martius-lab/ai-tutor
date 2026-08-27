@@ -2,9 +2,9 @@
 
 import reflex as rx
 
-import aitutor.global_vars as gv
+import aitutor.global_vars as GV
 from aitutor.components.dialogs import confirm, destructive_confirm
-from aitutor.global_vars import CHAT_MESSAGE_CHAR_LIMIT
+from aitutor.global_vars import CHAT_MESSAGE_MAX_LEN
 from aitutor.language_state import LanguageState
 from aitutor.pages.chat.state import ChatMessage, ChatState, Role
 
@@ -110,7 +110,7 @@ def chat_form() -> rx.Component:
             enter_key_submit=with_key_submit,
             resize="vertical",
             rows="4",
-            max_length=CHAT_MESSAGE_CHAR_LIMIT,
+            max_length=CHAT_MESSAGE_MAX_LEN,
         )
 
     return rx.form(
@@ -331,6 +331,7 @@ def report_conversation_button() -> rx.Component:
                         on_change=ChatState.set_report_text,
                         width="100%",
                         rows="4",
+                        max_length=ChatState.MAX_REPORT_LENGTH,
                     ),
                     rx.text(
                         f"{ChatState.report_char_count} / "
@@ -399,7 +400,7 @@ def submitted_status() -> rx.Component:
         ),
         rx.icon(
             "circle-check",
-            color=gv.GREEN_CHECK_COLOR,
+            color=GV.GREEN_CHECK_COLOR,
             size=30,
         ),
         align="center",

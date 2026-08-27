@@ -16,7 +16,6 @@ If the student answered correctly, you can write one sentence that the student a
 
 # ---- Chat related global variables ----
 CHAT_TOKEN_WARNING_THRESHOLD = 0.8  # Show warning at x% of limit
-CHAT_MESSAGE_CHAR_LIMIT = 15000
 
 """colors"""
 GREEN_CHECK_COLOR = rx.color("green", 9)
@@ -28,4 +27,11 @@ GREEN_CHECK_COLOR = rx.color("green", 9)
 USERNAME_MAX_LEN = 100
 EMAIL_MAX_LEN = 254
 PASSWORD_MAX_LEN = 128
-REGISTRATION_MAX_LEN = 150
+REGISTRATION_CODE_MAX_LEN = 150
+
+
+# Search
+SEARCH_TEXT_MAX_LEN = 150
+
+# Chat
+CHAT_MESSAGE_MAX_LEN = 15_000
