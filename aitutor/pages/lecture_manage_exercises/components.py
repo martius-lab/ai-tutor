@@ -9,6 +9,7 @@ from aitutor.global_vars import SEARCH_TAG_KEY, TIME_ZONE
 from aitutor.language_state import LanguageState
 from aitutor.models import Exercise
 from aitutor.pages.lecture_manage_exercises.state import (
+    LECTURE_MANAGE_EXERCISES_FIELD_MAX_LENGTHS,
     DialogMode,
 )
 from aitutor.pages.lecture_manage_exercises.state import (
@@ -48,6 +49,7 @@ def new_tag_dialog():
                         ManageTagsState.add_new_tag,
                         None,
                     ),
+                    max_length=LECTURE_MANAGE_EXERCISES_FIELD_MAX_LENGTHS["tag_name"],
                 ),
                 rx.hstack(
                     rx.dialog.close(
@@ -97,6 +99,7 @@ def rename_tag_dialog():
                         ManageTagsState.edit_tag_name(),
                         None,
                     ),
+                    max_length=LECTURE_MANAGE_EXERCISES_FIELD_MAX_LENGTHS["tag_name"],
                 ),
                 rx.hstack(
                     rx.dialog.close(
@@ -775,6 +778,7 @@ def add_edit_exercise_form(mode: DialogMode) -> Sequence[rx.Component]:
             width="100%",
             type="text",
             name="title",
+            max_length=LECTURE_MANAGE_EXERCISES_FIELD_MAX_LENGTHS["title"],
         ),
         # description
         rx.text(
@@ -798,6 +802,7 @@ def add_edit_exercise_form(mode: DialogMode) -> Sequence[rx.Component]:
             height="150px",
             type="text",
             name="description",
+            max_length=LECTURE_MANAGE_EXERCISES_FIELD_MAX_LENGTHS["description"],
         ),
         # lesson context
         rx.text(
@@ -818,6 +823,7 @@ def add_edit_exercise_form(mode: DialogMode) -> Sequence[rx.Component]:
             height="200px",
             type="text",
             name="lesson_context",
+            max_length=LECTURE_MANAGE_EXERCISES_FIELD_MAX_LENGTHS["lesson_context"],
         ),
         # lesson file upload area
         pdf_upload(),
@@ -882,6 +888,9 @@ def add_edit_exercise_form(mode: DialogMode) -> Sequence[rx.Component]:
                             type="number",
                             step="1",
                             min="1",
+                            max_length=LECTURE_MANAGE_EXERCISES_FIELD_MAX_LENGTHS[
+                                "days_to_complete"
+                            ],
                         ),
                     ),
                 ),
