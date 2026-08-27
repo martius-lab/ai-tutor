@@ -8,6 +8,7 @@ from aitutor.components.dialogs import destructive_confirm
 from aitutor.language_state import LanguageState as LS
 from aitutor.models import BannerMessageType, LecturerRegistrationToken
 from aitutor.pages.configuration.state import (
+    CONFIG_FIELD_MAX_LENGTHS,
     LecturerRegistrationTokenState,
     ManageConfigState,
 )
@@ -174,6 +175,7 @@ def config_form() -> rx.Component:
                         "registration_code", value
                     ),
                     info=info_icon(LS.registration_code_info),
+                    max_length=CONFIG_FIELD_MAX_LENGTHS["registration_code"],
                 ),
                 input(
                     name="response_ai_model",
@@ -183,6 +185,7 @@ def config_form() -> rx.Component:
                         "response_ai_model", value
                     ),
                     info=info_icon(LS.response_ai_model_info),
+                    max_length=CONFIG_FIELD_MAX_LENGTHS["response_ai_model"],
                 ),
                 input(
                     name="check_ai_model",
@@ -192,6 +195,7 @@ def config_form() -> rx.Component:
                         "check_ai_model", value
                     ),
                     info=info_icon(LS.check_ai_model_info),
+                    max_length=CONFIG_FIELD_MAX_LENGTHS["check_ai_model"],
                 ),
                 input(
                     name="exercise_token_limit",
@@ -210,6 +214,7 @@ def config_form() -> rx.Component:
                         "how_to_use_text", value
                     ),
                     info=info_icon(LS.info_texts_info),
+                    max_length=CONFIG_FIELD_MAX_LENGTHS["how_to_use_text"],
                 ),
                 text_area(
                     name="general_info_text",
@@ -219,6 +224,7 @@ def config_form() -> rx.Component:
                         "general_information_text", value
                     ),
                     info=info_icon(LS.info_texts_info),
+                    max_length=CONFIG_FIELD_MAX_LENGTHS["general_information_text"],
                 ),
                 text_area(
                     name="impressum",
@@ -228,6 +234,7 @@ def config_form() -> rx.Component:
                         "impressum_text", value
                     ),
                     info=info_icon(LS.impressum_info),
+                    max_length=CONFIG_FIELD_MAX_LENGTHS["impressum_text"],
                 ),
                 banner_form_group(),
                 rx.cond(

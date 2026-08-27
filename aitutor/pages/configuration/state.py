@@ -25,6 +25,15 @@ from aitutor.states.banner_state import (
 )
 from aitutor.states.config_state import DisplayConfigState
 
+CONFIG_FIELD_MAX_LENGTHS: dict[str, int] = {
+    "registration_code": 150,
+    "response_ai_model": 100,
+    "check_ai_model": 100,
+    "how_to_use_text": 10_000,
+    "general_information_text": 10_000,
+    "impressum_text": 10_000,
+}
+
 empty_config: Config = Config(
     id=None,
     response_ai_model="failed to load!",
@@ -59,6 +68,9 @@ class ManageConfigState(SessionState):
     @rx.event
     def set_config_value(self, name: str, value: str):
         """Sets a configuration value in the current config."""
+        # set max length for input fields coming from UI
+        if name in CONFIG_FIELD_MAX_LENGTHS:
+            value = value[: CONFIG_FIELD_MAX_LENGTHS[name]]
         setattr(self.current_config, name, value)
         self.unsaved_changes = True
 
