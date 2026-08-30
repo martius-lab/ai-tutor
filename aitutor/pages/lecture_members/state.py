@@ -7,10 +7,10 @@ from reflex_local_auth.user import LocalUser
 from sqlmodel import col, func, select
 
 import aitutor.routes as routes
-from aitutor.auth.protection import state_require_role_or_permission
+from aitutor.auth.protection import state_require_lecture_role
 from aitutor.auth.state import SessionState
 from aitutor.language_state import BackendTranslations as BT
-from aitutor.models import Lecture, LectureRole, LinkUserLecture, UserRole
+from aitutor.models import Lecture, LectureRole, LinkUserLecture
 from aitutor.utilities.lecture_permissions import (
     count_lecture_owners,
     get_user_lecture_link,
@@ -60,7 +60,7 @@ class LectureMembersState(SessionState):
         self.available_user_filter_query = ""
 
     @rx.event
-    @state_require_role_or_permission(required_role=UserRole.STUDENT)
+    @state_require_lecture_role(LectureRole.STUDENT)
     def on_load(self):
         """Initialize the members page."""
         self.global_load()
@@ -135,6 +135,7 @@ class LectureMembersState(SessionState):
         ]
 
     @rx.event
+    @state_require_lecture_role(LectureRole.OWNER)
     def open_add_member_dialog(self):
         """Open the add-member dialog with freshly loaded available users."""
         self.available_user_filter_query = ""
@@ -202,7 +203,7 @@ class LectureMembersState(SessionState):
         self.close_edit_role_dialog()
 
     @rx.event
-    @state_require_role_or_permission(required_role=UserRole.STUDENT)
+    @state_require_lecture_role(LectureRole.OWNER)
     def add_member(self, user_id: int):
         """Add one user to the current lecture as a student."""
         if not self.can_manage_members or self.current_lecture_id is None:
@@ -245,7 +246,7 @@ class LectureMembersState(SessionState):
         )
 
     @rx.event
-    @state_require_role_or_permission(required_role=UserRole.STUDENT)
+    @state_require_lecture_role(LectureRole.OWNER)
     def save_member_role_change(self, user_id: int):
         """Persist one changed lecture member role."""
         if not self.can_manage_members or self.current_lecture_id is None:
@@ -277,7 +278,7 @@ class LectureMembersState(SessionState):
         self.load_available_users()
 
     @rx.event
-    @state_require_role_or_permission(required_role=UserRole.STUDENT)
+    @state_require_lecture_role(LectureRole.OWNER)
     def kick_member(self, user_id: int):
         """Remove one member from the current lecture."""
         if not self.can_manage_members or self.current_lecture_id is None:

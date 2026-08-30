@@ -10,10 +10,10 @@ from sqlmodel import and_, func, or_, select
 
 import aitutor.global_vars as gv
 import aitutor.routes as routes
-from aitutor.auth.protection import state_require_role_or_permission
+from aitutor.auth.protection import state_require_lecture_role
 from aitutor.auth.state import SessionState
 from aitutor.global_vars import TIME_FORMAT, TIME_ZONE
-from aitutor.models import Exercise, ExerciseResult, Lecture, Tag, UserRole
+from aitutor.models import Exercise, ExerciseResult, Lecture, LectureRole, Tag, UserRole
 from aitutor.utilities.filtering_components import FilterMixin
 from aitutor.utilities.lecture_permissions import user_may_view_lecture
 
@@ -40,19 +40,21 @@ class LectureExercisesState(FilterMixin, SessionState):
     ]
 
     @rx.event
+    @state_require_lecture_role(LectureRole.STUDENT)
     def toggle_show_submitted_exercises(self):
         """Toggle the visibility of submitted exercises."""
         self.show_submitted_exercises = not self.show_submitted_exercises
         self.load_exercises()
 
     @rx.event
+    @state_require_lecture_role(LectureRole.STUDENT)
     def toggle_show_closed_exercises(self):
         """Toggle the visibility of closed exercises."""
         self.show_closed_exercises = not self.show_closed_exercises
         self.load_exercises()
 
     @rx.event
-    @state_require_role_or_permission(required_role=UserRole.STUDENT)
+    @state_require_lecture_role(LectureRole.STUDENT)
     def on_load(self):
         """
         Fetch exercises from database for the lecture in the route.
@@ -135,6 +137,7 @@ class LectureExercisesState(FilterMixin, SessionState):
 
     @override
     @rx.event
+    @state_require_lecture_role(LectureRole.STUDENT)
     def load_filtered_data(self):
         """implements the abstract method from FilterMixin"""
         self.load_exercises()

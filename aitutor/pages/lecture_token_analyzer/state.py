@@ -7,16 +7,16 @@ import reflex as rx
 from sqlmodel import func, select
 
 import aitutor.routes as routes
-from aitutor.auth.protection import state_require_role_or_permission
+from aitutor.auth.protection import state_require_lecture_role
 from aitutor.auth.state import SessionState
 from aitutor.language_state import BackendTranslations as BT
 from aitutor.models import (
     Exercise,
     ExerciseResult,
     Lecture,
+    LectureRole,
     LocalUser,
     UserInfo,
-    UserRole,
 )
 from aitutor.utilities.lecture_permissions import user_may_view_lecture_submissions
 
@@ -110,7 +110,7 @@ class LectureTokenAnalyzerState(SessionState):
         self.user_filter_query = ""
 
     @rx.event
-    @state_require_role_or_permission(required_role=UserRole.STUDENT)
+    @state_require_lecture_role(LectureRole.TUTOR)
     def on_load(self):
         """Gets executed when the page loads."""
         self.global_load()
@@ -241,6 +241,7 @@ class LectureTokenAnalyzerState(SessionState):
         return sum(row.tokens_used for row in self.exercise_table_rows)
 
     @rx.event
+    @state_require_lecture_role(LectureRole.TUTOR)
     def load_exercise_options(self):
         """Load selectable exercises for filtering."""
         if self.current_lecture_id is None:
@@ -256,6 +257,7 @@ class LectureTokenAnalyzerState(SessionState):
             self.exercise_options = [ALL_EXERCISES_OPTION, *exercises]
 
     @rx.event
+    @state_require_lecture_role(LectureRole.TUTOR)
     def load_user_options(self):
         """Load selectable users for filtering the exercise analysis."""
         if self.current_lecture_id is None:
@@ -276,6 +278,7 @@ class LectureTokenAnalyzerState(SessionState):
             self.user_options = [ALL_USERS_OPTION, *users]
 
     @rx.event
+    @state_require_lecture_role(LectureRole.TUTOR)
     def load_user_token_rows(self):
         """Load total token usage per user.
 
@@ -315,6 +318,7 @@ class LectureTokenAnalyzerState(SessionState):
             self.user_bar_size = self._get_dynamic_bar_size(len(self.user_table_rows))
 
     @rx.event
+    @state_require_lecture_role(LectureRole.TUTOR)
     def load_exercise_token_rows(self):
         """Load total token usage per exercise.
 

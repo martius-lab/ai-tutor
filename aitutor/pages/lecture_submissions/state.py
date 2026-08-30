@@ -11,16 +11,16 @@ from sqlmodel import and_, func, or_, select
 
 import aitutor.global_vars as gv
 import aitutor.routes as routes
-from aitutor.auth.protection import state_require_role_or_permission
+from aitutor.auth.protection import state_require_lecture_role
 from aitutor.auth.state import SessionState
 from aitutor.config import get_config
 from aitutor.models import (
     Exercise,
     ExerciseResult,
     Lecture,
+    LectureRole,
     Tag,
     UserInfo,
-    UserRole,
 )
 from aitutor.utilities.filtering_components import FilterMixin
 from aitutor.utilities.lecture_permissions import user_may_view_lecture_submissions
@@ -53,7 +53,7 @@ class LectureSubmissionsState(FilterMixin, SessionState):
     ]
 
     @rx.event
-    @state_require_role_or_permission(required_role=UserRole.STUDENT)
+    @state_require_lecture_role(LectureRole.TUTOR)
     def on_load(self):
         """Gets executed when the page loads."""
         self.global_load()
@@ -90,6 +90,7 @@ class LectureSubmissionsState(FilterMixin, SessionState):
 
     @override
     @rx.event
+    @state_require_lecture_role(LectureRole.TUTOR)
     def load_filtered_data(self):
         """Implements the abstract method from FilterMixin."""
         self.load_submissions()

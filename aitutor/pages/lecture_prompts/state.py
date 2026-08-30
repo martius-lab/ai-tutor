@@ -5,10 +5,10 @@ from sqlalchemy.exc import IntegrityError
 from sqlmodel import or_, select
 
 import aitutor.routes as routes
-from aitutor.auth.protection import state_require_role_or_permission
+from aitutor.auth.protection import state_require_lecture_role
 from aitutor.auth.state import SessionState
 from aitutor.language_state import BackendTranslations as BT
-from aitutor.models import Exercise, Lecture, Prompt, UserRole
+from aitutor.models import Exercise, Lecture, LectureRole, Prompt
 from aitutor.utilities.lecture_permissions import user_may_manage_lecture_exercises
 
 
@@ -77,7 +77,7 @@ class LectureManagePromptsState(SessionState):
         self.unsaved_changes = True
 
     @rx.event
-    @state_require_role_or_permission(required_role=UserRole.STUDENT)
+    @state_require_lecture_role(LectureRole.TUTOR)
     def on_load(self):
         """Initialize the page for one lecture."""
         self.global_load()

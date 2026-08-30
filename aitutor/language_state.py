@@ -104,6 +104,17 @@ class LanguageState(SessionState):
             en="Prompt",
         )
 
+    @rx.var
+    def access_denied(self) -> str:
+        """Message shown when the user lacks permission to access a page."""
+        return self.translate(
+            de=(
+                "Sie haben nicht die erforderlichen Rechte, um auf diese Seite "
+                "zuzugreifen."
+            ),
+            en="You don't have the rights to access this page.",
+        )
+
     # Search Bar Strings ---------------------------------------------------------------
     @rx.var
     def search_placeholder(self) -> str:
@@ -1741,6 +1752,20 @@ class BackendTranslations:
         )
 
     # LectureManageExercisesState ------------------------------------------------------
+    @staticmethod
+    def exercise_title_already_exists(language: Language, title: str) -> str:
+        return translate(
+            language,
+            de=(
+                f"Der Titel '{title}' wird bereits von einer anderen Übung verwendet. "
+                "Bitte wählen Sie einen anderen Titel."
+            ),
+            en=(
+                f"The title '{title}' is already used by another exercise. "
+                "Please choose a different title."
+            ),
+        )
+
     @staticmethod
     def tagname_already_exists(language: Language) -> str:
         return translate(

@@ -4,7 +4,10 @@ import reflex as rx
 from sqlmodel import select
 
 import aitutor.routes as routes
-from aitutor.auth.protection import state_require_role_or_permission
+from aitutor.auth.protection import (
+    state_require_lecture_role,
+    state_require_role_or_permission,
+)
 from aitutor.auth.state import SessionState
 from aitutor.global_vars import DEFAULT_CHECK_CONVERSATION_PROMPT
 from aitutor.language_state import BackendTranslations as BT
@@ -186,7 +189,7 @@ class EditLectureState(SessionState):
         )
 
     @rx.event
-    @state_require_role_or_permission(required_role=UserRole.STUDENT)
+    @state_require_lecture_role(LectureRole.OWNER)
     def delete_current_lecture(self):
         """Delete the current lecture after password confirmation."""
         if self.authenticated_user is None or self.authenticated_user.id is None:
