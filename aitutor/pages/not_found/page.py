@@ -2,9 +2,11 @@
 
 import reflex as rx
 
+from aitutor.pages.navbar import with_navbar
 from aitutor.routes import HOME
 
 
+@with_navbar()
 def not_found_page():
     """Render the 404 - Page Not Found component."""
     return rx.center(
@@ -13,6 +15,6 @@ def not_found_page():
             rx.link("Go Home", href=HOME),
             align_items="center",
         ),
-        height="100vh",
-        width="100vw",
+        min_height="60vh",
+        width="100%",
     )

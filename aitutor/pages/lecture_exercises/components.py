@@ -1,5 +1,7 @@
 """Components for the exercises page."""
 
+from datetime import datetime
+
 import reflex as rx
 
 import aitutor.global_vars as gv
@@ -43,7 +45,9 @@ def render_exercise_card(exercise_with_res: ExerciseWithResult) -> rx.Component:
     """Render exercises as cards"""
     exercise: Exercise = exercise_with_res[0]
     result: ExerciseResult | None = exercise_with_res[1]
-    is_submitted = result is not None and result.finished_conversation.length() > 0  # type: ignore
+    is_submitted = (result != None) & (  # noqa: E711
+        result.finished_conversation.length() > 0  # type: ignore
+    )
     return rx.hstack(
         rx.card(  # create a card for each exercise
             rx.hstack(
@@ -59,7 +63,10 @@ def render_exercise_card(exercise_with_res: ExerciseWithResult) -> rx.Component:
                             rx.icon("calendar-clock", size=20),
                             rx.text(LanguageState.deadline, weight="bold", size="2"),
                             rx.text(
-                                LectureExercisesState.deadline_strings[exercise.id],  # type: ignore
+                                rx.moment(
+                                    date=exercise.deadline.to(datetime),  # type: ignore[union-attr]
+                                    format=gv.MOMENT_DEADLINE_FORMAT,
+                                ),
                                 size="2",
                             ),
                         ),
