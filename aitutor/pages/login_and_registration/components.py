@@ -174,14 +174,19 @@ def register_form() -> rx.Component:
                 on_change=MyRegisterState.set_confirm_password,
                 disabled=MyRegisterState.registration_in_progress,
             ),
-            rx.text(LanguageState.registration_code),
-            input(
-                "registration_code",
-                placeholder=LanguageState.registration_code_placeholder,
-                required=True,
-                value=MyRegisterState.registration_code,
-                on_change=MyRegisterState.set_registration_code,
-                disabled=MyRegisterState.registration_in_progress,
+            rx.cond(
+                MyRegisterState.needs_registration_code,
+                rx.fragment(
+                    rx.text(LanguageState.registration_code),
+                    input(
+                        "registration_code",
+                        placeholder=LanguageState.registration_code_placeholder,
+                        required=True,
+                        value=MyRegisterState.registration_code,
+                        on_change=MyRegisterState.set_registration_code,
+                        disabled=MyRegisterState.registration_in_progress,
+                    ),
+                ),
             ),
             rx.cond(
                 privacy_notice,
