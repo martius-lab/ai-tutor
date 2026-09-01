@@ -5,7 +5,14 @@ import reflex as rx
 from aitutor.auth.protection import state_require_role_or_permission
 from aitutor.auth.state import SessionState
 from aitutor.language_state import BackendTranslations as BT
-from aitutor.models import Config, UserRole
+from aitutor.models import BannerMessageType, Config, UserRole
+from aitutor.states.banner_state import (
+    INITIAL_BANNER_IS_OPEN,
+    INITIAL_BANNER_MESSAGE,
+    INITIAL_BANNER_MESSAGE_TYPE,
+    BannerState,
+)
+from aitutor.states.config_state import DisplayConfigState
 
 empty_config: Config = Config(
     id=None,
@@ -16,6 +23,9 @@ empty_config: Config = Config(
     impressum_text="failed to load!",
     registration_code="failed to load!",
     exercise_token_limit=0,
+    banner_message=INITIAL_BANNER_MESSAGE,
+    banner_message_type=INITIAL_BANNER_MESSAGE_TYPE,
+    banner_is_open=INITIAL_BANNER_IS_OPEN,
 )
 
 
@@ -42,6 +52,18 @@ class ManageConfigState(SessionState):
         self.unsaved_changes = True
 
     @rx.event
+    def set_banner_is_open(self, value: bool):
+        """Sets whether the banner is open in current config."""
+        self.current_config.banner_is_open = value
+        self.unsaved_changes = True
+
+    @rx.event
+    def set_banner_message_type(self, value: str):
+        """Sets the banner message type in current config."""
+        self.current_config.banner_message_type = BannerMessageType(value)
+        self.unsaved_changes = True
+
+    @rx.event
     def set_exercise_token_limit(self, value: str):
         """Sets exercise_token_limit while allowing transient invalid input states."""
         try:
@@ -49,6 +71,14 @@ class ManageConfigState(SessionState):
         except ValueError:
             pass
         self.unsaved_changes = True
+
+    @rx.var
+    def is_banner_message_invalid(self) -> bool:
+        """Returns True if banner is open but message is empty."""
+        return (
+            self.current_config.banner_is_open
+            and not self.current_config.banner_message.strip()
+        )
 
     @rx.event
     @state_require_role_or_permission(required_role=UserRole.TUTOR)
@@ -65,6 +95,14 @@ class ManageConfigState(SessionState):
     @rx.event
     def save_config_to_db(self):
         """Saves the current configuration to the database."""
+        if self.is_banner_message_invalid:
+            yield rx.toast.error(
+                description=BT.banner_message_empty(self.language),
+                duration=5000,
+                position="bottom-center",
+                invert=True,
+            )
+            return
         with rx.session() as session:
             db_config = session.get(Config, 1)
             if db_config:
@@ -79,11 +117,16 @@ class ManageConfigState(SessionState):
                 db_config.exercise_token_limit = (
                     self.current_config.exercise_token_limit
                 )
+                db_config.banner_message = self.current_config.banner_message
+                db_config.banner_message_type = self.current_config.banner_message_type
+                db_config.banner_is_open = self.current_config.banner_is_open
                 session.add(db_config)
                 session.commit()
 
         self.unsaved_changes = False
 
+        yield DisplayConfigState.refresh_config_strings
+        yield BannerState.refresh_banner
         yield rx.toast.success(
             description=BT.config_saved(self.language),
             duration=5000,

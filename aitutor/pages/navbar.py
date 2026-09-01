@@ -10,6 +10,7 @@ import reflex as rx
 import aitutor.routes as routes
 from aitutor.auth.protection import has_permission, lecture_has_role_at_least
 from aitutor.auth.state import SessionState
+from aitutor.components import announcement_banner
 from aitutor.language_state import LanguageState
 from aitutor.models import GlobalPermission, UserRole
 
@@ -400,6 +401,7 @@ def with_navbar(route_to_highlight: Optional[str] = None):
         """
         return lambda: rx.flex(
             navbar(route_to_highlight),
+            announcement_banner(),
             rx.center(
                 component_factory(),
                 width="100%",
