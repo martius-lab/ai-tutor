@@ -13,16 +13,16 @@ from sqlmodel import and_, func, or_, select
 
 import aitutor.global_vars as gv
 import aitutor.routes as routes
-from aitutor.auth.protection import state_require_role_or_permission
+from aitutor.auth.protection import state_require_lecture_role
 from aitutor.auth.state import SessionState
 from aitutor.language_state import BackendTranslations as BT
 from aitutor.models import (
     Exercise,
     ExerciseTagLink,
     Lecture,
+    LectureRole,
     Prompt,
     Tag,
-    UserRole,
 )
 from aitutor.utilities.filtering_components import FilterMixin
 from aitutor.utilities.lecture_permissions import user_may_manage_lecture_exercises
@@ -132,7 +132,7 @@ class LectureManageExercisesState(FilterMixin, SessionState):
         self.exercise_is_selected[exercise_id] = is_selected  # type: ignore
 
     @rx.event
-    @state_require_role_or_permission(required_role=UserRole.STUDENT)
+    @state_require_lecture_role(LectureRole.OWNER)
     def on_load(self):
         """Initialize the state"""
         self.global_load()
@@ -579,8 +579,7 @@ class LectureManageExercisesState(FilterMixin, SessionState):
                 set(), [form_data["title"]]
             ):
                 return rx.window_alert(
-                    f"The title '{form_data['title']}' is already used by another"
-                    + "exercise. Please choose a different title."
+                    BT.exercise_title_already_exists(self.language, form_data["title"])
                 )
             if not form_data["description"]:
                 return rx.window_alert("Please enter a description for the exercise.")
@@ -740,8 +739,7 @@ class LectureManageExercisesState(FilterMixin, SessionState):
                 {self.current_exercise.id}, [form_data["title"]]
             ):
                 return rx.window_alert(
-                    f"The title '{form_data['title']}' is already used by another"
-                    + "exercise. Please choose a different title."
+                    BT.exercise_title_already_exists(self.language, form_data["title"])
                 )
             updated_exercise = session.exec(
                 select(Exercise).where(

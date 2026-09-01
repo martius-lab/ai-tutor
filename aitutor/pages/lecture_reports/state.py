@@ -10,15 +10,15 @@ from sqlmodel import select
 
 import aitutor.global_vars as gv
 import aitutor.routes as routes
-from aitutor.auth.protection import state_require_role_or_permission
+from aitutor.auth.protection import state_require_lecture_role
 from aitutor.auth.state import SessionState
 from aitutor.models import (
     Exercise,
     Lecture,
+    LectureRole,
     LocalUser,
     Report,
     UserInfo,
-    UserRole,
 )
 from aitutor.utilities.filtering_components import FilterMixin
 from aitutor.utilities.lecture_permissions import user_may_view_lecture_submissions
@@ -51,7 +51,7 @@ class LectureReportsState(FilterMixin, SessionState):
     ]
 
     @rx.event
-    @state_require_role_or_permission(required_role=UserRole.STUDENT)
+    @state_require_lecture_role(LectureRole.TUTOR)
     def on_load(self):
         """Load all reports for the current lecture when page opens."""
         self.global_load()
@@ -75,11 +75,13 @@ class LectureReportsState(FilterMixin, SessionState):
 
     @override
     @rx.event
+    @state_require_lecture_role(LectureRole.TUTOR)
     def load_filtered_data(self):
         """Implements the abstract method from FilterMixin."""
         self.load_reports()
 
     @rx.event
+    @state_require_lecture_role(LectureRole.TUTOR)
     def load_reports(self):
         """Fetch lecture-specific reports from the database with filtering."""
         if self.current_lecture_id is None:
@@ -165,7 +167,7 @@ class LectureReportsState(FilterMixin, SessionState):
                 )
 
     @rx.event
-    @state_require_role_or_permission(required_role=UserRole.STUDENT)
+    @state_require_lecture_role(LectureRole.TUTOR)
     def toggle_looked_at(self, report_id: int):
         """Toggle the looked_at status of a lecture-specific report."""
         if self.current_lecture_id is None:
@@ -188,7 +190,7 @@ class LectureReportsState(FilterMixin, SessionState):
                 self.load_reports()
 
     @rx.event
-    @state_require_role_or_permission(required_role=UserRole.STUDENT)
+    @state_require_lecture_role(LectureRole.TUTOR)
     def delete_report(self, report_id: int):
         """Delete a lecture-specific report from the database."""
         if self.current_lecture_id is None:

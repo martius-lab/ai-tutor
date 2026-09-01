@@ -19,7 +19,7 @@ from aitutor.pages.navbar_specific_lecture import with_specific_lecture_navbar
 from aitutor.utilities.filtering_components import search_badges, search_bar
 
 
-@page_require_lecture_role(LectureRole.TUTOR)
+@page_require_lecture_role(LectureRole.OWNER)
 @with_navbar(routes.LECTURES)
 @with_specific_lecture_navbar(
     "manage_exercises",

@@ -8,10 +8,10 @@ import reflex as rx
 from sqlmodel import and_, or_, select
 
 import aitutor.routes as routes
-from aitutor.auth.protection import state_require_role_or_permission
+from aitutor.auth.protection import state_require_lecture_role
 from aitutor.auth.state import SessionState
 from aitutor.global_vars import TIME_ZONE
-from aitutor.models import Exercise, ExerciseResult, Lecture, UserRole
+from aitutor.models import Exercise, ExerciseResult, Lecture, LectureRole
 from aitutor.utilities.lecture_permissions import user_may_view_lecture
 
 
@@ -25,7 +25,7 @@ class LectureOverviewState(SessionState):
     exercises_with_result: list[tuple[Exercise, Optional[ExerciseResult]]] = []
 
     @rx.event
-    @state_require_role_or_permission(required_role=UserRole.STUDENT)
+    @state_require_lecture_role(LectureRole.STUDENT)
     def on_load(self):
         """Initialize the lecture overview state when the page loads."""
         self.global_load()

@@ -104,15 +104,15 @@ def user_may_manage_lecture_exercises(
     global_permissions: Collection[GlobalPermission],
     lecture_id: int,
 ) -> bool:
-    """Return whether a user may manage exercises for one lecture."""
-    if has_global_admin_permission(global_permissions):
-        return True
-
-    return get_user_lecture_role(
-        session,
-        user_id=user_id,
-        lecture_id=lecture_id,
-    ) in (LectureRole.TUTOR, LectureRole.OWNER)
+    """Return whether a user may manage exercises and prompts for one lecture."""
+    return has_global_admin_permission(global_permissions) or (
+        get_user_lecture_role(
+            session,
+            user_id=user_id,
+            lecture_id=lecture_id,
+        )
+        == LectureRole.OWNER
+    )
 
 
 def count_lecture_owners(session: Session, *, lecture_id: int) -> int:

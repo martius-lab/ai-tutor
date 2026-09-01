@@ -10,6 +10,7 @@ from reflex_local_auth.login import LoginState
 from sqlmodel import select
 
 from aitutor.auth.state import SessionState
+from aitutor.language_state import LanguageState
 from aitutor.models import GlobalPermission, LectureRole, LinkUserLecture, UserRole
 
 
@@ -122,7 +123,7 @@ def page_require_role_or_permission(
                         page(),
                         rx.center(
                             rx.text(
-                                "You don't have the rights to access this page.",
+                                LanguageState.access_denied,
                                 size="6",
                             ),
                             height="85vh",
@@ -183,7 +184,7 @@ def page_require_lecture_role(
                         page(),
                         rx.center(
                             rx.text(
-                                "You don't have the rights to access this page.",
+                                LanguageState.access_denied,
                                 size="6",
                             ),
                             height="85vh",

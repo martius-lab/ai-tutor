@@ -5,12 +5,9 @@ from sqlalchemy.orm import selectinload
 from sqlmodel import select
 
 import aitutor.routes as routes
-from aitutor.auth.protection import (
-    state_require_lecture_role,
-    state_require_role_or_permission,
-)
+from aitutor.auth.protection import state_require_lecture_role
 from aitutor.auth.state import SessionState
-from aitutor.models import Lecture, LectureRole, Report, UserInfo, UserRole
+from aitutor.models import Lecture, LectureRole, Report, UserInfo
 from aitutor.pages.chat.state import ChatMessage, Role
 from aitutor.utilities.lecture_permissions import user_may_view_lecture_submissions
 
@@ -28,7 +25,7 @@ class LectureReportViewState(SessionState):
     messages: list[ChatMessage] = []
 
     @rx.event
-    @state_require_role_or_permission(required_role=UserRole.STUDENT)
+    @state_require_lecture_role(LectureRole.TUTOR)
     def on_load(self):
         """Load report details when page opens."""
         self.global_load()
@@ -54,6 +51,7 @@ class LectureReportViewState(SessionState):
         self.load_report()
 
     @rx.event
+    @state_require_lecture_role(LectureRole.TUTOR)
     def load_report(self):
         """Load lecture-specific report and associated conversation from database."""
         if self.current_lecture_id is None:
