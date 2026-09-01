@@ -143,13 +143,12 @@ def browse_lectures_button() -> rx.Component:
 
 def leave_lecture_button(lecture: Lecture, *, width: str | None = None) -> rx.Component:
     """Render the leave lecture button with a destructive confirmation dialog."""
-    assert lecture.id is not None, "Lecture must be persisted to render leave button."
     return destructive_confirm(
         title=LS.leave_lecture + ": " + lecture.lecture_name,
         description=LS.leave_lecture_description,
         confirm_text=LS.leave_lecture,
         cancel_text=LS.cancel,
-        on_confirm=MyLecturesState.leave_lecture(lecture.id),
+        on_confirm=MyLecturesState.leave_lecture(lecture.id),  # type: ignore[arg-type]
         trigger=rx.button(
             rx.flex(
                 rx.icon("log-out", size=15),
@@ -167,7 +166,6 @@ def leave_lecture_button(lecture: Lecture, *, width: str | None = None) -> rx.Co
 
 def enter_lecture_button(lecture: Lecture, *, width: str | None = None) -> rx.Component:
     """Render the button for entering a lecture."""
-    assert lecture.id is not None, "Lecture must be persisted to render enter button."
     return rx.link(
         rx.button(
             rx.flex(

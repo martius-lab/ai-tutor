@@ -81,9 +81,11 @@ def show_table_row(table_row: LectureReportTableRow) -> rx.Component:
                         ),
                         variant="ghost",
                         on_click=LectureReportsState.toggle_looked_at(
-                            table_row.report_id
-                            if table_row.report_id is not None
-                            else 0
+                            rx.cond(
+                                table_row.report_id != None,  # noqa: E711
+                                table_row.report_id,
+                                0,
+                            ).to(int)
                         ),
                         _hover={"cursor": "pointer"},
                     )
@@ -121,7 +123,11 @@ def show_table_row(table_row: LectureReportTableRow) -> rx.Component:
                 confirm_text=LanguageState.delete,
                 cancel_text=LanguageState.cancel,
                 on_confirm=LectureReportsState.delete_report(
-                    table_row.report_id if table_row.report_id is not None else 0
+                    rx.cond(
+                        table_row.report_id != None,  # noqa: E711
+                        table_row.report_id,
+                        0,
+                    ).to(int)
                 ),
                 trigger=rx.icon_button(
                     rx.icon("trash"),
