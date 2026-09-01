@@ -132,7 +132,7 @@ class LectureManageExercisesState(FilterMixin, SessionState):
         self.exercise_is_selected[exercise_id] = is_selected  # type: ignore
 
     @rx.event
-    @state_require_lecture_role(LectureRole.TUTOR)
+    @state_require_lecture_role(LectureRole.OWNER)
     def on_load(self):
         """Initialize the state"""
         self.global_load()

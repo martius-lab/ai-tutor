@@ -77,7 +77,7 @@ class LectureManagePromptsState(SessionState):
         self.unsaved_changes = True
 
     @rx.event
-    @state_require_lecture_role(LectureRole.TUTOR)
+    @state_require_lecture_role(LectureRole.OWNER)
     def on_load(self):
         """Initialize the page for one lecture."""
         self.global_load()
