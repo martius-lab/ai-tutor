@@ -5,6 +5,7 @@ from enum import IntEnum, StrEnum
 from typing import Any, Dict, List, Optional
 from zoneinfo import ZoneInfo
 
+import pydantic
 import sqlalchemy as sa
 from reflex_local_auth.user import LocalUser
 from sqlalchemy import ForeignKey as SAForeignKey
@@ -32,6 +33,17 @@ NAMING_CONVENTION = {
 # metadata is stored separately here, so we can access it in alembic/env.py
 metadata = SQLModel.metadata
 metadata.naming_convention = NAMING_CONVENTION
+
+
+class BannerMessageType(StrEnum):
+    """
+    Enum for allowed banner message types.
+    """
+
+    INFO = "INFO"
+    WARNING = "WARNING"
+    ERROR = "ERROR"
+    SUCCESS = "SUCCESS"
 
 
 class Language(StrEnum):
@@ -315,6 +327,9 @@ class Config(SQLModel, table=True):
     impressum_text: str
     registration_code: str
     exercise_token_limit: int
+    banner_message: str = Field(default="")
+    banner_message_type: BannerMessageType = Field(default=BannerMessageType.INFO)
+    banner_is_open: bool = Field(default=False)
 
     def __repr__(self):
         return f"<Config(id={self.id})>"
@@ -392,3 +407,37 @@ class Report(SQLModel, table=True):
 
     exercise: Optional["Exercise"] = Relationship()
     userinfo: "UserInfo" = Relationship()
+
+
+class LecturerRegistrationToken(SQLModel, table=True):
+    """
+    Registration tokens for lecturers.
+
+    With this token, a user can register an account that directly has the lecturer
+    permission.
+    """
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    token: str = Field(nullable=False, unique=True)
+    created_by: int = Field(
+        foreign_key="localuser.id", nullable=False, ondelete="CASCADE"
+    )
+    created_at: datetime = Field(
+        sa_column=Column(DateTime(timezone=True), nullable=False),
+        default_factory=lambda: datetime.now(ZoneInfo(TIME_ZONE)),
+    )
+    expires_at: datetime = Field(
+        sa_column=Column(DateTime(timezone=True), nullable=False),
+    )
+
+    @pydantic.computed_field
+    @property
+    def is_expired(self) -> bool:
+        """Check if the token is expired."""
+        # For comparison, both datetimes need to be timezone-aware.  Since sqlite
+        # doesn't store the time zone, we need to set it explicitly here.  On postgres,
+        # the time zone is stored, so this is not necessary, but it shouldn't hurt
+        # either.
+        return datetime.now(ZoneInfo(TIME_ZONE)) > self.expires_at.astimezone(
+            ZoneInfo(TIME_ZONE)
+        )

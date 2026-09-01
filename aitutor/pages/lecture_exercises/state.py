@@ -121,20 +121,6 @@ class LectureExercisesState(FilterMixin, SessionState):
             if exercise_with_res[0].id is not None
         }
 
-    @rx.var
-    def deadline_strings(self) -> dict[int, str]:
-        """
-        Dictionary to store deadline strings for exercises.
-        Key: Exercise ID, Value: Deadline as string.
-        """
-        return {
-            exercise.id: exercise.deadline.strftime("%d.%m.%Y, %H:%M")
-            if exercise.deadline is not None
-            else ""
-            for exercise, _ in self.exercises_with_result
-            if exercise.id is not None
-        }
-
     @override
     @rx.event
     @state_require_lecture_role(LectureRole.STUDENT)

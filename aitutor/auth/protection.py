@@ -62,7 +62,8 @@ def lecture_has_role_at_least(role) -> rx.vars.Var[bool]:
     ADMIN permission.
     """
     return (
-        SessionState.user_role is not None and SessionState.user_role >= role
+        (SessionState.user_role != None)  # noqa: E711
+        & (SessionState.user_role >= role)
     ) | SessionState.global_permissions.contains(GlobalPermission.ADMIN)
 
 

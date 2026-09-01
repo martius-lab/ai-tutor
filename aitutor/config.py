@@ -6,7 +6,7 @@ import reflex as rx
 import variconf
 from sqlmodel import select
 
-from aitutor.models import Config, Prompt
+from aitutor.models import BannerMessageType, Config, Prompt
 
 # Config File --------------------------------------------------------------------------
 
@@ -45,6 +45,9 @@ class ConfigFile:
     exercise_token_limit: int
     default_users: list[ConfigDefaultUser]
     exercise_prompts: list[ConfigExercisePrompt]
+    banner_message: str
+    banner_message_type: BannerMessageType
+    banner_is_open: bool
 
 
 _config_from_file = None
@@ -99,6 +102,10 @@ def add_configprompts_to_db():
 # Config DB ----------------------------------------------------------------------------
 
 
+def _parse_banner_message_type(val: str) -> BannerMessageType:
+    return BannerMessageType(val)
+
+
 def initialize_config_db():
     """ensure there is a config row in the database."""
     with rx.session() as session:
@@ -114,6 +121,11 @@ def initialize_config_db():
                 impressum_text=config_file.impressum_text,
                 registration_code=config_file.registration_code,
                 exercise_token_limit=config_file.exercise_token_limit,
+                banner_message=config_file.banner_message,
+                banner_message_type=_parse_banner_message_type(
+                    config_file.banner_message_type
+                ),
+                banner_is_open=config_file.banner_is_open,
             )
             session.add(config)
             session.commit()
@@ -134,4 +146,7 @@ def get_config() -> Config:
             impressum_text=_config.impressum_text,
             registration_code=_config.registration_code,
             exercise_token_limit=_config.exercise_token_limit,
+            banner_message=_config.banner_message,
+            banner_message_type=_parse_banner_message_type(_config.banner_message_type),
+            banner_is_open=_config.banner_is_open,
         )

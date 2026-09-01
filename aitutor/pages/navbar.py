@@ -10,6 +10,7 @@ import reflex as rx
 import aitutor.routes as routes
 from aitutor.auth.protection import has_permission, lecture_has_role_at_least
 from aitutor.auth.state import SessionState
+from aitutor.components import announcement_banner
 from aitutor.language_state import LanguageState
 from aitutor.models import GlobalPermission, UserRole
 
@@ -359,6 +360,22 @@ def navbar(route_to_highlight: Optional[str]) -> rx.Component:
     )
 
 
+def legal_footer() -> rx.Component:
+    """Render the globally available legal links at the bottom of each page."""
+    return rx.center(
+        rx.hstack(
+            rx.link(LanguageState.impressum, href=routes.IMPRESSUM),
+            rx.link(LanguageState.privacy_notice, href=routes.PRIVACY_NOTICE),
+            spacing="4",
+            align="center",
+            justify="center",
+            wrap="wrap",
+        ),
+        width="100%",
+        padding_y="1.5em",
+    )
+
+
 def with_navbar(route_to_highlight: Optional[str] = None):
     """
     Decorator to add a navigation bar to a component.
@@ -382,12 +399,22 @@ def with_navbar(route_to_highlight: Optional[str] = None):
             rx.app.ComponentCallable:
             A callable that returns a Reflex component with the navigation bar.
         """
-        return lambda: rx.vstack(
+        return lambda: rx.flex(
             navbar(route_to_highlight),
-            component_factory(),
+            announcement_banner(),
+            rx.center(
+                component_factory(),
+                width="100%",
+                flex="1",
+                align_items="stretch",
+            ),
+            legal_footer(),
+            direction="column",
             spacing="0",
             padding="0",
             align="center",
+            width="100%",
+            min_height="100vh",
         )
 
     return decorator

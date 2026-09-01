@@ -4,9 +4,16 @@ from typing import Optional
 
 import reflex as rx
 
+from aitutor.components.dialogs import destructive_confirm
 from aitutor.language_state import LanguageState as LS
-from aitutor.pages.configuration.state import ManageConfigState
-from aitutor.states.config_state import DisplayConfigState
+from aitutor.models import BannerMessageType, LecturerRegistrationToken
+from aitutor.pages.configuration.state import (
+    LecturerRegistrationTokenState,
+    ManageConfigState,
+)
+
+CARD_WIDTH = "42em"
+CARD_MAX_WIDTH = "90vw"
 
 
 def input(
@@ -88,9 +95,75 @@ def info_icon(info_text: str | rx.Var[str]) -> rx.Component:
     )
 
 
+def banner_form_group() -> rx.Component:
+    """Returns a form group card wrapping banner-related controls."""
+    return rx.card(
+        rx.vstack(
+            rx.hstack(
+                rx.heading(LS.banner_section_title, weight="bold", as_="h3"),
+                info_icon(LS.banner_section_info),
+                align="center",
+                spacing="2",
+            ),
+            rx.hstack(
+                rx.text(LS.banner_is_open_label, weight="medium"),
+                rx.checkbox(
+                    checked=ManageConfigState.current_config.banner_is_open,
+                    on_change=ManageConfigState.set_banner_is_open,
+                ),
+                align="center",
+                justify="between",
+                width="100%",
+            ),
+            rx.cond(
+                ManageConfigState.current_config.banner_is_open,
+                rx.fragment(
+                    text_area(
+                        name="banner_message",
+                        heading=LS.banner_message,
+                        value=ManageConfigState.current_config.banner_message,
+                        on_change=lambda value: ManageConfigState.set_config_value(
+                            "banner_message", value
+                        ),
+                        color_scheme=rx.cond(
+                            ManageConfigState.is_banner_message_invalid, "red", "gray"
+                        ),
+                    ),
+                    rx.cond(
+                        ManageConfigState.is_banner_message_invalid,
+                        rx.text(
+                            LS.banner_message_required_error,
+                            color_scheme="red",
+                            size="2",
+                        ),
+                    ),
+                    rx.hstack(
+                        rx.text(LS.banner_message_type, weight="medium"),
+                        rx.select(
+                            [e.value for e in BannerMessageType],
+                            value=ManageConfigState.current_config.banner_message_type,
+                            on_change=ManageConfigState.set_banner_message_type,
+                        ),
+                        width="100%",
+                        align="center",
+                        justify="between",
+                    ),
+                ),
+            ),
+            spacing="4",
+            width="100%",
+        ),
+        width="100%",
+        padding="4",
+        variant="surface",
+    )
+
+
 def config_form() -> rx.Component:
     """Returns input fields for configuration settings."""
     return rx.card(
+        rx.heading(LS.general_settings, as_="h2"),
+        rx.spacer(height="1em"),
         rx.form(
             rx.vstack(
                 input(
@@ -156,6 +229,7 @@ def config_form() -> rx.Component:
                     ),
                     info=info_icon(LS.impressum_info),
                 ),
+                banner_form_group(),
                 rx.cond(
                     ManageConfigState.unsaved_changes,
                     rx.callout(
@@ -191,19 +265,144 @@ def config_form() -> rx.Component:
                     justify="end",
                     width="100%",
                 ),
-                spacing="3",
+                spacing="4",
             ),
-            on_submit=[
-                ManageConfigState.save_config_to_db(),
-                DisplayConfigState.refresh_config_strings(),
-            ],
-            width="40em",
-            max_width="90vw",
+            on_submit=ManageConfigState.save_config_to_db,
         ),
+        width=CARD_WIDTH,
+        max_width=CARD_MAX_WIDTH,
         outline=rx.cond(
             ManageConfigState.unsaved_changes,
             "1px solid orange",
             "none",
         ),
-        variant="ghost",
+    )
+
+
+def btn_delete_lecturer_registration_token(
+    token: LecturerRegistrationToken,
+) -> rx.Component:
+    """Button to delete a lecturer registration token with confirmation dialog."""
+
+    return destructive_confirm(
+        title=LS.delete,
+        description=LS.delete_token_description,
+        confirm_text=LS.delete,
+        cancel_text=LS.cancel,
+        on_confirm=LecturerRegistrationTokenState.delete_token(token.id),  # type: ignore
+        trigger=rx.icon_button(
+            "trash",
+            title=LS.delete,
+            color_scheme="red",
+            variant="outline",
+            size="1",
+        ),
+    )
+
+
+def btn_add_lecturer_registration_token() -> rx.Component:
+    """Dialog to add a new lecturer registration token."""
+    return rx.dialog.root(
+        rx.dialog.trigger(
+            rx.button(
+                rx.hstack(rx.icon("plus", size=16), LS.add),
+                _hover={"cursor": "pointer"},
+                variant="outline",
+                size="1",
+            )
+        ),
+        rx.dialog.content(
+            rx.dialog.title(LS.lecturer_registration_token_dialog_title),
+            rx.dialog.description(LS.expires_at),
+            rx.form(
+                rx.flex(
+                    rx.input(
+                        name="expires_at",
+                        type="date",
+                        default_value=LecturerRegistrationTokenState.default_expires_at,
+                    ),
+                    rx.flex(
+                        rx.dialog.close(rx.button(LS.cancel, variant="outline")),
+                        rx.form.submit(rx.button(LS.add, type="submit"), as_child=True),
+                        spacing="3",
+                        justify="end",
+                    ),
+                    spacing="4",
+                    direction="column",
+                ),
+                on_submit=LecturerRegistrationTokenState.generate_new_token,
+            ),
+        ),
+        open=LecturerRegistrationTokenState.add_dialog_is_open,
+        on_open_change=LecturerRegistrationTokenState.set_add_dialog_is_open,
+    )
+
+
+def lecturer_registration_token_table_row(
+    token: LecturerRegistrationToken,
+) -> rx.Component:
+    """A row for the lecturer registration token table."""
+    is_expired = token.is_expired
+    return rx.table.row(
+        rx.table.cell(token.token),
+        rx.table.cell(
+            rx.hstack(
+                rx.moment(token.expires_at, format="YYYY-MM-DD HH:mm"),
+                rx.cond(is_expired, rx.badge(LS.expired, color_scheme="red")),
+                spacing="2",
+            ),
+        ),
+        rx.table.cell(
+            rx.hstack(
+                rx.cond(
+                    ~is_expired,
+                    rx.icon_button(
+                        "clipboard_copy",
+                        title=LS.copy_link,
+                        variant="outline",
+                        size="1",
+                        on_click=rx.set_clipboard(
+                            LecturerRegistrationTokenState.link_base + token.token
+                        ),
+                    ),
+                ),
+                btn_delete_lecturer_registration_token(token),
+                spacing="1",
+            ),
+            align="right",
+        ),
+        color=rx.cond(is_expired, rx.color("gray", 8), None),
+    )
+
+
+def lecturer_registraton_token_table() -> rx.Component:
+    """Table of existing lecturer registration tokens."""
+    return rx.table.root(
+        rx.table.header(
+            rx.table.row(
+                rx.table.column_header_cell(LS.token),
+                rx.table.column_header_cell(LS.expires_at),
+                rx.table.column_header_cell(btn_add_lecturer_registration_token()),
+            ),
+        ),
+        rx.table.body(
+            rx.foreach(
+                LecturerRegistrationTokenState.tokens,
+                lecturer_registration_token_table_row,
+            ),
+        ),
+    )
+
+
+def lecturer_registration_token_management() -> rx.Component:
+    """Returns a component for managing lecturer registration tokens."""
+    return rx.card(
+        rx.heading(LS.lecturer_registration_token_management, as_="h2"),
+        rx.spacer(height="1em"),
+        rx.text(LS.lecturer_registration_token_management_info),
+        lecturer_registraton_token_table(),
+        spacing="2",
+        padding="4",
+        width=CARD_WIDTH,
+        max_width=CARD_MAX_WIDTH,
     )

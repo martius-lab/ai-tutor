@@ -1,11 +1,29 @@
 """The state for the configuration page."""
 
+import secrets
+from datetime import datetime, timedelta
+from zoneinfo import ZoneInfo
+
 import reflex as rx
+from sqlmodel import select
 
 from aitutor.auth.protection import state_require_role_or_permission
 from aitutor.auth.state import SessionState
+from aitutor.global_vars import TIME_ZONE
 from aitutor.language_state import BackendTranslations as BT
-from aitutor.models import Config, UserRole
+from aitutor.models import (
+    BannerMessageType,
+    Config,
+    LecturerRegistrationToken,
+    UserRole,
+)
+from aitutor.states.banner_state import (
+    INITIAL_BANNER_IS_OPEN,
+    INITIAL_BANNER_MESSAGE,
+    INITIAL_BANNER_MESSAGE_TYPE,
+    BannerState,
+)
+from aitutor.states.config_state import DisplayConfigState
 
 empty_config: Config = Config(
     id=None,
@@ -16,6 +34,9 @@ empty_config: Config = Config(
     impressum_text="failed to load!",
     registration_code="failed to load!",
     exercise_token_limit=0,
+    banner_message=INITIAL_BANNER_MESSAGE,
+    banner_message_type=INITIAL_BANNER_MESSAGE_TYPE,
+    banner_is_open=INITIAL_BANNER_IS_OPEN,
 )
 
 
@@ -42,6 +63,18 @@ class ManageConfigState(SessionState):
         self.unsaved_changes = True
 
     @rx.event
+    def set_banner_is_open(self, value: bool):
+        """Sets whether the banner is open in current config."""
+        self.current_config.banner_is_open = value
+        self.unsaved_changes = True
+
+    @rx.event
+    def set_banner_message_type(self, value: str):
+        """Sets the banner message type in current config."""
+        self.current_config.banner_message_type = BannerMessageType(value)
+        self.unsaved_changes = True
+
+    @rx.event
     def set_exercise_token_limit(self, value: str):
         """Sets exercise_token_limit while allowing transient invalid input states."""
         try:
@@ -49,6 +82,14 @@ class ManageConfigState(SessionState):
         except ValueError:
             pass
         self.unsaved_changes = True
+
+    @rx.var
+    def is_banner_message_invalid(self) -> bool:
+        """Returns True if banner is open but message is empty."""
+        return (
+            self.current_config.banner_is_open
+            and not self.current_config.banner_message.strip()
+        )
 
     @rx.event
     @state_require_role_or_permission(required_role=UserRole.TUTOR)
@@ -65,6 +106,14 @@ class ManageConfigState(SessionState):
     @rx.event
     def save_config_to_db(self):
         """Saves the current configuration to the database."""
+        if self.is_banner_message_invalid:
+            yield rx.toast.error(
+                description=BT.banner_message_empty(self.language),
+                duration=5000,
+                position="bottom-center",
+                invert=True,
+            )
+            return
         with rx.session() as session:
             db_config = session.get(Config, 1)
             if db_config:
@@ -79,14 +128,98 @@ class ManageConfigState(SessionState):
                 db_config.exercise_token_limit = (
                     self.current_config.exercise_token_limit
                 )
+                db_config.banner_message = self.current_config.banner_message
+                db_config.banner_message_type = self.current_config.banner_message_type
+                db_config.banner_is_open = self.current_config.banner_is_open
                 session.add(db_config)
                 session.commit()
 
         self.unsaved_changes = False
 
+        yield DisplayConfigState.refresh_config_strings
+        yield BannerState.refresh_banner
         yield rx.toast.success(
             description=BT.config_saved(self.language),
             duration=5000,
             position="bottom-center",
             invert=True,
         )
+
+
+class LecturerRegistrationTokenState(SessionState):
+    """The State for the lecturer registration token management."""
+
+    tokens: list[LecturerRegistrationToken] = []
+    link_base: str
+    default_expires_at: str
+
+    add_dialog_is_open: bool = False
+
+    @rx.event
+    def set_add_dialog_is_open(self, is_open: bool):
+        """Sets the state of the add dialog."""
+        self.add_dialog_is_open = is_open
+
+    @rx.event
+    @state_require_role_or_permission(required_role=UserRole.ADMIN)
+    def on_load(self):
+        """Initialize the state"""
+        self.global_load()
+
+        self.link_base = f"{self.router.url.origin}/register?lrt="
+        self.default_expires_at = (
+            datetime.now(ZoneInfo(TIME_ZONE)) + timedelta(days=14)
+        ).strftime("%Y-%m-%d")
+
+        with rx.session() as session:
+            stmt = select(LecturerRegistrationToken).order_by(
+                LecturerRegistrationToken.created_at  # type: ignore
+            )
+            self.tokens = list(session.exec(stmt).all())
+
+    @rx.event
+    @state_require_role_or_permission(required_role=UserRole.ADMIN)
+    def generate_new_token(self, form_data: dict):
+        """Generates a new lecturer registration token."""
+        assert self.authenticated_user.id is not None
+
+        now = datetime.now(ZoneInfo(TIME_ZONE))
+        expires_at = datetime.strptime(form_data["expires_at"], "%Y-%m-%d").replace(
+            tzinfo=ZoneInfo(TIME_ZONE), hour=23, minute=59, second=59
+        )
+
+        # For security reasons, limit the max. lifetime of the tokens.
+        max_duration_days = 60
+        if expires_at - now > timedelta(days=max_duration_days):
+            return rx.toast.error(
+                description=BT.lecturer_registration_token_expiration_too_long(
+                    self.language, max_duration_days
+                ),
+                duration=5000,
+                position="bottom-center",
+            )
+
+        with rx.session() as session:
+            new_token = LecturerRegistrationToken(
+                token=secrets.token_urlsafe(32),
+                created_by=self.authenticated_user.id,
+                created_at=now,
+                expires_at=expires_at,
+            )
+            session.add(new_token)
+            session.commit()
+            session.refresh(new_token)
+            self.tokens.append(new_token)
+
+        self.add_dialog_is_open = False
+
+    @rx.event
+    @state_require_role_or_permission(required_role=UserRole.ADMIN)
+    def delete_token(self, token_id: int):
+        """Deletes a lecturer registration token."""
+        with rx.session() as session:
+            token = session.get(LecturerRegistrationToken, token_id)
+            if token:
+                session.delete(token)
+                session.commit()
+                self.tokens = [t for t in self.tokens if t.id != token_id]

@@ -893,8 +893,8 @@ class LanguageState(SessionState):
     def registration_code_placeholder(self) -> str:
         """Registration code placeholder string"""
         return self.translate(
-            de="Sie bekommen diesen Code von Ihrem Lehrer",
-            en="You get this code from your teacher",
+            de="Sie bekommen diesen Code von Ihrer Dozentin/Ihrem Dozenten",
+            en="You get this code from your lecturer",
         )
 
     # Manage Users Page Strings --------------------------------------------------------
@@ -996,6 +996,10 @@ class LanguageState(SessionState):
     # configuration page ---------------------------------------------------------------
 
     @rx.var
+    def general_settings(self) -> str:
+        return self.translate(de="Allgemeine Einstellungen", en="General Settings")
+
+    @rx.var
     def unsaved_changes_info(self) -> str:
         return self.translate(
             de="Sie haben ungespeicherte Änderungen.",
@@ -1005,9 +1009,14 @@ class LanguageState(SessionState):
     @rx.var
     def registration_code_info(self) -> str:
         return self.translate(
-            de="Der Registrierungscode, den Studenten bei der Registrierung "
-            "eingeben müssen.",
-            en="The registration code that students have to enter during registration.",
+            de=(
+                "Code der für die Registrierung eines Kontos erforderlich ist."
+                "  Leer lassen, um die Registrierung ohne Code zu ermöglichen."
+            ),
+            en=(
+                "Code that is required to register an account.  Leave empty to allow"
+                " registration without a code."
+            ),
         )
 
     @rx.var
@@ -1208,6 +1217,112 @@ Please test the chat for functionality after changing the model.
                 "Maximum number of tokens a user can spend on a single exercise. "
                 "Once the limit is reached, no more messages or checks are allowed."
             ),
+        )
+
+    @rx.var
+    def banner_message(self) -> str:
+        return self.translate(
+            en="Banner message",
+            de="Banner-Nachricht",
+        )
+
+    @rx.var
+    def banner_message_type(self) -> str:
+        return self.translate(
+            en="Banner type",
+            de="Art des Banners",
+        )
+
+    @rx.var
+    def banner_section_title(self) -> str:
+        return self.translate(
+            en="Announcement Banner",
+            de="Ankündigungs-Banner",
+        )
+
+    @rx.var
+    def banner_is_open_label(self) -> str:
+        return self.translate(
+            en="Show Banner",
+            de="Banner anzeigen",
+        )
+
+    @rx.var
+    def banner_section_info(self) -> str:
+        return self.translate(
+            en="Configure a site-wide announcement banner visible to all users. The message is in markdown format.",
+            de="Konfigurieren Sie einen seitenweiten Ankündigungsbanner, der für alle Benutzer sichtbar ist. Der Text wird im Markdown-Format dargestellt.",
+        )
+
+    @rx.var
+    def banner_message_required_error(self) -> str:
+        return self.translate(
+            en="Banner message cannot be empty when banner is enabled.",
+            de="Der Banner-Text darf nicht leer sein, wenn der Banner aktiviert ist.",
+        )
+
+    @rx.var
+    def lecturer_registration_token_management(self) -> str:
+        return self.translate(
+            de="Registrierungstokens für Dozenten",
+            en="Registration Tokens for Lecturers",
+        )
+
+    @rx.var
+    def lecturer_registration_token_management_info(self) -> str:
+        return self.translate(
+            de=(
+                "Mit dem Token können Benutzerkonten registriert werden, "
+                "die direkt die Berechtigung 'LECTURER' haben."
+            ),
+            en=(
+                "With the token, users can register accounts which directly "
+                "have the 'LECTURER' permission."
+            ),
+        )
+
+    @rx.var
+    def token(self) -> str:
+        return self.translate(de="Token", en="Token")
+
+    @rx.var
+    def expires_at(self) -> str:
+        return self.translate(de="Gültig bis", en="Expires at")
+
+    @rx.var
+    def expired(self) -> str:
+        return self.translate(de="abgelaufen", en="expired")
+
+    @rx.var
+    def copy_link(self) -> str:
+        return self.translate(de="Link kopieren", en="Copy link")
+
+    @rx.var
+    def delete_token_description(self) -> str:
+        return self.translate(
+            de="Registrierungstoken löschen?",
+            en="Delete registration token?",
+        )
+
+    @rx.var
+    def registration_with_lecturer_token_info(self) -> str:
+        return self.translate(
+            de="Registrierung als Dozent/-in",
+            en="Registration as lecturer",
+        )
+
+    @rx.var
+    def lecturer_registration_token_dialog_title(self) -> str:
+        return self.translate(
+            de="Neues Registrierungstoken für Dozenten erstellen",
+            en="Create new registration token for lecturers",
+        )
+
+    @rx.var
+    def lecturer_registration_token_invalid(self) -> str:
+        return self.translate(
+            de="Ungültiges oder abgelaufenes Registrierungstoken für Dozenten",
+            en="Invalid or expired lecturer registration token.",
         )
 
     # Report Strings -------------------------------------------------------------------
@@ -1951,6 +2066,14 @@ class BackendTranslations:
         )
 
     @staticmethod
+    def banner_message_empty(language: Language) -> str:
+        return translate(
+            language,
+            de="Der Banner-Text darf nicht leer sein, wenn der Banner aktiviert ist.",
+            en="Banner message cannot be empty when banner is enabled.",
+        )
+
+    @staticmethod
     def prompts_saved(language: Language) -> str:
         return translate(
             language,
@@ -2018,6 +2141,16 @@ class BackendTranslations:
             language,
             de="Fehler: Ungültiger Ersatzprompt.",
             en="Error: Invalid replacement prompt.",
+        )
+
+    @staticmethod
+    def lecturer_registration_token_expiration_too_long(
+        language: Language, days: int
+    ) -> str:
+        return translate(
+            language,
+            de=f"Das Ablaufdatum darf maximal {days} Tage in der Zukunft liegen.",
+            en=f"The expiration date cannot be more than {days} days in the future.",
         )
 
     # LectureTokenAnalyzerState ---------------------------------------------------------

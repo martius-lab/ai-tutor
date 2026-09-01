@@ -13,6 +13,13 @@ response_ai_model = "gpt-4.1-mini"
 check_ai_model = "gpt-4.1"
 exercise_token_limit = 100_000
 
+# --------------------------
+# banner 
+# --------------------------
+banner_message  = ""
+banner_message_type = "INFO"
+banner_is_open = false
+
 # TODO
 impressum_text = """
 <Enter name of responsible person and other stuff for the impressum>
