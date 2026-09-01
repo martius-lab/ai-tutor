@@ -120,19 +120,44 @@ def register_success() -> rx.Component:
     )
 
 
+def lecturer_token_info() -> rx.Component:
+    """Show a note if a 'lecturer registration token' is used."""
+    return rx.cond(
+        MyRegisterState.lecturer_registration_token != "",
+        rx.callout(
+            LanguageState.registration_with_lecturer_token_info,
+            icon="info",
+            color_scheme="blue",
+            role="alert",
+            width="100%",
+        ),
+    )
+
+
 def register_form() -> rx.Component:
     """Render the registration form."""
     privacy_notice = get_privacy_notice_short()
     return rx.form(
         rx.vstack(
+            rx.heading(LanguageState.register_heading, size="7"),
+            lecturer_token_info(),
+            register_error(),
+            register_success(),
             rx.input(
                 type="hidden",
                 name="language",
                 value=LanguageState.language,
+                style={"display": "none"},
             ),
-            rx.heading(LanguageState.register_heading, size="7"),
-            register_error(),
-            register_success(),
+            rx.cond(
+                MyRegisterState.lecturer_registration_token != "",
+                rx.input(
+                    type="hidden",
+                    name="lecturer_registration_token",
+                    value=MyRegisterState.lecturer_registration_token,
+                    style={"display": "none"},
+                ),
+            ),
             rx.text(LanguageState.username),
             input(
                 "username",
@@ -219,4 +244,29 @@ def register_form() -> rx.Component:
             min_width=MIN_WIDTH,
         ),
         on_submit=MyRegisterState.handle_custom_registration,
+    )
+
+
+def invalid_registration_token_error() -> rx.Component:
+    """Error message for invalid/expired lecturer registration tokens."""
+    return rx.vstack(
+        rx.heading(LanguageState.register_heading, size="7"),
+        rx.callout(
+            LanguageState.lecturer_registration_token_invalid,
+            icon="triangle_alert",
+            color_scheme="red",
+            role="alert",
+            width="100%",
+        ),
+        min_width=MIN_WIDTH,
+        spacing="4",
+    )
+
+
+def register_form_wrapper() -> rx.Component:
+    """Wrap the register form with a check for invalid registration tokens."""
+    return rx.cond(
+        MyRegisterState.has_invalid_registration_token,
+        invalid_registration_token_error(),
+        register_form(),
     )
