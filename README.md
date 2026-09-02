@@ -4,19 +4,6 @@ AI Tutor is a web-based platform that supports professors and universities in pr
 Tutors and admins have special roles to enable them to view the submitted conversations and give further feedback if necessary.
 
 
-# Configuration
-There are multiple configuration options available to customize the AI Tutor to your needs.
-
-## Privacy Notice
-The privacy notice used on the website can be found in `aitutor/pages/legal_infos/datenschutz.md`. If you need to change it, you can edit this file.
-A short version of this privacy notice is displayed on the register page. It can be modified in `aitutor/pages/legal_infos/datenschutz_short.md`
-
-## AI Tutor configuration
-If you want to initialize the AI Tutor with some default information, you need to add a "config.toml" file to the root directory of the project. 
-This file should contain information about defaultusers, prompts and other configurations.
-For more information about the config file and its content, please refer to the [configfile documentation](docs/configfile.md).
-
-
 # Installation
 
 ## Prerequisites
@@ -47,8 +34,6 @@ Create local environment file `.env` with the following content:
 OPENAI_API_KEY=<your key>
 OPENAI_BASE_URL=<url>  # optional, if using a different provider (instead of OpenAI)
 ```
-
-(Optional) Add your own `config.toml` file for the initial configuration. See [configfile documentation](docs/configfile.md) for more information.
 
 ## Start the application:
 

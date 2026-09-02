@@ -18,7 +18,6 @@ jobs:
 
       - name: test db migration
         run: |
-          cp default_config.toml config.toml
           echo POSTGRES_PASSWORD=secret > .env
           docker compose -f compose.yaml -f compose.prod.yaml up --no-start
           docker compose -f compose.yaml -f compose.prod.yaml start db
