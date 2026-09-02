@@ -8,6 +8,7 @@ from typing import Optional
 import reflex as rx
 
 import aitutor.routes as routes
+from aitutor._version import version
 from aitutor.auth.protection import has_permission, lecture_has_role_at_least
 from aitutor.auth.state import SessionState
 from aitutor.components import announcement_banner
@@ -364,6 +365,8 @@ def legal_footer() -> rx.Component:
     """Render the globally available legal links at the bottom of each page."""
     return rx.center(
         rx.hstack(
+            rx.text(f"AI Tutor v{version}", color=rx.color("gray", 9)),
+            rx.separator(orientation="vertical", height="1em"),
             rx.link(LanguageState.impressum, href=routes.IMPRESSUM),
             rx.link(LanguageState.privacy_notice, href=routes.PRIVACY_NOTICE),
             spacing="4",

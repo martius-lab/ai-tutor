@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "aitutor"
-version = "0.1.0"
+version = "2.0.0a1"
 description = "AI tutoring tool for interactive learning"
 authors = [
     {name = "AL Group", email = "georg.martius@uni-tuebingen.de"},
