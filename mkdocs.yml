@@ -1,0 +1,13 @@
+site_name: AI-Tutor
+nav:
+  - Home: index.md
+  - How to set up a lecture: how_to_create_lecture.md
+
+theme:
+  name: material
+  logo: images/logo.jpg
+  favicon: images/favicon.ico
+
+markdown_extensions:
+  - attr_list
+  - pymdownx.blocks.admonition
