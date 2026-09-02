@@ -30,7 +30,7 @@ Fill out the form:
   serves as a simple barrier to prevent people from joining, who are not actually
   attending the lecture.  This is optional, **if left empty, everyone can join.**
 - **Lecture Information:** Some additional information about the lecture (what is it
-  about, etc.).
+  about, etc.).  You can use Markdown for basic formatting.
 - **Check Conversation Prompt:** The prompt used for checking if exercises can be
   submitted.  If you just get started, do not worry about this, the default should be
   good.  You can still modify this later, if you want.
