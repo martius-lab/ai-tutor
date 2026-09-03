@@ -48,6 +48,7 @@ def new_tag_dialog():
                         ManageTagsState.add_new_tag,
                         None,
                     ),
+                    max_length=50,
                 ),
                 rx.hstack(
                     rx.dialog.close(
@@ -97,6 +98,7 @@ def rename_tag_dialog():
                         ManageTagsState.edit_tag_name(),
                         None,
                     ),
+                    max_length=50,
                 ),
                 rx.hstack(
                     rx.dialog.close(
@@ -775,6 +777,7 @@ def add_edit_exercise_form(mode: DialogMode) -> Sequence[rx.Component]:
             width="100%",
             type="text",
             name="title",
+            max_length=200,
         ),
         # description
         rx.text(
@@ -798,6 +801,7 @@ def add_edit_exercise_form(mode: DialogMode) -> Sequence[rx.Component]:
             height="150px",
             type="text",
             name="description",
+            max_length=5_000,
         ),
         # lesson context
         rx.text(
@@ -818,6 +822,7 @@ def add_edit_exercise_form(mode: DialogMode) -> Sequence[rx.Component]:
             height="200px",
             type="text",
             name="lesson_context",
+            max_length=10_000,
         ),
         # lesson file upload area
         pdf_upload(),
@@ -882,6 +887,7 @@ def add_edit_exercise_form(mode: DialogMode) -> Sequence[rx.Component]:
                             type="number",
                             step="1",
                             min="1",
+                            max_length=4,
                         ),
                     ),
                 ),
