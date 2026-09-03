@@ -1,0 +1,435 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../images/favicon.ico">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Configuration File - AI-Tutor</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#configuration-file" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="AI-Tutor" class="md-header__button md-logo" aria-label="AI-Tutor" data-md-component="logo">
+      
+  <img src="../images/logo.jpg" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            AI-Tutor
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Configuration File
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="AI-Tutor" class="md-nav__button md-logo" aria-label="AI-Tutor" data-md-component="logo">
+      
+  <img src="../images/logo.jpg" alt="logo">
+
+    </a>
+    AI-Tutor
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../how_to_create_lecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    How to set up a lecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="configuration-file">Configuration File</h1>
+<p>The config file is only used to initialize the application by setting the configuration
+values in the database. This makes the first time setup faster.
+If no config.toml file is found, the default config is used for initialization. Changes
+can be made in the admin interface later on.</p>
+<h1 id="what-needs-to-be-in-the-configtoml-file">What needs to be in the config.toml file?</h1>
+<h2 id="ai-models">AI models</h2>
+<p>You can define which AI model should be used for the normal responses and which for the
+check conversation responses. To see which models you can use, please refer to the
+OpenAI <a href="https://platform.openai.com/docs/models">documentation</a>.</p>
+<pre><code class="language-toml">response_ai_model = &quot;gpt-4.1-mini&quot;
+
+check_ai_model = &quot;gpt-4.1&quot;
+</code></pre>
+<h2 id="exercise_token_limit">exercise_token_limit</h2>
+<p>This value defines the maximum number of tokens a student can spend on a single exercise.
+Token usage accumulates across chat messages and checks for that exercise.</p>
+<p>When the limit is reached:
+- sending new chat messages is blocked,
+- running new checks is blocked,
+- already available actions like submitting a successfully passed exercise remain possible.</p>
+<pre><code class="language-toml">exercise_token_limit = 100_000
+</code></pre>
+<p>Choose a value that fits your expected exercise complexity and model cost.</p>
+<h2 id="info-text-on-the-home-page">info text on the home page</h2>
+<p>The homepage has 2 sections to display your information.
+- One section to explain how to use the AI Tutor
+- One section with general information</p>
+<p>These information texts can be set in the configfile and get rendered in markdown format.
+They are <strong>optional</strong>. If you don't want to use one of them. Just set them to: <code>""</code></p>
+<pre><code class="language-toml">how_to_use_text = &quot;&quot;&quot;
+I am your AI tutor and I want to help you understand the content of the lecture. Here's how it works:
+
+1. Explain to me the question I ask you at the beginning of the conversation.
+2. When you think the question has been answered – and I also confirm that it has been answered – you can use the &quot;Check Answer&quot; button to verify the conversation. A separate AI will then check whether the task was solved correctly. If the check is successful, you can submit the chat history.
+
+I’m looking forward to working with you!
+&quot;&quot;&quot;
+general_information_text = &quot;&quot;&quot;
+- The AI tutor should only be used for working on the tasks.
+- Tutors and professors can view chats that have been submitted.
+&quot;&quot;&quot;
+</code></pre>
+<h2 id="impressum">Impressum</h2>
+<p>On the Impressum page, this text will be displayed in markdown format.
+It has to contain information for who is responsible for the contents of the webiste.</p>
+<pre><code class="language-toml">impressum_text = &quot;This is the impressum text.&quot;
+</code></pre>
+<h2 id="registration-code">Registration Code</h2>
+<p>To prevent random people from registering an account and burning the api tokens, you have to define a registration code. New users must type in this code when registering their account.</p>
+<pre><code class="language-toml">registration_code = &quot;exampleCode1234&quot;
+</code></pre>
+<h2 id="default_users">default_users</h2>
+<p>You can define a number of default users, that are automatically created.  This is
+intended to make testing easier.
+<strong>Default users are only created if no user with the given role exists yet!</strong></p>
+<pre><code class="language-toml">[[default_users]]
+role = &quot;admin&quot;
+name = &quot;admin&quot;
+password = &quot;1234&quot;
+email = &quot;admin@mail.de&quot;
+
+[[default_users]]
+role = &quot;tutor&quot;
+name = &quot;tutor&quot;
+password = &quot;1234&quot;
+email = &quot;tutor@mail.de&quot;
+
+[[default_users]]
+role = &quot;student&quot;
+name = &quot;student&quot;
+password = &quot;1234&quot;
+email = &quot;student@mail.de&quot;
+</code></pre>
+<h2 id="exercise_prompts">exercise_prompts</h2>
+<p>Here you can define the prompts that the admin can choose from when creating a new
+exercise. you have access to the <code>{title}</code>, <code>{description}</code> and <code>{lesson_context}</code> variables to
+use in your prompts.
+The first prompt you define will be the default prompt ("prompt 1" in the example below). This prompt will be selected if the admin does not specifically select another one when creating an exercise.</p>
+<p>Here is an example of how to define the prompts:</p>
+<pre><code class="language-toml">[[exercise_prompts]]
+name = &quot;prompt 1&quot;
+prompt = &quot;&quot;&quot;
+You will act as a learning assistant. The university student is given this exercise-title: &quot;{title}&quot;
+and this exercise: &quot;{description}&quot;
+This is the lesson context uploaded by the teacher as a theoretical basis for this exercise: 
+
+--------------------------
+{lesson_context}
+--------------------------
+
+The user is a student who has to complete the exercise.
+The student will answer the exercise in a conversation with you.
+If the student answered the task &quot;{description}&quot; incorrectly, you can give him a hint to help him find the solution but do **not** tell him the solution.
+If the student answered the task &quot;{description}&quot; correctly, you will tell him that he is correct and the task is finished.
+Do not engage in any other topics than the exercise at hand. If the student asks anything unrelated, tell him that you are only here to help with the exercise.
+&quot;&quot;&quot;
+
+[[exercise_prompts]]
+name = &quot;prompt 2&quot;
+prompt = &quot;&quot;&quot;
+useless prompt
+&quot;&quot;&quot;
+</code></pre>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": [], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>

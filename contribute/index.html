@@ -1,0 +1,533 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../images/favicon.ico">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Contributing to AI Tutor - AI-Tutor</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#contributing-to-ai-tutor" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="AI-Tutor" class="md-header__button md-logo" aria-label="AI-Tutor" data-md-component="logo">
+      
+  <img src="../images/logo.jpg" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            AI-Tutor
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Contributing to AI Tutor
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="AI-Tutor" class="md-nav__button md-logo" aria-label="AI-Tutor" data-md-component="logo">
+      
+  <img src="../images/logo.jpg" alt="logo">
+
+    </a>
+    AI-Tutor
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../how_to_create_lecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    How to set up a lecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#code-style-guide-formatting-and-linting" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Code style guide, formatting and linting
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#setup-using-uv" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Setup using uv
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#reflex" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reflex
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Architecture
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pull-requests" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pull requests
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#maintenance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Maintenance
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Maintenance">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#add-dependencies" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Add dependencies:
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#migrate-database-after-modifications" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Migrate database after modifications:
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tests
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="contributing-to-ai-tutor">Contributing to AI Tutor</h1>
+<h2 id="code-style-guide-formatting-and-linting">Code style guide, formatting and linting</h2>
+<p>For Python code style, we follow <a href="https://peps.python.org/pep-0008/">PEP 8</a>.  The only
+exception is the max. line length, where we use 88 (the default of <code>black</code> and <code>ruff
+format</code>).</p>
+<p>For code formatting, we use <code>ruff format</code>.  For linting and type checking we use <code>ruff
+check</code> and <code>pyright</code>.  All of these are automatically checked on pull requests.
+You can also run them locally:</p>
+<pre><code>uv run ruff format .
+uv run ruff check .
+uv run pyright .
+</code></pre>
+<p>Type hints should be added to all new functions so that <code>pyright</code> can do its work.
+Note, however, that Reflex does weird things, which do not play well with type checkers,
+so when dealing with Reflex, we need to add <code># type: ignore</code> comments from time to time.</p>
+<h2 id="setup-using-uv">Setup using uv</h2>
+<p>We use uv for managing the package.  See the README (section "Installation") on how to
+use uv to initially set up and run the AI Tutor application.</p>
+<h2 id="reflex">Reflex</h2>
+<p>We use <a href="https://reflex.dev">Reflex</a> to build the application.  Reflex is a full-stack
+framework that allows us to implement both the front end (i.e. the pages of the website)
+and the back end (the functional logic) in Python.</p>
+<p>Reflex does a lot of somewhat shady things to make this work.  If you are not familiar
+with it, best go through the introductory part if its documentation first.
+One of the most important aspects is that all data that is to be displayed in the front
+end must be stored as variables in "state" classes (that is, classes that inherit from
+<code>rx.State</code>).  Those variables can only be of basic types (str, int, list, dict, ...) or
+dataclasses but not arbitrary objects.</p>
+<h2 id="architecture">Architecture</h2>
+<p>If you are a new developer in the project, it may be helpful to first read the
+architecture documentation to get an overview of the system and its components.
+See <a href="../architecture/">architecture.md</a> for more information about the architecture
+of the system.</p>
+<h2 id="pull-requests">Pull requests</h2>
+<p>All changes have to be submitted as pull request and have to be reviewed by at least one
+maintainer.</p>
+<p>To keep this process fast and reliable, please try to keep individual pull requests
+short.  This can mean that the implementation of a larger feature should be split into
+several steps, doing a separate pull request for each.</p>
+<h2 id="maintenance">Maintenance</h2>
+<h3 id="add-dependencies">Add dependencies:</h3>
+<pre><code>uv add &lt;package-name&gt;
+</code></pre>
+<p>This will add the dependency to <code>pyproject.toml</code>, update the <code>uv.lock</code> file and install
+the package to the project's virtual environment.</p>
+<h3 id="migrate-database-after-modifications">Migrate database after modifications:</h3>
+<p>Database tables are defined as classes that are derived from <code>SQLModel</code> (see
+<code>aitutor/models.py</code>).  Reflex uses <a href="https://alembic.sqlalchemy.org/en/latest/">Alembic</a>
+for dealing with changes on those models (so existing databases can be updated
+accordingly when switching to a newer version of AI Tutor).  For this, the following two
+commands need to be run:</p>
+<ol>
+<li><strong>makemigrations:</strong> This needs to be run once by the developer who changes an
+   existing model or adds a new one.  It creates a new alembic file in
+   <code>alembic/versions/</code>, which should be committed in the same commit that changed the
+   model.
+   <code>uv run reflex db makemigrations</code></li>
+</ol>
+<p>In some cases, manual modifications have to be made to the migration
+   file.  Most importantly, <strong>if an existing table is modified</strong>, add the following code
+   snippet at the beginning of both the <code>upgrade</code> and the <code>downgrade</code> function:
+   <code>python
+   # Need to disable foreign key constraints for SQLite.  SQLite recreates tables
+   # for batch alters, and active foreign keys can trigger cascaded deletes.
+   conn = op.get_bind()
+   if conn.engine.name.startswith("sqlite"):
+       conn.execute(sa.text("PRAGMA foreign_keys=OFF"))</code>
+   This is needed as in SQLite tables are altered by deleting the old table and creating
+   a new, modified one.  With foreign keys enabled, this can lead to unwanted cascaded
+   deletes (aka <strong>data loss</strong>).</p>
+<p>Another typical modification that is needed: When adding boolean fields with default
+   values, alembic does for some reason use <code>sa.text('0')</code>, which works for SQLite but
+   not for PostgreSQL, which is strict regarding types.  So this needs to be changed
+   manually to <code>sa.sql.false()</code> (or <code>true()</code> respectively).</p>
+<p>Finally, Alembic only takes care of changing the table definitions.  If any existing
+   data needs to be converted/copied/etc., this has to be done by adding the appropriate
+   SQL commands manually.  For an example, see <code>alembic/versions/cce41a34a7fa_.py</code>.</p>
+<ol>
+<li><strong>migrate</strong>:  This command uses the alembic migration scripts to update an existing
+   database.  It needs to be run every time the code is updated (e.g. when pulling new
+   changes from the main branch).
+   <code>uv run reflex db migrate</code></li>
+</ol>
+<h2 id="tests">Tests</h2>
+<p>We have some tests set up using <a href="https://docs.pytest.org/en/stable/">pytest</a>
+They can be found in the <code>tests</code> folder and are executed with</p>
+<pre><code>uv run pytest
+</code></pre>
+<p>When adding new features, it is always welcome to also add tests for them!</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": [], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>
