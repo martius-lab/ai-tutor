@@ -16,7 +16,7 @@ from aitutor.auth.state import SessionState
 from aitutor.config import get_config
 from aitutor.env_settings import get_env_settings
 from aitutor.global_vars import (
-    CHAT_MESSAGE_CHAR_LIMIT,
+    CHAT_MESSAGE_MAX_LEN,
     CHAT_TOKEN_WARNING_THRESHOLD,
     DEFAULT_CHECK_CONVERSATION_PROMPT,
     TIME_FORMAT,
@@ -197,12 +197,12 @@ class ChatState(SessionState):
     @rx.event
     def set_report_text(self, value: str):
         """Set the report text."""
-        self.report_text = value
+        self.report_text = value[: self.MAX_REPORT_LENGTH]
 
     @rx.event
     def set_user_input(self, value: str):
         """Sets the user input value. Truncates if over character limit."""
-        self.user_input = value[:CHAT_MESSAGE_CHAR_LIMIT]
+        self.user_input = value[:CHAT_MESSAGE_MAX_LEN]
 
     @rx.event
     @state_require_role_or_permission(required_role=UserRole.STUDENT)
@@ -442,8 +442,8 @@ class ChatState(SessionState):
             if self.waiting_for_response:
                 # don't allow sending another message while waiting for a response
                 return
-            if len(self.user_input) > CHAT_MESSAGE_CHAR_LIMIT:
-                self.user_input = self.user_input[:CHAT_MESSAGE_CHAR_LIMIT]
+            if len(self.user_input) > CHAT_MESSAGE_MAX_LEN:
+                self.user_input = self.user_input[:CHAT_MESSAGE_MAX_LEN]
                 return
             self.waiting_for_response = True
 

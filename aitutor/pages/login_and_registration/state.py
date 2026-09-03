@@ -12,9 +12,9 @@ import reflex_local_auth
 from reflex_local_auth.user import LocalUser
 from sqlmodel import func, select
 
+import aitutor.global_vars as GV
 from aitutor.account_emails import send_signup_welcome_email
 from aitutor.config import get_config
-from aitutor.global_vars import TIME_ZONE
 from aitutor.language_state import language_from_value
 from aitutor.models import (
     GlobalPermission,
@@ -25,6 +25,14 @@ from aitutor.models import (
 )
 
 logger = logging.getLogger(__name__)
+
+AUTH_FIELD_MAX_LENGTHS: dict[str, int] = {
+    "username": GV.USERNAME_MAX_LEN,
+    "email": GV.EMAIL_MAX_LEN,
+    "password": GV.PASSWORD_MAX_LEN,
+    "confirm_password": GV.PASSWORD_MAX_LEN,
+    "registration_code": GV.REGISTRATION_CODE_MAX_LEN,
+}
 
 
 class MyLoginState(reflex_local_auth.LoginState):
@@ -61,27 +69,27 @@ class MyRegisterState(reflex_local_auth.RegistrationState):
     @rx.event
     def set_username(self, value: str):
         """Set the username."""
-        self.username = value
+        self.username = value[: AUTH_FIELD_MAX_LENGTHS["username"]]
 
     @rx.event
     def set_email(self, value: str):
         """Set the email."""
-        self.email = value
+        self.email = value[: AUTH_FIELD_MAX_LENGTHS["email"]]
 
     @rx.event
     def set_password(self, value: str):
         """Set the password."""
-        self.password = value
+        self.password = value[: AUTH_FIELD_MAX_LENGTHS["password"]]
 
     @rx.event
     def set_confirm_password(self, value: str):
         """Set the confirm password."""
-        self.confirm_password = value
+        self.confirm_password = value[: AUTH_FIELD_MAX_LENGTHS["confirm_password"]]
 
     @rx.event
     def set_registration_code(self, value: str):
         """Set the registration code."""
-        self.registration_code = value
+        self.registration_code = value[: AUTH_FIELD_MAX_LENGTHS["registration_code"]]
 
     @rx.event
     def on_load(self):
@@ -135,6 +143,11 @@ class MyRegisterState(reflex_local_auth.RegistrationState):
         yield
 
         try:
+            # set the max length of the strings
+            for field, max_len in AUTH_FIELD_MAX_LENGTHS.items():
+                if field in form_data and isinstance(form_data[field], str):
+                    form_data[field] = form_data[field][:max_len]
+
             language = language_from_value(form_data.get("language"))
             # check for allowed user name
             if not re.match(r"^[a-zA-Z0-9._-]+$", form_data["username"]):
@@ -247,7 +260,7 @@ class MyRegisterState(reflex_local_auth.RegistrationState):
         Returns:
             bool: True if the token is valid, False otherwise.
         """
-        now = datetime.now(ZoneInfo(TIME_ZONE))
+        now = datetime.now(ZoneInfo(GV.TIME_ZONE))
         with rx.session() as session:
             stmt = select(func.count()).where(
                 LecturerRegistrationToken.token == token,

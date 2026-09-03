@@ -5,6 +5,7 @@ from collections.abc import Sequence
 import reflex as rx
 from sqlmodel import and_, select
 
+import aitutor.global_vars as GV
 from aitutor.auth.protection import state_require_role_or_permission
 from aitutor.auth.state import SessionState
 from aitutor.language_state import BackendTranslations as BT
@@ -19,6 +20,10 @@ from aitutor.utilities.lecture_permissions import (
     count_lecture_owners,
     get_user_lecture_link,
 )
+
+MY_LECTURES_FIELD_MAX_LENGTHS: dict[str, int] = {
+    "search_text": GV.SEARCH_TEXT_MAX_LEN,
+}
 
 LectureWithRole = tuple[Lecture, int | None]
 
@@ -39,7 +44,7 @@ class MyLecturesState(SessionState):
     @rx.event
     def update_search_text(self, value: str):
         """Update the lecture name search text."""
-        self.search_text = value
+        self.search_text = value[: MY_LECTURES_FIELD_MAX_LENGTHS["search_text"]]
 
     @rx.event
     def set_role_filter(self, value: str):

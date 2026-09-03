@@ -4,7 +4,11 @@ import reflex as rx
 
 from aitutor import routes
 from aitutor.language_state import LanguageState as LS
-from aitutor.pages.all_lectures.state import AllLecturesState, LectureWithRole
+from aitutor.pages.all_lectures.state import (
+    ALL_LECTURES_FIELD_MAX_LENGTHS,
+    AllLecturesState,
+    LectureWithRole,
+)
 
 
 def back_to_my_lectures_button() -> rx.Component:
@@ -156,6 +160,9 @@ def join_lecture_dialog() -> rx.Component:
                             placeholder=LS.registration_code_placeholder,
                             on_change=AllLecturesState.set_entered_registration_code,
                             width="100%",
+                            max_length=ALL_LECTURES_FIELD_MAX_LENGTHS[
+                                "registration_code"
+                            ],
                         ),
                         width="100%",
                         align="start",
@@ -200,6 +207,7 @@ def lectures_toolbar() -> rx.Component:
             on_change=AllLecturesState.update_search_text,
             width="22em",
             max_width="100%",
+            max_length=ALL_LECTURES_FIELD_MAX_LENGTHS["search_text"],
         ),
         width="85vw",
         max_width="100%",
