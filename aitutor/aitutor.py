@@ -3,18 +3,17 @@
 This module contains the main app definition for Reflex.
 """
 
+import fcntl
 import sys
 
 import reflex as rx
-from sqlmodel import select
 
 import aitutor.routes as routes
 from aitutor import pages
-from aitutor.config import add_configprompts_to_db, get_config, initialize_config_db
+from aitutor.config import get_config
 from aitutor.env_settings import get_env_settings
-from aitutor.models import Prompt
 from aitutor.utilities.cprint import cprint
-from aitutor.utilities.create_default_users import create_default_users
+from aitutor.utilities.first_setup import first_time_setup
 
 app = rx.App()
 # info: add dynamic routes first
@@ -142,13 +141,28 @@ app.add_page(pages.impressum_page, route=routes.IMPRESSUM)
 app.add_page(pages.privacy_notice_page, route=routes.PRIVACY_NOTICE)
 
 
+class Lock:
+    """File-based lock to avoid race conditions between workers."""
+
+    # taken from https://stackoverflow.com/a/60214222
+    def __enter__(self):
+        self.fp = open("/tmp/aitutor-initialization.lock", "wb")
+        fcntl.flock(self.fp.fileno(), fcntl.LOCK_EX)
+
+    def __exit__(self, _type, value, tb):
+        fcntl.flock(self.fp.fileno(), fcntl.LOCK_UN)
+        self.fp.close()
+
+
 def initialize():
     """Initialization steps that are run once when the app starts."""
 
     print("Executing initialization tasks")
 
-    # ensure there is a config row in the database
-    initialize_config_db()
+    with Lock():
+        # Ensure the application is set up correctly.  Needs a lock to avoid race
+        # conditions when using multiple workers.
+        first_time_setup()
 
     # load config here, so we fail immediately if there is any issue with it
     try:
@@ -171,16 +185,6 @@ def initialize():
             "Warning: SMTP is not configured. Emails will not be sent.",
             fg="yellow",
         )
-
-    create_default_users()
-
-    with rx.session() as session:
-        prompt = session.exec(
-            select(Prompt).where(Prompt.lecture_id == None)  # noqa: E711
-        ).first()
-        if not prompt:
-            print("No prompts found in the database. Adding default prompts...")
-            add_configprompts_to_db()
 
     cprint("Initialization tasks completed.", fg="green")
 

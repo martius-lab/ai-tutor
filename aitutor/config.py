@@ -1,135 +1,80 @@
 """Configuration management of the application."""
 
-from dataclasses import dataclass
+import secrets
 
 import reflex as rx
-import variconf
-from sqlmodel import select
 
-from aitutor.models import BannerMessageType, Config, Prompt
-
-# Config File --------------------------------------------------------------------------
-
-DEFAULT_CONFIG_FILE_PATH = "./default_config.toml"
-CONFIG_FILE_PATH = "./config.toml"
+from aitutor.models import BannerMessageType, Config
 
 
-@dataclass
-class ConfigDefaultUser:
-    """Default users for testing."""
-
-    role: str
-    name: str
-    password: str
-    email: str
-
-
-@dataclass
-class ConfigExercisePrompt:
-    """An excercise system prompt template."""
-
-    name: str
-    prompt: str
+def get_default_admin_user() -> dict:
+    """Default admin user that is initially created."""
+    return {
+        "name": "admin",
+        "password": secrets.token_urlsafe(16),
+        "email": "admin@example.com",
+    }
 
 
-@dataclass
-class ConfigFile:
-    """Configuration class for the AiTutor config file."""
+def get_default_config() -> Config:
+    """Get the default configuration."""
+    return Config(
+        response_ai_model="gpt-4.1-mini",
+        check_ai_model="gpt-4.1",
+        how_to_use_text="""
+I am your AI tutor and I want to help you understand the content of the lecture. Here's
+how it works:
 
-    response_ai_model: str
-    check_ai_model: str
-    how_to_use_text: str
-    general_information_text: str
-    impressum_text: str
-    registration_code: str
-    exercise_token_limit: int
-    default_users: list[ConfigDefaultUser]
-    exercise_prompts: list[ConfigExercisePrompt]
-    banner_message: str
-    banner_message_type: BannerMessageType
-    banner_is_open: bool
+1. Explain to me the question I ask you at the beginning of the conversation.
+2. When you think the question has been answered – and I also confirm that it has been
+   answered – you can use the "Check Answer" button to verify the conversation. A
+   separate AI will then check whether the task was solved correctly. If the check is
+   successful, you can submit the chat history.
 
-
-_config_from_file = None
-
-
-def load_config_from_file():
-    """Load configuration from file."""
-    global _config_from_file
-    wconf = variconf.WConf(ConfigFile)
-    try:
-        wconf.load_file(CONFIG_FILE_PATH)
-    except FileNotFoundError:
-        print(
-            f"Config file {CONFIG_FILE_PATH} not found. Loading default config instead."
-        )
-        wconf.load_file(DEFAULT_CONFIG_FILE_PATH)
-
-    _config_from_file = wconf.get()
+I’m looking forward to working with you!
+""",
+        general_information_text="""
+- The AI tutor should only be used for working on the tasks.
+- Tutors and lecturers can view chats that have been submitted.
+""",
+        impressum_text="",
+        registration_code=secrets.token_urlsafe(16),
+        exercise_token_limit=100_000,
+        banner_message="",
+        banner_message_type=BannerMessageType.INFO,
+        banner_is_open=False,
+    )
 
 
-def get_config_from_file() -> ConfigFile:
-    """Get the content of the configuration file."""
-    if _config_from_file is None:
-        load_config_from_file()
-    # Type of _config_from_file is actually some OmegaConf object, but it should have
-    # the same fields as ConfigFile, so list that as return type for better
-    # auto-completion.
-    return _config_from_file  # type: ignore[return-value]
-
-
-def add_configprompts_to_db():
-    """Add prompts from the config file to the database."""
-    with rx.session() as session:
-        existing_prompts = session.exec(
-            select(Prompt).where(Prompt.lecture_id == None)  # noqa: E711
-        )
-        existing_prompt_names = {prompt.name for prompt in existing_prompts}
-
-        config_file = get_config_from_file()
-        for prompt_cfg in config_file.exercise_prompts:
-            if prompt_cfg.name not in existing_prompt_names:
-                prompt = Prompt(
-                    name=prompt_cfg.name,
-                    prompt_template=prompt_cfg.prompt,
-                    lecture_id=None,
-                )
-                session.add(prompt)
-                print(f"Added prompt '{prompt_cfg.name}' to the database.")
-                session.commit()
-
-
-# Config DB ----------------------------------------------------------------------------
+def get_default_prompts() -> list[dict]:
+    """Get the default prompts."""
+    return [
+        {
+            "name": "Helpful Learner",
+            "prompt_template": """
+You will act as a learning assistant.
+Using the inverted teaching methods, a university student is given the task to explain
+"{title}" with description "{description}"
+This is the lesson context uploaded by the teacher as a basis for this exercise:
+--------------------------
+{lesson_context}
+--------------------------
+The user is a student who should explain the matter to you in a conversation.
+You pretend to be a learner trying to understand {description}.
+The student will complete the exercise in a conversation with you.
+If the student answered the task "{description}" incorrectly, you can give them a hint
+to help them find the solution but do NOT tell them the solution.
+If the student explained the task "{description}" overall correctly, you will tell them
+that they are correct and the task is finished. Keep you communication concise.
+Do not engage in any other topics than the exercise at hand. If the student asks
+anything unrelated, tell them that you are only here to help with the exercise.
+""",
+        },
+    ]
 
 
 def _parse_banner_message_type(val: str) -> BannerMessageType:
     return BannerMessageType(val)
-
-
-def initialize_config_db():
-    """ensure there is a config row in the database."""
-    with rx.session() as session:
-        config_row = session.get(Config, 1)
-        if not config_row:
-            config_file = get_config_from_file()
-            config = Config(
-                id=1,
-                response_ai_model=config_file.response_ai_model,
-                check_ai_model=config_file.check_ai_model,
-                how_to_use_text=config_file.how_to_use_text,
-                general_information_text=config_file.general_information_text,
-                impressum_text=config_file.impressum_text,
-                registration_code=config_file.registration_code,
-                exercise_token_limit=config_file.exercise_token_limit,
-                banner_message=config_file.banner_message,
-                banner_message_type=_parse_banner_message_type(
-                    config_file.banner_message_type
-                ),
-                banner_is_open=config_file.banner_is_open,
-            )
-            session.add(config)
-            session.commit()
-            print("Configuration added to the database.")
 
 
 def get_config() -> Config:

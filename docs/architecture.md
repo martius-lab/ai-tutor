@@ -45,3 +45,7 @@ We support multiple languages in the application. To do that, every string that 
 
 ## Database Models
 The database models are located in `aitutor/models.py`. Here, every class represents a table in the database. The attributes of the classes represent the columns of the tables.
+
+## Privacy Notice
+The privacy notice used on the website can be found in `aitutor/pages/legal_infos/datenschutz.md`. If you need to change it, you can edit this file.
+A short version of this privacy notice is displayed on the register page. It can be modified in `aitutor/pages/legal_infos/datenschutz_short.md`
