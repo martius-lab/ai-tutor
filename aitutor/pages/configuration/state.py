@@ -7,6 +7,7 @@ from zoneinfo import ZoneInfo
 import reflex as rx
 from sqlmodel import select
 
+import aitutor.global_vars as GV
 from aitutor.auth.protection import state_require_role_or_permission
 from aitutor.auth.state import SessionState
 from aitutor.global_vars import TIME_ZONE
@@ -26,7 +27,7 @@ from aitutor.states.banner_state import (
 from aitutor.states.config_state import DisplayConfigState
 
 CONFIG_FIELD_MAX_LENGTHS: dict[str, int] = {
-    "registration_code": 150,
+    "registration_code": GV.REGISTRATION_MAX_LEN,
     "response_ai_model": 100,
     "check_ai_model": 100,
     "how_to_use_text": 10_000,

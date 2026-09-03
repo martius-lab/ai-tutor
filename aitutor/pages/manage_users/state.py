@@ -4,6 +4,7 @@ import reflex as rx
 from reflex_local_auth.auth_session import LocalAuthSession
 from sqlmodel import case, cast, select
 
+import aitutor.global_vars as GV
 from aitutor.auth.protection import state_require_role_or_permission
 from aitutor.auth.state import SessionState
 from aitutor.language_state import BackendTranslations as BT
@@ -16,6 +17,12 @@ from aitutor.models import (
     UserInfo,
     UserRole,
 )
+
+MANAGE_USERS_FIELD_MAX_LENGTHS: dict[str, int] = {
+    "username": GV.USERNAME_MAX_LEN,
+    "email": GV.EMAIL_MAX_LEN,
+    "new_password": GV.PASSWORD_MAX_LEN,
+}
 
 
 class ManageUsersState(SessionState):
@@ -110,6 +117,11 @@ class ManageUsersState(SessionState):
     def update_user(self, form_data):
         """Save changes to a user from the edit form."""
         assert self.edited_user is not None
+        # set max length for strings from UserInfo
+        for field, max_length in MANAGE_USERS_FIELD_MAX_LENGTHS.items():
+            if field in form_data:
+                form_data[field] = form_data[field][:max_length]
+
         with rx.session() as session:
             query = (
                 select(LocalUser, UserInfo)

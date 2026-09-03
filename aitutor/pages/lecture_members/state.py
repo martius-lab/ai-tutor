@@ -6,6 +6,7 @@ import reflex as rx
 from reflex_local_auth.user import LocalUser
 from sqlmodel import col, func, select
 
+import aitutor.global_vars as GV
 import aitutor.routes as routes
 from aitutor.auth.protection import state_require_lecture_role
 from aitutor.auth.state import SessionState
@@ -16,6 +17,10 @@ from aitutor.utilities.lecture_permissions import (
     get_user_lecture_link,
     user_may_view_lecture,
 )
+
+LECTURE_MEMBERS_FIELD_MAX_LENGTHS: dict[str, int] = {
+    "available_user_filter_query": GV.USERNAME_MAX_LEN,
+}
 
 
 @dataclass
@@ -52,7 +57,9 @@ class LectureMembersState(SessionState):
     @rx.event
     def set_available_user_filter_query(self, query: str):
         """Set the user search query for the add-member dialog."""
-        self.available_user_filter_query = query
+        self.available_user_filter_query = query[
+            : LECTURE_MEMBERS_FIELD_MAX_LENGTHS["available_user_filter_query"]
+        ]
 
     @rx.event
     def clear_available_user_filter_query(self):

@@ -6,7 +6,10 @@ from aitutor.components import password_input
 from aitutor.components.dialogs import destructive_confirm
 from aitutor.language_state import LanguageState as LS
 from aitutor.models import LocalUser, UserInfo, UserRole
-from aitutor.pages.manage_users.state import ManageUsersState
+from aitutor.pages.manage_users.state import (
+    MANAGE_USERS_FIELD_MAX_LENGTHS,
+    ManageUsersState,
+)
 
 
 def role_to_text(role: UserRole):
@@ -115,6 +118,7 @@ def edit_user_dialog() -> rx.Component:
                             width="100%",
                             type="text",
                             name="username",
+                            max_length=MANAGE_USERS_FIELD_MAX_LENGTHS["username"],
                         ),
                         form_label(LS.email),
                         rx.input(
@@ -123,6 +127,7 @@ def edit_user_dialog() -> rx.Component:
                             width="100%",
                             type="text",
                             name="email",
+                            max_length=MANAGE_USERS_FIELD_MAX_LENGTHS["email"],
                         ),
                         form_label(LS.new_password),
                         password_input(
@@ -130,6 +135,7 @@ def edit_user_dialog() -> rx.Component:
                             placeholder=LS.new_password_placeholder,
                             size="3",
                             width="100%",
+                            max_length=MANAGE_USERS_FIELD_MAX_LENGTHS["new_password"],
                         ),
                         form_label(LS.role),
                         rx.hstack(
