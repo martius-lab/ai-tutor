@@ -320,15 +320,29 @@ class Config(SQLModel, table=True):
     __table_args__ = (CheckConstraint("id = 1", name="only_one_row"),)
 
     id: Optional[int] = Field(default=1, primary_key=True)
+
+    #: Name of the AI model used for the exercise conversations.  Which models are
+    #: available depends on the used provider.
     response_ai_model: str
+    #: Name of the AI model used for checking conversations.  Which models are available
+    #: depends on the used provider.
     check_ai_model: str
+    #: Short text explaining how to use the AI Tutor.  Displayed on the home page.
     how_to_use_text: str
+    #: Short text with general information about AI Tutor.  Displayed on the home page.
     general_information_text: str
+    #: Text shown on the "Impressum" page.
     impressum_text: str
+    #: Registration code required for registering a new user account.
     registration_code: str
+    #: Maximum number of tokens a user can spend on a single exercise.  Once the limit
+    #: is reached, no more messages or checks are allowed.
     exercise_token_limit: int
+    #: Message of the info banner displayed above all pages.
     banner_message: str = Field(default="")
+    #: Type of the info banner displayed above all pages.  Affects the color scheme.
     banner_message_type: BannerMessageType = Field(default=BannerMessageType.INFO)
+    #: Whether to show the info banner or not.
     banner_is_open: bool = Field(default=False)
 
     def __repr__(self):

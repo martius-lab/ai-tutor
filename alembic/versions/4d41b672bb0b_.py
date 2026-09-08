@@ -11,7 +11,7 @@ from alembic import op
 import sqlalchemy as sa
 import sqlmodel
 
-from aitutor.config import get_config_from_file
+from aitutor.config import get_default_prompts
 
 # revision identifiers, used by Alembic.
 revision: str = '4d41b672bb0b'
@@ -22,7 +22,7 @@ depends_on: Union[str, Sequence[str], None] = None
 
 def upgrade() -> None:
     """Upgrade schema."""
-    
+
     # 1. Create the new prompt table
     op.create_table('prompt',
     sa.Column('id', sa.Integer(), nullable=False),
@@ -41,32 +41,19 @@ def upgrade() -> None:
     )
 
     # Load configuration
-    try:
-        config_file = get_config_from_file()
-        
-        # Prepare data list
-        prompts_data = [
-            {'name': p.name, 'prompt_template': p.prompt} 
-            for p in config_file.exercise_prompts
-        ]
-
-        if prompts_data:
-            op.bulk_insert(prompt_table, prompts_data)
-            
-    except NameError:
-        print("WARNING: problem with 'get_config_from_file'. Prompts table is empty.")
+    prompts_data = get_default_prompts()
+    if prompts_data:
+        op.bulk_insert(prompt_table, prompts_data)
 
     # 3. Add the prompt_id column (nullable at first)
     with op.batch_alter_table('exercise', schema=None) as batch_op:
         batch_op.add_column(sa.Column('prompt_id', sa.Integer(), nullable=True))
 
-    # 4. Data Migration: Update exercise.prompt_id based on exercise.prompt_name
-    # This SQL query works for SQLite and Postgres
+    # 4. Set exercise prompts.  THIS IS A LOSSY OPERATION!  Simply use the first prompt
+    # for all exercises.
     op.execute("""
         UPDATE exercise
-        SET prompt_id = (
-            SELECT id FROM prompt WHERE prompt.name = exercise.prompt_name
-        )
+        SET prompt_id = (SELECT id FROM prompt ORDER BY id LIMIT 1)
     """)
 
     # 5. Add Foreign Key and drop old columns
@@ -83,7 +70,7 @@ def downgrade() -> None:
         batch_op.add_column(sa.Column('prompt_name', sa.VARCHAR(), server_default=sa.text("('')"), nullable=False))
         batch_op.add_column(sa.Column('prompt', sa.VARCHAR(), nullable=False))
         batch_op.drop_constraint('fk_exercise_prompt_id', type_='foreignkey')
-        
+
     # Attempt to restore data (reverse logic)
     op.execute("""
         UPDATE exercise
@@ -91,7 +78,7 @@ def downgrade() -> None:
             prompt = (SELECT prompt_template FROM prompt WHERE prompt.id = exercise.prompt_id)
         WHERE prompt_id IS NOT NULL
     """)
-    
+
     with op.batch_alter_table('exercise', schema=None) as batch_op:
         batch_op.drop_column('prompt_id')
 

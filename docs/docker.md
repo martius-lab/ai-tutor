@@ -16,10 +16,10 @@ A `Makefile` is provided for the most basic tasks.  The following commands have 
 called from the root directory of the package.  See the Makefile itself for the actual
 docker commands which are called.
 
-The config files `config.toml` and `.env` (see section "Configuration" below) are
-expected to be found in the projects root directory and are mounted into the container
-from the host system.  This means that the configuration can easily be changed without
-the need of rebuilding the images.
+A `.env` file (see section "Configuration" below) is expected to be found in the
+projects root directory and is mounted into the container from the host system.  This
+means that the configuration can easily be changed without the need of rebuilding the
+images.
 
 
 **Build the container:**
@@ -50,13 +50,6 @@ access the application.
 
 
 ## Configuration
-
-### config.toml
-
-The Docker setup currently still requires a `config.toml` to be present for the initial
-configuration (i.e. just the `default_config.toml` is not enough).  This file is really
-only used at the first start to populate the settings in the database.  To change things
-later, use the admin facilities in AI-Tutor itself.
 
 ### .env
 
