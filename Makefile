@@ -15,3 +15,13 @@ logs:
 
 app-logs:
 	docker compose -f compose.prod.yaml logs -ft app
+
+# For development environment
+dev-up:
+	docker compose -f compose.devel.yaml up -d
+
+dev-down:
+	docker compose -f compose.devel.yaml down
+
+dev-logs:
+	docker compose -f compose.devel.yaml logs -ft

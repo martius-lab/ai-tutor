@@ -1,0 +1,13 @@
+services:
+  dev-db:
+    image: postgres:18
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - 5454:5432
+    volumes:
+      - dev-postgres-data:/var/lib/postgresql
+
+volumes:
+  dev-postgres-data:

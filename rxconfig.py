@@ -1,8 +1,21 @@
 """Reflex configuration."""
 
 import reflex as rx
+from pydantic_settings import BaseSettings, SettingsConfigDict
 from sqlalchemy import event
 from sqlalchemy.engine import Engine
+
+
+class PostgresSettings(BaseSettings):
+    """Database settings loaded from environment variables or `.env` file."""
+
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        extra="ignore",
+    )
+
+    POSTGRES_PASSWORD: str = ""
 
 
 # Enable foreign key constraints for SQLite
@@ -17,9 +30,12 @@ def set_sqlite_pragma(dbapi_conn, connection_record):
         cursor.close()
 
 
+db_settings = PostgresSettings()
+db_url = f"postgresql+psycopg://postgres:{db_settings.POSTGRES_PASSWORD}@localhost:5454/postgres"
+
 config = rx.Config(
     app_name="aitutor",
-    db_url="sqlite:///reflex.db",
+    db_url=db_url,
     plugins=[
         rx.plugins.SitemapPlugin(),
         rx.plugins.RadixThemesPlugin(
