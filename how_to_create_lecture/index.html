@@ -1,0 +1,628 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+        <link rel="prev" href="..">
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../images/favicon.ico">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>How to set up a lecture - AI-Tutor</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#getting-started-creating-a-new-lecture" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="AI-Tutor" class="md-header__button md-logo" aria-label="AI-Tutor" data-md-component="logo">
+      
+  <img src="../images/logo.jpg" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            AI-Tutor
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              How to set up a lecture
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="AI-Tutor" class="md-nav__button md-logo" aria-label="AI-Tutor" data-md-component="logo">
+      
+  <img src="../images/logo.jpg" alt="logo">
+
+    </a>
+    AI-Tutor
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    How to set up a lecture
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    How to set up a lecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#create-a-new-lecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Create a new lecture
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#managing-members" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Managing members
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Managing members">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#member-roles" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Member roles
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#removing-members" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Removing members
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#creating-exercises" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Creating exercises
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#working-on-exercises-and-reviewing-submissions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Working on exercises and reviewing submissions
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#create-a-new-lecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Create a new lecture
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#managing-members" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Managing members
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Managing members">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#member-roles" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Member roles
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#removing-members" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Removing members
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#creating-exercises" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Creating exercises
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#working-on-exercises-and-reviewing-submissions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Working on exercises and reviewing submissions
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="getting-started-creating-a-new-lecture">Getting started: Creating a new lecture</h1>
+<p>This guide shows how to</p>
+<ul>
+<li>create a new lecture,</li>
+<li>add members to it, and</li>
+<li>create a first exercise.</li>
+</ul>
+<div class="admonition">
+<p class="admonition-title">Requirements</p>
+<p>You need the "lecturer" permission in order to create a new lecture.  If you do not have
+that permission yet, please contact the administrators.</p>
+</div>
+<h2 id="create-a-new-lecture">Create a new lecture</h2>
+<p>Go to the "Lectures" page.  This page lists all the lectures you are a member of.  To
+create a new lecture, click the "+ Add"-Button on the top right.</p>
+<p>If you don't see that button, this means that you don't have the "lecturer" permission,
+which is required to create new lectures.  Please contact the administrators in that
+case.</p>
+<p>Fill out the form:</p>
+<ul>
+<li><strong>Lecture Name:</strong> Name of the lecture</li>
+<li><strong>Lecturer:</strong> Name of the person responsible for the lecture (likely you).</li>
+<li><strong>Registration Code:</strong> A kind of password with which students can join the lecture on
+  their own.  The idea is that this code is given to the students in the lecture.  It
+  serves as a simple barrier to prevent people from joining, who are not actually
+  attending the lecture.  This is optional, <strong>if left empty, everyone can join.</strong></li>
+<li><strong>Lecture Information:</strong> Some additional information about the lecture (what is it
+  about, etc.).  You can use Markdown for basic formatting.</li>
+<li><strong>Check Conversation Prompt:</strong> The prompt used for checking if exercises can be
+  submitted.  If you just get started, do not worry about this, the default should be
+  good.  You can still modify this later, if you want.</li>
+</ul>
+<p>After submitting the form, you will directly enter the newly added lecture.  If you want
+to change any of the information you just entered into the form, you can do so on the
+"Settings" tab.</p>
+<h2 id="managing-members">Managing members</h2>
+<p>The lecture will now appear in the lecture catalogue, so anyone who knows the
+registration code (if you set one) can join on their own.</p>
+<p>At the bottom of the "Settings" tab, there is a button "Copy join link".  Use this to
+copy a direct link to the lecture to your clipboard.  You can give this link to your
+students to make it easier for them to join.  Note that they will still need the
+registration code in addition.</p>
+<p>You can also manually add members on the "Members" tab (e.g. to directly add
+tutors or co-owners of the lecture).  This page also lists all the current members.</p>
+<h3 id="member-roles">Member roles</h3>
+<p>You can change the role of each member.  The following roles exist.  They are
+hierarchical, so each role also contains the permissions of the roles above in the list.</p>
+<ul>
+<li>STUDENT:  Default role for all uses who join a lecture.  Users with this role can work
+  on exercises and see other members but nothing else.</li>
+<li>TUTOR:  Can see submissions and reports made by other members as well as the token
+  analyzer.</li>
+<li>OWNER:  Can add exercises, edit any settings, manage users, etc.</li>
+</ul>
+<p>When creating a new lecture, you automatically join it with the OWNER role.  You can
+also make other users OWNER, in which case they will all the same permissions as you.</p>
+<h3 id="removing-members">Removing members</h3>
+<p>There are two ways to remove a member from a lecture:</p>
+<ol>
+<li>Members can leave on their own via the "Leave lecture" button on the "My Lectures"
+   page.</li>
+<li>Lecture owners can remove members via the "kick" button on the "Members" tab of the
+   lecture.  Note that they can re-join on their own, if they know the registration
+   code, though.</li>
+</ol>
+<h2 id="creating-exercises">Creating exercises</h2>
+<p>To create new exercises, go to the "Manage Exercises" tab of your lecture and click the
+"Add Exercise" button.</p>
+<p>Title and description will be shown to the students when they work on the exercise.  The
+"Lesson context" is hidden from the student but provided to the LLM as additional
+context.  You can, for example, paste relevant excerpts of your lecture script here.
+Alternatively, you can upload a PDF with the context.
+<strong>Please limit the context to what is actually relevant for the exercise as everything
+included here will add to the token usage when working on the exercise.</strong></p>
+<p><strong>Prompt:</strong> You can choose a custom prompt for the exercise.  If you are just getting
+started, we recommend, that you stick to the default, though.</p>
+<p><strong>Deadline:</strong> If you set a deadline for the exercise, student will not be able to submit
+their conversations anymore after the deadline (they can still talk with the AI tutor,
+though, e.g. to repeat exercises as exam preparation).
+When setting a deadline, you also have to set a period of days, the students have to
+work on the exercise.  The exercise will automatically be hidden until the specified
+number of days before the deadline.</p>
+<p><strong>Tags:</strong> Adding tags can help organizing exercises.  They may be used, for example, to
+link exercises to specific lectures or to distinguish optional from mandatory exercises.
+You can add arbitrary tags within your lecture, so it is up to you, how you use them.</p>
+<h2 id="working-on-exercises-and-reviewing-submissions">Working on exercises and reviewing submissions</h2>
+<p>All members of a lecture can see the exercises in the "Exercises" tab and work on them.
+When a user thinks, the question of the exercise is explained well enough, they can
+click the "Check conversation" button.  This will trigger a call to an LLM, checking the
+conversation.  If the check passes, the user can submit the conversation.  The submitted
+conversation will appear in the "Submissions" tab of the lecture (visible to owners and
+tutors), where it can be reviewed.</p>
+<p>The user may continue the conversation (or even resetting and starting over) but this
+will not affect the submitted snapshot.  The submitted conversation is only updated if
+the user explicitly submits again.  Unsubmitted conversations are not visible to other
+users, also not to tutors or owners.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": [], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>
