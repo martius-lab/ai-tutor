@@ -1,6 +1,49 @@
-# Use this override file to run the app in prod mode with postgres and redis
-#     docker compose -f compose.yaml -f compose.prod.yaml up -d
+# Use this to launch the production setup
+#     docker compose -f compose.prod.yaml up -d
+
 services:
+  app:
+    environment:
+      REFLEX_DB_URL: postgresql+psycopg://postgres:${POSTGRES_PASSWORD}@db/postgres
+      REFLEX_REDIS_URL: redis://redis:6379
+    build:
+      context: .
+    volumes:
+      - upload-data:/app/uploaded_files
+      - type: bind
+        source: ./.env
+        target: /app/.env
+        read_only: true
+        bind:
+          create_host_path: false
+
+    restart: always
+    depends_on:
+      - db
+      - redis
+
+  webserver:
+    environment:
+      DOMAIN: ${DOMAIN:-localhost}
+      # Those data and config folders are already set in the container by default but
+      # better let's be explicit, in case the defaults change.
+      XDG_DATA_HOME: /data
+      XDG_CONFIG_HOME: /config
+    ports:
+      - 443:443
+      - 80:80 # For acme-challenge via HTTP.
+    build:
+      context: .
+      dockerfile: Caddy.Dockerfile
+      additional_contexts:
+        app_image: "service:app"
+    volumes:
+      - caddy-data:/data/caddy
+      - caddy-config:/config/caddy
+    restart: always
+    depends_on:
+      - app
+
   db:
     image: postgres:18
     restart: always
@@ -13,13 +56,19 @@ services:
     image: redis
     restart: always
 
-  app:
-    environment:
-      REFLEX_DB_URL: postgresql+psycopg://postgres:${POSTGRES_PASSWORD}@db/postgres
-      REFLEX_REDIS_URL: redis://redis:6379
-    depends_on:
-      - db
-      - redis
 
 volumes:
+  # Uploaded files
+  upload-data:
+  # TLS keys and certificates
+  caddy-data:
+  caddy-config:
   postgres-data:
+
+
+networks:
+  default:
+    ipam:
+      config:
+        # hard-code the subnet, so we can configure postfix on the host accordingly
+        - subnet: ${AITUTOR_DOCKER_SUBNET:-172.18.0.0/16}
