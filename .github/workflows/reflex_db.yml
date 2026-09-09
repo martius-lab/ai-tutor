@@ -20,8 +20,10 @@ jobs:
 
       - name: Run database
         run: |
+          echo POSTGRES_PASSWORD=secret > .env
           make dev-up
           sleep 10
+          docker compose -f compose.devel.yaml logs
 
       - name: Run reflex db migrate
         run: uv run reflex db migrate
