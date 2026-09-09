@@ -280,9 +280,9 @@ class LectureManageExercisesState(FilterMixin, SessionState):
                     "title": ex.title,
                     "description": ex.description,
                     "lesson_context": ex.lesson_context,
-                    "prompt_name": ex.prompt.name
-                    if ex.prompt
-                    else "prompt not found error!",
+                    "prompt_name": (
+                        ex.prompt.name if ex.prompt else "prompt not found error!"
+                    ),
                     "is_hidden": ex.is_hidden,
                     "deadline": ex.deadline.isoformat() if ex.deadline else None,
                     "days_to_complete": ex.days_to_complete,

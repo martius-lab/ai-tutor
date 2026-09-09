@@ -6,6 +6,7 @@ from aitutor.components.dialogs import destructive_confirm
 from aitutor.language_state import LanguageState as LS
 from aitutor.models import LectureRole
 from aitutor.pages.lecture_members.state import (
+    LECTURE_MEMBERS_FIELD_MAX_LENGTHS,
     AvailableLectureUser,
     LectureMemberRow,
     LectureMembersState,
@@ -120,6 +121,7 @@ def available_user_filter() -> rx.Component:
             on_change=LectureMembersState.set_available_user_filter_query,
             placeholder=LS.search_filter_placeholder,
             width="100%",
+            max_length=LECTURE_MEMBERS_FIELD_MAX_LENGTHS["available_user_filter_query"],
         ),
         rx.cond(
             LectureMembersState.available_user_filter_query != "",
