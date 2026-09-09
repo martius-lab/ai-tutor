@@ -6,7 +6,8 @@ import pathlib
 import sys
 
 
-DEFAULT_CONTAINER_ID = "ai-tutor-db-1"
+basedir = pathlib.Path(__file__).absolute().parent.name
+DEFAULT_CONTAINER_ID = f"{basedir}-dev-db-1"
 
 
 def restore(container_id, sqlfile):
