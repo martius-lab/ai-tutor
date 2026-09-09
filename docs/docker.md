@@ -4,10 +4,8 @@ This repository contains a Docker Compose setup for easy deployment.  This is ba
 one of the [examples in the Reflex
 repo](https://github.com/reflex-dev/reflex/tree/main/docker-example/production-compose).
 
-The basic `compose.yaml` only starts the Reflex application.  With the additional
-`compose.prod.yaml`, a PostgreSQL database is used instead of SQLite and Redis server
-for something related to the front end, which the author of this text never fully
-understood...
+The compose file `compose.prod.yaml` starts the Reflex application, database, etc. and
+contains everything that is needed to run the application in production mode.
 
 
 ## Basic usage
