@@ -3,6 +3,7 @@
 import reflex as rx
 from sqlmodel import select
 
+import aitutor.global_vars as gv
 import aitutor.routes as routes
 from aitutor.auth.protection import (
     state_require_lecture_role,
@@ -19,6 +20,14 @@ from aitutor.models import (
     UserRole,
 )
 from aitutor.utilities.lecture_permissions import user_may_edit_lecture
+
+EDIT_LECTURE_FIELD_MAX_LENGTHS = {
+    "lecture_name": 150,
+    "lecturer_name": 100,
+    "registration_code": gv.REGISTRATION_CODE_MAX_LEN,
+    "lecture_information_text": 5_000,
+    "check_conversation_prompt": 5_000,
+}
 
 MAGIC_ID_NEW = "new"
 
@@ -40,6 +49,8 @@ class EditLectureState(SessionState):
     @rx.event
     def set_lecture_value(self, name: str, value: str):
         """Update one editable lecture field and mark the form as changed."""
+        if name in EDIT_LECTURE_FIELD_MAX_LENGTHS:
+            value = value[: EDIT_LECTURE_FIELD_MAX_LENGTHS[name]]
         setattr(self, name, value)
         self.unsaved_changes = True
 
