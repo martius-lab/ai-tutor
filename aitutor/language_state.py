@@ -11,6 +11,7 @@ backend code (e.g. error/success messages) are in the corresponding state class.
 import textwrap
 
 import reflex as rx
+import aitutor.global_vars as gv
 
 from aitutor.auth.state import SessionState, Language
 
@@ -1689,6 +1690,14 @@ class BackendTranslations:
             language,
             de=f"Benutzer '{username}' wurde gelöscht.",
             en=f"User '{username}' has been deleted.",
+        )
+
+    @staticmethod
+    def error_password_too_long(language: Language) -> str:
+        return translate(
+            language,
+            de=f"Fehler: Das Passwort darf maximal {gv.PASSWORD_MAX_BYTES} Bytes lang sein.",
+            en=f"Error: The password cannot be longer than {gv.PASSWORD_MAX_BYTES} bytes.",
         )
 
     # Lecture states -------------------------------------------------------------------
