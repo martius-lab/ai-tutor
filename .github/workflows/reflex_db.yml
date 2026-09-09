@@ -18,6 +18,11 @@ jobs:
       - name: Install the project
         run: uv sync
 
+      - name: Run database
+        run: |
+          make dev-up
+          sleep 10
+
       - name: Run reflex db migrate
         run: uv run reflex db migrate
 
