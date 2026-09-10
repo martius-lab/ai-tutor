@@ -173,7 +173,7 @@ class LectureManageExercisesState(FilterMixin, SessionState):
                         select(Prompt)
                         .where(
                             or_(
-                                Prompt.lecture_id == None,  # noqa: E711
+                                Prompt.lecture_id == None,
                                 Prompt.lecture_id == lecture_id,
                             )
                         )
@@ -397,7 +397,7 @@ class LectureManageExercisesState(FilterMixin, SessionState):
                         select(Prompt).where(
                             Prompt.name == p_name,
                             or_(
-                                Prompt.lecture_id == None,  # noqa: E711
+                                Prompt.lecture_id == None,
                                 Prompt.lecture_id == self.current_lecture_id,
                             ),
                         )
@@ -415,7 +415,7 @@ class LectureManageExercisesState(FilterMixin, SessionState):
                                 select(Prompt).where(
                                     Prompt.name == new_name,
                                     or_(
-                                        Prompt.lecture_id == None,  # noqa: E711
+                                        Prompt.lecture_id == None,
                                         Prompt.lecture_id == self.current_lecture_id,
                                     ),
                                 )

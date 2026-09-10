@@ -115,7 +115,7 @@ def global_exercise_card(exercise_with_result: ExerciseWithResult) -> rx.Compone
     """Render one exercise on the global home page."""
     exercise: Exercise = exercise_with_result[0]
     result: ExerciseResult | None = exercise_with_result[1]
-    is_submitted = (result != None) & (  # noqa: E711
+    is_submitted = (result != None) & (
         result.finished_conversation.length() > 0  # type: ignore
     )
 

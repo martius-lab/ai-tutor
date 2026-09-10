@@ -103,7 +103,7 @@ class ManagePromptsState(SessionState):
         """Return whether any name conflicts with global prompts outside prompt_ids."""
         with rx.session() as session:
             db_prompts = session.exec(
-                select(Prompt).where(Prompt.lecture_id == None)  # noqa: E711
+                select(Prompt).where(Prompt.lecture_id == None)
             ).all()
         return any(
             prompt.id not in prompt_ids and prompt.name in names
@@ -177,7 +177,7 @@ class ManagePromptsState(SessionState):
                 lecture_exercise_using_prompt = session.exec(
                     select(Exercise).where(
                         Exercise.prompt_id == prompt_id,
-                        Exercise.lecture_id != None,  # noqa: E711
+                        Exercise.lecture_id != None,
                     )
                 ).first()
 
@@ -196,7 +196,7 @@ class ManagePromptsState(SessionState):
                 replacement_prompt = session.exec(
                     select(Prompt).where(
                         Prompt.name == self.replacement_prompt_name,
-                        Prompt.lecture_id == None,  # noqa: E711
+                        Prompt.lecture_id == None,
                     )
                 ).first()
 
@@ -226,7 +226,7 @@ class ManagePromptsState(SessionState):
                 exercises = session.exec(
                     select(Exercise).where(
                         Exercise.prompt_id == prompt_id,
-                        Exercise.lecture_id == None,  # noqa: E711
+                        Exercise.lecture_id == None,
                     )
                 ).all()
 
@@ -331,7 +331,7 @@ class ManagePromptsState(SessionState):
         with rx.session() as session:
             prompts = session.exec(
                 select(Prompt)
-                .where(Prompt.lecture_id == None)  # noqa: E711
+                .where(Prompt.lecture_id == None)
                 .order_by(Prompt.id)  # type: ignore
             )
             self.prompts = {p.id: p for p in prompts}

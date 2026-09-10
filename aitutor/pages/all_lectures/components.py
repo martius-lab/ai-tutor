@@ -84,7 +84,7 @@ def join_status_cell(role: int | None, lecture_id) -> rx.Component:
     """Render the join action or joined status for a lecture."""
     return rx.table.cell(
         rx.cond(
-            role == None,  # noqa: E711
+            role == None,
             rx.button(
                 LS.join,
                 size="2",
@@ -117,7 +117,7 @@ def lecture_row(lecture_with_role: LectureWithRole) -> rx.Component:
     """Render a single lecture row."""
     lecture = lecture_with_role[0]
     role = lecture_with_role[1]
-    lecture_id = rx.cond(lecture.id != None, lecture.id, 0)  # noqa: E711
+    lecture_id = rx.cond(lecture.id != None, lecture.id, 0)
 
     return rx.fragment(
         rx.table.row(
