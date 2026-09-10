@@ -2,7 +2,7 @@
 The state for managing user sessions.
 """
 
-from typing import Callable
+from collections.abc import Callable
 
 import reflex as rx
 import reflex_local_auth
