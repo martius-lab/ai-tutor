@@ -2,7 +2,7 @@
 
 from datetime import datetime, timedelta
 from enum import IntEnum, StrEnum
-from typing import Any, Dict, List
+from typing import Any
 from zoneinfo import ZoneInfo
 
 import pydantic
@@ -102,13 +102,13 @@ class Lecture(SQLModel, table=True):
     default_prompt_id: int | None = Field(default=None)
 
     # ORM relationships
-    user_links: List[LinkUserLecture] = Relationship(
+    user_links: list[LinkUserLecture] = Relationship(
         back_populates="lecture", sa_relationship_kwargs={"passive_deletes": True}
     )
-    exercises: List[Exercise] = Relationship(
+    exercises: list[Exercise] = Relationship(
         back_populates="lecture", sa_relationship_kwargs={"passive_deletes": True}
     )
-    tags: List[Tag] = Relationship(
+    tags: list[Tag] = Relationship(
         back_populates="lecture", sa_relationship_kwargs={"passive_deletes": True}
     )
 
@@ -166,7 +166,7 @@ class Tag(SQLModel, table=True):
     )
 
     # ORM relationship
-    exercises: List[Exercise] = Relationship(
+    exercises: list[Exercise] = Relationship(
         back_populates="tags", link_model=ExerciseTagLink
     )
     lecture: Lecture | None = Relationship(back_populates="tags")
@@ -193,10 +193,10 @@ class Exercise(SQLModel, table=True):
     days_to_complete: int | None = Field(default=None)
 
     # ORM relationship
-    submissions: List[ExerciseResult] = Relationship(
+    submissions: list[ExerciseResult] = Relationship(
         back_populates="exercise", sa_relationship_kwargs={"passive_deletes": True}
     )
-    tags: List[Tag] = Relationship(
+    tags: list[Tag] = Relationship(
         back_populates="exercises", link_model=ExerciseTagLink
     )
     prompt: Prompt | None = Relationship()
@@ -249,9 +249,9 @@ class ExerciseResult(SQLModel, table=True):
     """
 
     id: int | None = Field(default=None, primary_key=True)
-    conversation_text: List[Dict[str, Any]] = Field(sa_column=Column(JSON), default=[])
+    conversation_text: list[dict[str, Any]] = Field(sa_column=Column(JSON), default=[])
     check_passed: bool = Field(default=False)
-    finished_conversation: List[Dict[str, Any]] = Field(
+    finished_conversation: list[dict[str, Any]] = Field(
         sa_column=Column(JSON), default=[]
     )
     submit_time_stamp: datetime | None = Field(
@@ -290,7 +290,7 @@ class UserInfo(SQLModel, table=True):
     language: Language = Field(default=Language.EN)
 
     # ORM relationship
-    exercise_results: List[ExerciseResult] = Relationship(
+    exercise_results: list[ExerciseResult] = Relationship(
         back_populates="user", sa_relationship_kwargs={"passive_deletes": True}
     )
     local_user: LocalUser = Relationship()
@@ -415,7 +415,7 @@ class Report(SQLModel, table=True):
     )
     report_text: str
     looked_at: bool = Field(default=False)
-    conversation_snapshot: List[Dict[str, Any]] = Field(
+    conversation_snapshot: list[dict[str, Any]] = Field(
         sa_column=Column(JSON), default=[]
     )
 
