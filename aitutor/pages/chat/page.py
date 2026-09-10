@@ -2,7 +2,7 @@
 
 import reflex as rx
 
-import aitutor.routes as routes
+from aitutor import routes
 from aitutor.auth.protection import page_require_role_or_permission
 from aitutor.language_state import LanguageState
 from aitutor.models import UserRole

@@ -5,7 +5,7 @@ from datetime import datetime
 import reflex as rx
 
 import aitutor.global_vars as gv
-import aitutor.routes as routes
+from aitutor import routes
 from aitutor.language_state import LanguageState
 from aitutor.models import Exercise, ExerciseResult
 from aitutor.pages.lecture_exercises.state import (
@@ -45,7 +45,7 @@ def render_exercise_card(exercise_with_res: ExerciseWithResult) -> rx.Component:
     """Render exercises as cards"""
     exercise: Exercise = exercise_with_res[0]
     result: ExerciseResult | None = exercise_with_res[1]
-    is_submitted = (result != None) & (  # noqa: E711
+    is_submitted = (result != None) & (
         result.finished_conversation.length() > 0  # type: ignore
     )
     return rx.hstack(

@@ -2,7 +2,7 @@
 
 import reflex as rx
 
-import aitutor.routes as routes
+from aitutor import routes
 from aitutor.components import password_input
 from aitutor.language_state import LanguageState as LS
 from aitutor.pages.configuration.components import input, text_area

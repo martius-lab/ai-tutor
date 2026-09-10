@@ -45,7 +45,7 @@ exclude = ["assets"]
 
 
 [tool.ruff]
-lint.select = [
+lint.extend-select = [
     "E",
     "F",
     "B",  # bugbear
@@ -53,7 +53,9 @@ lint.select = [
     "I",
 ]
 lint.ignore = [
+    "BLE001",  # allow "except Exception"
     "E711",  # in rx.cond, we often need to compare None with `==`/`!=`
+    "RUF012",  # TODO: fix those and then remove the ignore
 ]
 extend-exclude = ["alembic"]
 

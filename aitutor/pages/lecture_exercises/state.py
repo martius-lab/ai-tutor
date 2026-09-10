@@ -1,7 +1,7 @@
 """State for the exercises page."""
 
 from datetime import datetime
-from typing import Optional, override
+from typing import override
 from zoneinfo import ZoneInfo
 
 import reflex as rx
@@ -9,7 +9,7 @@ from sqlalchemy.orm import selectinload
 from sqlmodel import and_, func, or_, select
 
 import aitutor.global_vars as gv
-import aitutor.routes as routes
+from aitutor import routes
 from aitutor.auth.protection import state_require_lecture_role
 from aitutor.auth.state import SessionState
 from aitutor.global_vars import TIME_FORMAT, TIME_ZONE
@@ -17,7 +17,7 @@ from aitutor.models import Exercise, ExerciseResult, Lecture, LectureRole, Tag, 
 from aitutor.utilities.filtering_components import FilterMixin
 from aitutor.utilities.lecture_permissions import user_may_view_lecture
 
-ExerciseWithResult = tuple[Exercise, Optional[ExerciseResult]]
+ExerciseWithResult = tuple[Exercise, ExerciseResult | None]
 
 
 class LectureExercisesState(FilterMixin, SessionState):
@@ -253,7 +253,7 @@ class LectureExercisesState(FilterMixin, SessionState):
                 key=lambda ex_wth_res: (
                     ex_wth_res[0].deadline
                     if ex_wth_res[0].deadline is not None
-                    else datetime.max
+                    else datetime.max.replace(tzinfo=ZoneInfo(TIME_ZONE))
                 )
             )
 
@@ -262,7 +262,7 @@ class LectureExercisesState(FilterMixin, SessionState):
                 key=lambda ex_wth_res: (
                     ex_wth_res[0].deadline
                     if ex_wth_res[0].deadline is not None
-                    else datetime.min
+                    else datetime.min.replace(tzinfo=ZoneInfo(TIME_ZONE))
                 ),
                 reverse=True,
             )
