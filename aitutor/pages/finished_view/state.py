@@ -1,6 +1,5 @@
 """The state for the finished view page."""
 
-
 import reflex as rx
 from sqlmodel import select
 

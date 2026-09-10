@@ -1,6 +1,5 @@
 """Components for the configuration page."""
 
-
 import reflex as rx
 
 from aitutor.components.dialogs import destructive_confirm
