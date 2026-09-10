@@ -330,9 +330,7 @@ class ManagePromptsState(SessionState):
         """Loads prompts from the database."""
         with rx.session() as session:
             prompts = session.exec(
-                select(Prompt)
-                .where(Prompt.lecture_id == None)
-                .order_by(Prompt.id)  # type: ignore
+                select(Prompt).where(Prompt.lecture_id == None).order_by(Prompt.id)  # type: ignore
             )
             self.prompts = {p.id: p for p in prompts}
         self.unsaved_changes = False
