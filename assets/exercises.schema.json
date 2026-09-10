@@ -1,0 +1,88 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://ai-tutor.cs.uni-tuebingen.de/exercises.schema.json",
+    "title": "Exercises",
+    "description": "A list of exercises exported from AI Tutor.",
+    "type": "object",
+    "properties": {
+        "prompt_templates": {
+            "description": "Mapping of prompt name to prompt template",
+            "type": "object",
+            "additionalProperties": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 10000
+            },
+            "propertyNames": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 100
+            },
+            "maxProperties": 500
+        },
+        "exercises": {
+            "type": "array",
+            "items": {
+                "description": "The actual exercises",
+                "type": "object",
+                "properties": {
+                    "title": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 500
+                    },
+                    "description": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 10000
+                    },
+                    "lesson_context": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 100000
+                    },
+                    "prompt_name": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 100
+                    },
+                    "is_hidden": {
+                        "type": "boolean"
+                    },
+                    "deadline": {
+                        "type": ["string", "null"],
+                        "minLength": 1,
+                        "maxLength": 40
+                    },
+                    "days_to_complete": {
+                        "type": ["integer", "null"],
+                        "minimum": 1,
+                        "maximum": 9999
+                    },
+                    "tags": {
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 100
+                        },
+                        "maxItems": 50,
+                        "uniqueItems": true
+                    }
+                },
+                "required": [
+                    "title",
+                    "description",
+                    "lesson_context",
+                    "prompt_name",
+                    "is_hidden",
+                    "deadline",
+                    "days_to_complete",
+                    "tags"
+                ]
+            },
+            "maxItems": 500
+        }
+    },
+    "required": ["exercises"]
+}
