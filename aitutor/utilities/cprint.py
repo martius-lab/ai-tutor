@@ -79,8 +79,8 @@ def cprint(
 def showcase() -> None:
     """Showcase the available colors and styles."""
     for style in [None, "bold", "faint"]:
-        for fg in color_codes_fg.keys():
-            for bg in color_codes_bg.keys():
+        for fg in color_codes_fg:
+            for bg in color_codes_bg:
                 cprint(
                     f"fg={fg}, bg={bg}, style={style}",
                     fg=cast(_color_t, fg),
