@@ -102,13 +102,13 @@ class Lecture(SQLModel, table=True):
     default_prompt_id: int | None = Field(default=None)
 
     # ORM relationships
-    user_links: List["LinkUserLecture"] = Relationship(
+    user_links: List[LinkUserLecture] = Relationship(
         back_populates="lecture", sa_relationship_kwargs={"passive_deletes": True}
     )
-    exercises: List["Exercise"] = Relationship(
+    exercises: List[Exercise] = Relationship(
         back_populates="lecture", sa_relationship_kwargs={"passive_deletes": True}
     )
-    tags: List["Tag"] = Relationship(
+    tags: List[Tag] = Relationship(
         back_populates="lecture", sa_relationship_kwargs={"passive_deletes": True}
     )
 
@@ -131,7 +131,7 @@ class LinkUserLecture(SQLModel, table=True):
 
     # ORM relationships
     lecture: Lecture | None = Relationship(back_populates="user_links")
-    user: "LocalUser" | None = Relationship()
+    user: LocalUser | None = Relationship()
 
 
 class ExerciseTagLink(SQLModel, table=True):
@@ -166,7 +166,7 @@ class Tag(SQLModel, table=True):
     )
 
     # ORM relationship
-    exercises: List["Exercise"] = Relationship(
+    exercises: List[Exercise] = Relationship(
         back_populates="tags", link_model=ExerciseTagLink
     )
     lecture: Lecture | None = Relationship(back_populates="tags")
@@ -193,13 +193,13 @@ class Exercise(SQLModel, table=True):
     days_to_complete: int | None = Field(default=None)
 
     # ORM relationship
-    submissions: List["ExerciseResult"] = Relationship(
+    submissions: List[ExerciseResult] = Relationship(
         back_populates="exercise", sa_relationship_kwargs={"passive_deletes": True}
     )
     tags: List[Tag] = Relationship(
         back_populates="exercises", link_model=ExerciseTagLink
     )
-    prompt: "Prompt" | None = Relationship()
+    prompt: Prompt | None = Relationship()
     lecture: Lecture | None = Relationship(back_populates="exercises")
 
     @property
@@ -267,8 +267,8 @@ class ExerciseResult(SQLModel, table=True):
     userinfo_id: int = Field(foreign_key="userinfo.id", ondelete="CASCADE")
 
     # ORM relationships
-    exercise: "Exercise" = Relationship(back_populates="submissions")
-    user: "UserInfo" = Relationship(back_populates="exercise_results")
+    exercise: Exercise = Relationship(back_populates="submissions")
+    user: UserInfo = Relationship(back_populates="exercise_results")
 
     def __repr__(self):
         return (
@@ -290,10 +290,10 @@ class UserInfo(SQLModel, table=True):
     language: Language = Field(default=Language.EN)
 
     # ORM relationship
-    exercise_results: List["ExerciseResult"] = Relationship(
+    exercise_results: List[ExerciseResult] = Relationship(
         back_populates="user", sa_relationship_kwargs={"passive_deletes": True}
     )
-    local_user: "LocalUser" = Relationship()
+    local_user: LocalUser = Relationship()
 
 
 class Permission(SQLModel, table=True):
@@ -419,8 +419,8 @@ class Report(SQLModel, table=True):
         sa_column=Column(JSON), default=[]
     )
 
-    exercise: "Exercise" | None = Relationship()
-    userinfo: "UserInfo" = Relationship()
+    exercise: Exercise | None = Relationship()
+    userinfo: UserInfo = Relationship()
 
 
 class LecturerRegistrationToken(SQLModel, table=True):
