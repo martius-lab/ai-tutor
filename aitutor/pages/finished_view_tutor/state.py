@@ -6,7 +6,7 @@ import reflex as rx
 from reflex_local_auth import LocalUser
 from sqlmodel import select
 
-import aitutor.routes as routes
+from aitutor import routes
 from aitutor.auth.protection import state_require_role_or_permission
 from aitutor.auth.state import SessionState
 from aitutor.models import Exercise, ExerciseResult, UserInfo, UserRole

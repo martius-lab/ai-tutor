@@ -4,7 +4,7 @@ from typing import NamedTuple
 
 import reflex as rx
 
-import aitutor.routes as routes
+from aitutor import routes
 from aitutor.auth.state import SessionState
 from aitutor.language_state import LanguageState
 from aitutor.utilities.lecture_permissions import (
