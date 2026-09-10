@@ -45,7 +45,7 @@ exclude = ["assets"]
 
 
 [tool.ruff]
-lint.select = [
+lint.extend-select = [
     "E",
     "F",
     "B",  # bugbear
