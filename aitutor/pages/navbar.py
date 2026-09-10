@@ -7,7 +7,7 @@ from typing import Optional
 
 import reflex as rx
 
-import aitutor.routes as routes
+from aitutor import routes
 from aitutor._version import version
 from aitutor.auth.protection import has_permission, lecture_has_role_at_least
 from aitutor.auth.state import SessionState

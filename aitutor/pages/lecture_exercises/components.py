@@ -5,7 +5,7 @@ from datetime import datetime
 import reflex as rx
 
 import aitutor.global_vars as gv
-import aitutor.routes as routes
+from aitutor import routes
 from aitutor.language_state import LanguageState
 from aitutor.models import Exercise, ExerciseResult
 from aitutor.pages.lecture_exercises.state import (

@@ -4,7 +4,7 @@ import reflex as rx
 from sqlalchemy.exc import IntegrityError
 from sqlmodel import or_, select
 
-import aitutor.routes as routes
+from aitutor import routes
 from aitutor.auth.protection import state_require_lecture_role
 from aitutor.auth.state import SessionState
 from aitutor.language_state import BackendTranslations as BT

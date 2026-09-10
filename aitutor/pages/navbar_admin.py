@@ -2,7 +2,7 @@
 
 import reflex as rx
 
-import aitutor.routes as routes
+from aitutor import routes
 from aitutor.language_state import LanguageState
 
 admin_links = [

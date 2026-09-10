@@ -8,7 +8,7 @@ import sys
 
 import reflex as rx
 
-import aitutor.routes as routes
+from aitutor import routes
 from aitutor import pages
 from aitutor.config import get_config
 from aitutor.env_settings import get_env_settings

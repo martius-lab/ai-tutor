@@ -8,7 +8,7 @@ import reflex as rx
 import reflex_local_auth
 from sqlmodel import select
 
-import aitutor.routes as routes
+from aitutor import routes
 from aitutor.models import GlobalPermission, Language, Permission, UserInfo, UserRole
 
 
