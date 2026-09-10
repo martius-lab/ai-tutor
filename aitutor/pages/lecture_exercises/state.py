@@ -253,7 +253,7 @@ class LectureExercisesState(FilterMixin, SessionState):
                 key=lambda ex_wth_res: (
                     ex_wth_res[0].deadline
                     if ex_wth_res[0].deadline is not None
-                    else datetime.max
+                    else datetime.max.replace(tzinfo=ZoneInfo(TIME_ZONE))
                 )
             )
 
@@ -262,7 +262,7 @@ class LectureExercisesState(FilterMixin, SessionState):
                 key=lambda ex_wth_res: (
                     ex_wth_res[0].deadline
                     if ex_wth_res[0].deadline is not None
-                    else datetime.min
+                    else datetime.min.replace(tzinfo=ZoneInfo(TIME_ZONE))
                 ),
                 reverse=True,
             )

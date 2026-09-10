@@ -5,6 +5,7 @@ import json
 from datetime import datetime
 from enum import Enum
 from typing import override
+from zoneinfo import ZoneInfo
 
 import pdfplumber
 import reflex as rx
@@ -311,7 +312,7 @@ class LectureManageExercisesState(FilterMixin, SessionState):
             },
             indent=4,
         )
-        timestamp = datetime.today().date().isoformat()
+        timestamp = datetime.now(tz=ZoneInfo(gv.TIME_ZONE)).date().isoformat()
 
         return rx.download(
             data=json_data, filename=f"aitutor-exercises-{timestamp}.json"
