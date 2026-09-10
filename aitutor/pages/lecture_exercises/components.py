@@ -45,7 +45,7 @@ def render_exercise_card(exercise_with_res: ExerciseWithResult) -> rx.Component:
     """Render exercises as cards"""
     exercise: Exercise = exercise_with_res[0]
     result: ExerciseResult | None = exercise_with_res[1]
-    is_submitted = (result != None) & (  # noqa: E711
+    is_submitted = (result != None) & (
         result.finished_conversation.length() > 0  # type: ignore
     )
     return rx.hstack(

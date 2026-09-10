@@ -408,7 +408,7 @@ class LectureManagePromptsState(SessionState):
                 select(Prompt)
                 .where(
                     or_(
-                        Prompt.lecture_id == None,  # noqa: E711
+                        Prompt.lecture_id == None,
                         Prompt.lecture_id == self.current_lecture_id,
                     )
                 )
