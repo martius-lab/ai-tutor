@@ -15,6 +15,7 @@
             },
             "propertyNames": {
                 "type": "string",
+                "minLength": 1,
                 "maxLength": 100
             },
             "maxProperties": 500
@@ -73,6 +74,7 @@
                     "title",
                     "description",
                     "lesson_context",
+                    "prompt_name",
                     "is_hidden",
                     "deadline",
                     "days_to_complete",
