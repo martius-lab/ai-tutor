@@ -2,7 +2,6 @@
 
 from datetime import datetime
 from enum import StrEnum
-from typing import Optional
 from zoneinfo import ZoneInfo
 
 import reflex as rx
@@ -159,7 +158,7 @@ class ChatState(SessionState):
 
     _exercise_id: int
     messages: list[ChatMessage] = []
-    current_exercise: Optional[Exercise] = None
+    current_exercise: Exercise | None = None
     exercise_title: str = "No Exercise Selected"
     system_message_gpt: str
     waiting_for_response: bool = False

@@ -3,7 +3,6 @@ This module defines the navbar components for the Reflex application.
 """
 
 from dataclasses import dataclass
-from typing import Optional
 
 import reflex as rx
 
@@ -56,7 +55,7 @@ def get_links():
     ]
 
 
-def is_highlighted(route_to_highlight: Optional[str], url: str) -> rx.Var[bool]:
+def is_highlighted(route_to_highlight: str | None, url: str) -> rx.Var[bool]:
     """
     Determines if a navigation link should be highlighted based on the current route.
     """
@@ -72,7 +71,7 @@ def is_highlighted(route_to_highlight: Optional[str], url: str) -> rx.Var[bool]:
 
 
 def navbar_link_desktop(
-    link: NavbarLink, route_to_highlight: Optional[str]
+    link: NavbarLink, route_to_highlight: str | None
 ) -> rx.Component:
     """Creates a navigation link component for the desktop menu.
 
@@ -96,7 +95,7 @@ def navbar_link_desktop(
     )
 
 
-def navbar_link_mobile(link: NavbarLink, route_to_highlight: Optional[str]):
+def navbar_link_mobile(link: NavbarLink, route_to_highlight: str | None):
     """Creates a navigation link component for the mobile menu.
 
     Args:
@@ -267,7 +266,7 @@ def profile_menu() -> rx.Component:
     )
 
 
-def navbar(route_to_highlight: Optional[str]) -> rx.Component:
+def navbar(route_to_highlight: str | None) -> rx.Component:
     """
     Creates the default navigation bar component for the application.
 
@@ -379,7 +378,7 @@ def legal_footer() -> rx.Component:
     )
 
 
-def with_navbar(route_to_highlight: Optional[str] = None):
+def with_navbar(route_to_highlight: str | None = None):
     """
     Decorator to add a navigation bar to a component.
 

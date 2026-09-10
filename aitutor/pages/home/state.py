@@ -2,7 +2,6 @@
 
 from collections.abc import Sequence
 from datetime import datetime
-from typing import Optional
 from zoneinfo import ZoneInfo
 
 import reflex as rx
@@ -13,7 +12,7 @@ from aitutor.auth.state import SessionState
 from aitutor.global_vars import TIME_ZONE
 from aitutor.models import Exercise, ExerciseResult, Lecture, LinkUserLecture, UserRole
 
-ExerciseWithResult = tuple[Exercise, Optional[ExerciseResult]]
+ExerciseWithResult = tuple[Exercise, ExerciseResult | None]
 LectureExerciseGroup = tuple[Lecture, list[ExerciseWithResult]]
 
 
@@ -132,7 +131,7 @@ class HomeState(SessionState):
 
     def _group_exercises_by_lecture(
         self,
-        rows: Sequence[tuple[Exercise, Optional[ExerciseResult], Lecture]],
+        rows: Sequence[tuple[Exercise, ExerciseResult | None, Lecture]],
     ) -> list[LectureExerciseGroup]:
         """Group exercise rows by lecture while preserving query order."""
         grouped: dict[int, LectureExerciseGroup] = {}
