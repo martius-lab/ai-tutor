@@ -1410,6 +1410,14 @@ Please test the chat for functionality after changing the model.
     def report_submitted_conversation(self) -> str:
         return self.translate(de="Eingereichter Chat:", en="Submitted Conversation:")
 
+    @rx.var
+    def beta_ai_privacy_addendum(self) -> str:
+        """Privacy addendum shown on the Beta AI student exercise page."""
+        return self.translate(
+            de='**Ergänzung zur Datenschutzerklärung:** Eingereichte Konversationen von "Beta AI"-Übungen können in anonymisierter Form über den in der Datenschutzerklärung angegebenen Zeitraum hinaus gespeichert und für Tests verwendet werden, um neue Funktionen zu entwickeln.',
+            en='**Addendum to the Privacy Policy:** Submitted conversations from "Beta AI" exercises may be stored in anonymized form beyond the period specified in the privacy policy and used for testing to develop new features.',
+        )
+
     # Lecture Strings -----------------------------------------------------------------------------
     @rx.var
     def lecture_name(self) -> str:
