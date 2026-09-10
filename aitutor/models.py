@@ -2,7 +2,7 @@
 
 from datetime import datetime, timedelta
 from enum import IntEnum, StrEnum
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 from zoneinfo import ZoneInfo
 
 import pydantic
@@ -93,13 +93,13 @@ class LectureRole(IntEnum):
 class Lecture(SQLModel, table=True):
     """Lecture model for storing lecture-specific settings."""
 
-    id: Optional[int] = Field(default=None, primary_key=True)
+    id: int | None = Field(default=None, primary_key=True)
     lecture_name: str = Field(nullable=False, default="", unique=True)
     lecturer_name: str = Field(nullable=False, default="")
     registration_code: str = Field(nullable=False, default="")
     lecture_information_text: str = Field(nullable=False, default="")
     check_conversation_prompt: str = Field(nullable=False, default="")
-    default_prompt_id: Optional[int] = Field(default=None)
+    default_prompt_id: int | None = Field(default=None)
 
     # ORM relationships
     user_links: List["LinkUserLecture"] = Relationship(
@@ -121,17 +121,17 @@ class LinkUserLecture(SQLModel, table=True):
     lecture-specific role of that user.
     """
 
-    lecture_id: Optional[int] = Field(
+    lecture_id: int | None = Field(
         foreign_key="lecture.id", primary_key=True, ondelete="CASCADE"
     )
-    user_id: Optional[int] = Field(
+    user_id: int | None = Field(
         foreign_key="localuser.id", primary_key=True, ondelete="CASCADE"
     )
     role: LectureRole = Field(nullable=False)
 
     # ORM relationships
-    lecture: Optional[Lecture] = Relationship(back_populates="user_links")
-    user: Optional["LocalUser"] = Relationship()
+    lecture: Lecture | None = Relationship(back_populates="user_links")
+    user: "LocalUser" | None = Relationship()
 
 
 class ExerciseTagLink(SQLModel, table=True):
@@ -140,10 +140,10 @@ class ExerciseTagLink(SQLModel, table=True):
     """
 
     # database relationships
-    exercise_id: Optional[int] = Field(
+    exercise_id: int | None = Field(
         foreign_key="exercise.id", primary_key=True, ondelete="CASCADE"
     )
-    tag_id: Optional[int] = Field(
+    tag_id: int | None = Field(
         foreign_key="tag.id", primary_key=True, ondelete="CASCADE"
     )
 
@@ -159,9 +159,9 @@ class Tag(SQLModel, table=True):
         ),
     )
 
-    id: Optional[int] = Field(default=None, primary_key=True)
+    id: int | None = Field(default=None, primary_key=True)
     name: str = Field(nullable=False)
-    lecture_id: Optional[int] = Field(
+    lecture_id: int | None = Field(
         default=None, foreign_key="lecture.id", ondelete="CASCADE"
     )
 
@@ -169,7 +169,7 @@ class Tag(SQLModel, table=True):
     exercises: List["Exercise"] = Relationship(
         back_populates="tags", link_model=ExerciseTagLink
     )
-    lecture: Optional[Lecture] = Relationship(back_populates="tags")
+    lecture: Lecture | None = Relationship(back_populates="tags")
 
     def __repr__(self):
         return f"<Tag(name='{self.name}')>"
@@ -178,19 +178,19 @@ class Tag(SQLModel, table=True):
 class Exercise(SQLModel, table=True):
     """Exercise model for storing exercises."""
 
-    id: Optional[int] = Field(default=None, primary_key=True)
+    id: int | None = Field(default=None, primary_key=True)
     title: str = Field(nullable=False, default="")
     description: str = Field(nullable=False, default="")
     lesson_context: str = Field(nullable=False, default="")
-    prompt_id: Optional[int] = Field(default=None, foreign_key="prompt.id")
-    lecture_id: Optional[int] = Field(
+    prompt_id: int | None = Field(default=None, foreign_key="prompt.id")
+    lecture_id: int | None = Field(
         default=None, foreign_key="lecture.id", ondelete="CASCADE", index=True
     )
     is_hidden: bool = Field(default=False)
-    deadline: Optional[datetime] = Field(
+    deadline: datetime | None = Field(
         sa_column=Column(DateTime, nullable=True), default=None
     )
-    days_to_complete: Optional[int] = Field(default=None)
+    days_to_complete: int | None = Field(default=None)
 
     # ORM relationship
     submissions: List["ExerciseResult"] = Relationship(
@@ -199,8 +199,8 @@ class Exercise(SQLModel, table=True):
     tags: List[Tag] = Relationship(
         back_populates="exercises", link_model=ExerciseTagLink
     )
-    prompt: Optional["Prompt"] = Relationship()
-    lecture: Optional[Lecture] = Relationship(back_populates="exercises")
+    prompt: "Prompt" | None = Relationship()
+    lecture: Lecture | None = Relationship(back_populates="exercises")
 
     @property
     def editing_period(self) -> str:
@@ -248,13 +248,13 @@ class ExerciseResult(SQLModel, table=True):
     ExerciseResult model for storing conversation and result of an exercise and a user.
     """
 
-    id: Optional[int] = Field(default=None, primary_key=True)
+    id: int | None = Field(default=None, primary_key=True)
     conversation_text: List[Dict[str, Any]] = Field(sa_column=Column(JSON), default=[])
     check_passed: bool = Field(default=False)
     finished_conversation: List[Dict[str, Any]] = Field(
         sa_column=Column(JSON), default=[]
     )
-    submit_time_stamp: Optional[datetime] = Field(
+    submit_time_stamp: datetime | None = Field(
         sa_column=Column(
             type_=DateTime(timezone=True),
         ),
@@ -283,7 +283,7 @@ class UserInfo(SQLModel, table=True):
     Adds more attributes to a user than just name and password.
     """
 
-    id: Optional[int] = Field(default=None, primary_key=True)
+    id: int | None = Field(default=None, primary_key=True)
     user_id: int = Field(foreign_key="localuser.id", ondelete="CASCADE")
     email: str
     role: UserRole
@@ -319,7 +319,7 @@ class Config(SQLModel, table=True):
     # make sure there is only one row in the table
     __table_args__ = (CheckConstraint("id = 1", name="only_one_row"),)
 
-    id: Optional[int] = Field(default=1, primary_key=True)
+    id: int | None = Field(default=1, primary_key=True)
 
     #: Name of the AI model used for the exercise conversations.  Which models are
     #: available depends on the used provider.
@@ -354,11 +354,11 @@ class Prompt(SQLModel, table=True):
     Table for storing prompt templates.
     """
 
-    id: Optional[int] = Field(default=None, primary_key=True)
+    id: int | None = Field(default=None, primary_key=True)
     name: str = Field(nullable=False)
     prompt_template: str = Field(nullable=False, default="")
     is_default_prompt: bool = Field(default=False)
-    lecture_id: Optional[int] = Field(
+    lecture_id: int | None = Field(
         default=None, foreign_key="lecture.id", ondelete="CASCADE", index=True
     )
 
@@ -384,8 +384,8 @@ class Report(SQLModel, table=True):
         user: Relationship to the user who submitted the report.
     """
 
-    id: Optional[int] = Field(default=None, primary_key=True)
-    exercise_id: Optional[int] = Field(
+    id: int | None = Field(default=None, primary_key=True)
+    exercise_id: int | None = Field(
         default=None,
         sa_column=Column(
             "exercise_id",
@@ -396,7 +396,7 @@ class Report(SQLModel, table=True):
             nullable=True,
         ),
     )
-    lecture_id: Optional[int] = Field(
+    lecture_id: int | None = Field(
         default=None,
         sa_column=Column(
             "lecture_id",
@@ -419,7 +419,7 @@ class Report(SQLModel, table=True):
         sa_column=Column(JSON), default=[]
     )
 
-    exercise: Optional["Exercise"] = Relationship()
+    exercise: "Exercise" | None = Relationship()
     userinfo: "UserInfo" = Relationship()
 
 
@@ -431,7 +431,7 @@ class LecturerRegistrationToken(SQLModel, table=True):
     permission.
     """
 
-    id: Optional[int] = Field(default=None, primary_key=True)
+    id: int | None = Field(default=None, primary_key=True)
     token: str = Field(nullable=False, unique=True)
     created_by: int = Field(
         foreign_key="localuser.id", nullable=False, ondelete="CASCADE"

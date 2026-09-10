@@ -1,6 +1,5 @@
 """The state for the finished view page."""
 
-from typing import Optional
 
 import reflex as rx
 from sqlmodel import select
@@ -19,7 +18,7 @@ class FinishedViewState(SessionState):
 
     _exercise_id: int
     messages: list[ChatMessage] = []
-    current_exercise: Optional[Exercise] = None
+    current_exercise: Exercise | None = None
     exercise_title: str = "No Exercise Selected"
     current_lecture_id: int | None = None
 

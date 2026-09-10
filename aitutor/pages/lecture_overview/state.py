@@ -1,7 +1,6 @@
 """State for the lecture overview page."""
 
 from datetime import datetime
-from typing import Optional
 from zoneinfo import ZoneInfo
 
 import reflex as rx
@@ -22,7 +21,7 @@ class LectureOverviewState(SessionState):
     lecture_name: str = ""
     lecturer_name: str = ""
     lecture_information_text: str = ""
-    exercises_with_result: list[tuple[Exercise, Optional[ExerciseResult]]] = []
+    exercises_with_result: list[tuple[Exercise, ExerciseResult | None]] = []
 
     @rx.event
     @state_require_lecture_role(LectureRole.STUDENT)

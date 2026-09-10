@@ -1,6 +1,5 @@
 """Components for the configuration page."""
 
-from typing import Optional
 
 import reflex as rx
 
@@ -23,7 +22,7 @@ def input(
     heading: rx.Var[str],
     value: str | rx.Var[str],
     on_change,
-    info: Optional[rx.Component] = None,
+    info: rx.Component | None = None,
     **props,
 ) -> rx.Component:
     """Returns an input field with a heading."""
@@ -51,7 +50,7 @@ def text_area(
     heading: rx.Var[str],
     value: str,
     on_change,
-    info: Optional[rx.Component] = None,
+    info: rx.Component | None = None,
     **props,
 ) -> rx.Component:
     """Returns a text area with a heading."""

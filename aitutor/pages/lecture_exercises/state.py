@@ -1,7 +1,7 @@
 """State for the exercises page."""
 
 from datetime import datetime
-from typing import Optional, override
+from typing import override
 from zoneinfo import ZoneInfo
 
 import reflex as rx
@@ -17,7 +17,7 @@ from aitutor.models import Exercise, ExerciseResult, Lecture, LectureRole, Tag, 
 from aitutor.utilities.filtering_components import FilterMixin
 from aitutor.utilities.lecture_permissions import user_may_view_lecture
 
-ExerciseWithResult = tuple[Exercise, Optional[ExerciseResult]]
+ExerciseWithResult = tuple[Exercise, ExerciseResult | None]
 
 
 class LectureExercisesState(FilterMixin, SessionState):

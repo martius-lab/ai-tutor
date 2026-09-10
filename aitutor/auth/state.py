@@ -2,7 +2,7 @@
 The state for managing user sessions.
 """
 
-from typing import Callable, Optional
+from typing import Callable
 
 import reflex as rx
 import reflex_local_auth
@@ -51,7 +51,7 @@ class SessionState(reflex_local_auth.LocalAuthState):
                 session.commit()
 
     @rx.var(cache=True, initial_value=None)
-    def authenticated_user_info(self) -> Optional[UserInfo]:
+    def authenticated_user_info(self) -> UserInfo | None:
         """
         Retrieves information about the currently authenticated user.
 

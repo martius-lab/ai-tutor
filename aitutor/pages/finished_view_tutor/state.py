@@ -1,6 +1,5 @@
 """The state for the finished view page."""
 
-from typing import Optional
 
 import reflex as rx
 from reflex_local_auth import LocalUser
@@ -18,7 +17,7 @@ class FinishedViewTutorState(SessionState):
     """The State for the finished view."""
 
     messages: list[ChatMessage] = []
-    current_exercise: Optional[Exercise] = None
+    current_exercise: Exercise | None = None
     username: str
     exercise_title: str = "No Exercise Selected"
     current_lecture_id: int | None = None
