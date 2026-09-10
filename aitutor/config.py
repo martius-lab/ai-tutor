@@ -1,6 +1,9 @@
 """Configuration management of the application."""
 
+import json
+import pathlib
 import secrets
+from functools import cache
 
 import reflex as rx
 
@@ -95,3 +98,13 @@ def get_config() -> Config:
             banner_message_type=_parse_banner_message_type(_config.banner_message_type),
             banner_is_open=_config.banner_is_open,
         )
+
+
+@cache
+def get_exercises_json_schema() -> dict:
+    """Get the JSON schema for exercises."""
+    assets_path = pathlib.Path(__file__).parent.parent / "assets"
+    schema_path = assets_path / "exercises.schema.json"
+
+    with open(schema_path) as f:
+        return json.load(f)
