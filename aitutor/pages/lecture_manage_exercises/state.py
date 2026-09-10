@@ -6,6 +6,7 @@ from datetime import datetime
 from enum import Enum
 from typing import override
 
+import jsonschema
 import pdfplumber
 import reflex as rx
 from sqlalchemy.orm import selectinload
@@ -15,6 +16,7 @@ import aitutor.global_vars as gv
 import aitutor.routes as routes
 from aitutor.auth.protection import state_require_lecture_role
 from aitutor.auth.state import SessionState
+from aitutor.config import get_exercises_json_schema
 from aitutor.language_state import BackendTranslations as BT
 from aitutor.models import (
     Exercise,
@@ -372,8 +374,16 @@ class LectureManageExercisesState(FilterMixin, SessionState):
             except json.JSONDecodeError:
                 raise ValueError("Invalid JSON file.") from None
 
+            # Validate JSON against schema
+            schema = get_exercises_json_schema()
+            try:
+                jsonschema.validate(instance=data, schema=schema)
+            except jsonschema.ValidationError as e:
+                msg = f"Invalid data format: {e.message}"
+                raise ValueError(msg) from None
+
             prompt_templates = data.get("prompt_templates", {})
-            exercises_list = data.get("exercises", [])
+            exercises_list = data["exercises"]
 
             MAX_EXERCISES_IMPORT = 500
             if len(exercises_list) > MAX_EXERCISES_IMPORT:
@@ -446,25 +456,6 @@ class LectureManageExercisesState(FilterMixin, SessionState):
 
                 # --- 3. Process Exercises ---
                 for ex_data in exercises_list:
-                    # validate required fields
-                    required_fields = [
-                        "title",
-                        "description",
-                        "lesson_context",
-                        "is_hidden",
-                        "deadline",
-                        "days_to_complete",
-                        "tags",
-                    ]
-                    missing_fields = [
-                        field for field in required_fields if field not in ex_data
-                    ]
-                    if missing_fields:
-                        raise ValueError(
-                            "Missing field in exercise data: "
-                            f"{', '.join(missing_fields)}"
-                        )
-
                     # Handle Title Duplicates
                     title = ex_data["title"]
                     original_title = title
