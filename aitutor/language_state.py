@@ -1418,24 +1418,26 @@ Please test the chat for functionality after changing the model.
     @rx.var
     def beta_ai_student_exercises(self) -> str:
         return self.translate(
-            de="Beta-AI-Übungen für Studierende", en="Beta AI Student Exercises"
+            de="Übungen für Studierende in Beta AI", en="Beta AI Student Exercises"
         )
 
     @rx.var
     def beta_ai_exercises(self) -> str:
-        return self.translate(de="Beta-AI-Übungen", en="Beta AI Exercises")
+        return self.translate(de="Übungen in Beta AI", en="Beta AI Exercises")
 
     @rx.var
     def beta_ai_diagnosis_lab(self) -> str:
-        return self.translate(de="Beta-AI-Diagnoselabor", en="Beta AI Diagnosis Lab")
+        return self.translate(
+            de="Diagnoselabor von Beta AI", en="Beta AI Diagnosis Lab"
+        )
 
     @rx.var
     def beta_ai_submissions(self) -> str:
-        return self.translate(de="Beta-AI-Abgaben", en="Beta AI Submissions")
+        return self.translate(de="Abgaben in Beta AI", en="Beta AI Submissions")
 
     @rx.var
     def beta_ai_trace_logs(self) -> str:
-        return self.translate(de="Beta-AI-Trace-Protokolle", en="Beta AI Trace Logs")
+        return self.translate(de="Traceprotokolle von Beta AI", en="Beta AI Trace Logs")
 
     @rx.var
     def beta_ai_student_exercises_nav(self) -> str:
@@ -1447,27 +1449,27 @@ Please test the chat for functionality after changing the model.
 
     @rx.var
     def beta_ai_trace_logs_nav(self) -> str:
-        return self.translate(de="Trace-Protokolle", en="Trace Logs")
+        return self.translate(de="Traceprotokolle", en="Trace Logs")
 
     @rx.var
     def beta_ai_privacy_addendum(self) -> str:
         """Privacy addendum shown on the Beta AI student exercise page."""
         return self.translate(
-            de='**Ergänzung zur Datenschutzerklärung:** Eingereichte Konversationen von "Beta AI"-Übungen können in anonymisierter Form über den in der Datenschutzerklärung angegebenen Zeitraum hinaus gespeichert und für Tests verwendet werden, um neue Funktionen zu entwickeln.',
+            de='**Ergänzung zur Datenschutzerklärung:** Eingereichte Konversationen aus Übungen in "Beta AI" können in anonymisierter Form über den in der Datenschutzerklärung angegebenen Zeitraum hinaus gespeichert und für Tests verwendet werden, um neue Funktionen zu entwickeln.',
             en='**Addendum to the Privacy Policy:** Submitted conversations from "Beta AI" exercises may be stored in anonymized form beyond the period specified in the privacy policy and used for testing to develop new features.',
         )
 
     @rx.var
     def beta_ai_choose_exercise(self) -> str:
         return self.translate(
-            de="Wähle eine Beta-AI-Übung aus und öffne den Chat.",
+            de="Wähle eine Übung in Beta AI aus und öffne den Chat.",
             en="Choose a Beta AI exercise and open the chat.",
         )
 
     @rx.var
     def beta_ai_no_visible_exercises(self) -> str:
         return self.translate(
-            de="Derzeit sind keine sichtbaren Beta-AI-Übungen verfügbar.",
+            de="Derzeit sind keine sichtbaren Übungen in Beta AI verfügbar.",
             en="No visible Beta AI exercises are available yet.",
         )
 
@@ -1478,13 +1480,13 @@ Please test the chat for functionality after changing the model.
     @rx.var
     def beta_ai_submitted_chat(self) -> str:
         return self.translate(
-            de="Eingereichter Beta-AI-Chat", en="Submitted Beta AI Chat"
+            de="Eingereichter Chat in Beta AI", en="Submitted Beta AI Chat"
         )
 
     @rx.var
     def beta_ai_view_submission(self) -> str:
         return self.translate(
-            de="Deine Beta-AI-Abgabe ansehen", en="View your Beta AI submission"
+            de="Deine Abgabe in Beta AI ansehen", en="View your Beta AI submission"
         )
 
     @rx.var
@@ -1508,7 +1510,7 @@ Please test the chat for functionality after changing the model.
 
     @rx.var
     def beta_ai_chat_badge(self) -> str:
-        return self.translate(de="Beta-Chat", en="Beta Chat")
+        return self.translate(de="Beta Chat", en="Beta Chat")
 
     @rx.var
     def beta_ai_no_messages(self) -> str:
@@ -1535,20 +1537,20 @@ Please test the chat for functionality after changing the model.
     @rx.var
     def beta_ai_builder_subtitle(self) -> str:
         return self.translate(
-            de="Erstelle eigenständige Beta-AI-Tutor-Übungen aus PDF-Dateien",
+            de="Erstelle eigenständige Übungen für den Beta AI Tutor aus Dokumenten im PDF-Format",
             en="Create independent Beta AI Tutor exercises from PDFs",
         )
 
     @rx.var
     def beta_ai_saved_exercises(self) -> str:
         return self.translate(
-            de="Gespeicherte Beta-AI-Übungen", en="Saved Beta AI Exercises"
+            de="Gespeicherte Übungen in Beta AI", en="Saved Beta AI Exercises"
         )
 
     @rx.var
     def beta_ai_no_saved_exercises(self) -> str:
         return self.translate(
-            de="Noch keine Beta-AI-Übungen gespeichert.",
+            de="Noch keine Übungen in Beta AI gespeichert.",
             en="No Beta AI exercises saved yet.",
         )
 
@@ -1561,13 +1563,13 @@ Please test the chat for functionality after changing the model.
     @rx.var
     def beta_ai_delete_exercise_question(self) -> str:
         return self.translate(
-            de="Beta-AI-Übung löschen: ", en="Delete Beta AI exercise: "
+            de="Übung in Beta AI löschen: ", en="Delete Beta AI exercise: "
         )
 
     @rx.var
     def beta_ai_delete_exercise_description(self) -> str:
         return self.translate(
-            de="Diese Aktion kann nicht rückgängig gemacht werden. Beim Löschen dieser Beta-AI-Übung werden auch ihre Konzepte, Kernpunkte, Fehlvorstellungen, alle Chats und Ergebnisse der Studierenden, Trace-Protokolle und Lernstände gelöscht.",
+            de="Diese Aktion kann nicht rückgängig gemacht werden. Beim Löschen dieser Übung in Beta AI werden auch ihre Konzepte, Kernpunkte, Fehlvorstellungen, alle Chats und Ergebnisse der Studierenden, Traceprotokolle und Lernstände gelöscht.",
             en="This cannot be undone. Deleting this Beta AI exercise also deletes its concepts, core points, misconceptions, all student chats/results, trace logs, and student concept states for this exercise.",
         )
 
@@ -1617,7 +1619,7 @@ Please test the chat for functionality after changing the model.
     @rx.var
     def beta_ai_drop_pdfs(self) -> str:
         return self.translate(
-            de="Lege hier eine oder mehrere Vorlesungs-PDFs ab.",
+            de="Lege hier ein oder mehrere PDF-Dokumente der Vorlesung ab.",
             en="Drop one or more lecture PDFs here.",
         )
 
@@ -1642,7 +1644,7 @@ Please test the chat for functionality after changing the model.
     @rx.var
     def beta_ai_generation_targets_info(self) -> str:
         return self.translate(
-            de="Ungefähre Anzahlen, die im KI-Prompt verwendet werden.",
+            de="Ungefähre Anzahlen, die im Prompt für die KI verwendet werden.",
             en="Approximate counts used by the AI prompt.",
         )
 
@@ -1703,14 +1705,14 @@ Please test the chat for functionality after changing the model.
     @rx.var
     def beta_ai_diagnosis_subtitle(self) -> str:
         return self.translate(
-            de="Prüfe gespeicherte Konzeptdaten und führe für die Kernpunkte des ausgewählten Konzepts eine strukturierte LLM-Diagnose durch.",
+            de="Prüfe gespeicherte Konzeptdaten und führe für die Kernpunkte des ausgewählten Konzepts eine strukturierte Diagnose mit dem LLM durch.",
             en="Inspect saved concept data and run structured LLM diagnosis against the selected concept's core points.",
         )
 
     @rx.var
     def beta_ai_select_exercise_step(self) -> str:
         return self.translate(
-            de="1. Beta-AI-Übung auswählen", en="1. Select Beta AI Exercise"
+            de="1. Übung in Beta AI auswählen", en="1. Select Beta AI Exercise"
         )
 
     @rx.var
@@ -1774,7 +1776,7 @@ Please test the chat for functionality after changing the model.
     @rx.var
     def beta_ai_diagnosis_actions_info(self) -> str:
         return self.translate(
-            de="Nutze die schnelle Testdiagnose für UI-Prüfungen oder OpenAI für eine strukturierte Diagnose anhand der ausgewählten Kernpunkte.",
+            de="Nutze die schnelle Testdiagnose für Prüfungen der Benutzeroberfläche oder OpenAI für eine strukturierte Diagnose anhand der ausgewählten Kernpunkte.",
             en="Run the cheap mock diagnosis for UI checks or call OpenAI for a structured diagnosis against the selected core points.",
         )
 
@@ -1784,7 +1786,9 @@ Please test the chat for functionality after changing the model.
 
     @rx.var
     def beta_ai_run_llm_diagnosis(self) -> str:
-        return self.translate(de="LLM-Diagnose ausführen", en="Run LLM Diagnosis")
+        return self.translate(
+            de="Diagnose mit dem LLM ausführen", en="Run LLM Diagnosis"
+        )
 
     @rx.var
     def beta_ai_no_diagnosis(self) -> str:
@@ -1825,12 +1829,14 @@ Please test the chat for functionality after changing the model.
     @rx.var
     def beta_ai_covered_core_point_ids(self) -> str:
         return self.translate(
-            de="Abgedeckte Kernpunkt-IDs", en="Covered Core Point IDs"
+            de="IDs der abgedeckten Kernpunkte", en="Covered Core Point IDs"
         )
 
     @rx.var
     def beta_ai_missing_core_point_ids(self) -> str:
-        return self.translate(de="Fehlende Kernpunkt-IDs", en="Missing Core Point IDs")
+        return self.translate(
+            de="IDs der fehlenden Kernpunkte", en="Missing Core Point IDs"
+        )
 
     @rx.var
     def beta_ai_evidence_snippets(self) -> str:
@@ -1863,12 +1869,12 @@ Please test the chat for functionality after changing the model.
     @rx.var
     def beta_ai_suggested_tutor_prompt(self) -> str:
         return self.translate(
-            de="Vorgeschlagener Tutor-Prompt", en="Suggested tutor prompt"
+            de="Vorgeschlagener Prompt für den Tutor", en="Suggested tutor prompt"
         )
 
     @rx.var
     def beta_ai_audit_trace_preview(self) -> str:
-        return self.translate(de="Vorschau des Audit-Traces", en="Audit Trace Preview")
+        return self.translate(de="Vorschau des Audit Trace", en="Audit Trace Preview")
 
     @rx.var
     def beta_ai_audit_trace_info(self) -> str:
@@ -1884,21 +1890,21 @@ Please test the chat for functionality after changing the model.
     @rx.var
     def beta_ai_no_submissions(self) -> str:
         return self.translate(
-            de="Noch keine abgegebenen Beta-AI-Übungen.",
+            de="Noch keine abgegebenen Übungen in Beta AI.",
             en="No submitted Beta AI exercises yet.",
         )
 
     @rx.var
     def beta_ai_trace_logs_subtitle(self) -> str:
         return self.translate(
-            de="Prüfe gespeicherte Beta-AI-Chats und die Diagnose-/Strategie-Traces der einzelnen Gesprächsschritte.",
+            de="Prüfe gespeicherte Chats in Beta AI sowie die Diagnose und Strategie der einzelnen Gesprächsschritte.",
             en="Inspect persisted Beta AI chat conversations and per-turn diagnosis/policy traces.",
         )
 
     @rx.var
     def beta_ai_persisted_trace_logs(self) -> str:
         return self.translate(
-            de="Gespeicherte Trace-Protokolle", en="Persisted Trace Logs"
+            de="Gespeicherte Traceprotokolle", en="Persisted Trace Logs"
         )
 
     @rx.var
@@ -1908,7 +1914,7 @@ Please test the chat for functionality after changing the model.
     @rx.var
     def beta_ai_no_trace_logs(self) -> str:
         return self.translate(
-            de="Noch keine Beta-AI-Trace-Protokolle vorhanden.",
+            de="Noch keine Traceprotokolle von Beta AI vorhanden.",
             en="No Beta AI trace logs found yet.",
         )
 
@@ -1922,9 +1928,7 @@ Please test the chat for functionality after changing the model.
 
     @rx.var
     def beta_ai_selected_trace_log(self) -> str:
-        return self.translate(
-            de="Ausgewähltes Trace-Protokoll", en="Selected Trace Log"
-        )
+        return self.translate(de="Ausgewähltes Traceprotokoll", en="Selected Trace Log")
 
     @rx.var
     def beta_ai_policy_based_on(self) -> str:
@@ -1955,7 +1959,7 @@ Please test the chat for functionality after changing the model.
     @rx.var
     def beta_ai_full_trace_history_json(self) -> str:
         return self.translate(
-            de="Vollständiger Trace-Verlauf (JSON)", en="Full Trace History JSON"
+            de="Vollständiger Verlauf der Traces (JSON)", en="Full Trace History JSON"
         )
 
     # Lecture Strings -----------------------------------------------------------------------------
@@ -2228,27 +2232,31 @@ class BackendTranslations:
     def beta_ai_exercise_not_found(language: Language) -> str:
         return translate(
             language,
-            de="Beta-AI-Übung nicht gefunden.",
+            de="Übung in Beta AI nicht gefunden.",
             en="Beta AI exercise not found.",
         )
 
     @staticmethod
     def beta_ai_exercise_deleted(language: Language) -> str:
         return translate(
-            language, de="Beta-AI-Übung gelöscht.", en="Beta AI exercise deleted."
+            language, de="Übung in Beta AI gelöscht.", en="Beta AI exercise deleted."
         )
 
     @staticmethod
     def beta_ai_pdf_extraction_failed(language: Language, error: object) -> str:
         return translate(
             language,
-            de=f"PDF-Text konnte nicht extrahiert werden: {error}",
+            de=f"Text konnte nicht aus dem PDF-Dokument extrahiert werden: {error}",
             en=f"Failed to extract PDF text: {error}",
         )
 
     @staticmethod
     def beta_ai_pdf_extracted(language: Language) -> str:
-        return translate(language, de="PDF-Text extrahiert.", en="PDF text extracted.")
+        return translate(
+            language,
+            de="Text aus dem PDF-Dokument extrahiert.",
+            en="PDF text extracted.",
+        )
 
     @staticmethod
     def beta_ai_generation_failed(language: Language, error: object) -> str:
@@ -2308,7 +2316,7 @@ class BackendTranslations:
     def beta_ai_title_exists(language: Language) -> str:
         return translate(
             language,
-            de="Eine Beta-AI-Übung mit diesem Titel existiert bereits. Bitte wähle einen anderen Titel.",
+            de="Eine Übung mit diesem Titel existiert bereits in Beta AI. Bitte wähle einen anderen Titel.",
             en="A Beta AI exercise with this title already exists. Please choose a different title.",
         )
 
@@ -2316,14 +2324,14 @@ class BackendTranslations:
     def beta_ai_save_failed(language: Language, error: object) -> str:
         return translate(
             language,
-            de=f"Beta-AI-Übung konnte nicht gespeichert werden: {error}",
+            de=f"Übung in Beta AI konnte nicht gespeichert werden: {error}",
             en=f"Failed to save Beta AI exercise: {error}",
         )
 
     @staticmethod
     def beta_ai_exercise_saved(language: Language) -> str:
         return translate(
-            language, de="Beta-AI-Übung gespeichert.", en="Beta AI exercise saved."
+            language, de="Übung in Beta AI gespeichert.", en="Beta AI exercise saved."
         )
 
     @staticmethod
@@ -2344,7 +2352,7 @@ class BackendTranslations:
     def beta_ai_concept_not_found(language: Language) -> str:
         return translate(
             language,
-            de="Beta-AI-Konzept nicht gefunden.",
+            de="Konzept in Beta AI nicht gefunden.",
             en="Beta AI concept not found.",
         )
 
@@ -2352,28 +2360,32 @@ class BackendTranslations:
     def beta_ai_llm_diagnosis_failed(language: Language, error: object) -> str:
         return translate(
             language,
-            de=f"LLM-Diagnose fehlgeschlagen: {error}",
+            de=f"Diagnose mit dem LLM fehlgeschlagen: {error}",
             en=f"LLM diagnosis failed: {error}",
         )
 
     @staticmethod
     def beta_ai_llm_diagnosis_completed(language: Language) -> str:
         return translate(
-            language, de="LLM-Diagnose abgeschlossen.", en="LLM diagnosis completed."
+            language,
+            de="Diagnose mit dem LLM abgeschlossen.",
+            en="LLM diagnosis completed.",
         )
 
     @staticmethod
     def beta_ai_complete_before_submit(language: Language) -> str:
         return translate(
             language,
-            de="Bearbeite zuerst alle Beta-AI-Konzepte, bevor du einreichst.",
+            de="Bearbeite zuerst alle Konzepte der Übung in Beta AI, bevor du einreichst.",
             en="Complete all Beta AI concepts before submitting.",
         )
 
     @staticmethod
     def beta_ai_submitted(language: Language) -> str:
         return translate(
-            language, de="Beta-AI-Übung eingereicht.", en="Beta AI exercise submitted."
+            language,
+            de="Übung in Beta AI eingereicht.",
+            en="Beta AI exercise submitted.",
         )
 
     @staticmethod
@@ -2396,7 +2408,7 @@ class BackendTranslations:
     def beta_ai_no_selected_exercise(language: Language) -> str:
         return translate(
             language,
-            de="Keine Beta-AI-Übung ausgewählt",
+            de="Keine Übung in Beta AI ausgewählt",
             en="No Beta AI exercise selected",
         )
 
@@ -2442,14 +2454,14 @@ class BackendTranslations:
     @staticmethod
     def beta_ai_trace_entries(language: Language, count: int) -> str:
         return translate(
-            language, de=f"Trace-Einträge: {count}", en=f"Trace entries: {count}"
+            language, de=f"Anzahl der Traces: {count}", en=f"Trace entries: {count}"
         )
 
     @staticmethod
     def beta_ai_trace_log_id(language: Language, trace_id: int) -> str:
         return translate(
             language,
-            de=f"Trace-Protokoll-ID: {trace_id}",
+            de=f"ID des Traceprotokolls: {trace_id}",
             en=f"Trace log id: {trace_id}",
         )
 
@@ -2565,7 +2577,7 @@ class BackendTranslations:
     def beta_ai_all_concepts_completed(language: Language) -> str:
         return translate(
             language,
-            de="Sehr gut, du hast alle Konzepte dieser Beta-AI-Übung auf den erforderlichen Ebenen bearbeitet. Du kannst deine Unterhaltung jetzt einreichen.",
+            de="Sehr gut, du hast alle Konzepte dieser Übung in Beta AI auf den erforderlichen Ebenen bearbeitet. Du kannst deine Unterhaltung jetzt einreichen.",
             en="Great, you have completed all concepts in this Beta AI exercise at the required levels. You can now submit your conversation.",
         )
 
@@ -2590,7 +2602,7 @@ class BackendTranslations:
     def beta_ai_trace_logs_not_found(language: Language) -> str:
         return translate(
             language,
-            de="Keine Beta-AI-Trace-Protokolle gefunden.",
+            de="Keine Traceprotokolle von Beta AI gefunden.",
             en="Beta AI trace logs not found.",
         )
 
@@ -2598,7 +2610,7 @@ class BackendTranslations:
     def beta_ai_result_not_found(language: Language) -> str:
         return translate(
             language,
-            de="Verknüpfte Beta-AI-Abgabe nicht gefunden.",
+            de="Verknüpfte Abgabe in Beta AI nicht gefunden.",
             en="Linked Beta AI exercise result not found.",
         )
 
@@ -2606,7 +2618,7 @@ class BackendTranslations:
     def beta_ai_trace_log_not_found(language: Language) -> str:
         return translate(
             language,
-            de="Beta-AI-Trace-Protokoll nicht gefunden.",
+            de="Traceprotokoll von Beta AI nicht gefunden.",
             en="Beta AI trace log not found.",
         )
 
