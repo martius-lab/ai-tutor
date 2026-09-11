@@ -1437,7 +1437,9 @@ Please test the chat for functionality after changing the model.
 
     @rx.var
     def beta_ai_trace_logs(self) -> str:
-        return self.translate(de="Traceprotokolle von Beta AI", en="Beta AI Trace Logs")
+        return self.translate(
+            de="Ablaufprotokolle von Beta AI", en="Beta AI Trace Logs"
+        )
 
     @rx.var
     def beta_ai_student_exercises_nav(self) -> str:
@@ -1449,7 +1451,7 @@ Please test the chat for functionality after changing the model.
 
     @rx.var
     def beta_ai_trace_logs_nav(self) -> str:
-        return self.translate(de="Traceprotokolle", en="Trace Logs")
+        return self.translate(de="Ablaufprotokolle", en="Trace Logs")
 
     @rx.var
     def beta_ai_privacy_addendum(self) -> str:
@@ -1504,7 +1506,7 @@ Please test the chat for functionality after changing the model.
     @rx.var
     def beta_ai_chat_diagnosis_info(self) -> str:
         return self.translate(
-            de="Dieser Chat diagnostiziert jede Nachricht einzeln und verwendet anschließend die gesammelten Hinweise zum Konzept für die weiteren Lernschritte.",
+            de="Jede Nachricht wird einzeln ausgewertet. Für die weiteren Lernschritte werden anschließend alle bisher gesammelten Hinweise zum Konzept berücksichtigt.",
             en="This chat diagnoses each message as a latest turn, then uses cumulative concept evidence for policy decisions.",
         )
 
@@ -1523,7 +1525,7 @@ Please test the chat for functionality after changing the model.
     @rx.var
     def beta_ai_latest_diagnosis(self) -> str:
         return self.translate(
-            de="Letzte Diagnose / Vorschau der Lernstrategie",
+            de="Letzte Diagnose und Vorschau der Lernstrategie",
             en="Latest Diagnosis / Policy Preview",
         )
 
@@ -1569,7 +1571,7 @@ Please test the chat for functionality after changing the model.
     @rx.var
     def beta_ai_delete_exercise_description(self) -> str:
         return self.translate(
-            de="Diese Aktion kann nicht rückgängig gemacht werden. Beim Löschen dieser Übung in Beta AI werden auch ihre Konzepte, Kernpunkte, Fehlvorstellungen, alle Chats und Ergebnisse der Studierenden, Traceprotokolle und Lernstände gelöscht.",
+            de="Diese Aktion kann nicht rückgängig gemacht werden. Beim Löschen dieser Übung in Beta AI werden auch ihre Konzepte, Kernpunkte, Fehlvorstellungen, alle Chats und Ergebnisse der Studierenden, Ablaufprotokolle und Lernstände gelöscht.",
             en="This cannot be undone. Deleting this Beta AI exercise also deletes its concepts, core points, misconceptions, all student chats/results, trace logs, and student concept states for this exercise.",
         )
 
@@ -1644,7 +1646,7 @@ Please test the chat for functionality after changing the model.
     @rx.var
     def beta_ai_generation_targets_info(self) -> str:
         return self.translate(
-            de="Ungefähre Anzahlen, die im Prompt für die KI verwendet werden.",
+            de="Richtwerte für die Anzahl der Inhalte, die mit der KI generiert werden.",
             en="Approximate counts used by the AI prompt.",
         )
 
@@ -1804,7 +1806,7 @@ Please test the chat for functionality after changing the model.
     @rx.var
     def beta_ai_final_pattern(self) -> str:
         return self.translate(
-            de="Finales, von der Anwendung normalisiertes Muster",
+            de="Von der Anwendung abschließend normalisiertes Muster",
             en="Final app-normalized pattern",
         )
 
@@ -1856,7 +1858,7 @@ Please test the chat for functionality after changing the model.
 
     @rx.var
     def beta_ai_focus_core_point(self) -> str:
-        return self.translate(de="Fokussierter Kernpunkt", en="Focus core point")
+        return self.translate(de="Kernpunkt im Fokus", en="Focus core point")
 
     @rx.var
     def beta_ai_feedback_brief(self) -> str:
@@ -1874,12 +1876,14 @@ Please test the chat for functionality after changing the model.
 
     @rx.var
     def beta_ai_audit_trace_preview(self) -> str:
-        return self.translate(de="Vorschau des Audit Trace", en="Audit Trace Preview")
+        return self.translate(
+            de="Vorschau des Prüfprotokolls", en="Audit Trace Preview"
+        )
 
     @rx.var
     def beta_ai_audit_trace_info(self) -> str:
         return self.translate(
-            de="Reproduzierbare Vorschau der Diagnose, Validierung und ausgewählten Strategieregel. Noch nicht gespeichert.",
+            de="Nachvollziehbare Vorschau der Diagnose, ihrer Validierung und der ausgewählten Strategieregel. Noch nicht gespeichert.",
             en="Replayable preview of the diagnosis, validation, and selected policy rule. Not persisted yet.",
         )
 
@@ -1904,7 +1908,7 @@ Please test the chat for functionality after changing the model.
     @rx.var
     def beta_ai_persisted_trace_logs(self) -> str:
         return self.translate(
-            de="Gespeicherte Traceprotokolle", en="Persisted Trace Logs"
+            de="Gespeicherte Ablaufprotokolle", en="Persisted Trace Logs"
         )
 
     @rx.var
@@ -1914,13 +1918,13 @@ Please test the chat for functionality after changing the model.
     @rx.var
     def beta_ai_no_trace_logs(self) -> str:
         return self.translate(
-            de="Noch keine Traceprotokolle von Beta AI vorhanden.",
+            de="Noch keine Ablaufprotokolle von Beta AI vorhanden.",
             en="No Beta AI trace logs found yet.",
         )
 
     @rx.var
     def beta_ai_trace_count(self) -> str:
-        return self.translate(de="Anzahl Traces", en="Trace count")
+        return self.translate(de="Anzahl der Protokolle", en="Trace count")
 
     @rx.var
     def beta_ai_updated_at(self) -> str:
@@ -1928,11 +1932,15 @@ Please test the chat for functionality after changing the model.
 
     @rx.var
     def beta_ai_selected_trace_log(self) -> str:
-        return self.translate(de="Ausgewähltes Traceprotokoll", en="Selected Trace Log")
+        return self.translate(
+            de="Ausgewähltes Ablaufprotokoll", en="Selected Trace Log"
+        )
 
     @rx.var
     def beta_ai_policy_based_on(self) -> str:
-        return self.translate(de="Strategie basiert auf: ", en="Policy based on: ")
+        return self.translate(
+            de="Grundlage der Lernstrategie: ", en="Policy based on: "
+        )
 
     @rx.var
     def beta_ai_conversation_json(self) -> str:
@@ -1954,12 +1962,14 @@ Please test the chat for functionality after changing the model.
 
     @rx.var
     def beta_ai_latest_trace_json(self) -> str:
-        return self.translate(de="Letzter Trace (JSON)", en="Latest Trace JSON")
+        return self.translate(
+            de="Letztes Ablaufprotokoll (JSON)", en="Latest Trace JSON"
+        )
 
     @rx.var
     def beta_ai_full_trace_history_json(self) -> str:
         return self.translate(
-            de="Vollständiger Verlauf der Traces (JSON)", en="Full Trace History JSON"
+            de="Vollständiger Protokollverlauf (JSON)", en="Full Trace History JSON"
         )
 
     # Lecture Strings -----------------------------------------------------------------------------
@@ -2454,14 +2464,16 @@ class BackendTranslations:
     @staticmethod
     def beta_ai_trace_entries(language: Language, count: int) -> str:
         return translate(
-            language, de=f"Anzahl der Traces: {count}", en=f"Trace entries: {count}"
+            language,
+            de=f"Einträge im Ablaufprotokoll: {count}",
+            en=f"Trace entries: {count}",
         )
 
     @staticmethod
     def beta_ai_trace_log_id(language: Language, trace_id: int) -> str:
         return translate(
             language,
-            de=f"ID des Traceprotokolls: {trace_id}",
+            de=f"ID des Ablaufprotokolls: {trace_id}",
             en=f"Trace log id: {trace_id}",
         )
 
@@ -2602,7 +2614,7 @@ class BackendTranslations:
     def beta_ai_trace_logs_not_found(language: Language) -> str:
         return translate(
             language,
-            de="Keine Traceprotokolle von Beta AI gefunden.",
+            de="Keine Ablaufprotokolle von Beta AI gefunden.",
             en="Beta AI trace logs not found.",
         )
 
@@ -2618,7 +2630,7 @@ class BackendTranslations:
     def beta_ai_trace_log_not_found(language: Language) -> str:
         return translate(
             language,
-            de="Traceprotokoll von Beta AI nicht gefunden.",
+            de="Ablaufprotokoll von Beta AI nicht gefunden.",
             en="Beta AI trace log not found.",
         )
 
