@@ -3,13 +3,18 @@
 import reflex as rx
 
 import aitutor.routes as routes
+from aitutor.language_state import LanguageState as LS
 
 beta_ai_links = [
-    ("Student Exercises", routes.BETA_AI_STUDENT_EXERCISES, "graduation-cap"),
-    ("Beta AI Exercises", routes.BETA_AI_EXERCISES, "sparkles"),
-    ("Diagnosis Lab", routes.BETA_AI_DIAGNOSIS_LAB, "microscope"),
-    ("Submissions", routes.BETA_AI_SUBMISSIONS, "circle-check"),
-    ("Trace Logs", routes.BETA_AI_TRACE_LOGS, "list-tree"),
+    (
+        LS.beta_ai_student_exercises_nav,
+        routes.BETA_AI_STUDENT_EXERCISES,
+        "graduation-cap",
+    ),
+    (LS.beta_ai_exercises, routes.BETA_AI_EXERCISES, "sparkles"),
+    (LS.beta_ai_diagnosis_lab_nav, routes.BETA_AI_DIAGNOSIS_LAB, "microscope"),
+    (LS.submissions_link, routes.BETA_AI_SUBMISSIONS, "circle-check"),
+    (LS.beta_ai_trace_logs_nav, routes.BETA_AI_TRACE_LOGS, "list-tree"),
 ]
 
 

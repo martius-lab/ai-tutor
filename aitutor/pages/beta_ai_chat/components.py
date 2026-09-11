@@ -3,6 +3,7 @@
 import reflex as rx
 
 import aitutor.global_vars as gv
+from aitutor.language_state import LanguageState as LS
 from aitutor.pages.beta_ai_chat.state import BetaAIChatState
 
 
@@ -13,7 +14,7 @@ def beta_chat_header() -> rx.Component:
             rx.hstack(
                 rx.heading(BetaAIChatState.exercise_title, size="6"),
                 rx.spacer(),
-                rx.badge("Beta Chat", color_scheme="purple"),
+                rx.badge(LS.beta_ai_chat_badge, color_scheme="purple"),
                 width="100%",
                 align="center",
             ),
@@ -24,7 +25,7 @@ def beta_chat_header() -> rx.Component:
             rx.cond(
                 BetaAIChatState.source_material_filename,
                 rx.callout(
-                    "Source file: " + BetaAIChatState.source_material_filename,
+                    LS.beta_ai_source_file + BetaAIChatState.source_material_filename,
                     icon="file-text",
                     width="100%",
                 ),
@@ -38,7 +39,7 @@ def beta_chat_header() -> rx.Component:
                 rx.badge(BetaAIChatState.concept_progress_label, color_scheme="purple"),
                 rx.button(
                     rx.icon("chevron-left"),
-                    "Previous concept",
+                    LS.beta_ai_previous_concept,
                     size="2",
                     variant="soft",
                     on_click=BetaAIChatState.go_to_previous_concept,
@@ -50,7 +51,7 @@ def beta_chat_header() -> rx.Component:
                     ),
                 ),
                 rx.button(
-                    "Next concept",
+                    LS.beta_ai_next_concept,
                     rx.icon("chevron-right"),
                     size="2",
                     variant="soft",
@@ -83,8 +84,7 @@ def beta_chat_header() -> rx.Component:
                 white_space="pre-wrap",
             ),
             rx.callout(
-                "This chat diagnoses each message as a latest turn, then "
-                "uses cumulative concept evidence for policy decisions.",
+                LS.beta_ai_chat_diagnosis_info,
                 icon="info",
                 width="100%",
             ),
@@ -133,7 +133,7 @@ def messages_panel() -> rx.Component:
         rx.auto_scroll(
             rx.cond(
                 BetaAIChatState.messages.length() == 0,  # type: ignore
-                rx.callout("No messages yet.", icon="info", width="100%"),
+                rx.callout(LS.beta_ai_no_messages, icon="info", width="100%"),
                 rx.foreach(BetaAIChatState.messages, chat_message),
             ),
             scroll_to_bottom_on_update=True,
@@ -154,7 +154,7 @@ def message_input() -> rx.Component:
     def text_area_with_key_submit(with_key_submit: bool) -> rx.Component:
         return rx.text_area(
             name="student_message",
-            placeholder="Your answer",
+            placeholder=LS.your_answer,
             value=BetaAIChatState.student_message,
             on_change=BetaAIChatState.set_student_message,
             required=True,
@@ -202,7 +202,7 @@ def message_input() -> rx.Component:
 def beta_submit_button() -> rx.Component:
     """Render the Beta AI submit button in the chat action row."""
     return rx.button(
-        "Submit",
+        LS.submit,
         color_scheme="green",
         type="button",
         on_click=BetaAIChatState.submit_beta_conversation,
@@ -232,11 +232,11 @@ def beta_submission_status() -> rx.Component:
                         _hover={"cursor": "pointer"},
                     ),
                 ),
-                rx.hover_card.content(rx.text("View your Beta AI submission")),
+                rx.hover_card.content(rx.text(LS.beta_ai_view_submission)),
             ),
             rx.desktop_only(
                 rx.text(
-                    "Last submit: " + BetaAIChatState.submit_time_stamp,
+                    LS.beta_ai_last_submit + BetaAIChatState.submit_time_stamp,
                     color_scheme="green",
                 ),
             ),
@@ -245,7 +245,7 @@ def beta_submission_status() -> rx.Component:
         ),
         rx.hstack(
             rx.icon("info", size=20),
-            rx.text("Not submitted yet"),
+            rx.text(LS.not_submitted_yet),
             spacing="1",
             align="center",
         ),
@@ -256,7 +256,7 @@ def diagnosis_status_card() -> rx.Component:
     """Render the latest diagnosis and policy status."""
     return rx.card(
         rx.vstack(
-            rx.heading("Latest Diagnosis / Policy Preview", size="4"),
+            rx.heading(LS.beta_ai_latest_diagnosis, size="4"),
             rx.hstack(
                 rx.badge(
                     BetaAIChatState.trace_history_count_label,
@@ -296,7 +296,7 @@ def diagnosis_status_card() -> rx.Component:
                     width="100%",
                 ),
                 rx.callout(
-                    "No diagnosis has been run in this chat yet.",
+                    LS.beta_ai_no_diagnosis_chat,
                     icon="info",
                     width="100%",
                 ),
