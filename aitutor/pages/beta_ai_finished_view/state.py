@@ -14,7 +14,7 @@ class BetaAIFinishedViewState(SessionState):
 
     _beta_exercise_id: int
     messages: list[dict[str, str]] = []
-    exercise_title: str = "No Beta AI exercise selected"
+    exercise_title: str = ""
 
     @rx.event
     @state_require_role_or_permission(required_role=UserRole.STUDENT)
@@ -54,7 +54,7 @@ class BetaAIFinishedViewState(SessionState):
     def on_logout(self):
         """Clear state on logout."""
         self.messages = []
-        self.exercise_title = "No Beta AI exercise selected"
+        self.exercise_title = ""
 
     @rx.var
     def chat_url(self) -> str:

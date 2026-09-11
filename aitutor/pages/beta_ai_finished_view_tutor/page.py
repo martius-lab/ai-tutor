@@ -4,6 +4,7 @@ import reflex as rx
 
 from aitutor import routes
 from aitutor.auth.protection import page_require_role_or_permission
+from aitutor.language_state import LanguageState as LS
 from aitutor.models import UserRole
 from aitutor.pages.beta_ai_chat.components import chat_message
 from aitutor.pages.beta_ai_finished_view_tutor.state import BetaAIFinishedViewTutorState
@@ -25,18 +26,18 @@ def beta_ai_finished_view_tutor_page() -> rx.Component:
                         on_click=rx.redirect(routes.BETA_AI_SUBMISSIONS),
                         _hover={"cursor": "pointer"},
                     ),
-                    rx.heading("Submitted Beta AI Chat", size="5"),
+                    rx.heading(LS.beta_ai_submitted_chat, size="5"),
                     align="center",
                 ),
                 rx.hstack(
                     rx.icon("book", size=18),
-                    rx.text("Exercise:", weight="bold"),
+                    rx.text(LS.exercise + ":", weight="bold"),
                     rx.text(BetaAIFinishedViewTutorState.exercise_title),
                     align="center",
                 ),
                 rx.hstack(
                     rx.icon("user-round", size=18),
-                    rx.text("User:", weight="bold"),
+                    rx.text(LS.user + ":", weight="bold"),
                     rx.text(BetaAIFinishedViewTutorState.username),
                     align="center",
                 ),

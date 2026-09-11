@@ -3,6 +3,7 @@
 import reflex as rx
 
 import aitutor.routes as routes
+from aitutor.language_state import LanguageState as LS
 from aitutor.models import BetaExercise
 from aitutor.pages.beta_ai_student_exercises.state import BetaAIStudentExercisesState
 
@@ -10,9 +11,9 @@ from aitutor.pages.beta_ai_student_exercises.state import BetaAIStudentExercises
 def student_exercises_header() -> rx.Component:
     """Render the page header."""
     return rx.vstack(
-        rx.heading("Beta AI Student Exercises", size="7"),
+        rx.heading(LS.beta_ai_student_exercises, size="7"),
         rx.text(
-            "Choose a Beta AI exercise and open the chat.",
+            LS.beta_ai_choose_exercise,
             color_scheme="gray",
         ),
         align="start",
@@ -35,7 +36,7 @@ def beta_exercise_card(exercise: BetaExercise) -> rx.Component:
             rx.hstack(
                 rx.button(
                     rx.icon("message-circle"),
-                    "Open Chat",
+                    LS.beta_ai_open_chat,
                     variant="soft",
                     on_click=rx.redirect(routes.BETA_AI_CHAT + f"/{exercise.id}"),
                     _hover={"cursor": "pointer"},
@@ -58,7 +59,7 @@ def beta_ai_student_exercises_content() -> rx.Component:
         rx.cond(
             BetaAIStudentExercisesState.beta_exercises.length() == 0,  # type: ignore
             rx.callout(
-                "No visible Beta AI exercises are available yet.",
+                LS.beta_ai_no_visible_exercises,
                 icon="info",
                 width="100%",
             ),
