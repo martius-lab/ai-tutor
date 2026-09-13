@@ -43,7 +43,6 @@ def get_links():
     return [
         NavbarLink(LanguageState.home_link, routes.HOME, "house"),
         NavbarLink(LanguageState.lectures_link, routes.MY_LECTURES, "graduation-cap"),
-        NavbarLink(LanguageState.beta_ai, routes.BETA_AI_STUDENT_EXERCISES, "sparkles"),
         rx.cond(
             lecture_has_role_at_least(UserRole.ADMIN)
             | has_permission(GlobalPermission.MAINTAINER),

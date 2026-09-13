@@ -12,9 +12,12 @@ from aitutor.pages.navbar import with_navbar
 from aitutor.pages.navbar_beta_ai import with_beta_ai_navbar
 
 
-@with_navbar(routes.BETA_AI)
-@with_beta_ai_navbar(routes.BETA_AI_SUBMISSIONS)
-@page_require_role_or_permission(required_role=UserRole.TUTOR)
+@page_require_role_or_permission(required_role=UserRole.STUDENT)
+@with_navbar(routes.LECTURES)
+@with_beta_ai_navbar(
+    routes.BETA_AI_SUBMISSIONS,
+    BetaAIFinishedViewTutorState.current_lecture_id,
+)
 def beta_ai_finished_view_tutor_page() -> rx.Component:
     """Render the tutor Beta AI finished view."""
     return rx.container(
@@ -23,7 +26,9 @@ def beta_ai_finished_view_tutor_page() -> rx.Component:
                 rx.hstack(
                     rx.button(
                         rx.icon("arrow-left", size=20),
-                        on_click=rx.redirect(routes.BETA_AI_SUBMISSIONS),
+                        on_click=rx.redirect(
+                            BetaAIFinishedViewTutorState.submissions_url
+                        ),
                         _hover={"cursor": "pointer"},
                     ),
                     rx.heading(LS.beta_ai_submitted_chat, size="5"),

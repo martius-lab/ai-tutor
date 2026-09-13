@@ -6,7 +6,8 @@ import pdfplumber
 import reflex as rx
 from sqlmodel import select
 
-from aitutor.auth.protection import state_require_role_or_permission
+import aitutor.routes as routes
+from aitutor.auth.protection import state_require_lecture_role
 from aitutor.auth.state import SessionState
 from aitutor.beta_ai.concept_generation import generate_concepts_from_material
 from aitutor.beta_ai.schemas import (
@@ -21,7 +22,8 @@ from aitutor.models import (
     BetaCorePoint,
     BetaExercise,
     BetaMisconception,
-    UserRole,
+    Lecture,
+    LectureRole,
 )
 
 
@@ -34,6 +36,7 @@ class BetaAIExercisesState(SessionState):
     MAX_MISCONCEPTION_TARGET: int = 10
 
     beta_exercises: list[BetaExercise] = []
+    current_lecture_id: int | None = None
     title: str = ""
     description: str = ""
     concept_target_count: int = 8
@@ -111,15 +114,27 @@ class BetaAIExercisesState(SessionState):
         ].label = value
 
     @rx.event
-    @state_require_role_or_permission(required_role=UserRole.TUTOR)
+    @state_require_lecture_role(LectureRole.OWNER)
     def on_load(self):
         """Initialize the page."""
         self.global_load()
+        self.current_lecture_id = None
+        try:
+            lecture_id = self.get_route_param_or_error("lecture_id", dtype=int)
+        except Exception:
+            return rx.redirect(routes.NOT_FOUND)
+
+        with rx.session() as session:
+            if session.get(Lecture, lecture_id) is None:
+                return rx.redirect(routes.NOT_FOUND)
+
+        self.current_lecture_id = lecture_id
         self.load_beta_exercises()
 
     def on_logout(self):
         """Clear state on logout."""
         self.beta_exercises = []
+        self.current_lecture_id = None
         self.reset_builder()
         self.clear_selected_saved_exercise()
 
@@ -203,10 +218,15 @@ class BetaAIExercisesState(SessionState):
         return None
 
     def _beta_exercise_title_exists(self, title: str) -> bool:
-        """Return whether a Beta AI exercise with this exact title already exists."""
+        """Return whether the title exists in the current lecture."""
+        if self.current_lecture_id is None:
+            return False
         with rx.session() as session:
             existing_exercise = session.exec(
-                select(BetaExercise).where(BetaExercise.title == title)
+                select(BetaExercise).where(
+                    BetaExercise.lecture_id == self.current_lecture_id,
+                    BetaExercise.title == title,
+                )
             ).first()
         return existing_exercise is not None
 
@@ -224,11 +244,16 @@ class BetaAIExercisesState(SessionState):
 
     @rx.event
     def load_beta_exercises(self):
-        """Load saved Beta AI exercises."""
+        """Load saved Beta AI exercises from the current lecture."""
+        if self.current_lecture_id is None:
+            self.beta_exercises = []
+            return
         with rx.session() as session:
             self.beta_exercises = list(
                 session.exec(
-                    select(BetaExercise).order_by(BetaExercise.id.desc())  # type: ignore
+                    select(BetaExercise)
+                    .where(BetaExercise.lecture_id == self.current_lecture_id)
+                    .order_by(BetaExercise.id.desc())  # type: ignore
                 ).all()
             )
 
@@ -249,7 +274,7 @@ class BetaAIExercisesState(SessionState):
 
         with rx.session() as session:
             exercise = session.get(BetaExercise, exercise_id)
-            if exercise is None:
+            if exercise is None or exercise.lecture_id != self.current_lecture_id:
                 return rx.toast.error(
                     description=BT.beta_ai_exercise_not_found(self.language),
                     duration=5000,
@@ -309,7 +334,7 @@ class BetaAIExercisesState(SessionState):
 
         with rx.session() as session:
             exercise = session.get(BetaExercise, exercise_id)
-            if exercise is None:
+            if exercise is None or exercise.lecture_id != self.current_lecture_id:
                 return rx.toast.error(
                     description=BT.beta_ai_exercise_not_found(self.language),
                     duration=5000,
@@ -474,6 +499,9 @@ class BetaAIExercisesState(SessionState):
                 invert=True,
             )
 
+        if self.current_lecture_id is None:
+            return rx.redirect(routes.MY_LECTURES)
+
         title = self.title.strip()
         validation_error = self._validate_generated_concepts()
         if validation_error:
@@ -500,6 +528,7 @@ class BetaAIExercisesState(SessionState):
                     description=self.description.strip(),
                     source_material_text=self.source_material_text,
                     source_material_filename=self.source_material_filename,
+                    lecture_id=self.current_lecture_id,
                 )
                 session.add(exercise)
                 session.flush()

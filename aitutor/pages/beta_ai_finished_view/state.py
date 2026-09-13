@@ -7,12 +7,14 @@ import aitutor.routes as routes
 from aitutor.auth.protection import state_require_role_or_permission
 from aitutor.auth.state import SessionState
 from aitutor.models import BetaExercise, BetaExerciseResult, UserRole
+from aitutor.utilities.lecture_permissions import user_may_view_lecture
 
 
 class BetaAIFinishedViewState(SessionState):
     """Student-facing view of a submitted Beta AI conversation."""
 
     _beta_exercise_id: int
+    current_lecture_id: int | None = None
     messages: list[dict[str, str]] = []
     exercise_title: str = ""
 
@@ -21,6 +23,7 @@ class BetaAIFinishedViewState(SessionState):
     def on_load(self):
         """Load the submitted Beta AI conversation for the current student."""
         self.global_load()
+        self.current_lecture_id = None
         userinfo = self.authenticated_user_info
         if userinfo is None or userinfo.id is None:
             yield rx.redirect(routes.LOGIN)
@@ -48,6 +51,20 @@ class BetaAIFinishedViewState(SessionState):
                 yield rx.redirect(routes.NOT_FOUND)
                 return
             exercise, finished_conversation = result
+            if (
+                exercise.lecture_id is None
+                or self.authenticated_user is None
+                or self.authenticated_user.id is None
+                or not user_may_view_lecture(
+                    session,
+                    user_id=self.authenticated_user.id,
+                    global_permissions=self.global_permissions,
+                    lecture_id=exercise.lecture_id,
+                )
+            ):
+                yield rx.redirect(routes.MY_LECTURES)
+                return
+            self.current_lecture_id = exercise.lecture_id
             self.exercise_title = exercise.title
             self.messages = list(finished_conversation)
 
@@ -55,6 +72,7 @@ class BetaAIFinishedViewState(SessionState):
         """Clear state on logout."""
         self.messages = []
         self.exercise_title = ""
+        self.current_lecture_id = None
 
     @rx.var
     def chat_url(self) -> str:

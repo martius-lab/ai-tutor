@@ -50,6 +50,7 @@ from aitutor.models import (
     BetaStudentConceptState,
     UserRole,
 )
+from aitutor.utilities.lecture_permissions import user_may_view_lecture
 
 
 class BetaAIChatState(SessionState):
@@ -63,6 +64,7 @@ class BetaAIChatState(SessionState):
     exercise_description: str = ""
     source_material_filename: str = ""
     current_beta_exercise_id: int | None = None
+    current_lecture_id: int | None = None
     current_userinfo_id: int | None = None
     concepts: list[BetaConcept] = []
     current_concept_index: int = 0
@@ -115,15 +117,35 @@ class BetaAIChatState(SessionState):
             return
 
         try:
-            beta_exercise_id = int(self.beta_exercise_id)  # type: ignore[attr-defined]
-        except TypeError, ValueError:
+            beta_exercise_id = self.get_route_param_or_error(
+                "beta_exercise_id", dtype=int
+            )
+        except Exception:
             yield rx.redirect(routes.NOT_FOUND)
             return
 
         with rx.session() as session:
             exercise = session.get(BetaExercise, beta_exercise_id)
-            if exercise is None or exercise.is_hidden or not exercise.is_started:
+            if (
+                exercise is None
+                or exercise.lecture_id is None
+                or exercise.is_hidden
+                or not exercise.is_started
+            ):
                 yield rx.redirect(routes.NOT_FOUND)
+                return
+
+            if (
+                self.authenticated_user is None
+                or self.authenticated_user.id is None
+                or not user_may_view_lecture(
+                    session,
+                    user_id=self.authenticated_user.id,
+                    global_permissions=self.global_permissions,
+                    lecture_id=exercise.lecture_id,
+                )
+            ):
+                yield rx.redirect(routes.MY_LECTURES)
                 return
 
             concepts = list(
@@ -246,6 +268,7 @@ class BetaAIChatState(SessionState):
         self.exercise_description = exercise.description
         self.source_material_filename = exercise.source_material_filename
         self.current_beta_exercise_id = beta_exercise_id
+        self.current_lecture_id = exercise.lecture_id
         self.current_userinfo_id = userinfo.id
         self.concepts = concepts
         self.current_concept_index = current_concept_index
@@ -422,9 +445,16 @@ class BetaAIChatState(SessionState):
     @rx.var
     def beta_finished_view_url(self) -> str:
         """Return the student's Beta AI finished-view URL for this exercise."""
-        if self.current_beta_exercise_id is None:
-            return routes.BETA_AI_STUDENT_EXERCISES
+        if self.current_beta_exercise_id is None or self.current_lecture_id is None:
+            return routes.MY_LECTURES
         return f"{routes.BETA_AI_FINISHED_VIEW}/{self.current_beta_exercise_id}"
+
+    @rx.var
+    def exercises_url(self) -> str:
+        """Return the Beta AI exercise list for the current lecture."""
+        if self.current_lecture_id is None:
+            return routes.MY_LECTURES
+        return f"{routes.BETA_AI_STUDENT_EXERCISES}/{self.current_lecture_id}"
 
     @rx.var
     def initial_tutor_message(self) -> str:
@@ -452,6 +482,7 @@ class BetaAIChatState(SessionState):
         self.exercise_description = ""
         self.source_material_filename = ""
         self.current_beta_exercise_id = None
+        self.current_lecture_id = None
         self.current_userinfo_id = None
         self.concepts = []
         self.current_concept_index = 0

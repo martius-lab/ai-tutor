@@ -3,16 +3,20 @@
 import reflex as rx
 
 from aitutor import routes
-from aitutor.auth.protection import page_require_role_or_permission
-from aitutor.models import UserRole
+from aitutor.auth.protection import page_require_lecture_role
+from aitutor.models import LectureRole
 from aitutor.pages.beta_ai_submissions.components import beta_ai_submissions_content
+from aitutor.pages.beta_ai_submissions.state import BetaAISubmissionsState
 from aitutor.pages.navbar import with_navbar
 from aitutor.pages.navbar_beta_ai import with_beta_ai_navbar
 
 
-@with_navbar(routes.BETA_AI)
-@with_beta_ai_navbar(routes.BETA_AI_SUBMISSIONS)
-@page_require_role_or_permission(required_role=UserRole.TUTOR)
+@page_require_lecture_role(LectureRole.TUTOR)
+@with_navbar(routes.LECTURES)
+@with_beta_ai_navbar(
+    routes.BETA_AI_SUBMISSIONS,
+    BetaAISubmissionsState.current_lecture_id,
+)
 def beta_ai_submissions_page() -> rx.Component:
     """Render the Beta AI submissions page."""
     return rx.center(
