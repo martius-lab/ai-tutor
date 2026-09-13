@@ -215,27 +215,27 @@ app.add_page(
 
 app.add_page(
     beta_ai_exercises_page,
-    route=routes.BETA_AI_EXERCISES,
+    route=routes.BETA_AI_EXERCISES + "/[lecture_id]",
     on_load=BetaAIExercisesState.on_load,
 )
 app.add_page(
     beta_ai_diagnosis_lab_page,
-    route=routes.BETA_AI_DIAGNOSIS_LAB,
+    route=routes.BETA_AI_DIAGNOSIS_LAB + "/[lecture_id]",
     on_load=BetaAIDiagnosisLabState.on_load,
 )
 app.add_page(
     beta_ai_student_exercises_page,
-    route=routes.BETA_AI_STUDENT_EXERCISES,
+    route=routes.BETA_AI_STUDENT_EXERCISES + "/[lecture_id]",
     on_load=BetaAIStudentExercisesState.on_load,
 )
 app.add_page(
     beta_ai_submissions_page,
-    route=routes.BETA_AI_SUBMISSIONS,
+    route=routes.BETA_AI_SUBMISSIONS + "/[lecture_id]",
     on_load=BetaAISubmissionsState.on_load,
 )
 app.add_page(
     beta_ai_trace_logs_page,
-    route=routes.BETA_AI_TRACE_LOGS,
+    route=routes.BETA_AI_TRACE_LOGS + "/[lecture_id]",
     on_load=BetaAITraceLogsState.on_load,
 )
 
