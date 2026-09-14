@@ -7,8 +7,8 @@ import reflex as rx
 import aitutor.global_vars as gv
 from aitutor import DisplayConfigState, routes
 from aitutor.language_state import LanguageState
-from aitutor.models import Exercise, ExerciseResult, Lecture
-from aitutor.pages.home.state import ExerciseWithResult, HomeState, LectureExerciseGroup
+from aitutor.models import Lecture
+from aitutor.pages.home.state import HomeExerciseCard, HomeState, LectureExerciseGroup
 from aitutor.pages.legal_infos.loader_functions import get_privacy_notice_short
 from aitutor.routes import LOGIN, REGISTER
 
@@ -111,17 +111,20 @@ def dashboard_card():
     )
 
 
-def global_exercise_card(exercise_with_result: ExerciseWithResult) -> rx.Component:
+def global_exercise_card(exercise: HomeExerciseCard) -> rx.Component:
     """Render one exercise on the global home page."""
-    exercise: Exercise = exercise_with_result[0]
-    result: ExerciseResult | None = exercise_with_result[1]
-    is_submitted = (result != None) & (  # noqa: E711
-        result.finished_conversation.length() > 0  # type: ignore
-    )
-
     return rx.card(
         rx.vstack(
-            rx.heading(exercise.title, size="4"),
+            rx.hstack(
+                rx.heading(exercise.title, size="4"),
+                rx.spacer(),
+                rx.cond(
+                    exercise.is_beta,
+                    rx.badge("Beta", color_scheme="purple"),
+                ),
+                width="100%",
+                align="center",
+            ),
             rx.hstack(
                 rx.icon("calendar-clock", size=18),
                 rx.text(LanguageState.deadline, weight="bold", size="2"),
@@ -140,7 +143,7 @@ def global_exercise_card(exercise_with_result: ExerciseWithResult) -> rx.Compone
                 wrap="wrap",
             ),
             rx.cond(
-                is_submitted,
+                exercise.is_submitted,
                 rx.hstack(
                     rx.icon("circle-check", color=gv.GREEN_CHECK_COLOR, size=18),
                     rx.text(LanguageState.view_your_submission, size="2"),
@@ -153,7 +156,7 @@ def global_exercise_card(exercise_with_result: ExerciseWithResult) -> rx.Compone
         ),
         width="100%",
         variant="surface",
-        on_click=rx.redirect(f"{routes.CHAT}/{exercise.id}"),
+        on_click=rx.redirect(exercise.chat_route),
         _hover={"cursor": "pointer"},
     )
 
@@ -161,7 +164,7 @@ def global_exercise_card(exercise_with_result: ExerciseWithResult) -> rx.Compone
 def lecture_exercise_group(group: LectureExerciseGroup) -> rx.Component:
     """Render all global-home exercises belonging to one lecture."""
     lecture: Lecture = group[0]
-    exercises: list[ExerciseWithResult] = group[1]
+    exercises: list[HomeExerciseCard] = group[1]
 
     return rx.vstack(
         rx.link(

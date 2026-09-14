@@ -5,11 +5,9 @@ from datetime import datetime
 import reflex as rx
 
 import aitutor.global_vars as gv
-import aitutor.routes as routes
 from aitutor.language_state import LanguageState
-from aitutor.models import Exercise, ExerciseResult
 from aitutor.pages.lecture_exercises.state import (
-    ExerciseWithResult,
+    ExerciseCard,
     LectureExercisesState,
 )
 from aitutor.utilities.helper_functions import truncate_text_reflex_var
@@ -41,13 +39,8 @@ def filter_options() -> rx.Component:
     )
 
 
-def render_exercise_card(exercise_with_res: ExerciseWithResult) -> rx.Component:
+def render_exercise_card(exercise: ExerciseCard) -> rx.Component:
     """Render exercises as cards"""
-    exercise: Exercise = exercise_with_res[0]
-    result: ExerciseResult | None = exercise_with_res[1]
-    is_submitted = (result != None) & (  # noqa: E711
-        result.finished_conversation.length() > 0  # type: ignore
-    )
     return rx.hstack(
         rx.card(  # create a card for each exercise
             rx.hstack(
@@ -79,11 +72,11 @@ def render_exercise_card(exercise_with_res: ExerciseWithResult) -> rx.Component:
                             rx.text(
                                 rx.cond(
                                     LectureExercisesState.time_left_strings[
-                                        exercise.id
-                                    ],  # type: ignore
+                                        exercise.chat_route
+                                    ],
                                     LectureExercisesState.time_left_strings[
-                                        exercise.id
-                                    ],  # type: ignore
+                                        exercise.chat_route
+                                    ],
                                     LanguageState.deadline_has_passed,
                                 ),
                                 size="2",
@@ -98,7 +91,7 @@ def render_exercise_card(exercise_with_res: ExerciseWithResult) -> rx.Component:
                             rx.hstack(
                                 rx.foreach(
                                     exercise.tags,
-                                    lambda tag: rx.badge(tag.name, variant="soft"),
+                                    lambda tag: rx.badge(tag, variant="soft"),
                                 ),
                                 spacing="2",
                                 wrap="wrap",
@@ -106,7 +99,7 @@ def render_exercise_card(exercise_with_res: ExerciseWithResult) -> rx.Component:
                         ),
                     ),
                     rx.cond(
-                        is_submitted,
+                        exercise.is_submitted,
                         rx.hstack(
                             rx.icon(
                                 "circle-check",
@@ -114,8 +107,7 @@ def render_exercise_card(exercise_with_res: ExerciseWithResult) -> rx.Component:
                                 size=20,
                             ),
                             rx.text(
-                                LanguageState.last_submit
-                                + LectureExercisesState.submit_time_stamps[exercise.id],
+                                LanguageState.last_submit + exercise.submit_time_stamp,
                                 color_scheme="green",
                                 size="2",
                             ),
@@ -125,15 +117,19 @@ def render_exercise_card(exercise_with_res: ExerciseWithResult) -> rx.Component:
                     spacing="2",
                     align="start",
                 ),
+                rx.cond(
+                    exercise.is_beta,
+                    rx.badge("Beta", color_scheme="purple"),
+                ),
                 align="center",
                 justify="between",
             ),
             variant="surface",
             width="100%",
-            on_click=rx.redirect(f"{routes.CHAT}/{exercise.id}"),
+            on_click=rx.redirect(exercise.chat_route),
             _hover={"cursor": "pointer"},
             style=rx.cond(
-                exercise_with_res[0].is_hidden,
+                exercise.is_hidden,
                 {"opacity": "0.5"},
                 {"opacity": "1"},
             ),

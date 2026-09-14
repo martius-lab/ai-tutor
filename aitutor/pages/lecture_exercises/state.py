@@ -1,7 +1,8 @@
 """State for the exercises page."""
 
+from dataclasses import dataclass
 from datetime import datetime
-from typing import Optional, override
+from typing import override
 from zoneinfo import ZoneInfo
 
 import reflex as rx
@@ -13,22 +14,46 @@ import aitutor.routes as routes
 from aitutor.auth.protection import state_require_lecture_role
 from aitutor.auth.state import SessionState
 from aitutor.global_vars import TIME_FORMAT, TIME_ZONE
-from aitutor.models import Exercise, ExerciseResult, Lecture, LectureRole, Tag, UserRole
+from aitutor.models import (
+    BetaExercise,
+    BetaExerciseResult,
+    Exercise,
+    ExerciseResult,
+    Lecture,
+    LectureRole,
+    Tag,
+    UserRole,
+)
 from aitutor.utilities.filtering_components import FilterMixin
 from aitutor.utilities.lecture_permissions import user_may_view_lecture
 
-ExerciseWithResult = tuple[Exercise, Optional[ExerciseResult]]
+
+@dataclass
+class ExerciseCard:
+    """Common card data for Alpha Tutor and Better AI exercises."""
+
+    id: int
+    title: str
+    description: str
+    deadline: datetime | None
+    deadline_exceeded: bool
+    is_hidden: bool
+    is_beta: bool
+    is_submitted: bool
+    submit_time_stamp: str
+    tags: list[str]
+    chat_route: str
 
 
 class LectureExercisesState(FilterMixin, SessionState):
     """State for managing exercises belonging to one lecture."""
 
     _lecture_id: int
-    exercises_with_result: list[ExerciseWithResult] = []
-    open_deadline_exercises: list[ExerciseWithResult] = []
-    no_deadline_exercises: list[ExerciseWithResult] = []
-    closed_deadline_exercises: list[ExerciseWithResult] = []
-    time_left_strings: dict[int, str] = {}  # (exercise_id, time_left_string)
+    exercises_with_result: list[ExerciseCard] = []
+    open_deadline_exercises: list[ExerciseCard] = []
+    no_deadline_exercises: list[ExerciseCard] = []
+    closed_deadline_exercises: list[ExerciseCard] = []
+    time_left_strings: dict[str, str] = {}
     show_submitted_exercises: bool = True
     show_closed_exercises: bool = True
 
@@ -104,23 +129,6 @@ class LectureExercisesState(FilterMixin, SessionState):
                 lecture_id=lecture_id,
             )
 
-    @rx.var
-    def submit_time_stamps(self) -> dict[int, str]:
-        """
-        Dictionary to store submit time stamps for exercises.
-        Key: Exercise ID, Value: Submit Time as string.
-        """
-        return {
-            exercise_with_res[0].id: (
-                exercise_with_res[1].submit_time_stamp.strftime(TIME_FORMAT)
-                if exercise_with_res[1] is not None
-                and exercise_with_res[1].submit_time_stamp is not None
-                else ""
-            )
-            for exercise_with_res in self.exercises_with_result
-            if exercise_with_res[0].id is not None
-        }
-
     @override
     @rx.event
     @state_require_lecture_role(LectureRole.STUDENT)
@@ -131,17 +139,19 @@ class LectureExercisesState(FilterMixin, SessionState):
     @rx.event
     def update_time_left_strings(self):
         """get the datetime time left for every exercise"""
-        for exercise, _ in self.exercises_with_result:
+        for exercise in self.exercises_with_result:
             if exercise.deadline:
                 deadline = exercise.deadline.replace(tzinfo=ZoneInfo(TIME_ZONE))
                 time_left = deadline - datetime.now(ZoneInfo(TIME_ZONE))
                 if time_left.total_seconds() <= 0:
-                    self.time_left_strings[exercise.id] = ""  # type: ignore
+                    self.time_left_strings[exercise.chat_route] = ""
                 else:
                     days = time_left.days
                     hours, remainder = divmod(time_left.seconds, 3600)
                     minutes, _ = divmod(remainder, 60)
-                    self.time_left_strings[exercise.id] = f"{days}d {hours}h {minutes}m"  # type: ignore
+                    self.time_left_strings[exercise.chat_route] = (
+                        f"{days}d {hours}h {minutes}m"
+                    )
 
     def load_exercises(self):
         """
@@ -202,78 +212,134 @@ class LectureExercisesState(FilterMixin, SessionState):
                 # Apply all conditions with AND
                 stmt = stmt.where(and_(*search_conditions))
 
-            # fill self.exercises_with_result
+            # Load Alpha Tutor exercises.
             exercises_with_result = session.exec(
                 stmt.order_by(func.lower(Exercise.title))
             ).all()
-            self.exercises_with_result = [(x[0], x[1]) for x in exercises_with_result]
+            cards = [
+                self._alpha_exercise_card(exercise, result)
+                for exercise, result in exercises_with_result
+                if self.user_role >= UserRole.TUTOR or exercise.is_started
+            ]
+            cards.extend(self._load_beta_exercise_cards(session))
 
-            # set not started exercises as hidden
-            for exercise, _ in self.exercises_with_result:
-                if not exercise.is_started:
-                    exercise.is_hidden = True
+        self.exercises_with_result = cards
+        self._fill_exercise_groups()
+        self.update_time_left_strings()
 
-            # if the user is a student, remove not started exercises
-            assert self.user_role is not None, "User role not set.  This is a bug."
-            if self.user_role < UserRole.TUTOR:
-                self.exercises_with_result = [
-                    ex_res
-                    for ex_res in self.exercises_with_result
-                    if not ex_res[0].is_hidden
-                ]
+    def _alpha_exercise_card(
+        self, exercise: Exercise, result: ExerciseResult | None
+    ) -> ExerciseCard:
+        """Convert an Alpha Tutor exercise to common card data."""
+        assert exercise.id is not None
+        return ExerciseCard(
+            id=exercise.id,
+            title=exercise.title,
+            description=exercise.description,
+            deadline=exercise.deadline,
+            deadline_exceeded=exercise.deadline_exceeded,
+            is_hidden=exercise.is_hidden or not exercise.is_started,
+            is_beta=False,
+            is_submitted=bool(result and result.finished_conversation),
+            submit_time_stamp=(
+                result.submit_time_stamp.strftime(TIME_FORMAT)
+                if result is not None and result.submit_time_stamp is not None
+                else ""
+            ),
+            tags=[tag.name for tag in exercise.tags],
+            chat_route=f"{routes.CHAT}/{exercise.id}",
+        )
 
-            # fill open, closed and no deadline lists
-            self.open_deadline_exercises = []
-            self.no_deadline_exercises = []
-            self.closed_deadline_exercises = []
-            for ex_wth_res in self.exercises_with_result:
-                exercise = ex_wth_res[0]
-                result = ex_wth_res[1]
-
-                # filter submitted exercises
-                is_submitted = (
-                    result is not None and result.submit_time_stamp is not None
-                )
-                if not self.show_submitted_exercises and is_submitted:
-                    continue
-
-                # filter closed exercises
-                if not self.show_closed_exercises and exercise.deadline_exceeded:
-                    continue
-
-                if exercise.deadline_exceeded:
-                    self.closed_deadline_exercises.append(ex_wth_res)
-                elif exercise.deadline is None:
-                    self.no_deadline_exercises.append(ex_wth_res)
-                else:
-                    self.open_deadline_exercises.append(ex_wth_res)
-
-            # sort open_deadline_exercises by deadline ascending
-            self.open_deadline_exercises.sort(
-                key=lambda ex_wth_res: (
-                    ex_wth_res[0].deadline
-                    if ex_wth_res[0].deadline is not None
-                    else datetime.max
-                )
-            )
-
-            # sort closed_deadline_exercises by deadline descending
-            self.closed_deadline_exercises.sort(
-                key=lambda ex_wth_res: (
-                    ex_wth_res[0].deadline
-                    if ex_wth_res[0].deadline is not None
-                    else datetime.min
+    def _load_beta_exercise_cards(self, session) -> list[ExerciseCard]:
+        """Load Better AI exercises as common card data."""
+        stmt = (
+            select(BetaExercise, BetaExerciseResult)
+            .join(
+                BetaExerciseResult,
+                and_(
+                    BetaExercise.id == BetaExerciseResult.beta_exercise_id,
+                    BetaExerciseResult.userinfo_id == self.authenticated_user_info.id,  # type: ignore
                 ),
-                reverse=True,
+                isouter=True,
             )
+            .where(BetaExercise.lecture_id == self._lecture_id)
+        )
 
-            # sort no_deadline_exercises by submitted vs not submitted
-            self.no_deadline_exercises.sort(
-                key=lambda ex_wth_res: (
-                    ex_wth_res[1].submit_time_stamp is not None
-                    if ex_wth_res[1] is not None
-                    else False
-                ),
+        assert self.user_role is not None, "User role not set. This is a bug."
+        if self.user_role < UserRole.TUTOR:
+            stmt = stmt.where(BetaExercise.is_hidden == False)  # noqa: E712
+
+        for key, value in self.search_values:
+            match key:
+                case gv.SEARCH_EXERCISE_TITLE_KEY:
+                    stmt = stmt.where(BetaExercise.title.ilike(f"%{value}%"))  # type: ignore
+                case gv.SEARCH_EXERCISE_DESCRIPTION_KEY:
+                    stmt = stmt.where(BetaExercise.description.ilike(f"%{value}%"))  # type: ignore
+                case gv.SEARCH_TAG_KEY:
+                    return []
+                case _:
+                    stmt = stmt.where(
+                        or_(
+                            BetaExercise.title.ilike(f"%{value}%"),  # type: ignore
+                            BetaExercise.description.ilike(f"%{value}%"),  # type: ignore
+                        )
+                    )
+
+        cards = []
+        for exercise, result in session.exec(stmt).all():
+            if exercise.id is None:
+                continue
+            if self.user_role < UserRole.TUTOR and not exercise.is_started:
+                continue
+            cards.append(
+                ExerciseCard(
+                    id=exercise.id,
+                    title=exercise.title,
+                    description=exercise.description,
+                    deadline=exercise.deadline,
+                    deadline_exceeded=exercise.deadline_exceeded,
+                    is_hidden=exercise.is_hidden or not exercise.is_started,
+                    is_beta=True,
+                    is_submitted=bool(
+                        result is not None and result.finished_conversation
+                    ),
+                    submit_time_stamp=(
+                        result.submit_time_stamp.strftime(TIME_FORMAT)
+                        if result is not None and result.submit_time_stamp is not None
+                        else ""
+                    ),
+                    tags=[],
+                    chat_route=f"{routes.BETA_AI_CHAT}/{exercise.id}",
+                )
             )
+        return cards
 
-            self.update_time_left_strings()
+    def _fill_exercise_groups(self):
+        """Apply the existing filters and sorting to all exercise cards."""
+        self.open_deadline_exercises = []
+        self.no_deadline_exercises = []
+        self.closed_deadline_exercises = []
+
+        for exercise in self.exercises_with_result:
+            if not self.show_submitted_exercises and exercise.is_submitted:
+                continue
+            if not self.show_closed_exercises and exercise.deadline_exceeded:
+                continue
+
+            if exercise.deadline_exceeded:
+                self.closed_deadline_exercises.append(exercise)
+            elif exercise.deadline is None:
+                self.no_deadline_exercises.append(exercise)
+            else:
+                self.open_deadline_exercises.append(exercise)
+
+        self.open_deadline_exercises.sort(
+            key=lambda exercise: exercise.deadline or datetime.max
+        )
+        self.closed_deadline_exercises.sort(
+            key=lambda exercise: exercise.deadline or datetime.min,
+            reverse=True,
+        )
+        self.no_deadline_exercises.sort(
+            key=lambda exercise: (exercise.is_submitted, exercise.title.lower())
+        )
