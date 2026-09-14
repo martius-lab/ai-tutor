@@ -451,10 +451,10 @@ class BetaAIChatState(SessionState):
 
     @rx.var
     def exercises_url(self) -> str:
-        """Return the Beta AI exercise list for the current lecture."""
+        """Return the exercise list URL for the current lecture."""
         if self.current_lecture_id is None:
             return routes.MY_LECTURES
-        return f"{routes.BETA_AI_STUDENT_EXERCISES}/{self.current_lecture_id}"
+        return f"{routes.LECTURE_EXERCISES}/{self.current_lecture_id}"
 
     @rx.var
     def initial_tutor_message(self) -> str:

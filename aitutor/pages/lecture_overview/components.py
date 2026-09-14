@@ -45,7 +45,7 @@ def lecture_information_content() -> rx.Component:
 
 def lecture_dashboard_card() -> rx.Component:
     """Render the lecture-specific dashboard card."""
-    exercises_num = LectureOverviewState.exercises_with_result.length()  # type: ignore
+    exercises_num = LectureOverviewState.exercises_num
 
     return rx.card(
         rx.vstack(
