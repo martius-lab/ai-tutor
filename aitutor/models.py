@@ -1,6 +1,8 @@
 """Module defining database models."""
 # ruff: file-ignore[UP045] -- `x | None` does not seem to work for SQLAlchemy
 
+import hashlib
+import secrets
 from datetime import datetime, timedelta
 from enum import IntEnum, StrEnum
 from typing import Any, Optional
@@ -20,7 +22,10 @@ from sqlmodel import (
     SQLModel,
 )
 
-from aitutor.global_vars import TIME_ZONE
+from aitutor.global_vars import (
+    TIME_ZONE,
+    VERIFICATION_TOKEN_VALIDITY,
+)
 
 # For alembic to properly work, we need to set explicit naming conventions for
 # constraints.  See https://alembic.sqlalchemy.org/en/latest/naming.html
@@ -89,6 +94,15 @@ class LectureRole(IntEnum):
     def names(cls) -> tuple[str, ...]:
         """Return a tuple of all role name strings."""
         return tuple(role.name for role in cls)
+
+
+class VerificationPurpose(StrEnum):
+    """Enum for the purposes a verification token can be issued for."""
+
+    #: Confirm that the user is in control of an email address.
+    EMAIL = "email"
+    #: Authorise a password reset.
+    PASSWORD_RESET = "password_reset"
 
 
 class Lecture(SQLModel, table=True):
@@ -289,6 +303,17 @@ class UserInfo(SQLModel, table=True):
     email: str
     role: UserRole
     language: Language = Field(default=Language.EN)
+    #: Whether the address in :attr:`email` has been confirmed by the user.
+    verified: bool = Field(default=False, nullable=False)
+    created_at: datetime = Field(
+        sa_column=Column(DateTime(timezone=True), nullable=False),
+        default_factory=lambda: datetime.now(ZoneInfo(TIME_ZONE)),
+    )
+    #: Time of the last successful login.  NULL until first login.
+    last_login_at: Optional[datetime] = Field(
+        sa_column=Column(DateTime(timezone=True), nullable=True),
+        default=None,
+    )
 
     # ORM relationship
     exercise_results: list[ExerciseResult] = Relationship(
@@ -444,6 +469,87 @@ class LecturerRegistrationToken(SQLModel, table=True):
     expires_at: datetime = Field(
         sa_column=Column(DateTime(timezone=True), nullable=False),
     )
+
+    @pydantic.computed_field
+    @property
+    def is_expired(self) -> bool:
+        """Check if the token is expired."""
+        # For comparison, both datetimes need to be timezone-aware.  Since sqlite
+        # doesn't store the time zone, we need to set it explicitly here.  On postgres,
+        # the time zone is stored, so this is not necessary, but it shouldn't hurt
+        # either.
+        return datetime.now(ZoneInfo(TIME_ZONE)) > self.expires_at.astimezone(
+            ZoneInfo(TIME_ZONE)
+        )
+
+
+class VerificationToken(SQLModel, table=True):
+    """
+    One-time tokens that are sent to a user by email.
+
+    Used to verify that a user is in control of an email address and, later on, to
+    authorise a password reset (see :class:`VerificationPurpose`).
+
+    Only the hash of the token is stored, so a leak of the database does not hand out
+    account access.  There is at most one token per user and purpose; re-sending a
+    verification mail overwrites the existing row.
+    """
+
+    __table_args__ = (
+        sa.UniqueConstraint(
+            "user_id",
+            "purpose",
+            name="uq_verificationtoken_user_id_purpose",
+        ),
+    )
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    user_id: int = Field(
+        foreign_key="localuser.id", nullable=False, ondelete="CASCADE", index=True
+    )
+    purpose: VerificationPurpose = Field(nullable=False)
+    #: The address the token is sent to.  For ``VerificationPurpose.EMAIL`` this is
+    #: also the address that is claimed, which is not necessarily the one currently
+    #: stored in ``UserInfo.email``.
+    email: str = Field(nullable=False)
+    #: Hash of the actual token (see :meth:`hash_token`).
+    token_hash: str = Field(nullable=False, unique=True, index=True)
+    created_at: datetime = Field(
+        sa_column=Column(DateTime(timezone=True), nullable=False),
+        default_factory=lambda: datetime.now(ZoneInfo(TIME_ZONE)),
+    )
+    expires_at: datetime = Field(
+        sa_column=Column(DateTime(timezone=True), nullable=False),
+        default_factory=lambda: (
+            datetime.now(ZoneInfo(TIME_ZONE)) + VERIFICATION_TOKEN_VALIDITY
+        ),
+    )
+    #: Time the mail containing this token was sent last.  Used to enforce a cooldown
+    #: on re-sending.
+    last_sent_at: datetime = Field(
+        sa_column=Column(DateTime(timezone=True), nullable=False),
+        default_factory=lambda: datetime.now(ZoneInfo(TIME_ZONE)),
+    )
+    #: Time the token was used, NULL as long as it is unused.  Used tokens are
+    #: kept until they expire, so that redeeming one again is idempotent (mail
+    #: gateways tend to open links before the user does).
+    used_at: Optional[datetime] = Field(
+        sa_column=Column(DateTime(timezone=True), nullable=True),
+        default=None,
+    )
+
+    @staticmethod
+    def generate_token() -> str:
+        """Generate a new random token.  Only the caller ever sees the clear text."""
+        num_bytes = 32
+        return secrets.token_urlsafe(num_bytes)
+
+    @staticmethod
+    def hash_token(token: str) -> str:
+        """Hash a token for storage in / lookup from the database."""
+        # Using fast SHA256 here.  The token has enough entropy to be reasonably safe
+        # against brute force.
+        return hashlib.sha256(token.encode("utf-8")).hexdigest()
 
     @pydantic.computed_field
     @property
