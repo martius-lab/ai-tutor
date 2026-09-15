@@ -44,3 +44,7 @@ REPORT_MAX_LEN = 2_000
 
 #: How long a verification token stays valid after it has been issued.
 VERIFICATION_TOKEN_VALIDITY = timedelta(hours=48)
+
+#: How long a user has to wait before another verification mail may be sent to them.
+#: Enforced server-side against ``VerificationToken.last_sent_at``.
+VERIFICATION_RESEND_COOLDOWN = timedelta(minutes=5)
