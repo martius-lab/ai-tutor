@@ -126,7 +126,7 @@ def build_home_beta_exercises_statement(
 class HomeState(SessionState):
     """The state for the home page."""
 
-    exercises_with_result: list[HomeExerciseCard] = []
+    exercise_cards: list[HomeExerciseCard] = []
     lecture_exercise_groups: list[LectureExerciseGroup] = []
 
     @rx.event
@@ -138,12 +138,13 @@ class HomeState(SessionState):
         assert self.authenticated_user_info is not None
         assert self.authenticated_user is not None
         assert self.authenticated_user.id is not None
+        now = datetime.now(ZoneInfo(TIME_ZONE))
         with rx.session() as session:
             stmt = build_home_exercises_statement(
                 userinfo_id=self.authenticated_user_info.id,  # type: ignore[arg-type]
                 user_id=self.authenticated_user.id,
                 is_global_admin=self.is_global_admin,
-                now=datetime.now(ZoneInfo(TIME_ZONE)),
+                now=now,
             )
             rows = session.exec(stmt).all()
 
@@ -151,7 +152,7 @@ class HomeState(SessionState):
                 userinfo_id=self.authenticated_user_info.id,  # type: ignore[arg-type]
                 user_id=self.authenticated_user.id,
                 is_global_admin=self.is_global_admin,
-                now=datetime.now(ZoneInfo(TIME_ZONE)),
+                now=now,
             )
             beta_rows = session.exec(beta_stmt).all()
 
@@ -189,7 +190,7 @@ class HomeState(SessionState):
                     row[0].deadline or datetime.max,
                 )
             )
-            self.exercises_with_result = [exercise for exercise, _ in started_rows]
+            self.exercise_cards = [exercise for exercise, _ in started_rows]
             self.lecture_exercise_groups = self._group_exercises_by_lecture(
                 started_rows
             )
@@ -197,31 +198,26 @@ class HomeState(SessionState):
     @rx.var
     def completed_exercises_num(self) -> int:
         """Number of completed exercises."""
-        return sum(
-            1 for exercise in self.exercises_with_result if exercise.is_submitted
-        )
+        return sum(1 for exercise in self.exercise_cards if exercise.is_submitted)
 
     @rx.var
     def progress_value(self) -> int:
         """Progress value for the progress bar."""
-        total = len(self.exercises_with_result)
+        total = len(self.exercise_cards)
         return int((self.completed_exercises_num / total) * 100) if total > 0 else 100
 
     @rx.var
     def next_deadline_task(self) -> str:
         """Next task with deadline."""
         time_now = datetime.now(ZoneInfo(TIME_ZONE))
+        tasks: list[tuple[str, datetime]] = []
+        for exercise in self.exercise_cards:
+            if exercise.deadline is None or exercise.is_submitted:
+                continue
 
-        tasks = [
-            (
-                exercise.title,
-                exercise.deadline.replace(tzinfo=ZoneInfo(TIME_ZONE)),
-            )
-            for exercise in self.exercises_with_result
-            if exercise.deadline
-            and exercise.deadline.replace(tzinfo=ZoneInfo(TIME_ZONE)) > time_now
-            and not exercise.is_submitted
-        ]
+            deadline = exercise.deadline.replace(tzinfo=ZoneInfo(TIME_ZONE))
+            if deadline > time_now:
+                tasks.append((exercise.title, deadline))
 
         if not tasks:
             return ""

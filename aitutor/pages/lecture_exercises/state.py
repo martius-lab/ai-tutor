@@ -49,7 +49,7 @@ class LectureExercisesState(FilterMixin, SessionState):
     """State for managing exercises belonging to one lecture."""
 
     _lecture_id: int
-    exercises_with_result: list[ExerciseCard] = []
+    exercise_cards: list[ExerciseCard] = []
     open_deadline_exercises: list[ExerciseCard] = []
     no_deadline_exercises: list[ExerciseCard] = []
     closed_deadline_exercises: list[ExerciseCard] = []
@@ -110,7 +110,7 @@ class LectureExercisesState(FilterMixin, SessionState):
     def _clear_exercises(self):
         """Clear loaded exercise lists."""
         self._lecture_id = -1
-        self.exercises_with_result = []
+        self.exercise_cards = []
         self.open_deadline_exercises = []
         self.no_deadline_exercises = []
         self.closed_deadline_exercises = []
@@ -139,19 +139,21 @@ class LectureExercisesState(FilterMixin, SessionState):
     @rx.event
     def update_time_left_strings(self):
         """get the datetime time left for every exercise"""
-        for exercise in self.exercises_with_result:
+        time_left_strings = {}
+        for exercise in self.exercise_cards:
             if exercise.deadline:
                 deadline = exercise.deadline.replace(tzinfo=ZoneInfo(TIME_ZONE))
                 time_left = deadline - datetime.now(ZoneInfo(TIME_ZONE))
                 if time_left.total_seconds() <= 0:
-                    self.time_left_strings[exercise.chat_route] = ""
+                    time_left_strings[exercise.chat_route] = ""
                 else:
                     days = time_left.days
                     hours, remainder = divmod(time_left.seconds, 3600)
                     minutes, _ = divmod(remainder, 60)
-                    self.time_left_strings[exercise.chat_route] = (
+                    time_left_strings[exercise.chat_route] = (
                         f"{days}d {hours}h {minutes}m"
                     )
+        self.time_left_strings = time_left_strings
 
     def load_exercises(self):
         """
@@ -223,7 +225,7 @@ class LectureExercisesState(FilterMixin, SessionState):
             ]
             cards.extend(self._load_beta_exercise_cards(session))
 
-        self.exercises_with_result = cards
+        self.exercise_cards = cards
         self._fill_exercise_groups()
         self.update_time_left_strings()
 
@@ -262,12 +264,11 @@ class LectureExercisesState(FilterMixin, SessionState):
                 ),
                 isouter=True,
             )
-            .where(BetaExercise.lecture_id == self._lecture_id)
+            .where(
+                BetaExercise.lecture_id == self._lecture_id,
+                BetaExercise.is_hidden.is_(False),  # type: ignore[attr-defined]
+            )
         )
-
-        assert self.user_role is not None, "User role not set. This is a bug."
-        if self.user_role < UserRole.TUTOR:
-            stmt = stmt.where(BetaExercise.is_hidden == False)  # noqa: E712
 
         for key, value in self.search_values:
             match key:
@@ -289,7 +290,7 @@ class LectureExercisesState(FilterMixin, SessionState):
         for exercise, result in session.exec(stmt).all():
             if exercise.id is None:
                 continue
-            if self.user_role < UserRole.TUTOR and not exercise.is_started:
+            if not exercise.is_started:
                 continue
             cards.append(
                 ExerciseCard(
@@ -298,7 +299,7 @@ class LectureExercisesState(FilterMixin, SessionState):
                     description=exercise.description,
                     deadline=exercise.deadline,
                     deadline_exceeded=exercise.deadline_exceeded,
-                    is_hidden=exercise.is_hidden or not exercise.is_started,
+                    is_hidden=False,
                     is_beta=True,
                     is_submitted=bool(
                         result is not None and result.finished_conversation
@@ -320,7 +321,7 @@ class LectureExercisesState(FilterMixin, SessionState):
         self.no_deadline_exercises = []
         self.closed_deadline_exercises = []
 
-        for exercise in self.exercises_with_result:
+        for exercise in self.exercise_cards:
             if not self.show_submitted_exercises and exercise.is_submitted:
                 continue
             if not self.show_closed_exercises and exercise.deadline_exceeded:

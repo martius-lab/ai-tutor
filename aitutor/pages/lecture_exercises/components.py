@@ -192,7 +192,7 @@ def render_exercises() -> rx.Component:
             ),
         ),
         rx.cond(
-            LectureExercisesState.exercises_with_result.length() == 0,  # type: ignore
+            LectureExercisesState.exercise_cards.length() == 0,  # type: ignore
             rx.callout(LanguageState.no_exercises_available, icon="info"),
         ),
         align="center",

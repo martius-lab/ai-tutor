@@ -1,5 +1,6 @@
 """State for the lecture overview page."""
 
+from collections.abc import Iterator
 from datetime import datetime
 from typing import Optional
 from zoneinfo import ZoneInfo
@@ -78,6 +79,7 @@ class LectureOverviewState(SessionState):
         """Load visible, started exercises for the selected lecture and current user."""
         if self.current_lecture_id is None:
             self.exercises_with_result = []
+            self.beta_exercises_with_result = []
             return
 
         with rx.session() as session:
@@ -104,13 +106,9 @@ class LectureOverviewState(SessionState):
                     )
                 )
             )
-            exercises_with_result = session.exec(stmt).all()
-
-            self.exercises_with_result = [(x[0], x[1]) for x in exercises_with_result]
-
             self.exercises_with_result = [
                 (exercise, result)
-                for exercise, result in self.exercises_with_result
+                for exercise, result in session.exec(stmt).all()
                 if exercise.is_started
             ]
 
@@ -142,6 +140,18 @@ class LectureOverviewState(SessionState):
                 if exercise.is_started
             ]
 
+    def _iter_exercises_with_result(
+        self,
+    ) -> Iterator[
+        tuple[
+            Exercise | BetaExercise,
+            ExerciseResult | BetaExerciseResult | None,
+        ]
+    ]:
+        """Iterate over Alpha Tutor and Better AI exercises uniformly."""
+        yield from self.exercises_with_result
+        yield from self.beta_exercises_with_result
+
     @rx.var
     def exercises_num(self) -> int:
         """Total number of Alpha Tutor and Better AI exercises."""
@@ -150,17 +160,11 @@ class LectureOverviewState(SessionState):
     @rx.var
     def completed_exercises_num(self) -> int:
         """Number of completed lecture exercises."""
-        alpha_completed = sum(
+        return sum(
             1
-            for _, result in self.exercises_with_result
+            for _, result in self._iter_exercises_with_result()
             if result and result.finished_conversation
         )
-        beta_completed = sum(
-            1
-            for _, result in self.beta_exercises_with_result
-            if result and result.finished_conversation
-        )
-        return alpha_completed + beta_completed
 
     @rx.var
     def progress_value(self) -> int:
@@ -172,21 +176,16 @@ class LectureOverviewState(SessionState):
     def next_deadline_task(self) -> str:
         """Next lecture exercise with a deadline."""
         time_now = datetime.now(ZoneInfo(TIME_ZONE))
+        tasks: list[tuple[str, datetime]] = []
+        for exercise, result in self._iter_exercises_with_result():
+            if exercise.deadline is None:
+                continue
+            if result and result.finished_conversation:
+                continue
 
-        tasks = [
-            (ex.title, ex.deadline.replace(tzinfo=ZoneInfo(TIME_ZONE)))
-            for ex, res in self.exercises_with_result
-            if ex.deadline
-            and ex.deadline.replace(tzinfo=ZoneInfo(TIME_ZONE)) > time_now
-            and not (res and res.finished_conversation)  # not submitted
-        ]
-        tasks.extend(
-            (exercise.title, exercise.deadline.replace(tzinfo=ZoneInfo(TIME_ZONE)))
-            for exercise, result in self.beta_exercises_with_result
-            if exercise.deadline
-            and exercise.deadline.replace(tzinfo=ZoneInfo(TIME_ZONE)) > time_now
-            and not (result and result.finished_conversation)
-        )
+            deadline = exercise.deadline.replace(tzinfo=ZoneInfo(TIME_ZONE))
+            if deadline > time_now:
+                tasks.append((exercise.title, deadline))
 
         if not tasks:
             return ""
