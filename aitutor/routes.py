@@ -21,6 +21,9 @@ PROMPTS = ADMIN_SETTINGS + "/prompts"
 
 USER_SETTINGS = "/user_settings"
 
+# needs to be /verify_email/[token] to work
+VERIFY_EMAIL = "/verify_email"
+
 LECTURES = "/lectures"
 MY_LECTURES = LECTURES + "/my_lectures"
 ALL_LECTURES = LECTURES + "/all_lectures"
