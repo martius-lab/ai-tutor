@@ -939,6 +939,85 @@ class LanguageState(SessionState):
             en="You get this code from your lecturer",
         )
 
+    # Email Verification Page Strings --------------------------------------------------
+
+    @rx.var
+    def verify_email_heading(self) -> str:
+        """Heading of the page that confirms an email address."""
+        return self.translate(
+            de="E-Mail-Adresse bestätigen", en="Confirm email address"
+        )
+
+    @rx.var
+    def verify_email_success(self) -> str:
+        """The address was confirmed by opening the link."""
+        return self.translate(
+            de=(
+                "Vielen Dank, Ihre E-Mail-Adresse wurde bestätigt.  Sie können sich"
+                " jetzt anmelden."
+            ),
+            en=(
+                "Thank you, your email address has been confirmed.  You can log in now."
+            ),
+        )
+
+    @rx.var
+    def verify_email_already_confirmed(self) -> str:
+        """The link had been opened before (possibly by a mail scanner)."""
+        return self.translate(
+            de=(
+                "Diese E-Mail-Adresse wurde bereits bestätigt.  Sie können sich"
+                " anmelden."
+            ),
+            en="This email address has already been confirmed.  You can log in.",
+        )
+
+    @rx.var
+    def verify_email_expired(self) -> str:
+        """The link is too old to be used."""
+        return self.translate(
+            de=(
+                "Dieser Bestätigungslink ist abgelaufen.  Bitte versuchen Sie, sich"
+                " anzumelden - auf der Anmeldeseite können Sie sich einen neuen Link"
+                " zusenden lassen."
+            ),
+            en=(
+                "This confirmation link has expired.  Please try to log in - on the"
+                " login page you can have a new link sent to you."
+            ),
+        )
+
+    @rx.var
+    def verify_email_invalid(self) -> str:
+        """The link does not belong to any known token."""
+        return self.translate(
+            de=(
+                "Dieser Bestätigungslink ist ungültig.  Möglicherweise wurde er durch"
+                " einen neueren ersetzt.  Bitte prüfen Sie, ob Sie den Link aus der"
+                " neuesten E-Mail verwendet haben, oder lassen Sie sich auf der"
+                " Anmeldeseite einen neuen zusenden."
+            ),
+            en=(
+                "This confirmation link is not valid.  It may have been replaced by a"
+                " newer one.  Please check whether you used the link from the most"
+                " recent email, or have a new one sent to you on the login page."
+            ),
+        )
+
+    @rx.var
+    def verify_email_error(self) -> str:
+        """The token is fine but the account it belongs to is broken."""
+        return self.translate(
+            de=(
+                "Die E-Mail-Adresse konnte wegen eines Fehlers nicht bestätigt werden."
+                "  Bitte wenden Sie sich an das AI Tutor Team."
+            ),
+            en=(
+                "The email address could not be confirmed due to an error.  Please"
+                " contact the AI Tutor team."
+            ),
+        )
+
     # Manage Users Page Strings --------------------------------------------------------
 
     @rx.var
@@ -2041,6 +2120,14 @@ class BackendTranslations:
                 f" {minutes} {'minute' if minutes == 1 else 'minutes'} before"
                 " requesting a new one."
             ),
+        )
+
+    @staticmethod
+    def email_verified_successfully(language: Language) -> str:
+        return translate(
+            language,
+            de="Ihre E-Mail-Adresse wurde bestätigt.  Sie können sich jetzt anmelden.",
+            en="Your email address has been confirmed.  You can log in now.",
         )
 
     @staticmethod

@@ -21,7 +21,7 @@ PROMPTS = ADMIN_SETTINGS + "/prompts"
 
 USER_SETTINGS = "/user_settings"
 
-# needs to be /verify_email/[token] to work
+# expects the token as query parameter, i.e. /verify_email?token=...
 VERIFY_EMAIL = "/verify_email"
 
 LECTURES = "/lectures"

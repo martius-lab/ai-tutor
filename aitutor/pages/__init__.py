@@ -52,6 +52,8 @@ from aitutor.pages.prompts.page import prompts_page
 from aitutor.pages.prompts.state import ManagePromptsState
 from aitutor.pages.user_settings.page import user_settings_page
 from aitutor.pages.user_settings.state import UserSettingsState
+from aitutor.pages.verify_email.page import verify_email_page
+from aitutor.pages.verify_email.state import VerifyEmailState
 
 __all__ = [
     # pages
@@ -76,6 +78,7 @@ __all__ = [
     "finished_view_tutor_page",
     "custom_login_page",
     "custom_register_page",
+    "verify_email_page",
     "impressum_page",
     "privacy_notice_page",
     "user_settings_page",
@@ -101,6 +104,7 @@ __all__ = [
     "LectureTokenAnalyzerState",
     "MyLoginState",
     "MyRegisterState",
+    "VerifyEmailState",
     "UserSettingsState",
     "ManageConfigState",
     "LecturerRegistrationTokenState",
