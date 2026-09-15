@@ -15,7 +15,7 @@ from aitutor.routes import LOGIN, REGISTER
 
 def dashboard_card():
     """Render the dashboard card"""
-    exercises_num = HomeState.exercises_with_result.length()  # type: ignore
+    exercises_num = HomeState.exercise_cards.length()  # type: ignore
 
     return (
         rx.card(
