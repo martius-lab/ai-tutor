@@ -55,7 +55,7 @@ def test_send_signup_welcome_email_sends_email(monkeypatch):
     assert "Welcome to AI Tutor" in sent_messages[0]["Subject"]
     body = sent_messages[0].get_content()
     assert "Username: student" in body
-    assert "https://ai-tutor.example/verify_email/tok3n" in body
+    assert "https://ai-tutor.example/verify_email?token=tok3n&lang=en" in body
     # the validity of the token is announced in the mail
     assert "48 hours" in body
 
@@ -85,7 +85,7 @@ def test_send_signup_welcome_email_uses_user_language(monkeypatch):
     body = sent_messages[0].get_content()
     assert "Hallo student" in body
     assert "Benutzername: student" in body
-    assert "https://ai-tutor.example/verify_email/tok3n" in body
+    assert "https://ai-tutor.example/verify_email?token=tok3n&lang=de" in body
 
 
 def test_send_email_verification_email_sends_only_the_link(monkeypatch):
@@ -112,7 +112,7 @@ def test_send_email_verification_email_sends_only_the_link(monkeypatch):
     assert len(sent_messages) == 1
     assert sent_messages[0]["To"] == "student@example.com"
     body = sent_messages[0].get_content()
-    assert "https://ai-tutor.example/verify_email/tok3n" in body
+    assert "https://ai-tutor.example/verify_email?token=tok3n&lang=en" in body
     assert "48 hours" in body
     # this mail is sent later on, so it must not welcome the user to a new account
     assert "has been created" not in body
