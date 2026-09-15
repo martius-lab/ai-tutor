@@ -6,6 +6,7 @@ import reflex as rx
 
 TIME_FORMAT = "%d.%m.%Y %H:%M:%S MEZ"
 MOMENT_DEADLINE_FORMAT = "DD.MM.YYYY, HH:mm"
+MOMENT_DATETIME_FORMAT = "YYYY-MM-DD HH:mm"
 TIME_ZONE = "Europe/Berlin"
 SEARCH_USER_KEY = "user"
 SEARCH_EXERCISE_KEY = "exercise"
