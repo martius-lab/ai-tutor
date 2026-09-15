@@ -24,6 +24,7 @@ from aitutor.models import (
     UserInfo,
     UserRole,
 )
+from aitutor.verification import issue_token
 
 # check for the password max length in terms of bytes
 # alongside basic matching check against the DB
@@ -63,7 +64,6 @@ class MyRegisterState(reflex_local_auth.RegistrationState):
     password: str = ""
     confirm_password: str = ""
     registration_code: str = ""
-    welcome_email_sent: bool = False
     welcome_email_failed: bool = False
     registration_in_progress: bool = False
 
@@ -125,7 +125,6 @@ class MyRegisterState(reflex_local_auth.RegistrationState):
         self.password = ""
         self.confirm_password = ""
         self.registration_code = ""
-        self.welcome_email_sent = False
         self.welcome_email_failed = False
         self.registration_in_progress = False
         self.needs_registration_code = False
@@ -144,7 +143,6 @@ class MyRegisterState(reflex_local_auth.RegistrationState):
         """
         self.registration_in_progress = True
         self.success = False
-        self.welcome_email_sent = False
         self.welcome_email_failed = False
         self.error_message = ""
         yield
@@ -228,6 +226,14 @@ class MyRegisterState(reflex_local_auth.RegistrationState):
                         f" as lecturer using token {lecturer_registration_token}."
                     )
 
+                # The account cannot be used before the address is confirmed, so
+                # the token is created together with the account.
+                verification_token = issue_token(
+                    session,
+                    user_id=self.new_user_id,
+                    email=user_info.email,
+                )
+
                 session.commit()
                 session.refresh(user_info)
 
@@ -235,30 +241,37 @@ class MyRegisterState(reflex_local_auth.RegistrationState):
                 username = local_user.username if local_user else None
 
             welcome_email_sent = False
-            welcome_email_failed = False
             try:
-                if username:
-                    await asyncio.to_thread(
-                        send_signup_welcome_email,
-                        to_email=user_info.email,
-                        username=username,
-                        language=user_info.language,
+                if not username:
+                    raise RuntimeError(
+                        f"No LocalUser found for user_id={self.new_user_id}."
                     )
-                    welcome_email_sent = True
+                await asyncio.to_thread(
+                    send_signup_welcome_email,
+                    to_email=user_info.email,
+                    username=username,
+                    language=user_info.language,
+                    verification_token=verification_token,
+                )
+                welcome_email_sent = True
             except Exception:
                 logger.exception(
                     "Failed to send signup welcome email for user_id=%s.",
                     self.new_user_id,
                 )
-                welcome_email_failed = True
 
             self.clear_state_vars()
-            self.welcome_email_sent = welcome_email_sent
-            self.welcome_email_failed = welcome_email_failed
-            self.success = True
+            self.welcome_email_failed = not welcome_email_sent
+
+            # Note that `registration_result` (the `successful_registration` handler
+            # of the base class) is deliberately not yielded here: it would redirect to
+            # the login page, but the account cannot be used until the email address is
+            # confirmed, so the user better stays here and reads the message above.
+            # That handler would also have reset `error_message`, `new_user_id` and set
+            # `success`, so do it here instead.
             self.error_message = ""
-            if not welcome_email_failed:
-                yield registration_result
+            self.new_user_id = -1
+            self.success = True
         finally:
             self.registration_in_progress = False
 
