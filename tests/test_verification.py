@@ -4,9 +4,13 @@ from zoneinfo import ZoneInfo
 import pytest
 from sqlmodel import Session, SQLModel, create_engine, select
 
-from aitutor.global_vars import TIME_ZONE, VERIFICATION_TOKEN_VALIDITY
+from aitutor.global_vars import (
+    TIME_ZONE,
+    VERIFICATION_RESEND_COOLDOWN,
+    VERIFICATION_TOKEN_VALIDITY,
+)
 from aitutor.models import VerificationPurpose, VerificationToken
-from aitutor.verification import issue_token
+from aitutor.verification import issue_token, resend_cooldown_remaining
 
 
 @pytest.fixture
@@ -95,3 +99,53 @@ def test_issue_token_keeps_purposes_apart(session):
     entries = session.exec(select(VerificationToken)).all()
     assert len(entries) == 2
     assert {entry.purpose for entry in entries} == set(VerificationPurpose)
+
+
+def test_resend_cooldown_is_zero_without_a_token(session):
+    assert resend_cooldown_remaining(session, user_id=1) == timedelta(0)
+
+
+def test_resend_cooldown_starts_when_a_token_is_issued(session):
+    issue_token(session, user_id=1, email="student@example.com")
+    session.commit()
+
+    remaining = resend_cooldown_remaining(session, user_id=1)
+    assert remaining > timedelta(0)
+    assert remaining <= VERIFICATION_RESEND_COOLDOWN
+
+
+def test_resend_cooldown_is_over_after_the_cooldown_period(session):
+    issue_token(session, user_id=1, email="student@example.com")
+    session.commit()
+
+    entry = session.exec(select(VerificationToken)).one()
+    entry.last_sent_at = (
+        datetime.now(ZoneInfo(TIME_ZONE))
+        - VERIFICATION_RESEND_COOLDOWN
+        - timedelta(seconds=1)
+    )
+    session.commit()
+
+    assert resend_cooldown_remaining(session, user_id=1) == timedelta(0)
+
+
+def test_resend_cooldown_is_per_user(session):
+    issue_token(session, user_id=1, email="student@example.com")
+    session.commit()
+
+    assert resend_cooldown_remaining(session, user_id=2) == timedelta(0)
+
+
+def test_resend_cooldown_is_per_purpose(session):
+    issue_token(
+        session,
+        user_id=1,
+        email="student@example.com",
+        purpose=VerificationPurpose.PASSWORD_RESET,
+    )
+    session.commit()
+
+    assert resend_cooldown_remaining(session, user_id=1) == timedelta(0)
+    assert resend_cooldown_remaining(
+        session, user_id=1, purpose=VerificationPurpose.PASSWORD_RESET
+    ) > timedelta(0)
