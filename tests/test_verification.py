@@ -17,6 +17,8 @@ from aitutor.models import (
 )
 from aitutor.verification import (
     RedeemResult,
+    cancel_pending_email_change,
+    get_pending_email_changes,
     issue_token,
     redeem_email_token,
     resend_cooldown_remaining,
@@ -255,3 +257,104 @@ def test_redeem_reports_an_error_for_an_account_without_user_info(session):
 
     # the token is not burned by this, so it still works once the database is fixed
     assert session.exec(select(VerificationToken)).one().used_at is None
+
+
+# get_pending_email_changes / cancel_pending_email_change ---------------------------
+
+
+def make_verified_user_info(session, *, user_id=1, email="old@example.com"):
+    user_info = make_user_info(session, user_id=user_id, email=email)
+    user_info.verified = True
+    session.commit()
+    return user_info
+
+
+def test_pending_email_change_of_verified_user(session):
+    make_verified_user_info(session)
+    issue_token(session, user_id=1, email="new@example.com")
+    session.commit()
+
+    assert get_pending_email_changes(session) == {1: "new@example.com"}
+    assert get_pending_email_changes(session, user_id=1) == {1: "new@example.com"}
+    assert get_pending_email_changes(session, user_id=2) == {}
+
+
+def test_no_pending_email_change_for_unverified_user(session):
+    # a fresh signup: token for the very address that is not confirmed yet
+    make_user_info(session, email="old@example.com")
+    issue_token(session, user_id=1, email="old@example.com")
+    session.commit()
+
+    assert get_pending_email_changes(session) == {}
+
+
+def test_no_pending_email_change_for_token_of_current_address(session):
+    make_verified_user_info(session, email="old@example.com")
+    issue_token(session, user_id=1, email="old@example.com")
+    session.commit()
+
+    assert get_pending_email_changes(session) == {}
+
+
+def test_no_pending_email_change_after_redeeming(session):
+    make_verified_user_info(session)
+    token = issue_token(session, user_id=1, email="new@example.com")
+    session.commit()
+
+    assert redeem_email_token(session, token) == RedeemResult.SUCCESS
+    session.commit()
+
+    assert get_pending_email_changes(session) == {}
+
+
+def test_pending_email_change_ignores_other_purposes(session):
+    make_verified_user_info(session)
+    issue_token(
+        session,
+        user_id=1,
+        email="new@example.com",
+        purpose=VerificationPurpose.PASSWORD_RESET,
+    )
+    session.commit()
+
+    assert get_pending_email_changes(session) == {}
+
+
+def test_pending_email_changes_of_several_users(session):
+    make_verified_user_info(session, user_id=1, email="a@example.com")
+    make_verified_user_info(session, user_id=2, email="b@example.com")
+    make_verified_user_info(session, user_id=3, email="c@example.com")
+    issue_token(session, user_id=1, email="new-a@example.com")
+    issue_token(session, user_id=3, email="new-c@example.com")
+    session.commit()
+
+    assert get_pending_email_changes(session) == {
+        1: "new-a@example.com",
+        3: "new-c@example.com",
+    }
+
+
+def test_cancel_pending_email_change(session):
+    user_info = make_verified_user_info(session)
+    token = issue_token(session, user_id=1, email="new@example.com")
+    session.commit()
+
+    assert cancel_pending_email_change(session, user_id=1) is True
+    session.commit()
+
+    assert get_pending_email_changes(session) == {}
+    # the link that was sent out does not work anymore
+    assert redeem_email_token(session, token) == RedeemResult.UNKNOWN
+    assert user_info.email == "old@example.com"
+
+
+def test_cancel_pending_email_change_without_pending_change(session):
+    # the signup token of an unverified user must not be touched
+    make_user_info(session)
+    token = issue_token(session, user_id=1, email="old@example.com")
+    session.commit()
+
+    assert cancel_pending_email_change(session, user_id=1) is False
+    session.commit()
+
+    assert redeem_email_token(session, token) == RedeemResult.SUCCESS
