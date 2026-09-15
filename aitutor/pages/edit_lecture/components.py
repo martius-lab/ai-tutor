@@ -6,7 +6,10 @@ import aitutor.routes as routes
 from aitutor.components import password_input
 from aitutor.language_state import LanguageState as LS
 from aitutor.pages.configuration.components import input, text_area
-from aitutor.pages.edit_lecture.state import EditLectureState
+from aitutor.pages.edit_lecture.state import (
+    EDIT_LECTURE_FIELD_MAX_LENGTHS,
+    EditLectureState,
+)
 
 
 def back_to_my_lectures_button() -> rx.Component:
@@ -34,6 +37,7 @@ def lecture_input_field(
     heading: rx.Var[str],
     value: str | rx.Var[str],
     required: bool = False,
+    max_length: int | None = None,
 ) -> rx.Component:
     """Render a standard one-line input for the edit lecture form."""
     return input(
@@ -42,6 +46,7 @@ def lecture_input_field(
         value=value,
         on_change=lambda value: EditLectureState.set_lecture_value(name, value),
         required=required,
+        max_length=max_length,
     )
 
 
@@ -49,6 +54,7 @@ def lecture_text_area_field(
     name: str,
     heading: rx.Var[str],
     value: str,
+    max_length: int | None = None,
 ) -> rx.Component:
     """Render a standard textarea for the edit lecture form."""
     return text_area(
@@ -56,6 +62,7 @@ def lecture_text_area_field(
         heading=heading,
         value=value,
         on_change=lambda value: EditLectureState.set_lecture_value(name, value),
+        max_length=max_length,
     )
 
 
@@ -169,27 +176,36 @@ def edit_lecture_form() -> rx.Component:
                     heading=LS.lecture_name,
                     value=EditLectureState.lecture_name,
                     required=True,
+                    max_length=EDIT_LECTURE_FIELD_MAX_LENGTHS["lecture_name"],
                 ),
                 lecture_input_field(
                     name="lecturer_name",
                     heading=LS.lecture_lecturer,
                     value=EditLectureState.lecturer_name,
                     required=True,
+                    max_length=EDIT_LECTURE_FIELD_MAX_LENGTHS["lecturer_name"],
                 ),
                 lecture_input_field(
                     name="registration_code",
                     heading=LS.registration_code,
                     value=EditLectureState.registration_code,
+                    max_length=EDIT_LECTURE_FIELD_MAX_LENGTHS["registration_code"],
                 ),
                 lecture_text_area_field(
                     name="lecture_information_text",
                     heading=LS.lecture_info_text,
                     value=EditLectureState.lecture_information_text,
+                    max_length=EDIT_LECTURE_FIELD_MAX_LENGTHS[
+                        "lecture_information_text"
+                    ],
                 ),
                 lecture_text_area_field(
                     name="check_conversation_prompt",
                     heading=LS.check_conversation_prompt,
                     value=EditLectureState.check_conversation_prompt,
+                    max_length=EDIT_LECTURE_FIELD_MAX_LENGTHS[
+                        "check_conversation_prompt"
+                    ],
                 ),
                 rx.cond(
                     EditLectureState.unsaved_changes,

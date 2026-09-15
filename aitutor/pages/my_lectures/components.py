@@ -7,6 +7,7 @@ from aitutor.components.dialogs import destructive_confirm
 from aitutor.language_state import LanguageState as LS
 from aitutor.models import Lecture, LectureRole
 from aitutor.pages.my_lectures.state import (
+    MY_LECTURES_FIELD_MAX_LENGTHS,
     ROLE_FILTER_ALL,
     ROLE_FILTER_NOT_JOINED,
     ROLE_FILTER_OWNER,
@@ -219,6 +220,7 @@ def lectures_toolbar() -> rx.Component:
         on_change=MyLecturesState.update_search_text,
         width="22em",
         max_width="100%",
+        max_length=MY_LECTURES_FIELD_MAX_LENGTHS["search_text"],
     )
     action_buttons = rx.hstack(
         rx.box(browse_lectures_button(), flex_shrink="0"),
@@ -255,6 +257,7 @@ def lectures_toolbar() -> rx.Component:
                         placeholder=LS.search_placeholder,
                         on_change=MyLecturesState.update_search_text,
                         width="100%",
+                        max_length=MY_LECTURES_FIELD_MAX_LENGTHS["search_text"],
                     ),
                     rx.box(role_filter_select(), width="100%"),
                     action_buttons,

@@ -10,21 +10,20 @@ from openai import AsyncOpenAI
 from pydantic import BaseModel
 from sqlmodel import select
 
+import aitutor.global_vars as gv
 import aitutor.routes as routes
 from aitutor.auth.protection import state_require_role_or_permission
 from aitutor.auth.state import SessionState
 from aitutor.config import get_config
 from aitutor.env_settings import get_env_settings
-from aitutor.global_vars import (
-    CHAT_MESSAGE_CHAR_LIMIT,
-    CHAT_TOKEN_WARNING_THRESHOLD,
-    DEFAULT_CHECK_CONVERSATION_PROMPT,
-    TIME_FORMAT,
-    TIME_ZONE,
-)
 from aitutor.language_state import BackendTranslations as BT
 from aitutor.models import Exercise, ExerciseResult, Lecture, Report, UserRole
 from aitutor.utilities.lecture_permissions import user_may_view_lecture
+
+CHAT_FIELD_MAX_LENGTHS: dict[str, int] = {
+    "chat_message": gv.CHAT_MESSAGE_MAX_LEN,
+    "report_text": gv.REPORT_MAX_LEN,
+}
 
 
 class Role(StrEnum):
@@ -172,7 +171,6 @@ class ChatState(SessionState):
     is_overdue: bool = False
     _userinfo_id: int = -1
     report_text: str = ""
-    MAX_REPORT_LENGTH: int = 2000
     current_tokens: int = 0
     token_limit: int = 0
     current_lecture_id: int | None = None
@@ -185,7 +183,9 @@ class ChatState(SessionState):
     @rx.var
     def token_warning_threshold_reached(self) -> bool:
         """Check if token warning threshold has been reached."""
-        return self.current_tokens >= (self.token_limit * CHAT_TOKEN_WARNING_THRESHOLD)
+        return self.current_tokens >= (
+            self.token_limit * gv.CHAT_TOKEN_WARNING_THRESHOLD
+        )
 
     @rx.var
     def token_usage_percentage(self) -> int:
@@ -197,12 +197,12 @@ class ChatState(SessionState):
     @rx.event
     def set_report_text(self, value: str):
         """Set the report text."""
-        self.report_text = value
+        self.report_text = value[: CHAT_FIELD_MAX_LENGTHS["report_text"]]
 
     @rx.event
     def set_user_input(self, value: str):
         """Sets the user input value. Truncates if over character limit."""
-        self.user_input = value[:CHAT_MESSAGE_CHAR_LIMIT]
+        self.user_input = value[: CHAT_FIELD_MAX_LENGTHS["chat_message"]]
 
     @rx.event
     @state_require_role_or_permission(required_role=UserRole.STUDENT)
@@ -292,7 +292,7 @@ class ChatState(SessionState):
                     exercise_result.finished_conversation != []
                 )
                 self.submit_time_stamp = (
-                    exercise_result.submit_time_stamp.strftime(TIME_FORMAT)
+                    exercise_result.submit_time_stamp.strftime(gv.TIME_FORMAT)
                     if exercise_result.submit_time_stamp
                     else ""
                 )
@@ -320,7 +320,9 @@ class ChatState(SessionState):
     @rx.var
     def report_is_valid(self) -> bool:
         """Check if the report text is valid (not empty and within max length)."""
-        return 0 < len(self.report_text.strip()) <= self.MAX_REPORT_LENGTH
+        return (
+            0 < len(self.report_text.strip()) <= CHAT_FIELD_MAX_LENGTHS["report_text"]
+        )
 
     @rx.var
     def finished_view_url(self) -> str:
@@ -442,8 +444,10 @@ class ChatState(SessionState):
             if self.waiting_for_response:
                 # don't allow sending another message while waiting for a response
                 return
-            if len(self.user_input) > CHAT_MESSAGE_CHAR_LIMIT:
-                self.user_input = self.user_input[:CHAT_MESSAGE_CHAR_LIMIT]
+            if len(self.user_input) > CHAT_FIELD_MAX_LENGTHS["chat_message"]:
+                self.user_input = self.user_input[
+                    : CHAT_FIELD_MAX_LENGTHS["chat_message"]
+                ]
                 return
             self.waiting_for_response = True
 
@@ -538,14 +542,15 @@ class ChatState(SessionState):
         belong to a lecture, so they use the fixed default prompt from ``global_vars``.
         """
         if exercise.lecture_id is None:
-            return DEFAULT_CHECK_CONVERSATION_PROMPT
+            return gv.DEFAULT_CHECK_CONVERSATION_PROMPT
 
         with rx.session() as session:
             lecture = session.get(Lecture, exercise.lecture_id)
             if lecture is None:
                 raise ValueError("Lecture not found for exercise.")
             return (
-                lecture.check_conversation_prompt or DEFAULT_CHECK_CONVERSATION_PROMPT
+                lecture.check_conversation_prompt
+                or gv.DEFAULT_CHECK_CONVERSATION_PROMPT
             )
 
     @rx.event
@@ -568,7 +573,7 @@ class ChatState(SessionState):
                         # update existing ExerciseResult
                         exercise_result.finished_conversation = conversation
                         exercise_result.submit_time_stamp = datetime.now(
-                            ZoneInfo(TIME_ZONE)
+                            ZoneInfo(gv.TIME_ZONE)
                         )
                         session.commit()
                         yield self.successfull_submit_message()
@@ -578,8 +583,8 @@ class ChatState(SessionState):
                             "finished conversation to."
                         )
             self.conversation_is_submitted = True
-            self.submit_time_stamp = datetime.now(ZoneInfo(TIME_ZONE)).strftime(
-                TIME_FORMAT
+            self.submit_time_stamp = datetime.now(ZoneInfo(gv.TIME_ZONE)).strftime(
+                gv.TIME_FORMAT
             )
 
     def update_last_user_message_index(self):

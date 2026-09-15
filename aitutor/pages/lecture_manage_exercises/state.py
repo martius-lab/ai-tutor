@@ -27,6 +27,14 @@ from aitutor.models import (
 from aitutor.utilities.filtering_components import FilterMixin
 from aitutor.utilities.lecture_permissions import user_may_manage_lecture_exercises
 
+LECTURE_MANAGE_EXERCISES_FIELD_MAX_LENGTHS = {
+    "title": 500,
+    "description": 10_000,
+    "lesson_context": 100_000,
+    "days_to_complete": 4,
+    "tag_name": 100,
+}
+
 
 class DialogMode(Enum):
     """Enum for the mode of the add/edit function."""
@@ -93,7 +101,9 @@ class LectureManageExercisesState(FilterMixin, SessionState):
     @rx.event
     def set_lesson_context(self, context: str):
         """Set the lesson context."""
-        self.lesson_context = context
+        self.lesson_context = context[
+            : LECTURE_MANAGE_EXERCISES_FIELD_MAX_LENGTHS["lesson_context"]
+        ]
 
     @rx.event
     def set_current_prompt_id(self, prompt_id: str):
@@ -113,7 +123,9 @@ class LectureManageExercisesState(FilterMixin, SessionState):
     @rx.event
     def set_current_days_to_complete(self, days: str):
         """Set the current days to complete."""
-        self.current_days_to_complete = days
+        self.current_days_to_complete = days[
+            : LECTURE_MANAGE_EXERCISES_FIELD_MAX_LENGTHS["days_to_complete"]
+        ]
 
     @rx.event
     def set_use_deadline(self, use: bool):
@@ -573,6 +585,13 @@ class LectureManageExercisesState(FilterMixin, SessionState):
         if self.current_lecture_id is None:
             return rx.redirect(routes.MY_LECTURES)
         with rx.session() as session:
+            form_data["title"] = form_data["title"][
+                : LECTURE_MANAGE_EXERCISES_FIELD_MAX_LENGTHS["title"]
+            ]
+            form_data["description"] = form_data["description"][
+                : LECTURE_MANAGE_EXERCISES_FIELD_MAX_LENGTHS["description"]
+            ]
+
             if not form_data["title"]:
                 return rx.window_alert("Please enter a title for the exercise.")
             if self._lecture_exercise_title_conflicts_with_db(
@@ -735,6 +754,13 @@ class LectureManageExercisesState(FilterMixin, SessionState):
     def update_exercise(self, form_data: dict):
         """Update exercises in db."""
         with rx.session() as session:
+            form_data["title"] = form_data["title"][
+                : LECTURE_MANAGE_EXERCISES_FIELD_MAX_LENGTHS["title"]
+            ]
+            form_data["description"] = form_data["description"][
+                : LECTURE_MANAGE_EXERCISES_FIELD_MAX_LENGTHS["description"]
+            ]
+
             if self._lecture_exercise_title_conflicts_with_db(
                 {self.current_exercise.id}, [form_data["title"]]
             ):
@@ -912,12 +938,16 @@ class LectureManageTagsState(LectureManageExercisesState):
     @rx.event
     def set_new_tag_name(self, tag_name: str):
         """Set the new tag name."""
-        self.new_tag_name = tag_name
+        self.new_tag_name = tag_name[
+            : LECTURE_MANAGE_EXERCISES_FIELD_MAX_LENGTHS["tag_name"]
+        ]
 
     @rx.event
     def set_new_renamed_tag_name(self, tag_name: str):
         """Set the renamed tag name."""
-        self.new_renamed_tag_name = tag_name
+        self.new_renamed_tag_name = tag_name[
+            : LECTURE_MANAGE_EXERCISES_FIELD_MAX_LENGTHS["tag_name"]
+        ]
 
     @rx.var(initial_value={})
     def exercises_per_tag(self) -> dict[int, int]:
@@ -955,6 +985,10 @@ class LectureManageTagsState(LectureManageExercisesState):
         """Add tags to db."""
         if self.current_lecture_id is None:
             return rx.redirect(routes.MY_LECTURES)
+
+        self.new_tag_name = self.new_tag_name[
+            : LECTURE_MANAGE_EXERCISES_FIELD_MAX_LENGTHS["tag_name"]
+        ]
 
         if not self.new_tag_name:
             return rx.window_alert("Please enter a tag name.")
@@ -998,6 +1032,10 @@ class LectureManageTagsState(LectureManageExercisesState):
         """Edit a tag's name in the db."""
         if self.current_lecture_id is None:
             return rx.redirect(routes.MY_LECTURES)
+
+        self.new_renamed_tag_name = self.new_renamed_tag_name[
+            : LECTURE_MANAGE_EXERCISES_FIELD_MAX_LENGTHS["tag_name"]
+        ]
 
         with rx.session() as session:
             tag_to_edit = session.get(Tag, self.editing_tag_id)
