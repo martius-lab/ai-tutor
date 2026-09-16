@@ -26,6 +26,31 @@ We use uv for managing the package.  See the README (section "Installation") on 
 use uv to initially set up and run the AI Tutor application.
 
 
+## Run the database for development
+
+For development, we use a PostgreSQL database which is run via Docker Compose using this
+command:
+```
+sudo make dev-up
+```
+Once started it will automatically be restarted when rebooting.  To stop it, call
+```
+sudo make dev-down
+```
+And to see the log (for debugging):
+```
+sudo make dev-logs
+```
+
+To easily backup/restore the database, you may use the `postgres.xsh` script (requires
+Xonsh).  To see all options, run
+```
+./postgres.xsh -h
+```
+Note that the script requires root permission (i.e. run with `sudo`) to be able to
+access the Docker container.
+
+
 ## Reflex
 
 We use [Reflex](https://reflex.dev) to build the application.  Reflex is a full-stack
@@ -84,26 +109,14 @@ commands need to be run:
    uv run reflex db makemigrations
    ```
 
-   In some cases, manual modifications have to be made to the migration
-   file.  Most importantly, **if an existing table is modified**, add the following code
-   snippet at the beginning of both the `upgrade` and the `downgrade` function:
-   ```python
-   # Need to disable foreign key constraints for SQLite.  SQLite recreates tables
-   # for batch alters, and active foreign keys can trigger cascaded deletes.
-   conn = op.get_bind()
-   if conn.engine.name.startswith("sqlite"):
-       conn.execute(sa.text("PRAGMA foreign_keys=OFF"))
-   ```
-   This is needed as in SQLite tables are altered by deleting the old table and creating
-   a new, modified one.  With foreign keys enabled, this can lead to unwanted cascaded
-   deletes (aka **data loss**).
+   In some cases, manual modifications have to be made to the migration file.
 
-   Another typical modification that is needed: When adding boolean fields with default
-   values, alembic does for some reason use `sa.text('0')`, which works for SQLite but
-   not for PostgreSQL, which is strict regarding types.  So this needs to be changed
-   manually to `sa.sql.false()` (or `true()` respectively).
+   A typical example: When adding boolean fields with default values, alembic does for
+   some reason use `sa.text('0')`, which does not work for PostgreSQL, which is strict
+   regarding types.  So this needs to be changed manually to `sa.sql.false()` (or
+   `true()` respectively).
 
-   Finally, Alembic only takes care of changing the table definitions.  If any existing
+   Further, Alembic only takes care of changing the table definitions.  If any existing
    data needs to be converted/copied/etc., this has to be done by adding the appropriate
    SQL commands manually.  For an example, see `alembic/versions/cce41a34a7fa_.py`.
 
