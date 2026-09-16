@@ -6,11 +6,9 @@ This module provides reusable dialog components:
 - destructive_confirm: destructive action confirmation dialog
 """
 
-from typing import Union
-
 import reflex as rx
 
-TextLike = Union[str, rx.Var[str]]
+TextLike = str | rx.Var[str]
 
 
 def confirm_dialog(

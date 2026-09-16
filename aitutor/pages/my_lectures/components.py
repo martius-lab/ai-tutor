@@ -2,7 +2,7 @@
 
 import reflex as rx
 
-import aitutor.routes as routes
+from aitutor import routes
 from aitutor.components.dialogs import destructive_confirm
 from aitutor.language_state import LanguageState as LS
 from aitutor.models import Lecture, LectureRole

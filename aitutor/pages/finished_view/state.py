@@ -1,11 +1,9 @@
 """The state for the finished view page."""
 
-from typing import Optional
-
 import reflex as rx
 from sqlmodel import select
 
-import aitutor.routes as routes
+from aitutor import routes
 from aitutor.auth.protection import state_require_role_or_permission
 from aitutor.auth.state import SessionState
 from aitutor.language_state import BackendTranslations as BT
@@ -19,7 +17,7 @@ class FinishedViewState(SessionState):
 
     _exercise_id: int
     messages: list[ChatMessage] = []
-    current_exercise: Optional[Exercise] = None
+    current_exercise: Exercise | None = None
     exercise_title: str = "No Exercise Selected"
     current_lecture_id: int | None = None
 

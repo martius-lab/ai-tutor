@@ -5,6 +5,7 @@ import json
 from datetime import datetime
 from enum import Enum
 from typing import override
+from zoneinfo import ZoneInfo
 
 import jsonschema
 import pdfplumber
@@ -13,7 +14,7 @@ from sqlalchemy.orm import selectinload
 from sqlmodel import and_, func, or_, select
 
 import aitutor.global_vars as gv
-import aitutor.routes as routes
+from aitutor import routes
 from aitutor.auth.protection import state_require_lecture_role
 from aitutor.auth.state import SessionState
 from aitutor.config import get_exercises_json_schema
@@ -183,7 +184,7 @@ class LectureManageExercisesState(FilterMixin, SessionState):
                         select(Prompt)
                         .where(
                             or_(
-                                Prompt.lecture_id == None,  # noqa: E711
+                                Prompt.lecture_id == None,
                                 Prompt.lecture_id == lecture_id,
                             )
                         )
@@ -321,7 +322,7 @@ class LectureManageExercisesState(FilterMixin, SessionState):
             },
             indent=4,
         )
-        timestamp = datetime.today().date().isoformat()
+        timestamp = datetime.now(tz=ZoneInfo(gv.TIME_ZONE)).date().isoformat()
 
         return rx.download(
             data=json_data, filename=f"aitutor-exercises-{timestamp}.json"
@@ -410,7 +411,7 @@ class LectureManageExercisesState(FilterMixin, SessionState):
                         select(Prompt).where(
                             Prompt.name == p_name,
                             or_(
-                                Prompt.lecture_id == None,  # noqa: E711
+                                Prompt.lecture_id == None,
                                 Prompt.lecture_id == self.current_lecture_id,
                             ),
                         )
@@ -428,7 +429,7 @@ class LectureManageExercisesState(FilterMixin, SessionState):
                                 select(Prompt).where(
                                     Prompt.name == new_name,
                                     or_(
-                                        Prompt.lecture_id == None,  # noqa: E711
+                                        Prompt.lecture_id == None,
                                         Prompt.lecture_id == self.current_lecture_id,
                                     ),
                                 )

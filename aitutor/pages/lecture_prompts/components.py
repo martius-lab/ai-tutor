@@ -10,7 +10,7 @@ from aitutor.pages.lecture_prompts.state import LectureManagePromptsState
 
 def prompt_card(prompt: Prompt) -> rx.Component:
     """A card representing a global or lecture-specific prompt."""
-    is_global = prompt.lecture_id == None  # noqa: E711
+    is_global = prompt.lecture_id == None
     is_default = prompt.id == LectureManagePromptsState.current_default_prompt_id
     return rx.card(
         rx.hstack(

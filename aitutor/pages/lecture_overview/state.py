@@ -1,13 +1,12 @@
 """State for the lecture overview page."""
 
 from datetime import datetime
-from typing import Optional
 from zoneinfo import ZoneInfo
 
 import reflex as rx
 from sqlmodel import and_, or_, select
 
-import aitutor.routes as routes
+from aitutor import routes
 from aitutor.auth.protection import state_require_lecture_role
 from aitutor.auth.state import SessionState
 from aitutor.global_vars import TIME_ZONE
@@ -22,7 +21,7 @@ class LectureOverviewState(SessionState):
     lecture_name: str = ""
     lecturer_name: str = ""
     lecture_information_text: str = ""
-    exercises_with_result: list[tuple[Exercise, Optional[ExerciseResult]]] = []
+    exercises_with_result: list[tuple[Exercise, ExerciseResult | None]] = []
 
     @rx.event
     @state_require_lecture_role(LectureRole.STUDENT)
@@ -88,7 +87,7 @@ class LectureOverviewState(SessionState):
                 # or the deadline is in the future
                 .where(
                     or_(
-                        Exercise.deadline == None,  # noqa: E711
+                        Exercise.deadline == None,
                         Exercise.deadline > datetime.now(ZoneInfo(TIME_ZONE)),  # type: ignore
                     )
                 )
