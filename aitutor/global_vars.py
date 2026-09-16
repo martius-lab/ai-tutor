@@ -48,3 +48,7 @@ VERIFICATION_TOKEN_VALIDITY = timedelta(hours=48)
 #: How long a user has to wait before another verification mail may be sent to them.
 #: Enforced server-side against ``VerificationToken.last_sent_at``.
 VERIFICATION_RESEND_COOLDOWN = timedelta(minutes=5)
+
+#: Accounts whose email address is still not confirmed this long after their creation
+#: are deleted by the account cleanup (see ``aitutor/account_cleanup.py``).
+UNVERIFIED_ACCOUNT_RETENTION = timedelta(weeks=2)
