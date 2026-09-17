@@ -38,6 +38,21 @@ app.add_page(
     on_load=pages.FinishedViewState.on_load,
 )
 app.add_page(
+    pages.beta_ai_chat_page,
+    route=routes.BETA_AI_CHAT + "/[beta_exercise_id]",
+    on_load=pages.BetaAIChatState.on_load,
+)
+app.add_page(
+    pages.beta_ai_finished_view_tutor_page,
+    route=routes.BETA_AI_FINISHED_VIEW_TUTOR + "/[beta_exercise_id]/[url_user_id]",
+    on_load=pages.BetaAIFinishedViewTutorState.on_load,
+)
+app.add_page(
+    pages.beta_ai_finished_view_page,
+    route=routes.BETA_AI_FINISHED_VIEW + "/[beta_exercise_id]",
+    on_load=pages.BetaAIFinishedViewState.on_load,
+)
+app.add_page(
     pages.my_lectures_page,
     route=routes.MY_LECTURES,
     on_load=pages.MyLecturesState.on_load,
@@ -119,6 +134,31 @@ app.add_page(
     pages.prompts_page,
     route=routes.PROMPTS,
     on_load=pages.ManagePromptsState.on_load,
+)
+app.add_page(
+    pages.beta_ai_exercises_page,
+    route=routes.BETA_AI_EXERCISES,
+    on_load=pages.BetaAIExercisesState.on_load,
+)
+app.add_page(
+    pages.beta_ai_diagnosis_lab_page,
+    route=routes.BETA_AI_DIAGNOSIS_LAB,
+    on_load=pages.BetaAIDiagnosisLabState.on_load,
+)
+app.add_page(
+    pages.beta_ai_student_exercises_page,
+    route=routes.BETA_AI_STUDENT_EXERCISES,
+    on_load=pages.BetaAIStudentExercisesState.on_load,
+)
+app.add_page(
+    pages.beta_ai_submissions_page,
+    route=routes.BETA_AI_SUBMISSIONS,
+    on_load=pages.BetaAISubmissionsState.on_load,
+)
+app.add_page(
+    pages.beta_ai_trace_logs_page,
+    route=routes.BETA_AI_TRACE_LOGS,
+    on_load=pages.BetaAITraceLogsState.on_load,
 )
 app.add_page(
     pages.user_settings_page,
