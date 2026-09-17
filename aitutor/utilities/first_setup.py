@@ -85,6 +85,7 @@ def create_default_admin_user():
                 email=user["email"],
                 role=UserRole.ADMIN,
                 user_id=new_user.id,
+                verified=True,
             )
         )
         session.add(Permission(user_id=new_user.id, permission=GlobalPermission.ADMIN))
