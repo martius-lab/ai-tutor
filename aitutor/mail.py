@@ -57,8 +57,14 @@ def print_mail(
     message: EmailMessage,
 ) -> None:
     """Print the email message to stdout for debugging."""
+    # Print the headers and the *decoded* body instead of str(message).  The latter
+    # would print email verification links in a mangled form, which is not very useful
+    # for testing.
     print("=== Email Message ===")
-    print(message)
+    for header, value in message.items():
+        print(f"{header}: {value}")
+    print()
+    print(message.get_content())
     print("=====================")
 
 
