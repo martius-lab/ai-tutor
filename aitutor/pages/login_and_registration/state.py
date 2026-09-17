@@ -2,6 +2,7 @@
 
 import asyncio
 import email.utils
+import enum
 import logging
 import re
 from datetime import datetime, timedelta
@@ -11,7 +12,7 @@ from zoneinfo import ZoneInfo
 import reflex as rx
 import reflex_local_auth
 from reflex_local_auth.user import LocalUser
-from sqlmodel import func, select
+from sqlmodel import Session, func, select
 
 import aitutor.global_vars as gv
 from aitutor.account_emails import (
@@ -46,6 +47,76 @@ AUTH_FIELD_MAX_LENGTHS: dict[str, int] = {
     "email": gv.EMAIL_MAX_LEN,
     "registration_code": gv.REGISTRATION_CODE_MAX_LEN,
 }
+
+
+class LoginCheckOutcome(enum.Enum):
+    """Possible outcomes of a login check.
+
+    Login is only allowed if the outcome is `SUCCESS`.  All other outcomes mean that
+    login must be denied.
+    """
+
+    SUCCESS = enum.auto()
+    INVALID_CREDENTIALS = enum.auto()
+    ACCOUNT_DISABLED = enum.auto()
+    ACCOUNT_NOT_VERIFIED = enum.auto()
+    INTERNAL_ERROR = enum.auto()
+
+
+def check_login(
+    session: Session, username: str, password: str
+) -> tuple[LoginCheckOutcome, UserInfo | None]:
+    """Check the login credentials and status of the account.
+
+    Checks whether the given username and password match with an existing account and
+    whether that account is allowed to log in (e.g. not disabled or unverified).
+
+    Args:
+        session: The database session to use for the query.
+        username: The username to check.
+        password: The password to check.
+
+    Returns:
+        A tuple containing the outcome of the check and (if applicable) the UserInfo of
+        the account.  The UserInfo is only returned if outcome is SUCCESS or
+        ACCOUNT_NOT_VERIFIED.  In all other cases, it is None.
+    """
+    local_user = session.exec(
+        select(LocalUser).where(LocalUser.username == username)
+    ).one_or_none()
+
+    # Check the credentials before anything else.  Everything below reveals
+    # something about the account, and the password is what earns the right to
+    # learn it.
+    if (
+        local_user is None
+        or local_user.id is None
+        or not password
+        or not local_user.verify(password)
+    ):
+        return (LoginCheckOutcome.INVALID_CREDENTIALS, None)
+
+    if not local_user.enabled:
+        return (LoginCheckOutcome.ACCOUNT_DISABLED, None)
+
+    user_info = session.exec(
+        select(UserInfo).where(UserInfo.user_id == local_user.id)
+    ).one_or_none()
+
+    if user_info is None:
+        # this should never happen -> corrupted database
+        logger.error(
+            "ERROR: No UserInfo found for user_id=%s ('%s'). The database is"
+            " inconsistent",
+            local_user.id,
+            local_user.username,
+        )
+        return (LoginCheckOutcome.INTERNAL_ERROR, None)
+
+    if not user_info.verified:
+        return (LoginCheckOutcome.ACCOUNT_NOT_VERIFIED, user_info)
+
+    return (LoginCheckOutcome.SUCCESS, user_info)
 
 
 class MyLoginState(reflex_local_auth.LoginState):
@@ -97,55 +168,44 @@ class MyLoginState(reflex_local_auth.LoginState):
         password = form_data["password"]
 
         with rx.session() as session:
-            user = session.exec(
-                select(LocalUser).where(LocalUser.username == username)
-            ).one_or_none()
+            outcome, user_info = check_login(session, username, password)
+            match outcome:
+                case LoginCheckOutcome.SUCCESS:
+                    pass  # continue below
+                case LoginCheckOutcome.INVALID_CREDENTIALS:
+                    self.error_message = BT.login_failed(self._language)
+                    return rx.set_value("password", "")
+                case LoginCheckOutcome.ACCOUNT_DISABLED:
+                    self.error_message = BT.account_disabled(self._language)
+                    return rx.set_value("password", "")
+                case LoginCheckOutcome.ACCOUNT_NOT_VERIFIED:
+                    assert user_info is not None
+                    self.email_not_verified = True
+                    self._unverified_user_id = user_info.user_id
+                    return rx.set_value("password", "")
+                case LoginCheckOutcome.INTERNAL_ERROR:
+                    self.error_message = BT.error_account_data_inconsistent(
+                        self._language
+                    )
+                    return rx.set_value("password", "")
 
-            # Check the credentials before anything else.  Everything below reveals
-            # something about the account, and the password is what earns the right to
-            # learn it.
-            if (
-                user is None
-                or user.id is None
-                or not password
-                or not user.verify(password)
-            ):
-                self.error_message = BT.login_failed(self._language)
-                return rx.set_value("password", "")
-
-            if not user.enabled:
-                self.error_message = BT.account_disabled(self._language)
-                return rx.set_value("password", "")
-
-            user_info = session.exec(
-                select(UserInfo).where(UserInfo.user_id == user.id)
-            ).one_or_none()
-
-            if user_info is None:
-                # Every LocalUser gets a UserInfo at registration, so this means the
-                # database is inconsistent.  Not something the user can do anything
-                # about (in particular, offering a resend would be pointless: there is
-                # no address to send to), so log it for the operators and stop here.
+            # All non-success cases should already be covered by the match above but
+            # double-check here in case of some bug above (really only allow login for
+            # SUCCESS).
+            if outcome != LoginCheckOutcome.SUCCESS:
                 logger.error(
-                    "ERROR: No UserInfo found for user_id=%s ('%s'). The database is"
-                    " inconsistent, login is not possible for this account.",
-                    user.id,
-                    user.username,
+                    "Unexpected LoginCheckOutcome: %s. This is a bug in the code.",
+                    outcome,
                 )
                 self.error_message = BT.error_account_data_inconsistent(self._language)
                 return rx.set_value("password", "")
 
-            if not user_info.verified:
-                # Do not log the user in, but offer to send a new confirmation mail.
-                self.email_not_verified = True
-                self._unverified_user_id = user.id
-                return rx.set_value("password", "")
-
+            assert user_info is not None
             user_info.last_login_at = datetime.now(ZoneInfo(gv.TIME_ZONE))
             session.add(user_info)
             session.commit()
 
-            user_id = user.id
+            user_id = user_info.user_id
 
         # mark the user as logged in
         self._login(user_id)
