@@ -3,13 +3,14 @@
 import reflex as rx
 
 from aitutor import routes
+from aitutor.language_state import LanguageState as LS
 from aitutor.pages.beta_ai_submissions.state import (
     BetaAISubmissionsState,
     BetaSubmissionRow,
 )
 
 
-def header_cell(text: str, icon: str) -> rx.Component:
+def header_cell(text: rx.vars.StringVar[str] | str, icon: str) -> rx.Component:
     """Create a table header cell."""
     return rx.table.column_header_cell(
         rx.hstack(rx.icon(icon, size=18), rx.text(text), align="center", spacing="3")
@@ -32,7 +33,7 @@ def show_table_row(row: BetaSubmissionRow) -> rx.Component:
                     ),
                     _hover={"cursor": "pointer"},
                 ),
-                rx.text("Not submitted"),
+                rx.text(LS.beta_ai_not_submitted),
             )
         ),
         style={"_hover": {"bg": rx.color("gray", 3)}},
@@ -45,9 +46,9 @@ def beta_ai_submissions_table() -> rx.Component:
     return rx.table.root(
         rx.table.header(
             rx.table.row(
-                header_cell("User", "user-round"),
-                header_cell("Beta AI Exercise", "book"),
-                header_cell("Submission", "circle-check"),
+                header_cell(LS.user, "user-round"),
+                header_cell(LS.beta_ai_exercises, "book"),
+                header_cell(LS.submission, "circle-check"),
             )
         ),
         rx.table.body(rx.foreach(BetaAISubmissionsState.table_rows, show_table_row)),
@@ -62,12 +63,10 @@ def beta_ai_submissions_table() -> rx.Component:
 def beta_ai_submissions_content() -> rx.Component:
     """Render the Beta AI submissions page content."""
     return rx.vstack(
-        rx.heading("Beta AI Submissions", size="7"),
+        rx.heading(LS.beta_ai_submissions, size="7"),
         rx.cond(
             BetaAISubmissionsState.table_rows.length() == 0,  # type: ignore
-            rx.callout(
-                "No submitted Beta AI exercises yet.", icon="info", width="100%"
-            ),
+            rx.callout(LS.beta_ai_no_submissions, icon="info", width="100%"),
             beta_ai_submissions_table(),
         ),
         align="center",

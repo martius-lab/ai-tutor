@@ -39,6 +39,7 @@ from aitutor.beta_ai.tutor_turn import (
     tutor_turn_reveals_answer,
 )
 from aitutor.global_vars import TIME_FORMAT, TIME_ZONE
+from aitutor.language_state import BackendTranslations as BT
 from aitutor.models import (
     BetaConcept,
     BetaCorePoint,
@@ -58,7 +59,7 @@ class BetaAIChatState(SessionState):
     persistent audit log, or student concept state yet.
     """
 
-    exercise_title: str = "No Beta AI exercise selected"
+    exercise_title: str = ""
     exercise_description: str = ""
     source_material_filename: str = ""
     current_beta_exercise_id: int | None = None
@@ -96,10 +97,6 @@ class BetaAIChatState(SessionState):
     completion_unlocked: bool = False
     conversation_is_submitted: bool = False
     submit_time_stamp: str = ""
-    generic_processing_error_message: str = (
-        "Beim Verarbeiten deiner Antwort ist etwas schiefgelaufen. "
-        "Bitte versuche es noch einmal."
-    )
 
     @rx.event
     def set_student_message(self, value: str):
@@ -312,8 +309,10 @@ class BetaAIChatState(SessionState):
     def concept_progress_label(self) -> str:
         """Return the current concept position for display."""
         if self.concept_count == 0:
-            return "Concept 0/0"
-        return f"Concept {self.current_concept_index + 1}/{self.concept_count}"
+            return BT.beta_ai_concept_progress(self.language, 0, 0)
+        return BT.beta_ai_concept_progress(
+            self.language, self.current_concept_index + 1, self.concept_count
+        )
 
     @rx.var
     def can_go_previous_concept(self) -> bool:
@@ -333,14 +332,14 @@ class BetaAIChatState(SessionState):
     def concept_summary(self) -> str:
         """Return the current first-concept summary for display."""
         if self.selected_concept_id is None:
-            return "No concept registry found for this exercise."
-        completion_note = (
-            " | all concepts completed" if self.all_concepts_completed else ""
-        )
-        return (
-            f"{self.concept_progress_label}: {self.selected_concept_label} "
-            f"({len(self.core_points)} core points, "
-            f"{len(self.misconceptions)} misconceptions){completion_note}"
+            return BT.beta_ai_no_concepts_found(self.language)
+        return BT.beta_ai_concept_summary(
+            self.language,
+            progress=self.concept_progress_label,
+            label=self.selected_concept_label,
+            core_points=len(self.core_points),
+            misconceptions=len(self.misconceptions),
+            completed=self.all_concepts_completed,
         )
 
     @rx.var
@@ -351,23 +350,24 @@ class BetaAIChatState(SessionState):
     @rx.var
     def trace_history_count_label(self) -> str:
         """Return trace history count for display."""
-        return f"Trace entries: {self.trace_history_count}"
+        return BT.beta_ai_trace_entries(self.language, self.trace_history_count)
 
     @rx.var
     def last_trace_log_id_label(self) -> str:
         """Return latest trace log id for display."""
         if self.last_trace_log_id is None:
             return ""
-        return f"Trace log id: {self.last_trace_log_id}"
+        return BT.beta_ai_trace_log_id(self.language, self.last_trace_log_id)
 
     @rx.var
     def concept_state_summary(self) -> str:
         """Return the current student concept state summary for display."""
-        return (
-            f"Concept state: {self.concept_state} "
-            f"| Attempts: {self.concept_attempts_total} "
-            f"| Successful: {self.concept_successful_attempts} "
-            f"| Misconceptions: {self.concept_misconception_hits}"
+        return BT.beta_ai_concept_state_summary(
+            self.language,
+            state=self.concept_state,
+            attempts=self.concept_attempts_total,
+            successful=self.concept_successful_attempts,
+            misconceptions=self.concept_misconception_hits,
         )
 
     @rx.var
@@ -389,21 +389,29 @@ class BetaAIChatState(SessionState):
             if core_point_id in core_points_by_id
         ]
 
-        covered_summary = "\n".join(covered_lines) if covered_lines else "None yet."
-        missing_summary = "\n".join(missing_lines) if missing_lines else "None."
-        return (
-            f"Covered so far:\n{covered_summary}\n\nStill missing:\n{missing_summary}"
+        covered_summary = (
+            "\n".join(covered_lines)
+            if covered_lines
+            else BT.beta_ai_none_yet(self.language)
+        )
+        missing_summary = (
+            "\n".join(missing_lines)
+            if missing_lines
+            else BT.beta_ai_none(self.language)
+        )
+        return BT.beta_ai_evidence_summary(
+            self.language, covered_summary, missing_summary
         )
 
     @rx.var
     def level_status_summary(self) -> str:
         """Return reduced Bloom progression status for display."""
         status = normalized_level_status(self.level_status)
-        return (
-            "Levels | Basic: "
-            f"{status['basic_understanding']} | Explain: "
-            f"{status['explain_reasoning']} | Apply/Compare: "
-            f"{status['apply_or_compare']}"
+        return BT.beta_ai_level_summary(
+            self.language,
+            status["basic_understanding"],
+            status["explain_reasoning"],
+            status["apply_or_compare"],
         )
 
     @rx.var
@@ -422,17 +430,12 @@ class BetaAIChatState(SessionState):
     def initial_tutor_message(self) -> str:
         """Return the initial tutor message based on concept availability."""
         if self.selected_concept_id is None:
-            return (
-                "Diese Beta-AI-Aufgabe hat noch keine gespeicherten Konzepte. "
-                "Bitte frage eine Tutor/in, zuerst Konzepte zu erzeugen und zu "
-                "speichern."
-            )
-        return (
-            f"Wir starten mit {self.concept_progress_label}: "
-            f"{self.selected_concept_label}. Ich begleite dich Schritt für Schritt "
-            "und achte darauf, welche Ideen du schon in eigenen Worten erklärt "
-            "hast.\n\n"
-            f"Frage: {self.initial_tutor_question}"
+            return BT.beta_ai_no_concept_registry(self.language)
+        return BT.beta_ai_initial_message(
+            self.language,
+            self.concept_progress_label,
+            self.selected_concept_label,
+            self.initial_tutor_question,
         )
 
     @rx.var
@@ -440,16 +443,12 @@ class BetaAIChatState(SessionState):
         """Return a non-leaking first question for the selected concept."""
         if self.selected_concept_id is None:
             return ""
-        return (
-            f"Lass uns mit {self.selected_concept_label} starten. "
-            "Kannst du die Grundidee in eigenen Worten erklären und ein konkretes "
-            "Detail nennen?"
-        )
+        return BT.beta_ai_initial_question(self.language, self.selected_concept_label)
 
     @rx.event
     def reset_chat(self):
         """Reset the in-memory chat skeleton state."""
-        self.exercise_title = "No Beta AI exercise selected"
+        self.exercise_title = BT.beta_ai_no_selected_exercise(self.language)
         self.exercise_description = ""
         self.source_material_filename = ""
         self.current_beta_exercise_id = None
@@ -493,16 +492,12 @@ class BetaAIChatState(SessionState):
         if self.selected_concept_id is None:
             return ""
         if question_level == "explain_reasoning":
-            return (
-                f"Die Grundpunkte zu {self.selected_concept_label} sind abgedeckt. "
-                "Kannst du begründen, warum eine dieser Ideen für das Konzept "
-                "wichtig ist?"
+            return BT.beta_ai_fallback_explain_question(
+                self.language, self.selected_concept_label
             )
         if question_level == "apply_or_compare":
-            return (
-                f"Wende {self.selected_concept_label} auf ein kleines Beispiel an "
-                "oder vergleiche es mit einem verwandten Fall. Was verändert sich "
-                "dabei?"
+            return BT.beta_ai_fallback_apply_question(
+                self.language, self.selected_concept_label
             )
         return self.initial_tutor_question
 
@@ -531,7 +526,8 @@ class BetaAIChatState(SessionState):
     def append_tutor_turn_message(self, tutor_turn) -> None:
         """Append a generated tutor turn and update current-question state."""
         tutor_response = (
-            f"{tutor_turn.feedback_brief}\n\nFrage: {tutor_turn.next_question}"
+            f"{tutor_turn.feedback_brief}\n\n"
+            f"{BT.beta_ai_question_prefix(self.language)}{tutor_turn.next_question}"
         )
         self.messages.append({"role": "tutor", "content": tutor_response})
         self.current_question = tutor_turn.next_question
@@ -707,21 +703,16 @@ class BetaAIChatState(SessionState):
         self, *, previous_label: str, automatic: bool
     ) -> None:
         """Append a deterministic concept-transition tutor message."""
-        transition_intro = (
-            f"Das vorherige Konzept ist abgeschlossen: {previous_label}."
-            if automatic
-            else (
-                f"Du hast das Konzept gewechselt. Vorheriges Konzept: {previous_label}."
-            )
-        )
         self.messages.append(
             {
                 "role": "tutor",
-                "content": (
-                    f"{transition_intro}\n\n"
-                    f"Wir machen weiter mit {self.concept_progress_label}: "
-                    f"{self.selected_concept_label}.\n\n"
-                    f"Frage: {self.current_question}"
+                "content": BT.beta_ai_transition(
+                    self.language,
+                    previous=previous_label,
+                    progress=self.concept_progress_label,
+                    label=self.selected_concept_label,
+                    question=self.current_question,
+                    automatic=automatic,
                 ),
             }
         )
@@ -731,11 +722,7 @@ class BetaAIChatState(SessionState):
         self.messages.append(
             {
                 "role": "tutor",
-                "content": (
-                    "Sehr gut, du hast alle Konzepte dieser Beta-AI-Aufgabe auf den "
-                    "erforderlichen Ebenen bearbeitet. Du kannst deine Unterhaltung "
-                    "jetzt einreichen."
-                ),
+                "content": BT.beta_ai_all_concepts_completed(self.language),
             }
         )
         self.completion_unlocked = True
@@ -888,9 +875,7 @@ class BetaAIChatState(SessionState):
             or self.current_userinfo_id is None
         ):
             return rx.toast.error(
-                description=(
-                    "Bearbeite zuerst alle Beta-AI-Konzepte, bevor du einreichst."
-                ),
+                description=BT.beta_ai_complete_before_submit(self.language),
                 duration=5000,
                 position="bottom-center",
                 invert=True,
@@ -926,7 +911,7 @@ class BetaAIChatState(SessionState):
         self.conversation_is_submitted = True
         self.submit_time_stamp = now.strftime(TIME_FORMAT)
         return rx.toast.success(
-            description="Beta-AI-Aufgabe eingereicht.",
+            description=BT.beta_ai_submitted(self.language),
             duration=5000,
             position="bottom-center",
             invert=True,
@@ -1079,7 +1064,7 @@ class BetaAIChatState(SessionState):
                 return
             if self.selected_concept_id is None:
                 yield rx.toast.error(
-                    description="This exercise has no concept registry yet.",
+                    description=BT.beta_ai_no_concept_registry(self.language),
                     duration=5000,
                     position="bottom-center",
                     invert=True,
@@ -1135,11 +1120,13 @@ class BetaAIChatState(SessionState):
                 self.messages.append(
                     {
                         "role": "tutor",
-                        "content": self.generic_processing_error_message,
+                        "content": BT.beta_ai_generic_processing_error(self.language),
                     }
                 )
             yield rx.toast.error(
-                description=f"Diagnosis failed: {exc}",
+                description=BT.beta_ai_processing_failed(
+                    self.language, "diagnosis", exc
+                ),
                 duration=5000,
                 position="bottom-center",
                 invert=True,
@@ -1158,11 +1145,13 @@ class BetaAIChatState(SessionState):
                 self.messages.append(
                     {
                         "role": "tutor",
-                        "content": self.generic_processing_error_message,
+                        "content": BT.beta_ai_generic_processing_error(self.language),
                     }
                 )
             yield rx.toast.error(
-                description=f"Student-state update failed: {exc}",
+                description=BT.beta_ai_processing_failed(
+                    self.language, "student_state", exc
+                ),
                 duration=5000,
                 position="bottom-center",
                 invert=True,
@@ -1183,11 +1172,11 @@ class BetaAIChatState(SessionState):
                 self.messages.append(
                     {
                         "role": "tutor",
-                        "content": self.generic_processing_error_message,
+                        "content": BT.beta_ai_generic_processing_error(self.language),
                     }
                 )
             yield rx.toast.error(
-                description=f"Policy selection failed: {exc}",
+                description=BT.beta_ai_processing_failed(self.language, "policy", exc),
                 duration=5000,
                 position="bottom-center",
                 invert=True,
@@ -1295,11 +1284,15 @@ class BetaAIChatState(SessionState):
                     self.messages.append(
                         {
                             "role": "tutor",
-                            "content": self.generic_processing_error_message,
+                            "content": BT.beta_ai_generic_processing_error(
+                                self.language
+                            ),
                         }
                     )
                 yield rx.toast.error(
-                    description=f"Concept completion failed: {exc}",
+                    description=BT.beta_ai_processing_failed(
+                        self.language, "completion", exc
+                    ),
                     duration=5000,
                     position="bottom-center",
                     invert=True,
@@ -1344,11 +1337,13 @@ class BetaAIChatState(SessionState):
                 self.messages.append(
                     {
                         "role": "tutor",
-                        "content": self.generic_processing_error_message,
+                        "content": BT.beta_ai_generic_processing_error(self.language),
                     }
                 )
             yield rx.toast.error(
-                description=f"Question-level selection failed: {exc}",
+                description=BT.beta_ai_processing_failed(
+                    self.language, "question_level", exc
+                ),
                 duration=5000,
                 position="bottom-center",
                 invert=True,
@@ -1452,7 +1447,8 @@ class BetaAIChatState(SessionState):
             trace_entry["resolved_misconceptions"] = self.resolved_misconceptions
 
             tutor_response = (
-                f"{tutor_turn.feedback_brief}\n\nFrage: {tutor_turn.next_question}"
+                f"{tutor_turn.feedback_brief}\n\n"
+                f"{BT.beta_ai_question_prefix(self.language)}{tutor_turn.next_question}"
             )
 
             async with self:
@@ -1479,11 +1475,13 @@ class BetaAIChatState(SessionState):
                 self.messages.append(
                     {
                         "role": "tutor",
-                        "content": self.generic_processing_error_message,
+                        "content": BT.beta_ai_generic_processing_error(self.language),
                     }
                 )
             yield rx.toast.error(
-                description=f"Saving tutor response failed: {exc}",
+                description=BT.beta_ai_processing_failed(
+                    self.language, "tutor_response", exc
+                ),
                 duration=5000,
                 position="bottom-center",
                 invert=True,

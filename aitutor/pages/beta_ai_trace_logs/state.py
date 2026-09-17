@@ -15,6 +15,7 @@ from sqlmodel import select
 from aitutor.auth.protection import state_require_role_or_permission
 from aitutor.auth.state import SessionState
 from aitutor.global_vars import TIME_ZONE
+from aitutor.language_state import BackendTranslations as BT
 from aitutor.models import (
     BetaExercise,
     BetaExerciseResult,
@@ -64,12 +65,12 @@ def _safe_filename_part(value: str | None, fallback: str = "unknown") -> str:
     return (slug or fallback)[:60]
 
 
-def _username_for_userinfo(session, userinfo: UserInfo | None) -> str:
+def _username_for_userinfo(session, userinfo: UserInfo | None, language) -> str:
     """Return the linked LocalUser username for display/export."""
     if userinfo is None:
-        return "Unknown user"
+        return BT.beta_ai_unknown_user(language)
     local_user = session.get(LocalUser, userinfo.user_id)
-    return local_user.username if local_user else "Unknown user"
+    return local_user.username if local_user else BT.beta_ai_unknown_user(language)
 
 
 class BetaAITraceLogsState(SessionState):
@@ -155,8 +156,10 @@ class BetaAITraceLogsState(SessionState):
                         beta_exercise_result_id=beta_result_id,
                         exercise_title=exercise.title
                         if exercise
-                        else "<deleted exercise>",
-                        user_label=_username_for_userinfo(session, userinfo),
+                        else BT.beta_ai_deleted_exercise(self.language),
+                        user_label=_username_for_userinfo(
+                            session, userinfo, self.language
+                        ),
                         trace_count=len(trace_logs),
                         updated_at=_format_datetime(latest_trace_log.created_at),
                     )
@@ -183,7 +186,7 @@ class BetaAITraceLogsState(SessionState):
             )
             if not trace_logs:
                 return rx.toast.error(
-                    description="Beta AI trace logs not found.",
+                    description=BT.beta_ai_trace_logs_not_found(self.language),
                     duration=5000,
                     position="bottom-center",
                     invert=True,
@@ -192,7 +195,7 @@ class BetaAITraceLogsState(SessionState):
             beta_result = session.get(BetaExerciseResult, beta_exercise_result_id)
             if beta_result is None:
                 return rx.toast.error(
-                    description="Linked Beta AI exercise result not found.",
+                    description=BT.beta_ai_result_not_found(self.language),
                     duration=5000,
                     position="bottom-center",
                     invert=True,
@@ -237,8 +240,10 @@ class BetaAITraceLogsState(SessionState):
         return {
             "beta_exercise_result_id": beta_result.id,
             "beta_exercise_id": beta_result.beta_exercise_id,
-            "exercise_title": exercise.title if exercise else "<deleted exercise>",
-            "user": _username_for_userinfo(session, userinfo),
+            "exercise_title": exercise.title
+            if exercise
+            else BT.beta_ai_deleted_exercise(self.language),
+            "user": _username_for_userinfo(session, userinfo, self.language),
             "conversation": beta_result.conversation_text,
             "trace_count": len(trace_logs),
             "latest_trace": latest_trace,
@@ -274,7 +279,7 @@ class BetaAITraceLogsState(SessionState):
         """Download one exercise-result trace history as JSON."""
         if beta_exercise_result_id is None:
             return rx.toast.error(
-                description="Beta AI trace log not found.",
+                description=BT.beta_ai_trace_log_not_found(self.language),
                 duration=5000,
                 position="bottom-center",
                 invert=True,
@@ -282,7 +287,7 @@ class BetaAITraceLogsState(SessionState):
         export_data = self._load_trace_export_for_result(beta_exercise_result_id)
         if export_data is None:
             return rx.toast.error(
-                description="Beta AI trace log not found.",
+                description=BT.beta_ai_trace_log_not_found(self.language),
                 duration=5000,
                 position="bottom-center",
                 invert=True,
