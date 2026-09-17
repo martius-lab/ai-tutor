@@ -21,125 +21,28 @@ def back_to_my_lectures_button() -> rx.Component:
     )
 
 
-def all_lectures_header() -> rx.Component:
+def page_header() -> rx.Component:
     """Render the all lectures page header."""
     return rx.vstack(
-        rx.hstack(
-            back_to_my_lectures_button(),
-            align="center",
-            width="85vw",
-            max_width="100%",
-        ),
-        rx.hstack(
-            rx.heading(LS.all_lectures, size="5"),
-            align="center",
-            width="85vw",
-            max_width="100%",
-        ),
-        spacing="3",
-        align="center",
-        width="100%",
-    )
-
-
-def lecture_details_toggle_button(lecture_id) -> rx.Component:
-    """Render the button for expanding or collapsing lecture details."""
-    return rx.icon_button(
-        rx.cond(
-            AllLecturesState.expanded_lecture_id == lecture_id,
-            rx.icon("chevron-down", size=16),
-            rx.icon("chevron-right", size=16),
-        ),
-        variant="ghost",
-        size="1",
-        on_click=AllLecturesState.toggle_lecture_details(lecture_id),
-        _hover={"cursor": "pointer"},
-    )
-
-
-def lecture_name_cell(lecture, lecture_id) -> rx.Component:
-    """Render the lecture name cell with its details toggle."""
-    return rx.table.cell(
-        rx.hstack(
-            lecture_details_toggle_button(lecture_id),
-            rx.text(lecture.lecture_name),
-            align="center",
-            spacing="2",
-        ),
-    )
-
-
-def lecturer_cell(lecture) -> rx.Component:
-    """Render the lecturer information cell."""
-    return rx.table.cell(
-        rx.cond(
-            lecture.lecturer_name,
-            lecture.lecturer_name,
-            LS.no_lecturer_information,
-        )
-    )
-
-
-def join_status_cell(role: int | None, lecture_id) -> rx.Component:
-    """Render the join action or joined status for a lecture."""
-    return rx.table.cell(
-        rx.cond(
-            role == None,  # noqa: E711
-            rx.button(
-                LS.join,
-                size="2",
-                on_click=AllLecturesState.open_join_dialog(lecture_id),
-                _hover={"cursor": "pointer"},
-            ),
-            rx.text(LS.already_joined),
-        )
-    )
-
-
-def lecture_details_row(lecture, lecture_id) -> rx.Component:
-    """Render the expanded lecture details row when selected."""
-    return rx.cond(
-        AllLecturesState.expanded_lecture_id == lecture_id,
-        rx.table.row(
-            rx.table.cell(
-                rx.cond(
-                    lecture.lecture_information_text,
-                    rx.markdown(lecture.lecture_information_text),
-                    rx.text(LS.no_lecture_details),
-                ),
-                col_span=3,
-            )
-        ),
-    )
-
-
-def lecture_row(lecture_with_role: LectureWithRole) -> rx.Component:
-    """Render a single lecture row."""
-    lecture = lecture_with_role[0]
-    role = lecture_with_role[1]
-    lecture_id = rx.cond(lecture.id != None, lecture.id, 0)  # noqa: E711
-
-    return rx.fragment(
-        rx.table.row(
-            lecture_name_cell(lecture, lecture_id),
-            lecturer_cell(lecture),
-            join_status_cell(role, lecture_id),
-        ),
-        lecture_details_row(lecture, lecture_id),
+        back_to_my_lectures_button(),
+        rx.heading(LS.all_lectures, size="5"),
+        spacing="5",
+        align="start",
+        width="85vw",
+        margin_top=rx.breakpoints(initial="0.5em", md="2em"),
     )
 
 
 def join_lecture_dialog() -> rx.Component:
     """Dialog for joining a lecture."""
-    return rx.alert_dialog.root(
-        rx.alert_dialog.content(
+    return rx.dialog.root(
+        rx.dialog.content(
             rx.vstack(
-                rx.alert_dialog.title(LS.join_lecture),
+                rx.dialog.title(LS.join_lecture),
                 rx.text(
                     AllLecturesState.selected_lecture_name,
                     size="4",
                     weight="bold",
-                    line_height="1.3",
                 ),
                 rx.cond(
                     AllLecturesState.selected_lecture_lecturer_name,
@@ -171,7 +74,7 @@ def join_lecture_dialog() -> rx.Component:
                     rx.text(LS.no_registration_code_required),
                 ),
                 rx.hstack(
-                    rx.alert_dialog.cancel(
+                    rx.dialog.close(
                         rx.button(
                             LS.cancel,
                             variant="outline",
@@ -200,37 +103,35 @@ def join_lecture_dialog() -> rx.Component:
 
 def lectures_toolbar() -> rx.Component:
     """Render the all lectures search toolbar."""
-    return rx.hstack(
+    return rx.box(
         rx.input(
+            rx.input.slot(
+                rx.icon("search", size=18, color=rx.color("gray", 10)),
+            ),
+            rx.cond(
+                AllLecturesState.search_text != "",
+                rx.input.slot(
+                    rx.icon_button(
+                        rx.icon("x", size=14),
+                        variant="ghost",
+                        color_scheme="gray",
+                        size="2",
+                        on_click=AllLecturesState.update_search_text(""),
+                        _hover={"cursor": "pointer"},
+                    ),
+                ),
+            ),
             value=AllLecturesState.search_text,
             placeholder=LS.search_placeholder,
             on_change=AllLecturesState.update_search_text,
-            width="22em",
-            max_width="100%",
             max_length=ALL_LECTURES_FIELD_MAX_LENGTHS["search_text"],
+            size="3",
+            variant="surface",
+            width="100%",
         ),
         width="85vw",
-        max_width="100%",
-    )
-
-
-def lectures_table() -> rx.Component:
-    """Render the table containing all currently filtered lectures."""
-    return rx.table.root(
-        rx.table.header(
-            rx.table.row(
-                rx.table.column_header_cell(LS.lecture_name),
-                rx.table.column_header_cell(LS.lecture_lecturer),
-                rx.table.column_header_cell(""),
-            )
-        ),
-        rx.table.body(rx.foreach(AllLecturesState.filtered_lectures, lecture_row)),
-        variant="surface",
-        size="3",
-        width="85vw",
-        max_width="100%",
-        overflow_y="auto",
-        max_height="66vh",
+        max_width="36em",
+        margin_top=rx.breakpoints(initial="1em", md="2.5em"),
     )
 
 
@@ -243,13 +144,196 @@ def empty_lectures_message() -> rx.Component:
     )
 
 
-def all_lectures_table() -> rx.Component:
-    """Render the searchable table of all lectures."""
+def join_action_button(role, lecture_id) -> rx.Component:
+    """Render a join button or already-joined badge."""
+    return rx.cond(
+        role,
+        rx.badge(
+            rx.icon("check", size=12),
+            LS.already_joined,
+            color_scheme="green",
+            variant="surface",
+            size="2",
+        ),
+        rx.button(
+            rx.icon("user-plus", size=14),
+            LS.join,
+            size="2",
+            on_click=AllLecturesState.open_join_dialog(lecture_id),  # type: ignore[arg-type]
+            _hover={"cursor": "pointer"},
+        ),
+    )
+
+
+def lecturer_subtitle(lecturer_name) -> rx.Component:
+    """Render the lecturer label and name."""
+    return rx.hstack(
+        rx.icon("graduation-cap", size=15, color=rx.color("gray", 10)),
+        rx.text(
+            lecturer_name,
+            size="2",
+            color_scheme="gray",
+        ),
+        spacing="2",
+        align="center",
+    )
+
+
+def lecture_details_body(information_text) -> rx.Component:
+    """Render the syllabus/details markdown or fallback message."""
+    return rx.cond(
+        information_text,
+        rx.markdown(information_text),
+        rx.text(LS.no_lecture_details, size="2", color_scheme="gray"),
+    )
+
+
+def lecture_details_dialog() -> rx.Component:
+    """Details modal dialog for desktop screens."""
+    return rx.dialog.root(
+        rx.dialog.content(
+            rx.vstack(
+                rx.hstack(
+                    rx.dialog.title(
+                        rx.heading(
+                            AllLecturesState.detail_lecture_name,
+                            size="5",
+                            weight="bold",
+                        ),
+                        margin="0",
+                    ),
+                    rx.dialog.close(
+                        rx.icon_button(
+                            rx.icon("x", size=18),
+                            variant="ghost",
+                            color_scheme="gray",
+                            _hover={"cursor": "pointer"},
+                        ),
+                    ),
+                    justify="between",
+                    align="center",
+                    width="100%",
+                ),
+                rx.hstack(
+                    lecturer_subtitle(AllLecturesState.detail_lecturer_name),
+                    join_action_button(
+                        AllLecturesState.detail_lecture_role,
+                        AllLecturesState.detail_lecture_id,
+                    ),
+                    justify="between",
+                    align="center",
+                    width="100%",
+                ),
+                rx.divider(),
+                rx.scroll_area(
+                    rx.box(
+                        lecture_details_body(AllLecturesState.detail_lecture_info),
+                        padding_right="1.5em",
+                        padding_bottom="1em",
+                    ),
+                    max_height="65vh",
+                    type="auto",
+                    scrollbars="vertical",
+                ),
+                spacing="5",
+                align="start",
+                width="100%",
+            ),
+            padding="2.5em",
+            max_width="60em",
+        ),
+        open=AllLecturesState.details_dialog_is_open,
+        on_open_change=AllLecturesState.set_details_dialog_is_open,
+    )
+
+
+def lecture_card(lecture_with_role: LectureWithRole) -> rx.Component:
+    """Render a single lecture card with consistent layout across all screen sizes."""
+    lecture = lecture_with_role[0]
+    role = lecture_with_role[1]
+    lecture_id = lecture.id
+
+    return rx.card(
+        rx.vstack(
+            rx.hstack(
+                rx.heading(
+                    lecture.lecture_name,
+                    as_="h2",
+                    size="5",
+                    weight="bold",
+                ),
+                join_action_button(role, lecture_id),
+                justify="between",
+                align="start",
+                width="100%",
+                spacing="3",
+            ),
+            lecturer_subtitle(lecture.lecturer_name),
+            rx.spacer(),
+            rx.desktop_only(
+                rx.button(
+                    rx.icon("info", size=14),
+                    LS.lecture_info,
+                    variant="surface",
+                    color_scheme="gray",
+                    size="2",
+                    on_click=AllLecturesState.open_details_dialog(lecture_id),  # type: ignore[arg-type]
+                    _hover={"cursor": "pointer"},
+                ),
+            ),
+            rx.mobile_and_tablet(
+                rx.accordion.root(
+                    rx.accordion.item(
+                        header=rx.hstack(
+                            rx.icon("info", size=14),
+                            rx.text(LS.lecture_info, size="2"),
+                            spacing="2",
+                            align="center",
+                        ),
+                        content=rx.box(
+                            rx.divider(),
+                            rx.box(
+                                lecture_details_body(lecture.lecture_information_text),
+                                padding_y="0.75em",
+                            ),
+                            width="100%",
+                        ),
+                    ),
+                    collapsible=True,
+                    variant="ghost",
+                    width="100%",
+                ),
+            ),
+            spacing="3",
+            align="start",
+            width="100%",
+            height="100%",
+        ),
+        padding="1.5em",
+        _hover={
+            "box_shadow": "var(--shadow-2)",
+        },
+    )
+
+
+def lectures_cards_list() -> rx.Component:
+    """Render the grid of lecture cards."""
+    return rx.grid(
+        rx.foreach(AllLecturesState.filtered_lectures, lecture_card),
+        grid_template_columns="repeat(auto-fill, minmax(min(100%, 28em), 1fr))",
+        gap="1.5em",
+        width="85vw",
+        padding_y="2em",
+    )
+
+
+def lectures_cards() -> rx.Component:
+    """Render the searchable cards of all lectures."""
     return rx.vstack(
         lectures_toolbar(),
         rx.cond(
             AllLecturesState.filtered_lectures,
-            lectures_table(),
+            lectures_cards_list(),
             empty_lectures_message(),
         ),
         spacing="3",
@@ -261,10 +345,11 @@ def all_lectures_table() -> rx.Component:
 def all_lectures_content() -> rx.Component:
     """Main content for the all lectures page."""
     return rx.vstack(
-        all_lectures_header(),
-        all_lectures_table(),
+        rx.html("<style>body { pointer-events: auto !important; }</style>"),
+        page_header(),
+        lectures_cards(),
         join_lecture_dialog(),
+        lecture_details_dialog(),
         spacing="3",
         align="center",
-        width="100%",
     )

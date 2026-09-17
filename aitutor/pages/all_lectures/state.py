@@ -14,9 +14,6 @@ from aitutor.models import Lecture, LectureRole, LinkUserLecture, UserRole
 
 LectureWithRole = tuple[Lecture, int | None]
 
-ALL_LECTURES_FIELD_MAX_LENGTHS = {"registration_code": gv.REGISTRATION_CODE_MAX_LEN}
-
-
 ALL_LECTURES_FIELD_MAX_LENGTHS: dict[str, int] = {
     "search_text": gv.SEARCH_TEXT_MAX_LEN,
     "registration_code": gv.REGISTRATION_CODE_MAX_LEN,
@@ -28,13 +25,18 @@ class AllLecturesState(SessionState):
 
     lectures: list[LectureWithRole] = []
     search_text: str = ""
-    expanded_lecture_id: int | None = None
     join_dialog_is_open: bool = False
     selected_lecture_id: int | None = None
     selected_lecture_name: str = ""
     selected_lecture_registration_code: str = ""
     selected_lecture_lecturer_name: str = ""
     entered_registration_code: str = ""
+    details_dialog_is_open: bool = False
+    detail_lecture_id: int | None = None
+    detail_lecture_name: str = ""
+    detail_lecturer_name: str = ""
+    detail_lecture_info: str = ""
+    detail_lecture_role: int | None = None
 
     @rx.event
     def update_search_text(self, value: str):
@@ -49,17 +51,37 @@ class AllLecturesState(SessionState):
         ]
 
     @rx.event
-    def toggle_lecture_details(self, lecture_id: int):
-        """Toggle whether lecture details are expanded."""
-        if self.expanded_lecture_id == lecture_id:
-            self.expanded_lecture_id = None
+    def open_details_dialog(self, lecture_id: int):
+        """Open the details dialog for a specific lecture."""
+        lecture_with_role = self._find_loaded_lecture(lecture_id)
+        if lecture_with_role is None:
             return
 
-        self.expanded_lecture_id = lecture_id
+        lecture, role = lecture_with_role
+        self.detail_lecture_id = lecture_id
+        self.detail_lecture_name = lecture.lecture_name
+        self.detail_lecturer_name = lecture.lecturer_name
+        self.detail_lecture_info = lecture.lecture_information_text
+        self.detail_lecture_role = role
+        self.details_dialog_is_open = True
+
+    @rx.event
+    def close_details_dialog(self):
+        """Close the details dialog."""
+        self.details_dialog_is_open = False
+        self.detail_lecture_id = None
+
+    @rx.event
+    def set_details_dialog_is_open(self, value: bool):
+        """Handle open state change from the dialog component."""
+        self.details_dialog_is_open = value
+        if not value:
+            self.detail_lecture_id = None
 
     @rx.event
     def open_join_dialog(self, lecture_id: int):
         """Prepare and open the join dialog for a loaded lecture."""
+        self.close_details_dialog()
         lecture_with_role = self._find_loaded_lecture(lecture_id)
         if lecture_with_role is None:
             return rx.toast.error(
@@ -157,6 +179,7 @@ class AllLecturesState(SessionState):
 
         self.load_lectures()
         self.close_join_dialog()
+        self.close_details_dialog()
         return rx.toast.success(
             description=BT.joined_lecture_successfully(self.language),
             duration=5000,
@@ -215,7 +238,7 @@ class AllLecturesState(SessionState):
     def _reset_page_state(self) -> None:
         """Reset local page UI state without clearing loaded lectures."""
         self.search_text = ""
-        self.expanded_lecture_id = None
+        self.close_details_dialog()
         self._reset_join_dialog()
 
     def _reset_join_dialog(self) -> None:
