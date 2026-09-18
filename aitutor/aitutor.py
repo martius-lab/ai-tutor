@@ -239,6 +239,12 @@ app.add_page(
     on_load=BetaAITraceLogsState.on_load,
 )
 
+app.add_page(
+    beta_ai_exercises_page,
+    route=routes.BETA_AI_EXERCISES + "/[lecture_id]/[beta_exercise_id]",
+    on_load=BetaAIExercisesState.on_load,
+)
+
 # reflex_local_auth pages
 app.add_page(
     custom_login_page,

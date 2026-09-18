@@ -4,6 +4,7 @@ import reflex as rx
 
 from aitutor.beta_ai.schemas import SavedConceptDetail
 from aitutor.components.dialogs import destructive_confirm
+from aitutor.global_vars import TIME_ZONE
 from aitutor.language_state import LanguageState as LS
 from aitutor.models import BetaExercise
 from aitutor.pages.beta_ai_exercises.state import BetaAIExercisesState
@@ -278,6 +279,58 @@ def metadata_card() -> rx.Component:
                 rows="4",
                 width="100%",
             ),
+            rx.hstack(
+                rx.text(LS.hide_exercise, size="3", weight="medium"),
+                rx.checkbox(
+                    checked=BetaAIExercisesState.is_hidden,
+                    on_change=BetaAIExercisesState.set_is_hidden,
+                ),
+                align="center",
+            ),
+            rx.hstack(
+                rx.text(LS.activate_deadline, size="3", weight="medium"),
+                rx.checkbox(
+                    checked=BetaAIExercisesState.use_deadline,
+                    on_change=BetaAIExercisesState.set_use_deadline,
+                ),
+                align="center",
+            ),
+            rx.cond(
+                BetaAIExercisesState.use_deadline,
+                rx.vstack(
+                    rx.hstack(
+                        rx.vstack(
+                            rx.text(LS.deadline, size="3", weight="medium"),
+                            rx.input(
+                                value=BetaAIExercisesState.deadline,
+                                on_change=BetaAIExercisesState.set_deadline,
+                                type="datetime-local",
+                            ),
+                            align="start",
+                        ),
+                        rx.vstack(
+                            rx.text(
+                                LS.days_to_complete,
+                                size="3",
+                                weight="medium",
+                            ),
+                            rx.input(
+                                value=BetaAIExercisesState.days_to_complete,
+                                on_change=BetaAIExercisesState.set_days_to_complete,
+                                type="number",
+                                step="1",
+                                min="1",
+                                max_length=4,
+                            ),
+                            align="start",
+                        ),
+                        spacing="3",
+                        wrap="wrap",
+                    ),
+                    rx.text(LS.timezone + TIME_ZONE),
+                    align="start",
+                ),
+            ),
             rx.vstack(
                 rx.text(LS.beta_ai_generation_targets, weight="bold", size="2"),
                 rx.text(
@@ -549,14 +602,26 @@ def concepts_card() -> rx.Component:
             ),
             rx.hstack(
                 rx.button(
-                    LS.reset_string,
+                    rx.cond(
+                        BetaAIExercisesState.is_editing,
+                        LS.cancel,
+                        LS.reset_string,
+                    ),
                     variant="outline",
-                    on_click=BetaAIExercisesState.reset_builder,
+                    on_click=rx.cond(
+                        BetaAIExercisesState.is_editing,
+                        BetaAIExercisesState.cancel_builder,
+                        BetaAIExercisesState.reset_builder,
+                    ),
                     _hover={"cursor": "pointer"},
                 ),
                 rx.button(
                     rx.icon("save"),
-                    LS.beta_ai_save_exercise,
+                    rx.cond(
+                        BetaAIExercisesState.is_editing,
+                        LS.update_task,
+                        LS.beta_ai_save_exercise,
+                    ),
                     color_scheme="green",
                     on_click=BetaAIExercisesState.save_beta_exercise,
                     loading=BetaAIExercisesState.saving_exercise,
