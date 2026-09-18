@@ -137,6 +137,11 @@ app.add_page(
 )
 app.add_page(
     pages.beta_ai_exercises_page,
+    route=routes.BETA_AI_EXERCISES + "/[lecture_id]/[beta_exercise_id]",
+    on_load=pages.BetaAIExercisesState.on_load,
+)
+app.add_page(
+    pages.beta_ai_exercises_page,
     route=routes.BETA_AI_EXERCISES + "/[lecture_id]",
     on_load=pages.BetaAIExercisesState.on_load,
 )

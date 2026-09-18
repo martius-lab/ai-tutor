@@ -17,6 +17,7 @@ from aitutor.auth.protection import state_require_lecture_role
 from aitutor.auth.state import SessionState
 from aitutor.language_state import BackendTranslations as BT
 from aitutor.models import (
+    BetaExercise,
     Exercise,
     ExerciseTagLink,
     Lecture,
@@ -55,6 +56,7 @@ class LectureManageExercisesState(FilterMixin, SessionState):
     current_default_prompt_id: int | None = None
 
     exercises: list[Exercise] = []
+    beta_exercises: list[BetaExercise] = []
     tag_list: list[Tag] = []
     tag_names: list[str] = []
     # valid search keys. overrides the var from FilterMixin
@@ -87,8 +89,10 @@ class LectureManageExercisesState(FilterMixin, SessionState):
     # So this is a workaround.
     #: dictionary to store editing periods for exercises. Key is exercise id.
     editing_periods: dict[int, str] = {}
+    beta_editing_periods: dict[int, str] = {}
     #: dictionary to store which exercises are started. Key is exercise id.
     exercise_is_started: dict[int, bool] = {}
+    beta_exercise_is_started: dict[int, bool] = {}
     #: dictionary to store which exercises are selected. Key is exercise id.
     exercise_is_selected: dict[int, bool] = {}
 
@@ -659,8 +663,11 @@ class LectureManageExercisesState(FilterMixin, SessionState):
         """Get exercises from db."""
         if self.current_lecture_id is None:
             self.exercises = []
+            self.beta_exercises = []
             self.editing_periods = {}
+            self.beta_editing_periods = {}
             self.exercise_is_started = {}
+            self.beta_exercise_is_started = {}
             self.exercise_is_selected = {}
             return
 
@@ -701,12 +708,44 @@ class LectureManageExercisesState(FilterMixin, SessionState):
                 session.exec(query_exercises.order_by(Exercise.id.desc())).all()  # type: ignore
             )
 
+            query_beta_exercises = select(BetaExercise).where(
+                BetaExercise.lecture_id == self.current_lecture_id
+            )
+            for key, value in self.search_values:
+                match key:
+                    case gv.SEARCH_EXERCISE_KEY:
+                        query_beta_exercises = query_beta_exercises.where(
+                            BetaExercise.title.ilike(f"%{value}%")  # type: ignore
+                        )
+                    case gv.SEARCH_TAG_KEY:
+                        self.beta_exercises = []
+                        break
+                    case _:
+                        query_beta_exercises = query_beta_exercises.where(
+                            or_(
+                                BetaExercise.title.ilike(f"%{value}%"),  # type: ignore
+                                BetaExercise.description.ilike(f"%{value}%"),  # type: ignore
+                            )
+                        )
+            else:
+                self.beta_exercises = list(
+                    session.exec(
+                        query_beta_exercises.order_by(BetaExercise.id.desc())  # type: ignore
+                    ).all()
+                )
+
         # fill dictionarys with correct values for the currently loaded exercises
         self.editing_periods = {
             e.id: e.editing_period for e in self.exercises if e.id is not None
         }
+        self.beta_editing_periods = {
+            e.id: e.editing_period for e in self.beta_exercises if e.id is not None
+        }
         self.exercise_is_started = {
             e.id: e.is_started for e in self.exercises if e.id is not None
+        }
+        self.beta_exercise_is_started = {
+            e.id: e.is_started for e in self.beta_exercises if e.id is not None
         }
         self.exercise_is_selected = {
             e.id: False for e in self.exercises if e.id is not None
@@ -749,6 +788,33 @@ class LectureManageExercisesState(FilterMixin, SessionState):
                 if e.id == exercise.id:
                     self.exercises[i].is_hidden = _exercise.is_hidden
                     break
+
+    @rx.event
+    def toggle_beta_visibility(self, exercise_id: int | None):
+        """Toggle the visibility of a Better AI exercise."""
+        if exercise_id is None:
+            return
+        with rx.session() as session:
+            exercise = session.get(BetaExercise, exercise_id)
+            if exercise is None or exercise.lecture_id != self.current_lecture_id:
+                return rx.redirect(routes.MY_LECTURES)
+            exercise.is_hidden = not exercise.is_hidden
+            session.add(exercise)
+            session.commit()
+        self.load_exercises()
+
+    @rx.event
+    def open_beta_edit(self, exercise_id: int | None):
+        """Open the Better AI builder for one exercise in this lecture."""
+        if exercise_id is None or self.current_lecture_id is None:
+            return
+        with rx.session() as session:
+            exercise = session.get(BetaExercise, exercise_id)
+            if exercise is None or exercise.lecture_id != self.current_lecture_id:
+                return rx.redirect(routes.MY_LECTURES)
+        return rx.redirect(
+            f"{routes.BETA_AI_EXERCISES}/{self.current_lecture_id}/{exercise_id}"
+        )
 
     @rx.event
     def update_exercise(self, form_data: dict):
@@ -833,6 +899,24 @@ class LectureManageExercisesState(FilterMixin, SessionState):
             session.commit()
         self.load_exercises()
 
+        return rx.toast.success(
+            BT.exercise_deleted(self.language),
+            duration=2500,
+            position="bottom-center",
+            invert=True,
+        )
+
+    def delete_beta_exercise(self, exercise_id: int | None):
+        """Delete a Better AI exercise from the current lecture."""
+        if exercise_id is None:
+            return
+        with rx.session() as session:
+            exercise = session.get(BetaExercise, exercise_id)
+            if exercise is None or exercise.lecture_id != self.current_lecture_id:
+                return rx.redirect(routes.MY_LECTURES)
+            session.delete(exercise)
+            session.commit()
+        self.load_exercises()
         return rx.toast.success(
             BT.exercise_deleted(self.language),
             duration=2500,
