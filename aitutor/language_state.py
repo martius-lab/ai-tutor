@@ -1677,6 +1677,10 @@ Please test the chat for functionality after changing the model.
         return self.translate(de="3. Konzepte prüfen", en="3. Review concepts")
 
     @rx.var
+    def beta_ai_exercise_settings(self) -> str:
+        return self.translate(de="4. Übungseinstellungen", en="4. Exercise settings")
+
+    @rx.var
     def beta_ai_add_concept(self) -> str:
         return self.translate(de="Konzept hinzufügen", en="Add Concept")
 

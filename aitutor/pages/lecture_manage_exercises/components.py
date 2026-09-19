@@ -4,11 +4,12 @@ from typing import Sequence
 
 import reflex as rx
 
-import aitutor.routes as routes
 from aitutor.components.dialogs import destructive_confirm
 from aitutor.global_vars import SEARCH_TAG_KEY, TIME_ZONE
 from aitutor.language_state import LanguageState
 from aitutor.models import BetaExercise, Exercise
+from aitutor.pages.beta_ai_exercises.components import beta_ai_exercise_builder
+from aitutor.pages.beta_ai_exercises.state import BetaAIExercisesState
 from aitutor.pages.lecture_manage_exercises.state import (
     LECTURE_MANAGE_EXERCISES_FIELD_MAX_LENGTHS,
     DialogMode,
@@ -19,7 +20,6 @@ from aitutor.pages.lecture_manage_exercises.state import (
 from aitutor.pages.lecture_manage_exercises.state import (
     LectureManageTagsState as ManageTagsState,
 )
-from aitutor.pages.navbar_specific_lecture import lecture_route
 from aitutor.utilities.helper_functions import truncate_text_reflex_var
 
 
@@ -420,6 +420,7 @@ def exercise_table():
             ),
             edit_exercise_dialog(),
             add_exercise_dialog(),
+            beta_ai_exercise_dialog(),
         ),
     )
 
@@ -483,11 +484,8 @@ def add_exercise_button() -> rx.Component:
                 rx.dialog.close(
                     rx.button(
                         LanguageState.beta_ai,
-                        on_click=rx.redirect(
-                            lecture_route(
-                                routes.BETA_AI_EXERCISES,
-                                ManageExercisesState.current_lecture_id,
-                            )
+                        on_click=BetaAIExercisesState.open_builder_dialog(
+                            ManageExercisesState.current_lecture_id
                         ),
                         width="100%",
                         _hover={"cursor": "pointer"},
@@ -499,6 +497,22 @@ def add_exercise_button() -> rx.Component:
             width="24em",
             max_width="90vw",
         ),
+    )
+
+
+def beta_ai_exercise_dialog() -> rx.Component:
+    """Dialog for creating Beta AI exercises."""
+    return rx.dialog.root(
+        rx.dialog.content(
+            beta_ai_exercise_builder(),
+            width="42em",
+            max_width="90vw",
+            max_height="85vh",
+            overflow_y="auto",
+            on_escape_key_down=BetaAIExercisesState.close_builder_dialog,
+        ),
+        open=BetaAIExercisesState.builder_dialog_is_open,
+        on_open_change=BetaAIExercisesState.set_builder_dialog_is_open,
     )
 
 

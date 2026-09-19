@@ -59,8 +59,9 @@ class BetaAIExercisesState(SessionState):
     is_hidden: bool = False
     deadline: str = ""
     days_to_complete: str = ""
-    use_deadline: bool = False
+    use_deadline: bool = True
     exercise_has_started: bool = False
+    builder_dialog_is_open: bool = False
 
     @rx.event
     def set_title(self, value: str):
@@ -300,8 +301,27 @@ class BetaAIExercisesState(SessionState):
         self.is_hidden = False
         self.deadline = ""
         self.days_to_complete = ""
-        self.use_deadline = False
+        self.use_deadline = True
         self.exercise_has_started = False
+
+    @rx.event
+    def open_builder_dialog(self, lecture_id: int | None):
+        """Open a blank Beta AI builder for the selected lecture."""
+        if lecture_id is None:
+            return rx.redirect(routes.MY_LECTURES)
+        self.current_lecture_id = lecture_id
+        self.reset_builder()
+        self.builder_dialog_is_open = True
+
+    @rx.event
+    def close_builder_dialog(self):
+        """Close the Beta AI builder dialog."""
+        self.builder_dialog_is_open = False
+
+    @rx.event
+    def set_builder_dialog_is_open(self, is_open: bool):
+        """Set whether the Beta AI builder dialog is open."""
+        self.builder_dialog_is_open = is_open
 
     @rx.event
     def cancel_builder(self):
@@ -835,6 +855,7 @@ class BetaAIExercisesState(SessionState):
             )
 
         self.saving_exercise = False
+        self.builder_dialog_is_open = False
         self.reset_builder()
         return [
             rx.toast.success(
