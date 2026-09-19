@@ -1,12 +1,13 @@
 """The state for the lecture-specific submissions page."""
 
 from dataclasses import dataclass
-from typing import override
+from typing import cast, override
 
 import reflex as rx
 import sqlalchemy
 from reflex_local_auth.user import LocalUser
 from sqlalchemy.orm import selectinload
+from sqlalchemy.sql.elements import ColumnElement
 from sqlmodel import and_, func, or_, select
 
 import aitutor.global_vars as gv
@@ -15,6 +16,8 @@ from aitutor.auth.protection import state_require_lecture_role
 from aitutor.auth.state import SessionState
 from aitutor.config import get_config
 from aitutor.models import (
+    BetaExercise,
+    BetaExerciseResult,
     Exercise,
     ExerciseResult,
     Lecture,
@@ -37,6 +40,7 @@ class LectureSubmissionTableRow:
     exercise_id: int | None
     exercise_title: str
     exercise_tags: list[str]
+    is_beta: bool
 
 
 class LectureSubmissionsState(FilterMixin, SessionState):
@@ -164,6 +168,78 @@ class LectureSubmissionsState(FilterMixin, SessionState):
                     exercise_title=exercise.title,
                     exercise_tags=[tag.name for tag in exercise.tags],
                     token_limit_reached=result.tokens_used >= token_limit,
+                    is_beta=False,
                 )
                 for user, _, exercise, result in session.exec(stmt).all()
             ]
+
+            beta_stmt = (
+                select(LocalUser, BetaExercise, BetaExerciseResult)
+                .select_from(BetaExerciseResult)
+                .join(
+                    BetaExercise,
+                    cast(
+                        ColumnElement[bool],
+                        BetaExercise.id == BetaExerciseResult.beta_exercise_id,
+                    ),
+                )
+                .join(
+                    UserInfo,
+                    cast(
+                        ColumnElement[bool],
+                        UserInfo.id == BetaExerciseResult.userinfo_id,
+                    ),
+                )
+                .join(
+                    LocalUser,
+                    cast(ColumnElement[bool], LocalUser.id == UserInfo.user_id),
+                )
+                .where(
+                    BetaExercise.lecture_id == self.current_lecture_id,
+                    BetaExerciseResult.submit_time_stamp != None,
+                )
+            )
+
+            beta_search_conditions = []
+            for key, value in self.search_values:
+                match key:
+                    case gv.SEARCH_USER_KEY:
+                        beta_search_conditions.append(
+                            LocalUser.username.ilike(f"%{value}%")  # type: ignore
+                        )
+                    case gv.SEARCH_EXERCISE_KEY:
+                        beta_search_conditions.append(
+                            BetaExercise.title.ilike(f"%{value}%")  # type: ignore
+                        )
+                    case gv.SEARCH_TAG_KEY:
+                        beta_search_conditions.append(sqlalchemy.sql.false())
+                    case _:
+                        beta_search_conditions.append(
+                            or_(
+                                LocalUser.username.ilike(f"%{value}%"),  # type: ignore
+                                BetaExercise.title.ilike(f"%{value}%"),  # type: ignore
+                            )
+                        )
+            if beta_search_conditions:
+                beta_stmt = beta_stmt.where(and_(*beta_search_conditions))
+
+            self.table_rows.extend(
+                LectureSubmissionTableRow(
+                    username=user.username,
+                    user_id=user.id,
+                    has_submitted=True,
+                    token_limit_reached=False,
+                    exercise_id=exercise.id,
+                    exercise_title=exercise.title,
+                    exercise_tags=[],
+                    is_beta=True,
+                )
+                for user, exercise, _ in session.exec(beta_stmt).all()
+            )
+
+            self.table_rows.sort(
+                key=lambda row: (
+                    row.exercise_title.casefold(),
+                    row.username.casefold(),
+                )
+            )
