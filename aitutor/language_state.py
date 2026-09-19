@@ -1544,6 +1544,13 @@ Please test the chat for functionality after changing the model.
         )
 
     @rx.var
+    def beta_ai_started_exercise_content_locked(self) -> str:
+        return self.translate(
+            de="Diese Übung wurde bereits von mindestens einem Studierenden begonnen. Titel, Sichtbarkeit, Abgabefrist und Bearbeitungsdauer können weiterhin bearbeitet werden. Quellmaterial, Beschreibung, Konzepte, Kernpunkte und Fehlvorstellungen können deshalb nicht mehr verändert werden.",
+            en="At least one student has already started this exercise. The title, visibility, deadline, and editing duration can still be changed. Its source material, description, concepts, core points, and misconceptions can no longer be changed.",
+        )
+
+    @rx.var
     def beta_ai_saved_exercises(self) -> str:
         return self.translate(
             de="Gespeicherte Übungen in Beta AI", en="Saved Beta AI Exercises"
@@ -2250,6 +2257,22 @@ class BackendTranslations:
     def beta_ai_exercise_deleted(language: Language) -> str:
         return translate(
             language, de="Übung in Beta AI gelöscht.", en="Beta AI exercise deleted."
+        )
+
+    @staticmethod
+    def beta_ai_started_exercise_cannot_delete(language: Language) -> str:
+        return translate(
+            language,
+            de="Diese Übung kann nicht gelöscht werden, weil sie bereits von mindestens einem Studierenden begonnen wurde.",
+            en="This exercise cannot be deleted because at least one student has already started it.",
+        )
+
+    @staticmethod
+    def beta_ai_started_while_editing(language: Language) -> str:
+        return translate(
+            language,
+            de="Die Übung wurde inzwischen von einem Studierenden begonnen. Die fachlichen Änderungen wurden deshalb nicht gespeichert. Lade die Seite neu, um nur noch administrative Angaben zu bearbeiten.",
+            en="A student started this exercise while it was being edited, so the didactic changes were not saved. Reload the page to edit administrative fields only.",
         )
 
     @staticmethod
