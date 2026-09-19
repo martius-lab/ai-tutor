@@ -22,6 +22,7 @@ from aitutor.models import (
     BetaConcept,
     BetaCorePoint,
     BetaExercise,
+    BetaExerciseResult,
     BetaMisconception,
     Lecture,
     LectureRole,
@@ -59,6 +60,7 @@ class BetaAIExercisesState(SessionState):
     deadline: str = ""
     days_to_complete: str = ""
     use_deadline: bool = False
+    exercise_has_started: bool = False
 
     @rx.event
     def set_title(self, value: str):
@@ -190,6 +192,7 @@ class BetaAIExercisesState(SessionState):
             self.title.strip()
             and self.source_material_text.strip()
             and not self.generating_concepts
+            and not self.exercise_has_started
         )
 
     @rx.var
@@ -298,6 +301,7 @@ class BetaAIExercisesState(SessionState):
         self.deadline = ""
         self.days_to_complete = ""
         self.use_deadline = False
+        self.exercise_has_started = False
 
     @rx.event
     def cancel_builder(self):
@@ -323,6 +327,14 @@ class BetaAIExercisesState(SessionState):
                     .where(BetaConcept.beta_exercise_id == exercise_id)
                     .order_by(BetaConcept.order_index)  # type: ignore
                 ).all()
+            )
+            exercise_has_started = (
+                session.exec(
+                    select(BetaExerciseResult).where(
+                        BetaExerciseResult.beta_exercise_id == exercise_id
+                    )
+                ).first()
+                is not None
             )
             editable_concepts = []
             for concept in concepts:
@@ -382,6 +394,7 @@ class BetaAIExercisesState(SessionState):
         self.use_deadline = (
             exercise.deadline is not None and exercise.days_to_complete is not None
         )
+        self.exercise_has_started = exercise_has_started
 
     @rx.event
     def load_beta_exercises(self):
@@ -478,6 +491,20 @@ class BetaAIExercisesState(SessionState):
             if exercise is None or exercise.lecture_id != self.current_lecture_id:
                 return rx.toast.error(
                     description=BT.beta_ai_exercise_not_found(self.language),
+                    duration=5000,
+                    position="bottom-center",
+                    invert=True,
+                )
+            exercise_result = session.exec(
+                select(BetaExerciseResult).where(
+                    BetaExerciseResult.beta_exercise_id == exercise_id
+                )
+            ).first()
+            if exercise_result is not None:
+                return rx.toast.error(
+                    description=BT.beta_ai_started_exercise_cannot_delete(
+                        self.language
+                    ),
                     duration=5000,
                     position="bottom-center",
                     invert=True,
@@ -665,9 +692,7 @@ class BetaAIExercisesState(SessionState):
         existing = {
             core_point.id: core_point
             for core_point in session.exec(
-                select(BetaCorePoint).where(
-                    BetaCorePoint.beta_concept_id == concept_id
-                )
+                select(BetaCorePoint).where(BetaCorePoint.beta_concept_id == concept_id)
             ).all()
             if core_point.id is not None
         }
@@ -691,9 +716,7 @@ class BetaAIExercisesState(SessionState):
             db_core_point.order_index = order_index
             session.add(db_core_point)
 
-    def _save_misconceptions(
-        self, session, concept_id: int, concept: EditableConcept
-    ):
+    def _save_misconceptions(self, session, concept_id: int, concept: EditableConcept):
         """Create, update, or delete misconceptions for one concept."""
         existing = {
             misconception.id: misconception
@@ -757,9 +780,7 @@ class BetaAIExercisesState(SessionState):
 
         deadline_values = self._deadline_values()
         if deadline_values is None:
-            return rx.window_alert(
-                "Please enter both a deadline and days to complete."
-            )
+            return rx.window_alert("Please enter both a deadline and days to complete.")
         deadline, days_to_complete = deadline_values
 
         self.saving_exercise = True
@@ -775,10 +796,25 @@ class BetaAIExercisesState(SessionState):
                     ):
                         self.saving_exercise = False
                         return rx.redirect(routes.NOT_FOUND)
+                    exercise_result = session.exec(
+                        select(BetaExerciseResult).where(
+                            BetaExerciseResult.beta_exercise_id
+                            == self.editing_exercise_id
+                        )
+                    ).first()
+                    if exercise_result is not None and not self.exercise_has_started:
+                        self.saving_exercise = False
+                        return rx.toast.error(
+                            description=BT.beta_ai_started_while_editing(self.language),
+                            duration=5000,
+                            position="bottom-center",
+                            invert=True,
+                        )
                 exercise.title = title
-                exercise.description = self.description.strip()
-                exercise.source_material_text = self.source_material_text
-                exercise.source_material_filename = self.source_material_filename
+                if not self.exercise_has_started:
+                    exercise.description = self.description.strip()
+                    exercise.source_material_text = self.source_material_text
+                    exercise.source_material_filename = self.source_material_filename
                 exercise.is_hidden = self.is_hidden
                 exercise.deadline = deadline
                 exercise.days_to_complete = days_to_complete
@@ -786,7 +822,8 @@ class BetaAIExercisesState(SessionState):
                 session.flush()
                 if exercise.id is None:
                     raise ValueError("Failed to create beta exercise id.")
-                self._save_concepts(session, exercise.id)
+                if not self.exercise_has_started:
+                    self._save_concepts(session, exercise.id)
                 session.commit()
         except Exception as exc:
             self.saving_exercise = False
@@ -806,7 +843,5 @@ class BetaAIExercisesState(SessionState):
                 position="bottom-center",
                 invert=True,
             ),
-            rx.redirect(
-                f"{routes.LECTURE_MANAGE_EXERCISES}/{self.current_lecture_id}"
-            ),
+            rx.redirect(f"{routes.LECTURE_MANAGE_EXERCISES}/{self.current_lecture_id}"),
         ]
