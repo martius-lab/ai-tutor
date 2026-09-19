@@ -293,58 +293,6 @@ def metadata_card() -> rx.Component:
                 rows="4",
                 width="100%",
             ),
-            rx.hstack(
-                rx.text(LS.hide_exercise, size="3", weight="medium"),
-                rx.checkbox(
-                    checked=BetaAIExercisesState.is_hidden,
-                    on_change=BetaAIExercisesState.set_is_hidden,
-                ),
-                align="center",
-            ),
-            rx.hstack(
-                rx.text(LS.activate_deadline, size="3", weight="medium"),
-                rx.checkbox(
-                    checked=BetaAIExercisesState.use_deadline,
-                    on_change=BetaAIExercisesState.set_use_deadline,
-                ),
-                align="center",
-            ),
-            rx.cond(
-                BetaAIExercisesState.use_deadline,
-                rx.vstack(
-                    rx.hstack(
-                        rx.vstack(
-                            rx.text(LS.deadline, size="3", weight="medium"),
-                            rx.input(
-                                value=BetaAIExercisesState.deadline,
-                                on_change=BetaAIExercisesState.set_deadline,
-                                type="datetime-local",
-                            ),
-                            align="start",
-                        ),
-                        rx.vstack(
-                            rx.text(
-                                LS.days_to_complete,
-                                size="3",
-                                weight="medium",
-                            ),
-                            rx.input(
-                                value=BetaAIExercisesState.days_to_complete,
-                                on_change=BetaAIExercisesState.set_days_to_complete,
-                                type="number",
-                                step="1",
-                                min="1",
-                                max_length=4,
-                            ),
-                            align="start",
-                        ),
-                        spacing="3",
-                        wrap="wrap",
-                    ),
-                    rx.text(LS.timezone + TIME_ZONE),
-                    align="start",
-                ),
-            ),
             rx.vstack(
                 rx.text(LS.beta_ai_generation_targets, weight="bold", size="2"),
                 rx.text(
@@ -597,6 +545,59 @@ def concept_card(concept, concept_index) -> rx.Component:
     )
 
 
+def deadline_fields() -> rx.Component:
+    """Render the deadline controls for a Beta AI exercise."""
+    return rx.vstack(
+        rx.hstack(
+            rx.text(LS.activate_deadline, size="3", weight="medium"),
+            rx.checkbox(
+                checked=BetaAIExercisesState.use_deadline,
+                on_change=BetaAIExercisesState.set_use_deadline,
+            ),
+            align="center",
+        ),
+        rx.cond(
+            BetaAIExercisesState.use_deadline,
+            rx.vstack(
+                rx.hstack(
+                    rx.vstack(
+                        rx.text(LS.deadline, size="3", weight="medium"),
+                        rx.input(
+                            value=BetaAIExercisesState.deadline,
+                            on_change=BetaAIExercisesState.set_deadline,
+                            type="datetime-local",
+                        ),
+                        align="start",
+                    ),
+                    rx.vstack(
+                        rx.text(
+                            LS.days_to_complete,
+                            size="3",
+                            weight="medium",
+                        ),
+                        rx.input(
+                            value=BetaAIExercisesState.days_to_complete,
+                            on_change=BetaAIExercisesState.set_days_to_complete,
+                            type="number",
+                            step="1",
+                            min="1",
+                            max_length=4,
+                        ),
+                        align="start",
+                    ),
+                    spacing="3",
+                    wrap="wrap",
+                ),
+                rx.text(LS.timezone + TIME_ZONE),
+                align="start",
+            ),
+        ),
+        align="start",
+        spacing="3",
+        width="100%",
+    )
+
+
 def concepts_card() -> rx.Component:
     """Render generated concept editor."""
     return rx.card(
@@ -627,18 +628,48 @@ def concepts_card() -> rx.Component:
                 spacing="3",
                 width="100%",
             ),
+            spacing="4",
+            align="start",
+            width="100%",
+        ),
+        width="100%",
+    )
+
+
+def exercise_settings_card() -> rx.Component:
+    """Render visibility, deadline, and save controls."""
+    return rx.card(
+        rx.vstack(
+            rx.heading(LS.beta_ai_exercise_settings, size="4"),
+            rx.hstack(
+                rx.text(LS.hide_exercise, size="3", weight="medium"),
+                rx.checkbox(
+                    checked=BetaAIExercisesState.is_hidden,
+                    on_change=BetaAIExercisesState.set_is_hidden,
+                ),
+                align="center",
+            ),
+            deadline_fields(),
             rx.hstack(
                 rx.button(
                     rx.cond(
-                        BetaAIExercisesState.is_editing,
+                        BetaAIExercisesState.builder_dialog_is_open,
                         LS.cancel,
-                        LS.reset_string,
+                        rx.cond(
+                            BetaAIExercisesState.is_editing,
+                            LS.cancel,
+                            LS.reset_string,
+                        ),
                     ),
                     variant="outline",
                     on_click=rx.cond(
-                        BetaAIExercisesState.is_editing,
-                        BetaAIExercisesState.cancel_builder,
-                        BetaAIExercisesState.reset_builder,
+                        BetaAIExercisesState.builder_dialog_is_open,
+                        BetaAIExercisesState.close_builder_dialog,
+                        rx.cond(
+                            BetaAIExercisesState.is_editing,
+                            BetaAIExercisesState.cancel_builder,
+                            BetaAIExercisesState.reset_builder,
+                        ),
                     ),
                     _hover={"cursor": "pointer"},
                 ),
@@ -671,10 +702,20 @@ def beta_ai_exercises_content() -> rx.Component:
         builder_header(),
         saved_exercises_table(),
         rx.divider(),
-        source_material_card(),
-        metadata_card(),
-        concepts_card(),
+        beta_ai_exercise_builder(),
         spacing="4",
         width="42em",
         max_width="90vw",
+    )
+
+
+def beta_ai_exercise_builder() -> rx.Component:
+    """Render the form for creating or editing a Beta AI exercise."""
+    return rx.vstack(
+        source_material_card(),
+        metadata_card(),
+        concepts_card(),
+        exercise_settings_card(),
+        spacing="4",
+        width="100%",
     )
