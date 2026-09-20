@@ -338,7 +338,23 @@ def show_beta_exercise(exercise: BetaExercise):
             truncate_text_reflex_var(exercise.description, max_length=150),
             max_width="400px",
         ),
-        rx.table.cell(""),
+        rx.table.cell(
+            rx.hstack(
+                rx.foreach(
+                    exercise.tags,
+                    lambda tag: rx.badge(
+                        tag.name,
+                        variant="soft",
+                        on_click=ManageExercisesState.add_search_value(
+                            {"search_value": f'{SEARCH_TAG_KEY}:"{tag.name}"'}
+                        ),
+                        _hover={"cursor": "pointer"},
+                    ),
+                ),
+                spacing="1",
+                wrap="wrap",
+            )
+        ),
         rx.table.cell(
             ManageExercisesState.beta_editing_periods[exercise.id]  # type: ignore
         ),

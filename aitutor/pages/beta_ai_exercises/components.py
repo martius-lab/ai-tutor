@@ -50,6 +50,16 @@ def saved_exercise_row(exercise: BetaExercise) -> rx.Component:
         rx.table.cell(exercise.source_material_filename),
         rx.table.cell(
             rx.hstack(
+                rx.foreach(
+                    exercise.tags,
+                    lambda tag: rx.badge(tag.name, variant="soft"),
+                ),
+                spacing="1",
+                wrap="wrap",
+            )
+        ),
+        rx.table.cell(
+            rx.hstack(
                 rx.button(
                     LS.beta_ai_inspect,
                     size="2",
@@ -179,6 +189,7 @@ def saved_exercises_table() -> rx.Component:
                             rx.table.column_header_cell(LS.title),
                             rx.table.column_header_cell(LS.description),
                             rx.table.column_header_cell(LS.beta_ai_source_file),
+                            rx.table.column_header_cell(LS.tags),
                             rx.table.column_header_cell(LS.beta_ai_actions),
                         )
                     ),
@@ -636,6 +647,113 @@ def concepts_card() -> rx.Component:
     )
 
 
+def new_tag_dialog() -> rx.Component:
+    """Render the add-tag interaction for the Better AI builder."""
+    return rx.dialog.root(
+        rx.dialog.trigger(
+            rx.button(
+                rx.hstack(
+                    rx.icon("plus", size=18),
+                    rx.icon("tag", size=18),
+                    align="center",
+                    spacing="1",
+                ),
+                LS.new_tag,
+                type="button",
+                _hover={"cursor": "pointer"},
+            )
+        ),
+        rx.dialog.content(
+            rx.vstack(
+                rx.heading(LS.new_tag),
+                rx.input(
+                    placeholder=LS.tagname,
+                    value=BetaAIExercisesState.new_tag_name,
+                    on_change=BetaAIExercisesState.set_new_tag_name,
+                    on_key_down=lambda key: rx.cond(
+                        key == "Enter", BetaAIExercisesState.add_new_tag, None
+                    ),
+                    max_length=100,
+                    width="100%",
+                ),
+                rx.hstack(
+                    rx.dialog.close(
+                        rx.button(LS.cancel, variant="outline", type="button")
+                    ),
+                    rx.button(
+                        LS.add_tag,
+                        on_click=BetaAIExercisesState.add_new_tag,
+                        disabled=BetaAIExercisesState.new_tag_name == "",
+                    ),
+                    justify="end",
+                    width="100%",
+                ),
+                spacing="3",
+            ),
+            width="20em",
+            max_width="90vw",
+        ),
+        open=BetaAIExercisesState.add_tag_dialog_is_open,
+        on_open_change=BetaAIExercisesState.set_add_tag_dialog_is_open,
+    )
+
+
+def tag_selection() -> rx.Component:
+    """Render lecture tag selection using the regular exercise interaction."""
+    return rx.vstack(
+        rx.text(LS.tags + ":", size="3", weight="medium"),
+        rx.hstack(
+            rx.menu.root(
+                rx.menu.trigger(
+                    rx.button(
+                        rx.icon("list", size=18),
+                        LS.select_tags,
+                        type="button",
+                        _hover={"cursor": "pointer"},
+                    )
+                ),
+                rx.menu.content(
+                    rx.foreach(
+                        BetaAIExercisesState.selectable_tags,
+                        lambda tag_name: rx.menu.item(
+                            tag_name,
+                            on_click=BetaAIExercisesState.add_to_selected_tags(
+                                tag_name
+                            ),
+                        ),
+                    ),
+                    min_width="10em",
+                ),
+            ),
+            new_tag_dialog(),
+            align="center",
+            justify="between",
+            width="100%",
+        ),
+        rx.hstack(
+            rx.foreach(
+                BetaAIExercisesState.selected_tags,
+                lambda tag: rx.badge(
+                    rx.hstack(
+                        rx.text(tag),
+                        rx.icon("circle-x", size=16),
+                        spacing="1",
+                        align_items="center",
+                    ),
+                    on_click=BetaAIExercisesState.remove_selected_tag(tag),
+                    cursor="pointer",
+                    size="3",
+                ),
+            ),
+            spacing="1",
+            wrap="wrap",
+        ),
+        align="start",
+        spacing="2",
+        width="100%",
+    )
+
+
 def exercise_settings_card() -> rx.Component:
     """Render visibility, deadline, and save controls."""
     return rx.card(
@@ -650,6 +768,7 @@ def exercise_settings_card() -> rx.Component:
                 align="center",
             ),
             deadline_fields(),
+            tag_selection(),
             rx.hstack(
                 rx.button(
                     rx.cond(

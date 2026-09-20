@@ -19,6 +19,7 @@ from aitutor.language_state import BackendTranslations as BT
 from aitutor.models import (
     BetaExercise,
     BetaExerciseResult,
+    BetaExerciseTagLink,
     Exercise,
     ExerciseTagLink,
     Lecture,
@@ -709,8 +710,10 @@ class LectureManageExercisesState(FilterMixin, SessionState):
                 session.exec(query_exercises.order_by(Exercise.id.desc())).all()  # type: ignore
             )
 
-            query_beta_exercises = select(BetaExercise).where(
-                BetaExercise.lecture_id == self.current_lecture_id
+            query_beta_exercises = (
+                select(BetaExercise)
+                .options(selectinload(BetaExercise.tags))  # type: ignore
+                .where(BetaExercise.lecture_id == self.current_lecture_id)
             )
             for key, value in self.search_values:
                 match key:
@@ -719,21 +722,22 @@ class LectureManageExercisesState(FilterMixin, SessionState):
                             BetaExercise.title.ilike(f"%{value}%")  # type: ignore
                         )
                     case gv.SEARCH_TAG_KEY:
-                        self.beta_exercises = []
-                        break
+                        query_beta_exercises = query_beta_exercises.where(
+                            BetaExercise.tags.any(Tag.name.ilike(f"%{value}%"))  # type: ignore
+                        )
                     case _:
                         query_beta_exercises = query_beta_exercises.where(
                             or_(
                                 BetaExercise.title.ilike(f"%{value}%"),  # type: ignore
                                 BetaExercise.description.ilike(f"%{value}%"),  # type: ignore
+                                BetaExercise.tags.any(Tag.name.ilike(f"%{value}%")),  # type: ignore
                             )
                         )
-            else:
-                self.beta_exercises = list(
-                    session.exec(
-                        query_beta_exercises.order_by(BetaExercise.id.desc())  # type: ignore
-                    ).all()
-                )
+            self.beta_exercises = list(
+                session.exec(
+                    query_beta_exercises.order_by(BetaExercise.id.desc())  # type: ignore
+                ).all()
+            )
 
         # fill dictionarys with correct values for the currently loaded exercises
         self.editing_periods = {
@@ -1055,6 +1059,7 @@ class LectureManageTagsState(LectureManageExercisesState):
         Format: {tag_id: number_of_exercises_with_tag}
         """
         self.exercises  # update when exercises change # noqa: B018
+        self.beta_exercises  # update when Better AI exercises change # noqa: B018
         with rx.session() as session:
             stmt = (
                 select(ExerciseTagLink.tag_id, func.count())
@@ -1069,6 +1074,17 @@ class LectureManageTagsState(LectureManageExercisesState):
             counts = {tag.id: 0 for tag in self.tag_list}
             for tag_id, c in list(session.exec(stmt).all()):
                 counts[tag_id] = c
+
+            beta_stmt = (
+                select(BetaExerciseTagLink.tag_id, func.count())
+                .where(
+                    BetaExerciseTagLink.beta_exercise_id == BetaExercise.id,
+                    BetaExercise.lecture_id == self.current_lecture_id,
+                )
+                .group_by(BetaExerciseTagLink.tag_id)  # type: ignore
+            )
+            for tag_id, c in list(session.exec(beta_stmt).all()):
+                counts[tag_id] = counts.get(tag_id, 0) + c
 
             return counts  # type: ignore
 

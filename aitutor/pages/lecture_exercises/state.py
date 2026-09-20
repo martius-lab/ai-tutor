@@ -256,6 +256,7 @@ class LectureExercisesState(FilterMixin, SessionState):
         """Load Better AI exercises as common card data."""
         stmt = (
             select(BetaExercise, BetaExerciseResult)
+            .options(selectinload(BetaExercise.tags))  # type: ignore
             .join(
                 BetaExerciseResult,
                 and_(
@@ -277,12 +278,15 @@ class LectureExercisesState(FilterMixin, SessionState):
                 case gv.SEARCH_EXERCISE_DESCRIPTION_KEY:
                     stmt = stmt.where(BetaExercise.description.ilike(f"%{value}%"))  # type: ignore
                 case gv.SEARCH_TAG_KEY:
-                    return []
+                    stmt = stmt.where(
+                        BetaExercise.tags.any(Tag.name.ilike(f"%{value}%"))  # type: ignore
+                    )
                 case _:
                     stmt = stmt.where(
                         or_(
                             BetaExercise.title.ilike(f"%{value}%"),  # type: ignore
                             BetaExercise.description.ilike(f"%{value}%"),  # type: ignore
+                            BetaExercise.tags.any(Tag.name.ilike(f"%{value}%")),  # type: ignore
                         )
                     )
 
@@ -309,7 +313,7 @@ class LectureExercisesState(FilterMixin, SessionState):
                         if result is not None and result.submit_time_stamp is not None
                         else ""
                     ),
-                    tags=[],
+                    tags=[tag.name for tag in exercise.tags],
                     chat_route=f"{routes.BETA_AI_CHAT}/{exercise.id}",
                 )
             )

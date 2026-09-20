@@ -5,7 +5,8 @@ from datetime import datetime
 
 import pdfplumber
 import reflex as rx
-from sqlmodel import select
+from sqlalchemy.orm import selectinload
+from sqlmodel import func, select
 
 import aitutor.routes as routes
 from aitutor.auth.protection import state_require_lecture_role
@@ -26,6 +27,7 @@ from aitutor.models import (
     BetaMisconception,
     Lecture,
     LectureRole,
+    Tag,
 )
 
 
@@ -62,6 +64,83 @@ class BetaAIExercisesState(SessionState):
     use_deadline: bool = True
     exercise_has_started: bool = False
     builder_dialog_is_open: bool = False
+    tag_names: list[str] = []
+    selected_tags: list[str] = []
+    new_tag_name: str = ""
+    add_tag_dialog_is_open: bool = False
+
+    @rx.var
+    def selectable_tags(self) -> list[str]:
+        """Return lecture tags that are not selected yet."""
+        return [tag for tag in self.tag_names if tag not in self.selected_tags]
+
+    @rx.event
+    def add_to_selected_tags(self, tag: str):
+        """Add one lecture tag to the Better AI exercise."""
+        if tag and tag not in self.selected_tags:
+            self.selected_tags.append(tag)
+
+    @rx.event
+    def remove_selected_tag(self, tag: str):
+        """Remove one selected tag."""
+        if tag in self.selected_tags:
+            self.selected_tags.remove(tag)
+
+    @rx.event
+    def set_new_tag_name(self, value: str):
+        """Set the name used by the add-tag dialog."""
+        self.new_tag_name = value[:100]
+
+    @rx.event
+    def set_add_tag_dialog_is_open(self, is_open: bool):
+        """Set whether the add-tag dialog is open."""
+        self.add_tag_dialog_is_open = is_open
+        if not is_open:
+            self.new_tag_name = ""
+
+    @rx.event
+    def add_new_tag(self):
+        """Create a shared lecture tag and select it for this exercise."""
+        if self.current_lecture_id is None:
+            return rx.redirect(routes.MY_LECTURES)
+        tag_name = self.new_tag_name[:100]
+        if not tag_name:
+            return rx.window_alert("Please enter a tag name.")
+        with rx.session() as session:
+            existing_tag = session.exec(
+                select(Tag).where(
+                    Tag.name == tag_name,
+                    Tag.lecture_id == self.current_lecture_id,
+                )
+            ).one_or_none()
+            if existing_tag is not None:
+                return rx.window_alert("Tag exists already.")
+            session.add(Tag(name=tag_name, lecture_id=self.current_lecture_id))
+            session.commit()
+        self.load_tags()
+        self.add_to_selected_tags(tag_name)
+        self.add_tag_dialog_is_open = False
+        self.new_tag_name = ""
+        return rx.toast.success(
+            BT.tag_was_added(self.language),
+            duration=2500,
+            position="bottom-center",
+            invert=True,
+        )
+
+    def load_tags(self):
+        """Load the shared tags belonging to the current lecture."""
+        if self.current_lecture_id is None:
+            self.tag_names = []
+            return
+        with rx.session() as session:
+            self.tag_names = list(
+                session.exec(
+                    select(Tag.name)
+                    .where(Tag.lecture_id == self.current_lecture_id)
+                    .order_by(func.lower(Tag.name))
+                ).all()
+            )
 
     @rx.event
     def set_title(self, value: str):
@@ -158,6 +237,7 @@ class BetaAIExercisesState(SessionState):
                 return rx.redirect(routes.NOT_FOUND)
 
         self.current_lecture_id = lecture_id
+        self.load_tags()
         self.load_beta_exercises()
 
         beta_exercise_id = self.get_route_param_or_default(
@@ -303,6 +383,9 @@ class BetaAIExercisesState(SessionState):
         self.days_to_complete = ""
         self.use_deadline = True
         self.exercise_has_started = False
+        self.selected_tags = []
+        self.new_tag_name = ""
+        self.add_tag_dialog_is_open = False
 
     @rx.event
     def open_builder_dialog(self, lecture_id: int | None):
@@ -311,6 +394,7 @@ class BetaAIExercisesState(SessionState):
             return rx.redirect(routes.MY_LECTURES)
         self.current_lecture_id = lecture_id
         self.reset_builder()
+        self.load_tags()
         self.builder_dialog_is_open = True
 
     @rx.event
@@ -337,7 +421,11 @@ class BetaAIExercisesState(SessionState):
     def load_exercise_for_editing(self, exercise_id: int):
         """Load one Better AI exercise into the existing builder."""
         with rx.session() as session:
-            exercise = session.get(BetaExercise, exercise_id)
+            exercise = session.exec(
+                select(BetaExercise)
+                .options(selectinload(BetaExercise.tags))  # type: ignore
+                .where(BetaExercise.id == exercise_id)
+            ).one_or_none()
             if exercise is None or exercise.lecture_id != self.current_lecture_id:
                 return rx.redirect(routes.NOT_FOUND)
 
@@ -415,6 +503,7 @@ class BetaAIExercisesState(SessionState):
             exercise.deadline is not None and exercise.days_to_complete is not None
         )
         self.exercise_has_started = exercise_has_started
+        self.selected_tags = [tag.name for tag in exercise.tags]
 
     @rx.event
     def load_beta_exercises(self):
@@ -426,6 +515,7 @@ class BetaAIExercisesState(SessionState):
             self.beta_exercises = list(
                 session.exec(
                     select(BetaExercise)
+                    .options(selectinload(BetaExercise.tags))  # type: ignore
                     .where(BetaExercise.lecture_id == self.current_lecture_id)
                     .order_by(BetaExercise.id.desc())  # type: ignore
                 ).all()
@@ -836,6 +926,14 @@ class BetaAIExercisesState(SessionState):
                     exercise.source_material_text = self.source_material_text
                     exercise.source_material_filename = self.source_material_filename
                 exercise.is_hidden = self.is_hidden
+                exercise.tags = list(
+                    session.exec(
+                        select(Tag).where(
+                            Tag.lecture_id == self.current_lecture_id,
+                            Tag.name.in_(self.selected_tags),  # type: ignore
+                        )
+                    ).all()
+                )
                 exercise.deadline = deadline
                 exercise.days_to_complete = days_to_complete
                 session.add(exercise)
