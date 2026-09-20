@@ -398,6 +398,22 @@ class BetaAIExercisesState(SessionState):
         self.builder_dialog_is_open = True
 
     @rx.event
+    @state_require_lecture_role(LectureRole.OWNER)
+    def open_builder_dialog_for_editing(
+        self, lecture_id: int | None, exercise_id: int | None
+    ):
+        """Open an existing Better AI exercise in the builder dialog."""
+        if lecture_id is None or exercise_id is None:
+            return rx.redirect(routes.MY_LECTURES)
+        self.current_lecture_id = lecture_id
+        self.reset_builder()
+        self.load_tags()
+        result = self.load_exercise_for_editing(exercise_id)
+        if result is not None:
+            return result
+        self.builder_dialog_is_open = True
+
+    @rx.event
     def close_builder_dialog(self):
         """Close the Beta AI builder dialog."""
         self.builder_dialog_is_open = False
@@ -601,20 +617,6 @@ class BetaAIExercisesState(SessionState):
             if exercise is None or exercise.lecture_id != self.current_lecture_id:
                 return rx.toast.error(
                     description=BT.beta_ai_exercise_not_found(self.language),
-                    duration=5000,
-                    position="bottom-center",
-                    invert=True,
-                )
-            exercise_result = session.exec(
-                select(BetaExerciseResult).where(
-                    BetaExerciseResult.beta_exercise_id == exercise_id
-                )
-            ).first()
-            if exercise_result is not None:
-                return rx.toast.error(
-                    description=BT.beta_ai_started_exercise_cannot_delete(
-                        self.language
-                    ),
                     duration=5000,
                     position="bottom-center",
                     invert=True,
