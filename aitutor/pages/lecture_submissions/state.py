@@ -194,6 +194,7 @@ class LectureSubmissionsState(FilterMixin, SessionState):
                     LocalUser,
                     cast(ColumnElement[bool], LocalUser.id == UserInfo.user_id),
                 )
+                .options(selectinload(BetaExercise.tags))  # type: ignore
                 .where(
                     BetaExercise.lecture_id == self.current_lecture_id,
                     BetaExerciseResult.submit_time_stamp != None,
@@ -212,12 +213,15 @@ class LectureSubmissionsState(FilterMixin, SessionState):
                             BetaExercise.title.ilike(f"%{value}%")  # type: ignore
                         )
                     case gv.SEARCH_TAG_KEY:
-                        beta_search_conditions.append(sqlalchemy.sql.false())
+                        beta_search_conditions.append(
+                            BetaExercise.tags.any(Tag.name.ilike(f"%{value}%"))  # type: ignore
+                        )
                     case _:
                         beta_search_conditions.append(
                             or_(
                                 LocalUser.username.ilike(f"%{value}%"),  # type: ignore
                                 BetaExercise.title.ilike(f"%{value}%"),  # type: ignore
+                                BetaExercise.tags.any(Tag.name.ilike(f"%{value}%")),  # type: ignore
                             )
                         )
             if beta_search_conditions:
@@ -231,7 +235,7 @@ class LectureSubmissionsState(FilterMixin, SessionState):
                     token_limit_reached=False,
                     exercise_id=exercise.id,
                     exercise_title=exercise.title,
-                    exercise_tags=[],
+                    exercise_tags=[tag.name for tag in exercise.tags],
                     is_beta=True,
                 )
                 for user, exercise, _ in session.exec(beta_stmt).all()
