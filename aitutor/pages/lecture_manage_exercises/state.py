@@ -18,7 +18,6 @@ from aitutor.auth.state import SessionState
 from aitutor.language_state import BackendTranslations as BT
 from aitutor.models import (
     BetaExercise,
-    BetaExerciseResult,
     BetaExerciseTagLink,
     Exercise,
     ExerciseTagLink,
@@ -809,19 +808,6 @@ class LectureManageExercisesState(FilterMixin, SessionState):
         self.load_exercises()
 
     @rx.event
-    def open_beta_edit(self, exercise_id: int | None):
-        """Open the Better AI builder for one exercise in this lecture."""
-        if exercise_id is None or self.current_lecture_id is None:
-            return
-        with rx.session() as session:
-            exercise = session.get(BetaExercise, exercise_id)
-            if exercise is None or exercise.lecture_id != self.current_lecture_id:
-                return rx.redirect(routes.MY_LECTURES)
-        return rx.redirect(
-            f"{routes.BETA_AI_EXERCISES}/{self.current_lecture_id}/{exercise_id}"
-        )
-
-    @rx.event
     def update_exercise(self, form_data: dict):
         """Update exercises in db."""
         with rx.session() as session:
@@ -919,20 +905,6 @@ class LectureManageExercisesState(FilterMixin, SessionState):
             exercise = session.get(BetaExercise, exercise_id)
             if exercise is None or exercise.lecture_id != self.current_lecture_id:
                 return rx.redirect(routes.MY_LECTURES)
-            exercise_result = session.exec(
-                select(BetaExerciseResult).where(
-                    BetaExerciseResult.beta_exercise_id == exercise_id
-                )
-            ).first()
-            if exercise_result is not None:
-                return rx.toast.error(
-                    description=BT.beta_ai_started_exercise_cannot_delete(
-                        self.language
-                    ),
-                    duration=5000,
-                    position="bottom-center",
-                    invert=True,
-                )
             session.delete(exercise)
             session.commit()
         self.load_exercises()

@@ -378,7 +378,10 @@ def show_beta_exercise(exercise: BetaExercise):
                     color_scheme="yellow",
                     size="2",
                     variant="ghost",
-                    on_click=ManageExercisesState.open_beta_edit(exercise.id),
+                    on_click=BetaAIExercisesState.open_builder_dialog_for_editing(
+                        ManageExercisesState.current_lecture_id,
+                        exercise.id,
+                    ),
                     _hover={"cursor": "pointer"},
                 ),
                 delete_beta_exercise_button(exercise),
