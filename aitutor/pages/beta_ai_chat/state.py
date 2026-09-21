@@ -24,6 +24,7 @@ from aitutor.beta_ai.policy import (
     preview_policy_action,
     should_use_level_transition_policy,
 )
+from aitutor.beta_ai.schemas import OpenAIUsageError
 from aitutor.beta_ai.student_state import (
     build_cumulative_evidence_summary,
     normalized_level_status,
@@ -301,6 +302,15 @@ class BetaAIChatState(SessionState):
                     transition_kind="initial",
                 )
                 self.append_tutor_turn_message(intro_turn)
+                self.save_conversation_to_db(tokens_to_add=intro_turn.tokens_used)
+            except OpenAIUsageError as exc:
+                self.messages = [
+                    {"role": "tutor", "content": self.initial_tutor_message}
+                ]
+                self.current_question = self.initial_tutor_question
+                self.current_question_level = "basic_understanding"
+                self.current_focus_core_point_id = None
+                self.save_conversation_to_db(tokens_to_add=exc.tokens_used)
             except Exception:
                 self.messages = [
                     {"role": "tutor", "content": self.initial_tutor_message}
@@ -549,8 +559,9 @@ class BetaAIChatState(SessionState):
             transition_kind=transition_kind,  # type: ignore[arg-type]
         )
         if tutor_turn_reveals_answer(intro_turn, core_points=self.core_points):
-            raise ValueError(
-                "Generated concept intro revealed expected answer wording."
+            raise OpenAIUsageError(
+                "Generated concept intro revealed expected answer wording.",
+                tokens_used=intro_turn.tokens_used,
             )
         return intro_turn
 
@@ -859,8 +870,8 @@ class BetaAIChatState(SessionState):
             )
             self.save_conversation_to_db()
 
-    def save_conversation_to_db(self) -> int | None:
-        """Persist the current Beta AI conversation for this student and exercise."""
+    def save_conversation_to_db(self, tokens_to_add: int = 0) -> int | None:
+        """Persist the Beta AI conversation and accumulate newly consumed tokens."""
         if self.current_beta_exercise_id is None or self.current_userinfo_id is None:
             return None
 
@@ -880,6 +891,7 @@ class BetaAIChatState(SessionState):
                     userinfo_id=self.current_userinfo_id,
                     conversation_text=self.messages,
                     completion_unlocked=self.completion_unlocked,
+                    tokens_used=tokens_to_add,
                     started_at=now,
                     updated_at=now,
                 )
@@ -892,6 +904,7 @@ class BetaAIChatState(SessionState):
                 )
                 if self.completion_unlocked and beta_result.completed_at is None:
                     beta_result.completed_at = now
+                beta_result.tokens_used += tokens_to_add
                 beta_result.updated_at = now
 
             session.commit()
@@ -1139,6 +1152,8 @@ class BetaAIChatState(SessionState):
                 current_question_level=current_question_level,
                 current_focus_core_point_id=current_focus_core_point_id,
             )
+            async with self:
+                self.save_conversation_to_db(tokens_to_add=raw_diagnosis.tokens_used)
             validation_result = validate_and_normalize_diagnosis(
                 raw_diagnosis,
                 core_points=core_points,
@@ -1147,6 +1162,9 @@ class BetaAIChatState(SessionState):
             )
         except Exception as exc:
             async with self:
+                self.save_conversation_to_db(
+                    tokens_to_add=getattr(exc, "tokens_used", 0)
+                )
                 self.running_diagnosis = False
                 self.messages.append(
                     {
@@ -1246,7 +1264,17 @@ class BetaAIChatState(SessionState):
                         transition_kind="automatic",
                     )
                     async with self:
+                        self.save_conversation_to_db(
+                            tokens_to_add=transition_turn.tokens_used
+                        )
                         self.append_tutor_turn_message(transition_turn)
+                except OpenAIUsageError as exc:
+                    async with self:
+                        self.save_conversation_to_db(tokens_to_add=exc.tokens_used)
+                        self.append_concept_transition_message(
+                            previous_label=previous_label,
+                            automatic=True,
+                        )
                 except Exception:
                     async with self:
                         self.append_concept_transition_message(
@@ -1413,6 +1441,8 @@ class BetaAIChatState(SessionState):
                     current_question=current_question,
                     student_answer=message,
                 )
+            async with self:
+                self.save_conversation_to_db(tokens_to_add=tutor_turn.tokens_used)
             if tutor_turn_reveals_answer(tutor_turn, core_points=core_points):
                 try:
                     repaired_turn = await repair_leaky_tutor_turn(
@@ -1423,6 +1453,10 @@ class BetaAIChatState(SessionState):
                         leaky_tutor_turn=tutor_turn,
                         question_level=next_question_level,
                     )
+                    async with self:
+                        self.save_conversation_to_db(
+                            tokens_to_add=repaired_turn.tokens_used
+                        )
                     if tutor_turn_reveals_answer(
                         repaired_turn, core_points=core_points
                     ):
@@ -1433,13 +1467,21 @@ class BetaAIChatState(SessionState):
                         )
                     else:
                         tutor_turn = repaired_turn
-                except Exception:
+                except Exception as exc:
+                    async with self:
+                        self.save_conversation_to_db(
+                            tokens_to_add=getattr(exc, "tokens_used", 0)
+                        )
                     tutor_turn = safe_fallback_tutor_turn(
                         diagnosis=cumulative_diagnosis,
                         policy_preview=policy_preview,
                         question_level=next_question_level,
                     )
-        except Exception:
+        except Exception as exc:
+            async with self:
+                self.save_conversation_to_db(
+                    tokens_to_add=getattr(exc, "tokens_used", 0)
+                )
             tutor_turn = safe_fallback_tutor_turn(
                 diagnosis=cumulative_diagnosis,
                 policy_preview=policy_preview,

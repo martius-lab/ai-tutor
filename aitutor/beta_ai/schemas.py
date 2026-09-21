@@ -3,6 +3,14 @@
 from pydantic import BaseModel, Field
 
 
+class OpenAIUsageError(ValueError):
+    """Error raised after OpenAI returned usage but no usable application result."""
+
+    def __init__(self, message: str, *, tokens_used: int = 0):
+        super().__init__(message)
+        self.tokens_used = tokens_used
+
+
 class EditableCorePoint(BaseModel):
     """Editable UI representation of a concept core point."""
 
