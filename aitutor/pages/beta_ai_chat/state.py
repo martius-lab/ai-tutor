@@ -304,20 +304,10 @@ class BetaAIChatState(SessionState):
                 self.append_tutor_turn_message(intro_turn)
                 self.save_conversation_to_db(tokens_to_add=intro_turn.tokens_used)
             except OpenAIUsageError as exc:
-                self.messages = [
-                    {"role": "tutor", "content": self.initial_tutor_message}
-                ]
-                self.current_question = self.initial_tutor_question
-                self.current_question_level = "basic_understanding"
-                self.current_focus_core_point_id = None
+                self.use_initial_tutor_fallback()
                 self.save_conversation_to_db(tokens_to_add=exc.tokens_used)
             except Exception:
-                self.messages = [
-                    {"role": "tutor", "content": self.initial_tutor_message}
-                ]
-                self.current_question = self.initial_tutor_question
-                self.current_question_level = "basic_understanding"
-                self.current_focus_core_point_id = None
+                self.use_initial_tutor_fallback()
             self.save_conversation_to_db()
 
     def on_logout(self):
@@ -541,6 +531,18 @@ class BetaAIChatState(SessionState):
                 self.language, self.selected_concept_label
             )
         return self.initial_tutor_question
+
+    def use_initial_tutor_fallback(self) -> None:
+        """Restore the deterministic initial tutor message and question context."""
+        self.messages = [{"role": "tutor", "content": self.initial_tutor_message}]
+        self.current_question = self.initial_tutor_question
+        self.current_question_level = "basic_understanding"
+        self.current_focus_core_point_id = None
+
+    @staticmethod
+    def tokens_used_from_exception(exc: Exception) -> int:
+        """Return OpenAI usage attached to an exception, if available."""
+        return exc.tokens_used if isinstance(exc, OpenAIUsageError) else 0
 
     async def generate_concept_intro_turn(
         self,
@@ -1163,7 +1165,7 @@ class BetaAIChatState(SessionState):
         except Exception as exc:
             async with self:
                 self.save_conversation_to_db(
-                    tokens_to_add=getattr(exc, "tokens_used", 0)
+                    tokens_to_add=self.tokens_used_from_exception(exc)
                 )
                 self.running_diagnosis = False
                 self.messages.append(
@@ -1470,7 +1472,7 @@ class BetaAIChatState(SessionState):
                 except Exception as exc:
                     async with self:
                         self.save_conversation_to_db(
-                            tokens_to_add=getattr(exc, "tokens_used", 0)
+                            tokens_to_add=self.tokens_used_from_exception(exc)
                         )
                     tutor_turn = safe_fallback_tutor_turn(
                         diagnosis=cumulative_diagnosis,
@@ -1480,7 +1482,7 @@ class BetaAIChatState(SessionState):
         except Exception as exc:
             async with self:
                 self.save_conversation_to_db(
-                    tokens_to_add=getattr(exc, "tokens_used", 0)
+                    tokens_to_add=self.tokens_used_from_exception(exc)
                 )
             tutor_turn = safe_fallback_tutor_turn(
                 diagnosis=cumulative_diagnosis,
