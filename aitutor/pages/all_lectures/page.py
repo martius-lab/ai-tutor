@@ -13,9 +13,11 @@ from aitutor.pages.navbar import with_navbar
 @with_navbar(routes.LECTURES)
 def all_lectures_page() -> rx.Component:
     """Show the page scaffold for all available lectures."""
-    return rx.center(
+    return rx.vstack(
         all_lectures_content(),
         margin_top="2em",
         margin_bottom="2em",
         width="100%",
+        align="center",
+        justify="start",
     )
