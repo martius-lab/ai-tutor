@@ -303,6 +303,8 @@ class UserInfo(SQLModel, table=True):
     role: UserRole
     language: Language = Field(default=Language.EN)
     #: Whether the address in :attr:`email` has been confirmed by the user.
+    #: Once true, it must never be set back to false for a user, otherwise the account
+    #: might accidentally be cleaned up!
     verified: bool = Field(default=False, nullable=False)
     created_at: datetime = Field(
         sa_column=Column(DateTime(timezone=True), nullable=False),
