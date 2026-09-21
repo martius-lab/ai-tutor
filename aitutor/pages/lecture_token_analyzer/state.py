@@ -71,47 +71,6 @@ class LectureTokenAnalyzerState(SessionState):
     user_filter_query: str = ""
     user_bar_size: int = 3
 
-    @staticmethod
-    def _merge_user_token_totals(
-        standard_rows: list[tuple[str, int | None]],
-        beta_rows: list[tuple[str, int | None]],
-    ) -> list[tuple[str, int]]:
-        """Combine standard and Better AI usage and return ranked source rows."""
-        totals_by_user: dict[str, int] = {}
-        for username, tokens_used in [*standard_rows, *beta_rows]:
-            totals_by_user[username] = totals_by_user.get(username, 0) + int(
-                tokens_used or 0
-            )
-        return sorted(
-            totals_by_user.items(), key=lambda item: (-item[1], item[0].lower())
-        )
-
-    @staticmethod
-    def _rank_exercise_token_rows(
-        standard_rows: list[tuple[str, int | None]],
-        beta_rows: list[tuple[str, int | None]],
-    ) -> list[ExerciseTableRow]:
-        """Combine exercise usage while retaining the Better AI row marker."""
-        combined_rows = [
-            (title, int(tokens_used or 0), False)
-            for title, tokens_used in standard_rows
-        ] + [
-            (title, int(tokens_used or 0), True)
-            for title, tokens_used in beta_rows
-        ]
-        combined_rows.sort(key=lambda row: (-row[1], row[0].lower(), row[2]))
-        return [
-            ExerciseTableRow(
-                rank=index,
-                exercise_title=exercise_title,
-                tokens_used=tokens_used,
-                is_beta=is_beta,
-            )
-            for index, (exercise_title, tokens_used, is_beta) in enumerate(
-                combined_rows, start=1
-            )
-        ]
-
     @rx.event
     def set_selected_exercise_name(self, exercise_name: str):
         """Set selected exercise filter and reload the token rows."""
@@ -181,24 +140,6 @@ class LectureTokenAnalyzerState(SessionState):
         self.load_user_options()
         self.load_user_token_rows()
         self.load_exercise_token_rows()
-
-    def _clear_token_analyzer_state(self):
-        """Clear loaded token analyzer state."""
-        self.user_table_rows = []
-        self.user_chart_data = []
-        self.user_chart_ticks = []
-        self.active_analysis_view = USER_ANALYSIS_VIEW
-        self.exercise_options = []
-        self.selected_exercise_name = ALL_EXERCISES_OPTION
-        self.exercise_filter_query = ""
-        self.exercise_table_rows = []
-        self.exercise_chart_data = []
-        self.exercise_chart_ticks = []
-        self.exercise_bar_size = 3
-        self.user_options = []
-        self.selected_user_name = ALL_USERS_OPTION
-        self.user_filter_query = ""
-        self.user_bar_size = 3
 
     @rx.var(initial_value="All")
     def all_option_label(self) -> str:
@@ -286,6 +227,24 @@ class LectureTokenAnalyzerState(SessionState):
     def total_exercise_tokens(self) -> int:
         """Total tokens across all rows of the exercise analysis table."""
         return sum(row.tokens_used for row in self.exercise_table_rows)
+
+    def _clear_token_analyzer_state(self):
+        """Clear loaded token analyzer state."""
+        self.user_table_rows = []
+        self.user_chart_data = []
+        self.user_chart_ticks = []
+        self.active_analysis_view = USER_ANALYSIS_VIEW
+        self.exercise_options = []
+        self.selected_exercise_name = ALL_EXERCISES_OPTION
+        self.exercise_filter_query = ""
+        self.exercise_table_rows = []
+        self.exercise_chart_data = []
+        self.exercise_chart_ticks = []
+        self.exercise_bar_size = 3
+        self.user_options = []
+        self.selected_user_name = ALL_USERS_OPTION
+        self.user_filter_query = ""
+        self.user_bar_size = 3
 
     @rx.event
     @state_require_lecture_role(LectureRole.TUTOR)
@@ -507,6 +466,44 @@ class LectureTokenAnalyzerState(SessionState):
             self.exercise_bar_size = self._get_dynamic_bar_size(
                 len(self.exercise_table_rows)
             )
+
+    @staticmethod
+    def _merge_user_token_totals(
+        standard_rows: list[tuple[str, int | None]],
+        beta_rows: list[tuple[str, int | None]],
+    ) -> list[tuple[str, int]]:
+        """Combine standard and Better AI usage and return ranked source rows."""
+        totals_by_user: dict[str, int] = {}
+        for username, tokens_used in [*standard_rows, *beta_rows]:
+            totals_by_user[username] = totals_by_user.get(username, 0) + int(
+                tokens_used or 0
+            )
+        return sorted(
+            totals_by_user.items(), key=lambda item: (-item[1], item[0].lower())
+        )
+
+    @staticmethod
+    def _rank_exercise_token_rows(
+        standard_rows: list[tuple[str, int | None]],
+        beta_rows: list[tuple[str, int | None]],
+    ) -> list[ExerciseTableRow]:
+        """Combine exercise usage while retaining the Better AI row marker."""
+        combined_rows = [
+            (title, int(tokens_used or 0), False)
+            for title, tokens_used in standard_rows
+        ] + [(title, int(tokens_used or 0), True) for title, tokens_used in beta_rows]
+        combined_rows.sort(key=lambda row: (-row[1], row[0].lower(), row[2]))
+        return [
+            ExerciseTableRow(
+                rank=index,
+                exercise_title=exercise_title,
+                tokens_used=tokens_used,
+                is_beta=is_beta,
+            )
+            for index, (exercise_title, tokens_used, is_beta) in enumerate(
+                combined_rows, start=1
+            )
+        ]
 
     @staticmethod
     def _filter_options_by_query(
