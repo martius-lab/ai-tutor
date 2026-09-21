@@ -286,7 +286,7 @@ class UserInfo(SQLModel, table=True):
 
     id: Optional[int] = Field(default=None, primary_key=True)
     user_id: int = Field(foreign_key="localuser.id", ondelete="CASCADE")
-    email: str
+    email: str = Field(nullable=False, unique=True)
     role: UserRole
     language: Language = Field(default=Language.EN)
 
