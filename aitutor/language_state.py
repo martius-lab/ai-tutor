@@ -1047,6 +1047,29 @@ class LanguageState(SessionState):
         return self.translate(de="Nicht bestätigt", en="Not confirmed")
 
     @rx.var
+    def email_change_pending(self) -> str:
+        """Badge for users whose new email address still has to be confirmed."""
+        return self.translate(
+            de="Adressänderung ausstehend", en="Address change pending"
+        )
+
+    @rx.var
+    def email_change_pending_description(self) -> str:
+        """Followed by the (old) address that stays in use until the new one is confirmed."""
+        return self.translate(
+            de="Bis zur Bestätigung der neuen Adresse gilt weiterhin die bisherige:",
+            en="Until the new address is confirmed, the previous one remains in use:",
+        )
+
+    @rx.var
+    def email_change_pending_tooltip(self) -> str:
+        """Followed by the new address that still has to be confirmed."""
+        return self.translate(
+            de="Bestätigt, aber eine Änderung auf diese Adresse ist noch unbestätigt:",
+            en="Verified, but a change to this address is not confirmed yet:",
+        )
+
+    @rx.var
     def created_at(self) -> str:
         """Label for the time an account was created."""
         return self.translate(de="Erstellt", en="Created")
@@ -1843,6 +1866,95 @@ class BackendTranslations:
             language,
             de=f"Fehler: Das Passwort darf maximal {gv.PASSWORD_MAX_BYTES} Bytes lang sein.",
             en=f"Error: The password cannot be longer than {gv.PASSWORD_MAX_BYTES} bytes.",
+        )
+
+    @staticmethod
+    def error_email_invalid(language: Language) -> str:
+        return translate(
+            language,
+            de="Fehler: Die E-Mail-Adresse ist ungültig.",
+            en="Error: The email address is not valid.",
+        )
+
+    @staticmethod
+    def error_user_info_missing(language: Language) -> str:
+        return translate(
+            language,
+            de=(
+                "Fehler: Die Daten dieses Kontos sind unvollständig (kein UserInfo"
+                " Eintrag).  Details stehen im Server-Log."
+            ),
+            en=(
+                "Error: The data of this account is incomplete (no UserInfo entry)."
+                "  See the server log for details."
+            ),
+        )
+
+    @staticmethod
+    def admin_verification_email_sent(language: Language, email: str) -> str:
+        return translate(
+            language,
+            de=f"Ein Bestätigungslink wurde an {email} gesendet.",
+            en=f"A confirmation link has been sent to {email}.",
+        )
+
+    @staticmethod
+    def admin_email_change_pending(language: Language, email: str) -> str:
+        return translate(
+            language,
+            de=(
+                f"Ein Bestätigungslink wurde an {email} gesendet.  Die E-Mail-Adresse"
+                " wird erst geändert, wenn der Link geöffnet wurde."
+            ),
+            en=(
+                f"A confirmation link has been sent to {email}.  The email address"
+                " will only be changed once the link has been opened."
+            ),
+        )
+
+    @staticmethod
+    def admin_verification_email_failed(language: Language, email: str) -> str:
+        return translate(
+            language,
+            de=(
+                f"Fehler: Die Bestätigungs-E-Mail an {email} konnte nicht gesendet"
+                " werden.  Alle anderen Änderungen wurden gespeichert.  Sie können die"
+                " E-Mail später über 'Bestätigungs-E-Mail erneut senden' erneut"
+                " verschicken."
+            ),
+            en=(
+                f"Error: The confirmation email to {email} could not be sent.  All"
+                " other changes have been saved.  You can try again later using"
+                " 'Resend confirmation email'."
+            ),
+        )
+
+    @staticmethod
+    def admin_email_change_cancelled(language: Language) -> str:
+        return translate(
+            language,
+            de=(
+                "Die ausstehende Änderung der E-Mail-Adresse wurde verworfen, der"
+                " bereits versendete Bestätigungslink ist ungültig."
+            ),
+            en=(
+                "The pending change of the email address has been discarded, the"
+                " confirmation link that was already sent is no longer valid."
+            ),
+        )
+
+    @staticmethod
+    def admin_nothing_to_verify(language: Language) -> str:
+        return translate(
+            language,
+            de=(
+                "Die E-Mail-Adresse dieses Benutzers ist bereits bestätigt und es ist"
+                " keine Änderung ausstehend."
+            ),
+            en=(
+                "The email address of this user is already confirmed and there is no"
+                " pending change."
+            ),
         )
 
     # Lecture states -------------------------------------------------------------------

@@ -148,6 +148,71 @@ def resend_cooldown_remaining(
     return max(remaining, timedelta(0))
 
 
+def get_pending_email_changes(
+    session: Session, *, user_id: int | None = None
+) -> dict[int, str]:
+    """
+    Find email address changes that have not been confirmed yet.
+
+    A change is pending if a verified account has an unused email token for an address
+    other than the one currently stored on the account (see
+    :func:`redeem_email_token`).  Expired tokens are included, the change is still
+    outstanding until the token gets purged or replaced.
+
+    Unverified accounts never have a pending change: their (unconfirmed) address is
+    changed directly.
+
+    Args:
+        session: Database session.
+        user_id: If given, only look at this user.
+
+    Returns:
+        Mapping from user ID to the address that is waiting to be confirmed.
+    """
+    query = (
+        select(VerificationToken.user_id, VerificationToken.email)
+        .join(UserInfo, UserInfo.user_id == VerificationToken.user_id)  # type: ignore
+        .where(
+            VerificationToken.purpose == VerificationPurpose.EMAIL,
+            VerificationToken.used_at == None,
+            VerificationToken.email != UserInfo.email,
+            UserInfo.verified == True,  # noqa: E712
+        )
+    )
+    if user_id is not None:
+        query = query.where(VerificationToken.user_id == user_id)
+
+    return {uid: email for uid, email in session.exec(query).all()}
+
+
+def cancel_pending_email_change(session: Session, *, user_id: int) -> bool:
+    """
+    Drop a pending email address change of the given user, if there is one.
+
+    The token is deleted, so the link that was sent to the new address stops working.
+
+    Note that the caller is responsible for committing the session.
+
+    Args:
+        session: Database session.  Not committed by this function.
+        user_id: ID of the ``LocalUser``.
+
+    Returns:
+        Whether there was a pending change.
+    """
+    if user_id not in get_pending_email_changes(session, user_id=user_id):
+        return False
+
+    entry = session.exec(
+        select(VerificationToken).where(
+            VerificationToken.user_id == user_id,
+            VerificationToken.purpose == VerificationPurpose.EMAIL,
+        )
+    ).one()
+    session.delete(entry)
+    return True
+
+
 def redeem_email_token(session: Session, token: str) -> RedeemResult:
     """
     Redeem a token that confirms an email address.
