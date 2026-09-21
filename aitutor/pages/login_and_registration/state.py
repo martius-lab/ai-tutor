@@ -155,6 +155,16 @@ class MyRegisterState(reflex_local_auth.RegistrationState):
                 if field in form_data and isinstance(form_data[field], str):
                     form_data[field] = form_data[field][:max_len]
 
+            # check for the correct registration code
+            registration_code = get_config().registration_code
+            if (
+                registration_code
+                and form_data["registration_code"] != registration_code
+            ):
+                self.error_message = "The registration code is wrong."
+                self.registration_code = ""
+                return
+
             language = language_from_value(form_data.get("language"))
             # check for allowed user name
             if not re.match(r"^[a-zA-Z0-9._-]+$", form_data["username"]):
@@ -178,16 +188,6 @@ class MyRegisterState(reflex_local_auth.RegistrationState):
             # check for the password max length in terms of bytes
             if len(form_data["password"].encode("utf-8")) > gv.PASSWORD_MAX_BYTES:
                 self.error_message = BT.error_password_too_long(language)
-                return
-
-            # check for the correct registration code
-            registration_code = get_config().registration_code
-            if (
-                registration_code
-                and form_data["registration_code"] != registration_code
-            ):
-                self.error_message = "The registration code is wrong."
-                self.registration_code = ""
                 return
 
             registration_result = self.handle_registration(form_data)
