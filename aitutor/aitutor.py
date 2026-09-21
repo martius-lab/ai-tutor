@@ -124,6 +124,11 @@ app.add_page(
     pages.user_settings_page,
     route=routes.USER_SETTINGS,
 )
+app.add_page(
+    pages.verify_email_page,
+    route=routes.VERIFY_EMAIL,
+    on_load=pages.VerifyEmailState.on_load,
+)
 
 # reflex_local_auth pages
 app.add_page(
