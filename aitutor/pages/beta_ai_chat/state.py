@@ -6,6 +6,7 @@ from zoneinfo import ZoneInfo
 import reflex as rx
 from sqlmodel import select
 
+import aitutor.global_vars as gv
 import aitutor.routes as routes
 from aitutor.auth.protection import state_require_role_or_permission
 from aitutor.auth.state import SessionState
@@ -39,6 +40,7 @@ from aitutor.beta_ai.tutor_turn import (
     safe_fallback_tutor_turn,
     tutor_turn_reveals_answer,
 )
+from aitutor.config import get_config
 from aitutor.global_vars import TIME_FORMAT, TIME_ZONE
 from aitutor.language_state import BackendTranslations as BT
 from aitutor.models import (
@@ -100,6 +102,27 @@ class BetaAIChatState(SessionState):
     completion_unlocked: bool = False
     conversation_is_submitted: bool = False
     submit_time_stamp: str = ""
+    current_tokens: int = 0
+    token_limit: int = 0
+
+    @rx.var
+    def token_limit_reached(self) -> bool:
+        """Check whether the exercise token limit has been reached."""
+        return self.current_tokens >= self.token_limit
+
+    @rx.var
+    def token_warning_threshold_reached(self) -> bool:
+        """Check whether the token warning threshold has been reached."""
+        return self.current_tokens >= (
+            self.token_limit * gv.CHAT_TOKEN_WARNING_THRESHOLD
+        )
+
+    @rx.var
+    def token_usage_percentage(self) -> int:
+        """Return the current token usage as a percentage."""
+        if self.token_limit == 0:
+            return 0
+        return int((self.current_tokens / self.token_limit) * 100)
 
     @rx.event
     def set_student_message(self, value: str):
@@ -126,6 +149,7 @@ class BetaAIChatState(SessionState):
             return
 
         with rx.session() as session:
+            self.token_limit = max(1, get_config().exercise_token_limit)
             exercise = session.get(BetaExercise, beta_exercise_id)
             if (
                 exercise is None
@@ -215,13 +239,7 @@ class BetaAIChatState(SessionState):
             ).one_or_none()
             if beta_result is not None:
                 conversation_text = beta_result.conversation_text
-                self.completion_unlocked = beta_result.completion_unlocked
-                self.conversation_is_submitted = bool(beta_result.submit_time_stamp)
-                self.submit_time_stamp = (
-                    beta_result.submit_time_stamp.strftime(TIME_FORMAT)
-                    if beta_result.submit_time_stamp
-                    else ""
-                )
+                self.load_beta_result_state(beta_result)
                 if beta_result.id is not None:
                     trace_logs = list(
                         session.exec(
@@ -296,7 +314,7 @@ class BetaAIChatState(SessionState):
         self.cumulative_missing_core_point_ids = cumulative_missing_core_point_ids
         self.level_status = level_status
         self.restore_current_question_context_from_trace(latest_trace)
-        if not conversation_text:
+        if not conversation_text and not self.token_limit_reached:
             try:
                 intro_turn = await self.generate_concept_intro_turn(
                     transition_kind="initial",
@@ -309,10 +327,24 @@ class BetaAIChatState(SessionState):
             except Exception:
                 self.use_initial_tutor_fallback()
             self.save_conversation_to_db()
+        elif not conversation_text:
+            self.use_initial_tutor_fallback()
+            self.save_conversation_to_db()
 
     def on_logout(self):
         """Clear state on logout."""
         self.reset_chat()
+
+    def load_beta_result_state(self, beta_result: BetaExerciseResult) -> None:
+        """Restore persisted conversation metadata from a Beta AI result."""
+        self.current_tokens = beta_result.tokens_used
+        self.completion_unlocked = beta_result.completion_unlocked
+        self.conversation_is_submitted = bool(beta_result.submit_time_stamp)
+        self.submit_time_stamp = (
+            beta_result.submit_time_stamp.strftime(TIME_FORMAT)
+            if beta_result.submit_time_stamp
+            else ""
+        )
 
     @rx.var
     def can_send_message(self) -> bool:
@@ -321,6 +353,7 @@ class BetaAIChatState(SessionState):
             self.student_message.strip()
             and self.selected_concept_id is not None
             and not self.running_diagnosis
+            and not self.token_limit_reached
         )
 
     @rx.var
@@ -517,6 +550,8 @@ class BetaAIChatState(SessionState):
         self.completion_unlocked = False
         self.conversation_is_submitted = False
         self.submit_time_stamp = ""
+        self.current_tokens = 0
+        self.token_limit = 0
 
     def fallback_question_for_level(self, question_level: str) -> str:
         """Return a deterministic non-leaking fallback question for a level."""
@@ -910,6 +945,7 @@ class BetaAIChatState(SessionState):
                 beta_result.updated_at = now
 
             session.commit()
+            self.current_tokens = beta_result.tokens_used
             return beta_result.id
 
     @rx.event
@@ -1107,6 +1143,8 @@ class BetaAIChatState(SessionState):
         async with self:
             message = self.student_message.strip()
             if not message:
+                return
+            if self.token_limit_reached:
                 return
             if self.selected_concept_id is None:
                 yield rx.toast.error(
