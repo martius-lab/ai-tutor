@@ -6,6 +6,7 @@ from aitutor import routes
 from aitutor.beta_ai.legacy_page_protection import (
     legacy_beta_page_require_role_or_permission,
 )
+from aitutor.language_state import LanguageState
 from aitutor.models import UserRole
 from aitutor.pages.beta_ai_chat.components import (
     beta_submission_status,
@@ -44,6 +45,42 @@ def beta_ai_chat_page() -> rx.Component:
                     width="100%",
                 ),
                 rx.mobile_only(beta_submission_status()),
+                rx.tablet_and_desktop(
+                    rx.cond(
+                        BetaAIChatState.token_warning_threshold_reached
+                        & ~BetaAIChatState.token_limit_reached,
+                        rx.callout(
+                            rx.box(
+                                LanguageState.token_warning_message
+                                + f" {BetaAIChatState.token_usage_percentage}%."
+                            ),
+                            icon="triangle-alert",
+                            width="100%",
+                            color_scheme="orange",
+                            size="1",
+                            variant="surface",
+                        ),
+                    ),
+                    width="100%",
+                ),
+                rx.mobile_only(
+                    rx.cond(
+                        BetaAIChatState.token_warning_threshold_reached
+                        & ~BetaAIChatState.token_limit_reached,
+                        rx.callout(
+                            rx.box(
+                                LanguageState.token_warning_message_mobile
+                                + f" {BetaAIChatState.token_usage_percentage}%."
+                            ),
+                            icon="triangle-alert",
+                            width="100%",
+                            color_scheme="orange",
+                            size="1",
+                            variant="surface",
+                        ),
+                    ),
+                    width="100%",
+                ),
                 messages_panel(),
                 rx.cond(
                     BetaAIChatState.running_diagnosis,
