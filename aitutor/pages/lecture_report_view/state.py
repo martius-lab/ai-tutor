@@ -21,6 +21,7 @@ class LectureReportViewState(SessionState):
     report_text: str = ""
     looked_at: bool = False
     exercise_title: str | None = None
+    exercise_type: str = "alpha"
     username: str = ""
     messages: list[ChatMessage] = []
 
@@ -68,6 +69,7 @@ class LectureReportViewState(SessionState):
                 )
                 .options(
                     selectinload(Report.exercise),  # type: ignore
+                    selectinload(Report.beta_exercise),  # type: ignore
                     selectinload(Report.userinfo).selectinload(UserInfo.local_user),  # type: ignore
                 )
             ).first()
@@ -86,7 +88,11 @@ class LectureReportViewState(SessionState):
                 self.looked_at = True
 
             # Get exercise and user info from report
-            self.exercise_title = report.exercise.title if report.exercise else None
+            self.exercise_type = report.exercise_type
+            if report.exercise_type == "beta" and report.beta_exercise:
+                self.exercise_title = report.beta_exercise.title
+            else:
+                self.exercise_title = report.exercise.title if report.exercise else None
             self.username = report.userinfo.local_user.username
 
             # Convert conversation to ChatMessage format
@@ -94,14 +100,20 @@ class LectureReportViewState(SessionState):
             # This ensures the conversation shown is exactly as it was when reported
             conversation_data = report.conversation_snapshot
 
-            self.messages = [
-                ChatMessage(
-                    role=Role(msg["role"]),
-                    message=msg["content"],
-                    check_passed=msg.get("check_passed", False),
+            self.messages = []
+            for msg in conversation_data:
+                role_value = msg.get("role", "")
+                if self.exercise_type == "beta":
+                    role_value = "user" if role_value == "student" else "assistant"
+                if role_value == Role.SYSTEM.value:
+                    continue
+                self.messages.append(
+                    ChatMessage(
+                        role=Role(role_value),
+                        message=msg.get("content", ""),
+                        check_passed=msg.get("check_passed", False),
+                    )
                 )
-                for msg in conversation_data
-            ]
 
     @rx.event
     @state_require_lecture_role(LectureRole.TUTOR)
@@ -142,5 +154,6 @@ class LectureReportViewState(SessionState):
         self.report_text = ""
         self.looked_at = False
         self.exercise_title = ""
+        self.exercise_type = "alpha"
         self.username = ""
         self.messages = []
