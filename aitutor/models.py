@@ -645,15 +645,19 @@ class Report(SQLModel, table=True):
 
     Attributes:
         id: Primary key of the report.
-        exercise_id: Foreign key referencing the associated Exercise
-        (nullable if exercise deleted).
+        exercise_id: Foreign key referencing the associated Alpha Exercise
+        (nullable if exercise deleted or this is a Better AI report).
+        beta_exercise_id: Foreign key referencing the associated Better AI exercise
+        (nullable if exercise deleted or this is an Alpha report).
+        exercise_type: Stable source marker used even after an exercise is deleted.
         lecture_id: Foreign key referencing the lecture the report belongs to
         (kept if exercise is deleted; cascades if lecture is deleted).
         userinfo_id: Foreign key referencing the user who submitted the report.
         report_text: The text content of the report.
         looked_at: Flag indicating whether the report has been viewed by a tutor.
         conversation_snapshot: Snapshot of the conversation at report submission time.
-        exercise: Relationship to the associated Exercise (may be None if deleted).
+        exercise: Relationship to the associated Alpha Exercise (may be None).
+        beta_exercise: Relationship to the associated Better AI exercise (may be None).
         user: Relationship to the user who submitted the report.
     """
 
@@ -669,6 +673,20 @@ class Report(SQLModel, table=True):
             nullable=True,
         ),
     )
+    beta_exercise_id: Optional[int] = Field(
+        default=None,
+        sa_column=Column(
+            "beta_exercise_id",
+            sa.Integer,
+            SAForeignKey(
+                "betaexercise.id",
+                ondelete="SET NULL",
+                name="fk_report_beta_exercise_id",
+            ),
+            nullable=True,
+        ),
+    )
+    exercise_type: str = Field(default="alpha", nullable=False)
     lecture_id: Optional[int] = Field(
         default=None,
         sa_column=Column(
@@ -693,6 +711,7 @@ class Report(SQLModel, table=True):
     )
 
     exercise: Optional["Exercise"] = Relationship()
+    beta_exercise: Optional["BetaExercise"] = Relationship()
     userinfo: "UserInfo" = Relationship()
 
 
