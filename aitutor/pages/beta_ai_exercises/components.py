@@ -8,6 +8,9 @@ from aitutor.global_vars import TIME_ZONE
 from aitutor.language_state import LanguageState as LS
 from aitutor.models import BetaExercise
 from aitutor.pages.beta_ai_exercises.state import BetaAIExercisesState
+from aitutor.pages.lecture_manage_exercises.state import (
+    LECTURE_MANAGE_EXERCISES_FIELD_MAX_LENGTHS,
+)
 
 
 def delete_saved_exercise_button(exercise: BetaExercise) -> rx.Component:
@@ -291,16 +294,18 @@ def metadata_card() -> rx.Component:
                 ),
             ),
             rx.input(
-                placeholder=LS.title,
+                placeholder=LS.exercise_title_placeholder,
                 value=BetaAIExercisesState.title,
                 on_change=BetaAIExercisesState.set_title,
+                max_length=LECTURE_MANAGE_EXERCISES_FIELD_MAX_LENGTHS["title"],
                 width="100%",
             ),
             rx.text_area(
-                placeholder=LS.beta_ai_description_optional,
+                placeholder=LS.description_placeholder,
                 value=BetaAIExercisesState.description,
                 on_change=BetaAIExercisesState.set_description,
                 disabled=BetaAIExercisesState.exercise_has_started,
+                max_length=LECTURE_MANAGE_EXERCISES_FIELD_MAX_LENGTHS["description"],
                 rows="4",
                 width="100%",
             ),
@@ -587,12 +592,15 @@ def deadline_fields() -> rx.Component:
                             weight="medium",
                         ),
                         rx.input(
+                            placeholder="e.g. 7",
                             value=BetaAIExercisesState.days_to_complete,
                             on_change=BetaAIExercisesState.set_days_to_complete,
                             type="number",
                             step="1",
                             min="1",
-                            max_length=4,
+                            max_length=LECTURE_MANAGE_EXERCISES_FIELD_MAX_LENGTHS[
+                                "days_to_complete"
+                            ],
                         ),
                         align="start",
                     ),
