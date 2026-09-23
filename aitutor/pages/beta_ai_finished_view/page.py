@@ -8,6 +8,7 @@ from aitutor.auth.protection import page_require_role_or_permission
 from aitutor.language_state import LanguageState as LS
 from aitutor.models import UserRole
 from aitutor.pages.beta_ai_chat.components import chat_message
+from aitutor.pages.beta_ai_finished_view.components import delete_submission_button
 from aitutor.pages.beta_ai_finished_view.state import BetaAIFinishedViewState
 from aitutor.pages.navbar import with_navbar
 from aitutor.pages.navbar_beta_ai import with_beta_ai_navbar
@@ -53,6 +54,7 @@ def beta_ai_finished_view_page() -> rx.Component:
                     overflow="auto",
                     width="100%",
                 ),
+                delete_submission_button(),
                 spacing="5",
                 justify="start",
                 min_height="82vh",
