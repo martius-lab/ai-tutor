@@ -280,20 +280,35 @@ def message_input() -> rx.Component:
 
 def beta_submit_button() -> rx.Component:
     """Render the Beta AI submit button in the chat action row."""
-    return rx.button(
-        LS.submit,
-        color_scheme="green",
-        type="button",
-        on_click=BetaAIChatState.submit_beta_conversation,
-        disabled=rx.cond(
-            BetaAIChatState.completion_unlocked,
-            False,
-            True,
+    return rx.cond(
+        BetaAIChatState.is_overdue,
+        rx.hover_card.root(
+            rx.hover_card.trigger(
+                rx.button(
+                    LS.submit,
+                    color_scheme="green",
+                    type="button",
+                    disabled=True,
+                    _hover={"cursor": "disabled"},
+                ),
+            ),
+            rx.hover_card.content(rx.text(LS.deadline_has_passed_info)),
         ),
-        _hover=rx.cond(
-            BetaAIChatState.completion_unlocked,
-            {"cursor": "pointer"},
-            {"cursor": "not-allowed"},
+        rx.button(
+            LS.submit,
+            color_scheme="green",
+            type="button",
+            on_click=BetaAIChatState.submit_beta_conversation,
+            disabled=rx.cond(
+                BetaAIChatState.completion_unlocked,
+                False,
+                True,
+            ),
+            _hover=rx.cond(
+                BetaAIChatState.completion_unlocked,
+                {"cursor": "pointer"},
+                {"cursor": "not-allowed"},
+            ),
         ),
     )
 
@@ -322,11 +337,14 @@ def beta_submission_status() -> rx.Component:
             rx.icon("circle-check", color=gv.GREEN_CHECK_COLOR, size=30),
             align="center",
         ),
-        rx.hstack(
-            rx.icon("info", size=20),
-            rx.text(LS.not_submitted_yet),
-            spacing="1",
-            align="center",
+        rx.cond(
+            ~BetaAIChatState.is_overdue,
+            rx.hstack(
+                rx.icon("info", size=20),
+                rx.text(LS.not_submitted_yet),
+                spacing="1",
+                align="center",
+            ),
         ),
     )
 
