@@ -6,8 +6,15 @@ from sqlmodel import select
 from aitutor import routes
 from aitutor.auth.protection import state_require_role_or_permission
 from aitutor.auth.state import SessionState
+from aitutor.language_state import BackendTranslations as BT
 from aitutor.models import BetaExercise, BetaExerciseResult, UserRole
 from aitutor.utilities.lecture_permissions import user_may_view_lecture
+
+
+def withdraw_beta_submission(beta_result: BetaExerciseResult) -> None:
+    """Withdraw only the submitted snapshot while preserving Better AI progress."""
+    beta_result.finished_conversation = []
+    beta_result.submit_time_stamp = None
 
 
 class BetaAIFinishedViewState(SessionState):
@@ -78,3 +85,53 @@ class BetaAIFinishedViewState(SessionState):
     def chat_url(self) -> str:
         """Return the Beta AI chat URL."""
         return f"{routes.BETA_AI_CHAT}/{self._beta_exercise_id}"
+
+    @rx.event
+    @state_require_role_or_permission(required_role=UserRole.STUDENT)
+    def delete_submission(self):
+        """Withdraw the current student's submission without deleting learning state."""
+        userinfo = self.authenticated_user_info
+        if userinfo is None or userinfo.id is None:
+            return rx.redirect(routes.LOGIN)
+
+        with rx.session() as session:
+            exercise = session.get(BetaExercise, self._beta_exercise_id)
+            if exercise is None or exercise.lecture_id is None:
+                return rx.redirect(routes.NOT_FOUND)
+
+            if (
+                self.authenticated_user is None
+                or self.authenticated_user.id is None
+                or not user_may_view_lecture(
+                    session,
+                    user_id=self.authenticated_user.id,
+                    global_permissions=self.global_permissions,
+                    lecture_id=exercise.lecture_id,
+                )
+            ):
+                return rx.redirect(routes.MY_LECTURES)
+
+            beta_result = session.exec(
+                select(BetaExerciseResult).where(
+                    BetaExerciseResult.beta_exercise_id == self._beta_exercise_id,
+                    BetaExerciseResult.userinfo_id == userinfo.id,
+                    BetaExerciseResult.submit_time_stamp != None,  # noqa: E711
+                )
+            ).one_or_none()
+            if beta_result is None:
+                return rx.redirect(routes.NOT_FOUND)
+
+            withdraw_beta_submission(beta_result)
+            session.add(beta_result)
+            session.commit()
+
+        return [
+            rx.toast.success(
+                title=BT.submission_deleted_title(self.language),
+                description=BT.submission_deleted_description(self.language),
+                duration=2500,
+                position="bottom-center",
+                invert=True,
+            ),
+            rx.redirect(self.chat_url),
+        ]
