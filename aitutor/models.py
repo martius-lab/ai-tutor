@@ -1,8 +1,9 @@
 """Module defining database models."""
+# ruff: file-ignore[UP045] -- `x | None` does not seem to work for SQLAlchemy
 
 from datetime import datetime, timedelta
 from enum import IntEnum, StrEnum
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 from zoneinfo import ZoneInfo
 
 import pydantic
@@ -102,13 +103,13 @@ class Lecture(SQLModel, table=True):
     default_prompt_id: Optional[int] = Field(default=None)
 
     # ORM relationships
-    user_links: List["LinkUserLecture"] = Relationship(
+    user_links: list[LinkUserLecture] = Relationship(
         back_populates="lecture", sa_relationship_kwargs={"passive_deletes": True}
     )
-    exercises: List["Exercise"] = Relationship(
+    exercises: list[Exercise] = Relationship(
         back_populates="lecture", sa_relationship_kwargs={"passive_deletes": True}
     )
-    tags: List["Tag"] = Relationship(
+    tags: list[Tag] = Relationship(
         back_populates="lecture", sa_relationship_kwargs={"passive_deletes": True}
     )
 
@@ -131,7 +132,7 @@ class LinkUserLecture(SQLModel, table=True):
 
     # ORM relationships
     lecture: Optional[Lecture] = Relationship(back_populates="user_links")
-    user: Optional["LocalUser"] = Relationship()
+    user: Optional[LocalUser] = Relationship()
 
 
 class ExerciseTagLink(SQLModel, table=True):
@@ -166,7 +167,7 @@ class Tag(SQLModel, table=True):
     )
 
     # ORM relationship
-    exercises: List["Exercise"] = Relationship(
+    exercises: list[Exercise] = Relationship(
         back_populates="tags", link_model=ExerciseTagLink
     )
     lecture: Optional[Lecture] = Relationship(back_populates="tags")
@@ -193,13 +194,13 @@ class Exercise(SQLModel, table=True):
     days_to_complete: Optional[int] = Field(default=None)
 
     # ORM relationship
-    submissions: List["ExerciseResult"] = Relationship(
+    submissions: list[ExerciseResult] = Relationship(
         back_populates="exercise", sa_relationship_kwargs={"passive_deletes": True}
     )
-    tags: List[Tag] = Relationship(
+    tags: list[Tag] = Relationship(
         back_populates="exercises", link_model=ExerciseTagLink
     )
-    prompt: Optional["Prompt"] = Relationship()
+    prompt: Optional[Prompt] = Relationship()
     lecture: Optional[Lecture] = Relationship(back_populates="exercises")
 
     @property
@@ -249,9 +250,9 @@ class ExerciseResult(SQLModel, table=True):
     """
 
     id: Optional[int] = Field(default=None, primary_key=True)
-    conversation_text: List[Dict[str, Any]] = Field(sa_column=Column(JSON), default=[])
+    conversation_text: list[dict[str, Any]] = Field(sa_column=Column(JSON), default=[])
     check_passed: bool = Field(default=False)
-    finished_conversation: List[Dict[str, Any]] = Field(
+    finished_conversation: list[dict[str, Any]] = Field(
         sa_column=Column(JSON), default=[]
     )
     submit_time_stamp: Optional[datetime] = Field(
@@ -267,8 +268,8 @@ class ExerciseResult(SQLModel, table=True):
     userinfo_id: int = Field(foreign_key="userinfo.id", ondelete="CASCADE")
 
     # ORM relationships
-    exercise: "Exercise" = Relationship(back_populates="submissions")
-    user: "UserInfo" = Relationship(back_populates="exercise_results")
+    exercise: Exercise = Relationship(back_populates="submissions")
+    user: UserInfo = Relationship(back_populates="exercise_results")
 
     def __repr__(self):
         return (
@@ -290,10 +291,10 @@ class UserInfo(SQLModel, table=True):
     language: Language = Field(default=Language.EN)
 
     # ORM relationship
-    exercise_results: List["ExerciseResult"] = Relationship(
+    exercise_results: list[ExerciseResult] = Relationship(
         back_populates="user", sa_relationship_kwargs={"passive_deletes": True}
     )
-    local_user: "LocalUser" = Relationship()
+    local_user: LocalUser = Relationship()
 
 
 class Permission(SQLModel, table=True):
@@ -415,12 +416,12 @@ class Report(SQLModel, table=True):
     )
     report_text: str
     looked_at: bool = Field(default=False)
-    conversation_snapshot: List[Dict[str, Any]] = Field(
+    conversation_snapshot: list[dict[str, Any]] = Field(
         sa_column=Column(JSON), default=[]
     )
 
-    exercise: Optional["Exercise"] = Relationship()
-    userinfo: "UserInfo" = Relationship()
+    exercise: Optional[Exercise] = Relationship()
+    userinfo: UserInfo = Relationship()
 
 
 class LecturerRegistrationToken(SQLModel, table=True):

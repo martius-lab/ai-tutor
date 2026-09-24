@@ -1,6 +1,6 @@
 """The Components for the manage exercises page."""
 
-from typing import Sequence
+from collections.abc import Sequence
 
 import reflex as rx
 
