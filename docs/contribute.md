@@ -50,6 +50,26 @@ Xonsh).  To see all options, run
 Note that the script requires root permission (i.e. run with `sudo`) to be able to
 access the Docker container.
 
+When starting with an fresh database, you need to run the database migration once to
+create all the tables used by AI Tutor:
+```
+uv run reflex db migrate
+```
+
+
+## Seed database with dummy data for testing
+
+For testing, it can be useful to have some users, lectures, exercises, etc. created, so
+the application is not empty.  This can be done using the following command from the
+packages root directory (after migration):
+
+```
+uv run ./scripts/seed_demo_data.py
+```
+
+Apart from adding some dummy data, it also changes the password of the initial admin
+user and the registration code to "1234".
+
 
 ## Reflex
 
@@ -98,7 +118,7 @@ the package to the project's virtual environment.
 Database tables are defined as classes that are derived from `SQLModel` (see
 `aitutor/models.py`).  Reflex uses [Alembic](https://alembic.sqlalchemy.org/en/latest/)
 for dealing with changes on those models (so existing databases can be updated
-accordingly when switching to a newer version of AI Tutor).  For this, the following two
+accordingly when switching to a newer version of AI Tutor).  For this, the following
 commands need to be run:
 
 1. **makemigrations:** This needs to be run once by the developer who changes an
@@ -106,10 +126,11 @@ commands need to be run:
    `alembic/versions/`, which should be committed in the same commit that changed the
    model.
    ```
-   uv run reflex db makemigrations
+   uv run reflex db makemigrations --message "short description of the change"
    ```
 
-   In some cases, manual modifications have to be made to the migration file.
+   In some cases, manual modifications have to be made to the generated migration file
+   afterwards.
 
    A typical example: When adding boolean fields with default values, alembic does for
    some reason use `sa.text('0')`, which does not work for PostgreSQL, which is strict
@@ -126,6 +147,10 @@ commands need to be run:
    ```
    uv run reflex db migrate
    ```
+
+3. **Update `scripts/seed_demo_data.py`**:  When changing the database schema, please
+   also check if the script for seeding the database with dummy data needs to be
+   updated.
 
 ## Tests
 
