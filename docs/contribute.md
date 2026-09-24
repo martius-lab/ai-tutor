@@ -42,10 +42,10 @@ And to see the log (for debugging):
 sudo make dev-logs
 ```
 
-To easily backup/restore the database, you may use the `postgres.xsh` script (requires
-Xonsh).  To see all options, run
+To easily backup/restore the database, you may use the `postgres.py` script.  To see all
+options, run
 ```
-./postgres.xsh -h
+./postgres.py -h
 ```
 Note that the script requires root permission (i.e. run with `sudo`) to be able to
 access the Docker container.
