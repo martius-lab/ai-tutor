@@ -155,11 +155,21 @@ class MyRegisterState(reflex_local_auth.RegistrationState):
                 if field in form_data and isinstance(form_data[field], str):
                     form_data[field] = form_data[field][:max_len]
 
+            # check for the correct registration code
+            registration_code = get_config().registration_code
+            if (
+                registration_code
+                and form_data["registration_code"] != registration_code
+            ):
+                self.error_message = "The registration code is wrong."
+                self.registration_code = ""
+                return
+
             language = language_from_value(form_data.get("language"))
             # check for allowed user name
             if not re.match(r"^[a-zA-Z0-9._-]+$", form_data["username"]):
                 self.error_message = (
-                    "Username can only contain letters, numbers and '. _ -'"
+                    "Username can only contain letters, numbers and '._-'"
                 )
                 self.username = ""
                 return
@@ -172,22 +182,21 @@ class MyRegisterState(reflex_local_auth.RegistrationState):
             # case.
             if "@" not in email.utils.parseaddr(form_data["email"], strict=True)[1]:
                 self.error_message = "Email address is not valid."
-                self.email = ""
+                return
+            # check if email is already used
+            with rx.session() as session:
+                existing_email = session.exec(
+                    select(UserInfo).where(UserInfo.email == form_data["email"])
+                ).one_or_none()
+            if existing_email is not None:
+                self.error_message = (
+                    "An account with this email address is already registered."
+                )
                 return
 
             # check for the password max length in terms of bytes
             if len(form_data["password"].encode("utf-8")) > gv.PASSWORD_MAX_BYTES:
                 self.error_message = BT.error_password_too_long(language)
-                return
-
-            # check for the correct registration code
-            registration_code = get_config().registration_code
-            if (
-                registration_code
-                and form_data["registration_code"] != registration_code
-            ):
-                self.error_message = "The registration code is wrong."
-                self.registration_code = ""
                 return
 
             registration_result = self.handle_registration(form_data)
