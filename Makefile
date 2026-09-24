@@ -27,6 +27,6 @@ dev-logs:
 	docker compose -f compose.devel.yaml logs -ft
 
 dev-db-reset:
-	sudo ./postgres.xsh clear
+	sudo ./postgres.py clear
 	uv run reflex db migrate
 	uv run ./scripts/seed_demo_data.py

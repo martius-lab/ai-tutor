@@ -1,9 +1,10 @@
-#!/usr/bin/env xonsh
+#!/usr/bin/env python3
 # Script to manage the dockerized postgres database from some SQL dump
 
 import argparse
 import pathlib
 import sys
+from subprocess import check_call
 
 
 basedir = pathlib.Path(__file__).absolute().parent.name
@@ -17,8 +18,8 @@ def clear(container_id):
 
     # clear existing database
     print("drop and re-create database")
-    docker exec -it @(container_id) dropdb postgres -U postgres
-    docker exec -it @(container_id) createdb postgres -U postgres
+    check_call(["docker", "exec", "-it", container_id, "dropdb", "postgres", "-U", "postgres"])
+    check_call(["docker", "exec", "-it", container_id, "createdb", "postgres", "-U", "postgres"])
 
 
 def restore(container_id, sqlfile):
@@ -32,21 +33,22 @@ def restore(container_id, sqlfile):
 
     # clear existing database
     print("drop and re-create database")
-    docker exec -it @(container_id) dropdb postgres -U postgres
-    docker exec -it @(container_id) createdb postgres -U postgres
+    check_call(["docker", "exec", "-it", container_id, "dropdb", "postgres", "-U", "postgres"])
+    check_call(["docker", "exec", "-it", container_id, "createdb", "postgres", "-U", "postgres"])
 
     # load the dump
     print(f"load dump from {sqlfile}")
-    docker cp @(sqlfile) @(container_id):/tmp/foo.sql
-    docker exec -it @(container_id) psql postgres postgres -f /tmp/foo.sql
+    check_call(["docker", "cp", str(sqlfile), f"{container_id}:/tmp/foo.sql"])
+    check_call(["docker", "exec", "-it", container_id, "psql", "postgres", "postgres", "-f", "/tmp/foo.sql"])
 
 
 def dump(container_id, outfile):
-    docker exec @(container_id) pg_dump -U postgres -h localhost postgres > @(outfile)
+    with open(outfile, 'w') as f:
+        check_call(["docker", "exec", container_id, "pg_dump", "-U", "postgres", "-h", "localhost", "postgres"], stdout=f)
 
 
 def psql(container_id):
-    docker exec -it @(container_id) psql postgres postgres
+    check_call(["docker", "exec", "-it", container_id, "psql", "postgres", "postgres"])
 
 
 # create the top-level parser
