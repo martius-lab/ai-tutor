@@ -70,6 +70,12 @@ uv run ./scripts/seed_demo_data.py
 Apart from adding some dummy data, it also changes the password of the initial admin
 user and the registration code to "1234".
 
+You may also use the following command to reset the database and seed with the demo data
+in one go:
+```
+make dev-db-reset
+```
+
 
 ## Reflex
 
