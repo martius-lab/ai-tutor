@@ -32,3 +32,6 @@ jobs:
           out=$(uv run reflex db makemigrations 2>&1)
           echo $out
           test -z "$out"
+
+      - name: Test if seed_demo_data.py runs without errors
+        run: uv run ./scripts/seed_demo_data.py
