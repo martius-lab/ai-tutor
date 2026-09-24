@@ -8,136 +8,185 @@ import sys
 
 import reflex as rx
 
-from aitutor import pages, routes
+from aitutor import routes
 from aitutor.config import get_config
 from aitutor.env_settings import get_env_settings
+from aitutor.pages.all_lectures.page import all_lectures_page
+from aitutor.pages.all_lectures.state import AllLecturesState
+from aitutor.pages.chat.page import chat_page
+from aitutor.pages.chat.state import ChatState
+from aitutor.pages.configuration.page import configuration_page
+from aitutor.pages.configuration.state import (
+    LecturerRegistrationTokenState,
+    ManageConfigState,
+)
+from aitutor.pages.edit_lecture.page import edit_lecture_page
+from aitutor.pages.edit_lecture.state import EditLectureState
+from aitutor.pages.finished_view.page import finished_view_page
+from aitutor.pages.finished_view.state import FinishedViewState
+from aitutor.pages.finished_view_tutor.page import finished_view_tutor_page
+from aitutor.pages.finished_view_tutor.state import FinishedViewTutorState
+from aitutor.pages.home.page import home_page
+from aitutor.pages.home.state import HomeState
+from aitutor.pages.lecture_exercises.page import lecture_exercises_page
+from aitutor.pages.lecture_exercises.state import LectureExercisesState
+from aitutor.pages.lecture_manage_exercises.page import lecture_manage_exercises_page
+from aitutor.pages.lecture_manage_exercises.state import LectureManageExercisesState
+from aitutor.pages.lecture_members.page import lecture_members_page
+from aitutor.pages.lecture_members.state import LectureMembersState
+from aitutor.pages.lecture_overview.page import lecture_overview_page
+from aitutor.pages.lecture_overview.state import LectureOverviewState
+from aitutor.pages.lecture_prompts.page import lecture_prompts_page
+from aitutor.pages.lecture_prompts.state import LectureManagePromptsState
+from aitutor.pages.lecture_report_view.page import lecture_report_view_page
+from aitutor.pages.lecture_report_view.state import LectureReportViewState
+from aitutor.pages.lecture_reports.page import lecture_reports_page
+from aitutor.pages.lecture_reports.state import LectureReportsState
+from aitutor.pages.lecture_submissions.page import lecture_submissions_page
+from aitutor.pages.lecture_submissions.state import LectureSubmissionsState
+from aitutor.pages.lecture_token_analyzer.page import lecture_token_analyzer_page
+from aitutor.pages.lecture_token_analyzer.state import LectureTokenAnalyzerState
+from aitutor.pages.legal_infos.page import impressum_page, privacy_notice_page
+from aitutor.pages.login_and_registration.page import (
+    custom_login_page,
+    custom_register_page,
+)
+from aitutor.pages.login_and_registration.state import MyLoginState, MyRegisterState
+from aitutor.pages.manage_users.page import manage_users_page
+from aitutor.pages.manage_users.state import ManageUsersState
+from aitutor.pages.my_lectures.page import my_lectures_page
+from aitutor.pages.my_lectures.state import MyLecturesState
+from aitutor.pages.not_found.page import not_found_page
+from aitutor.pages.prompts.page import prompts_page
+from aitutor.pages.prompts.state import ManagePromptsState
+from aitutor.pages.user_settings.page import user_settings_page
 from aitutor.utilities.cprint import cprint
 from aitutor.utilities.first_setup import first_time_setup
 
 app = rx.App()
 # info: add dynamic routes first
 app.add_page(
-    pages.finished_view_tutor_page,
+    finished_view_tutor_page,
     route=routes.FINISHED_VIEW_TUTOR + "/[exercise_id]/[url_user_id]",
-    on_load=pages.FinishedViewTutorState.on_load,
+    on_load=FinishedViewTutorState.on_load,
 )
 app.add_page(
-    pages.lecture_report_view_page,
+    lecture_report_view_page,
     route=routes.LECTURE_REPORT_VIEW + "/[lecture_id]/[report_id]",
-    on_load=pages.LectureReportViewState.on_load,
+    on_load=LectureReportViewState.on_load,
 )
 app.add_page(
-    pages.chat_page,
+    chat_page,
     route=routes.CHAT + "/[exercise_id]",
-    on_load=pages.ChatState.on_load,
+    on_load=ChatState.on_load,
 )
 app.add_page(
-    pages.finished_view_page,
+    finished_view_page,
     route=routes.FINISHED_VIEW + "/[exercise_id]",
-    on_load=pages.FinishedViewState.on_load,
+    on_load=FinishedViewState.on_load,
 )
 app.add_page(
-    pages.my_lectures_page,
+    my_lectures_page,
     route=routes.MY_LECTURES,
-    on_load=pages.MyLecturesState.on_load,
+    on_load=MyLecturesState.on_load,
 )
 app.add_page(
-    pages.lecture_overview_page,
+    lecture_overview_page,
     route=routes.LECTURE_OVERVIEW + "/[lecture_id]",
-    on_load=pages.LectureOverviewState.on_load,
+    on_load=LectureOverviewState.on_load,
 )
 app.add_page(
-    pages.lecture_members_page,
+    lecture_members_page,
     route=routes.LECTURE_MEMBERS + "/[lecture_id]",
-    on_load=pages.LectureMembersState.on_load,
+    on_load=LectureMembersState.on_load,
 )
 app.add_page(
-    pages.lecture_exercises_page,
+    lecture_exercises_page,
     route=routes.LECTURE_EXERCISES + "/[lecture_id]",
-    on_load=pages.LectureExercisesState.on_load,
+    on_load=LectureExercisesState.on_load,
 )
 app.add_page(
-    pages.lecture_manage_exercises_page,
+    lecture_manage_exercises_page,
     route=routes.LECTURE_MANAGE_EXERCISES + "/[lecture_id]",
-    on_load=pages.LectureManageExercisesState.on_load,
+    on_load=LectureManageExercisesState.on_load,
 )
 app.add_page(
-    pages.lecture_prompts_page,
+    lecture_prompts_page,
     route=routes.LECTURE_PROMPTS + "/[lecture_id]",
-    on_load=pages.LectureManagePromptsState.on_load,
+    on_load=LectureManagePromptsState.on_load,
 )
 app.add_page(
-    pages.lecture_submissions_page,
+    lecture_submissions_page,
     route=routes.LECTURE_SUBMISSIONS + "/[lecture_id]",
-    on_load=pages.LectureSubmissionsState.on_load,
+    on_load=LectureSubmissionsState.on_load,
 )
 app.add_page(
-    pages.lecture_reports_page,
+    lecture_reports_page,
     route=routes.LECTURE_REPORTS + "/[lecture_id]",
-    on_load=pages.LectureReportsState.on_load,
+    on_load=LectureReportsState.on_load,
 )
 app.add_page(
-    pages.lecture_token_analyzer_page,
+    lecture_token_analyzer_page,
     route=routes.LECTURE_TOKEN_ANALYZER + "/[lecture_id]",
-    on_load=pages.LectureTokenAnalyzerState.on_load,
+    on_load=LectureTokenAnalyzerState.on_load,
 )
 app.add_page(
-    pages.all_lectures_page,
+    all_lectures_page,
     route=routes.ALL_LECTURES + "/[lecture_id]",
-    on_load=pages.AllLecturesState.on_load,
+    on_load=AllLecturesState.on_load,
 )
 app.add_page(
-    pages.all_lectures_page,
+    all_lectures_page,
     route=routes.ALL_LECTURES,
-    on_load=pages.AllLecturesState.on_load,
+    on_load=AllLecturesState.on_load,
 )
 app.add_page(
-    pages.edit_lecture_page,
+    edit_lecture_page,
     route=routes.EDIT_LECTURE + "/[lecture_id]",
-    on_load=pages.EditLectureState.on_load,
+    on_load=EditLectureState.on_load,
 )
 app.add_page(
-    pages.home_page,
+    home_page,
     route=routes.HOME,
-    on_load=pages.HomeState.on_load,
+    on_load=HomeState.on_load,
 )
 app.add_page(
-    pages.manage_users_page,
+    manage_users_page,
     route=routes.MANAGE_USERS,
-    on_load=pages.ManageUsersState.on_load,
+    on_load=ManageUsersState.on_load,
 )
 app.add_page(
-    pages.configuration_page,
+    configuration_page,
     route=routes.CONFIGURATION,
     on_load=[
-        pages.ManageConfigState.on_load,
-        pages.LecturerRegistrationTokenState.on_load,
+        ManageConfigState.on_load,
+        LecturerRegistrationTokenState.on_load,
     ],
 )
 app.add_page(
-    pages.prompts_page,
+    prompts_page,
     route=routes.PROMPTS,
-    on_load=pages.ManagePromptsState.on_load,
+    on_load=ManagePromptsState.on_load,
 )
 app.add_page(
-    pages.user_settings_page,
+    user_settings_page,
     route=routes.USER_SETTINGS,
 )
 
 # reflex_local_auth pages
 app.add_page(
-    pages.custom_login_page,
+    custom_login_page,
     route=routes.LOGIN,
-    on_load=pages.MyLoginState.on_load,
+    on_load=MyLoginState.on_load,
 )
 app.add_page(
-    pages.custom_register_page,
+    custom_register_page,
     route=routes.REGISTER,
-    on_load=pages.MyRegisterState.on_load,
+    on_load=MyRegisterState.on_load,
 )
-app.add_page(pages.not_found_page, route=routes.NOT_FOUND)
-app.add_page(pages.impressum_page, route=routes.IMPRESSUM)
-app.add_page(pages.privacy_notice_page, route=routes.PRIVACY_NOTICE)
+app.add_page(not_found_page, route=routes.NOT_FOUND)
+app.add_page(impressum_page, route=routes.IMPRESSUM)
+app.add_page(privacy_notice_page, route=routes.PRIVACY_NOTICE)
 
 
 class Lock:
