@@ -864,25 +864,38 @@ class LanguageState(SessionState):
         return self.translate(de="Passwort bestätigen", en="Confirm Password")
 
     @rx.var
-    def successful_registration(self) -> str:
-        """Successful registration string"""
-        return self.translate(
-            de="Registrierung erfolgreich! Sie können sich jetzt anmelden.",
-            en="Registration successful! You can now log in.",
-        )
-
-    @rx.var
     def successful_registration_with_email(self) -> str:
+        """Successful registration string, asking the user to confirm the address."""
         return self.translate(
-            de="Registrierung erfolgreich. Wir haben Ihnen eine Willkommens-E-Mail gesendet.",
-            en="Registration successful. We sent you a welcome email.",
+            de=(
+                "Registrierung erfolgreich.  Wir haben Ihnen eine E-Mail mit einem"
+                " Bestätigungslink gesendet.  Bitte öffnen Sie diesen Link, um Ihr Konto"
+                " zu aktivieren.  Erst danach können Sie sich anmelden.  Bitte prüfen Sie"
+                " gegebenenfalls auch Ihren Spam-Ordner."
+            ),
+            en=(
+                "Registration successful.  We have sent you an email containing a"
+                " confirmation link.  Please open that link to activate your account."
+                "  Only then you will be able to log in.  If you cannot find the email,"
+                " please also check your spam folder."
+            ),
         )
 
     @rx.var
     def successful_registration_email_failed(self) -> str:
+        """Registration succeeded, but the confirmation mail could not be sent."""
         return self.translate(
-            de="Registrierung erfolgreich, aber die Willkommens-E-Mail konnte nicht gesendet werden.",
-            en="Registration successful, but the welcome email could not be sent.",
+            de=(
+                "Ihr Konto wurde erstellt, aber die E-Mail mit dem Bestätigungslink"
+                " konnte nicht gesendet werden.  Ohne Bestätigung Ihrer E-Mail-Adresse"
+                " können Sie sich nicht anmelden.  Bitte wenden Sie sich an das AI Tutor"
+                " Team."
+            ),
+            en=(
+                "Your account was created, but the email containing the confirmation"
+                " link could not be sent.  You cannot log in until your email address"
+                " is confirmed.  Please contact the AI Tutor team."
+            ),
         )
 
     @rx.var
@@ -1835,13 +1848,13 @@ class BackendTranslations:
     def signup_welcome_subject(language: Language) -> str:
         return translate(
             language,
-            de="Willkommen bei AI Tutor",
-            en="Welcome to AI Tutor",
+            de="Willkommen bei AI Tutor - bitte bestätigen Sie Ihre E-Mail-Adresse",
+            en="Welcome to AI Tutor - please confirm your email address",
         )
 
     @staticmethod
     def signup_welcome_body(
-        language: Language, *, username: str, login_url: str
+        language: Language, *, username: str, verification_url: str, validity_hours: int
     ) -> str:
         return translate(
             language,
@@ -1849,28 +1862,38 @@ class BackendTranslations:
                 f"""
                 Hallo {username},
 
-                Ihr AI Tutor Konto wurde erfolgreich erstellt.
+                Ihr AI Tutor Konto wurde erstellt.
 
                 Benutzername: {username}
 
-                Sie können sich hier anmelden:
-                {login_url}
+                Bitte bestätigen Sie Ihre E-Mail-Adresse, indem Sie den folgenden Link
+                öffnen.  Erst danach können Sie sich anmelden:
+                <{verification_url}>
 
-                Falls Sie dieses Konto nicht erstellt haben, kontaktieren Sie bitte das AI Tutor Team.
+                Der Link ist {validity_hours} Stunden gültig.  Ist er abgelaufen, können
+                Sie sich auf der Anmeldeseite einen neuen zusenden lassen.
+
+                Falls Sie dieses Konto nicht erstellt haben, ignorieren Sie diese E-Mail
+                bitte.  Ohne Bestätigung der Adresse kann das Konto nicht genutzt werden.
                 """
             ).lstrip(),
             en=textwrap.dedent(
                 f"""
                 Hello {username},
 
-                Your AI Tutor account has been created successfully.
+                Your AI Tutor account has been created.
 
                 Username: {username}
 
-                You can log in here:
-                {login_url}
+                Please confirm your email address by opening the following link.  Only
+                then you will be able to log in:
+                <{verification_url}>
 
-                If you did not create this account, please contact the AI Tutor team.
+                The link is valid for {validity_hours} hours.  If it has expired, you can
+                request a new one on the login page.
+
+                If you did not create this account, please ignore this email.  Without
+                confirmation of the address the account cannot be used.
                 """
             ).lstrip(),
         )
