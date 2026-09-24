@@ -6,7 +6,9 @@ from aitutor import routes
 from aitutor.auth.protection import page_require_role_or_permission
 from aitutor.language_state import LanguageState as LS
 from aitutor.models import UserRole
-from aitutor.pages.beta_ai_chat.components import chat_message
+from aitutor.pages.beta_ai_finished_view_tutor.evaluations import (
+    evaluated_chat_message,
+)
 from aitutor.pages.beta_ai_finished_view_tutor.state import BetaAIFinishedViewTutorState
 from aitutor.pages.navbar import with_navbar
 
@@ -42,7 +44,9 @@ def beta_ai_finished_view_tutor_page() -> rx.Component:
                     align="center",
                 ),
                 rx.box(
-                    rx.foreach(BetaAIFinishedViewTutorState.messages, chat_message),
+                    rx.foreach(
+                        BetaAIFinishedViewTutorState.messages, evaluated_chat_message
+                    ),
                     overflow="auto",
                     width="100%",
                 ),
