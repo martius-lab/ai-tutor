@@ -10,6 +10,17 @@ basedir = pathlib.Path(__file__).absolute().parent.name
 DEFAULT_CONTAINER_ID = f"{basedir}-dev-db-1"
 
 
+def clear(container_id):
+    key = input("Do you really want to clear the database?  Existing data will be lost! [yN] ")
+    if key.lower() != "y":
+        sys.exit(1)
+
+    # clear existing database
+    print("drop and re-create database")
+    docker exec -it @(container_id) dropdb postgres -U postgres
+    docker exec -it @(container_id) createdb postgres -U postgres
+
+
 def restore(container_id, sqlfile):
     if not sqlfile.is_file():
         raise RuntimeError(f"{sqlfile} is not a file.")
@@ -54,7 +65,6 @@ subparsers = ap.add_subparsers(
     required=True,
 )
 
-# create the parser for the "a" command
 parser_restore = subparsers.add_parser(
     "restore",
     help="Clear the existing database and restore it from the given SQL dump.",
@@ -67,7 +77,6 @@ parser_restore.add_argument(
     required=True,
 )
 
-# create the parser for the "b" command
 parser_dump = subparsers.add_parser(
     "dump",
     help="Dump the existing database to a SQL file.",
@@ -78,6 +87,11 @@ parser_dump.add_argument(
     help="Path to the output file",
     type=pathlib.Path,
     required=True,
+)
+
+parser_clear = subparsers.add_parser(
+    "clear",
+    help="Clear the database.",
 )
 
 parser_psql = subparsers.add_parser(
@@ -93,5 +107,7 @@ match args.cmd:
         restore(args.container, args.f)
     case "dump":
         dump(args.container, args.o)
+    case "clear":
+        clear(args.container)
     case "psql":
         psql(args.container)
