@@ -9,6 +9,7 @@ from aitutor.language_state import LanguageState
 from aitutor.pages.legal_infos.loader_functions import get_privacy_notice_short
 from aitutor.pages.login_and_registration.state import (
     AUTH_FIELD_MAX_LENGTHS,
+    MyLoginState,
     MyRegisterState,
 )
 
@@ -46,12 +47,46 @@ def login_error() -> rx.Component:
     )
 
 
+def email_not_verified_notice() -> rx.Component:
+    """Explain the missing email confirmation and offer to send a new mail."""
+    return rx.cond(
+        MyLoginState.email_not_verified,
+        rx.callout(
+            rx.vstack(
+                rx.text(LanguageState.login_email_not_verified),
+                rx.button(
+                    LanguageState.resend_verification_email,
+                    # without this, the button would submit the login form
+                    type="button",
+                    on_click=MyLoginState.resend_verification_email,
+                    disabled=MyLoginState.resend_in_progress,
+                    loading=MyLoginState.resend_in_progress,
+                    _hover={"cursor": "pointer"},
+                ),
+                align_items="start",
+                spacing="3",
+            ),
+            icon="mail",
+            color_scheme="amber",
+            role="alert",
+            width="100%",
+        ),
+    )
+
+
 def login_form() -> rx.Component:
     """Render the login form."""
     return rx.form(
         rx.vstack(
             rx.heading(LanguageState.login_heading, size="7"),
             login_error(),
+            email_not_verified_notice(),
+            rx.input(
+                type="hidden",
+                name="language",
+                value=LanguageState.language,
+                style={"display": "none"},
+            ),
             rx.text(LanguageState.username),
             input(
                 "username",
@@ -74,7 +109,7 @@ def login_form() -> rx.Component:
             ),
             min_width=MIN_WIDTH,
         ),
-        on_submit=reflex_local_auth.LoginState.on_submit,
+        on_submit=MyLoginState.on_submit,
     )
 
 
