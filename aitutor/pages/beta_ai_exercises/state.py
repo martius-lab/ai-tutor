@@ -1,4 +1,4 @@
-"""State for managing independent Beta AI Tutor exercises."""
+"""State for the Better AI builder in lecture exercise management."""
 
 import io
 from datetime import datetime
@@ -16,7 +16,6 @@ from aitutor.beta_ai.schemas import (
     EditableConcept,
     EditableCorePoint,
     EditableMisconception,
-    SavedConceptDetail,
 )
 from aitutor.language_state import BackendTranslations as BT
 from aitutor.models import (
@@ -25,7 +24,6 @@ from aitutor.models import (
     BetaExercise,
     BetaExerciseResult,
     BetaMisconception,
-    Lecture,
     LectureRole,
     Tag,
 )
@@ -42,7 +40,6 @@ class BetaAIExercisesState(SessionState):
     MAX_CORE_POINT_TARGET: int = 15
     MAX_MISCONCEPTION_TARGET: int = 10
 
-    beta_exercises: list[BetaExercise] = []
     current_lecture_id: int | None = None
     title: str = ""
     description: str = ""
@@ -52,11 +49,6 @@ class BetaAIExercisesState(SessionState):
     source_material_text: str = ""
     source_material_filename: str = ""
     generated_concepts: list[EditableConcept] = []
-    selected_saved_exercise_id: int | None = None
-    selected_saved_exercise_title: str = ""
-    selected_saved_exercise_description: str = ""
-    selected_saved_exercise_source_file: str = ""
-    selected_saved_concepts: list[SavedConceptDetail] = []
     extracting_source_material: bool = False
     generating_concepts: bool = False
     saving_exercise: bool = False
@@ -228,43 +220,10 @@ class BetaAIExercisesState(SessionState):
             misconception_index
         ].label = value
 
-    @rx.event
-    @state_require_lecture_role(LectureRole.OWNER)
-    def on_load(self):
-        """Initialize the page."""
-        self.global_load()
-        self.current_lecture_id = None
-        try:
-            lecture_id = self.get_route_param_or_error("lecture_id", dtype=int)
-        except Exception:
-            return rx.redirect(routes.NOT_FOUND)
-
-        with rx.session() as session:
-            if session.get(Lecture, lecture_id) is None:
-                return rx.redirect(routes.NOT_FOUND)
-
-        self.current_lecture_id = lecture_id
-        self.load_tags()
-        self.load_beta_exercises()
-
-        beta_exercise_id = self.get_route_param_or_default(
-            "beta_exercise_id", default=""
-        )
-        if beta_exercise_id:
-            try:
-                exercise_id = int(beta_exercise_id)
-            except ValueError:
-                return rx.redirect(routes.NOT_FOUND)
-            return self.load_exercise_for_editing(exercise_id)
-
-        self.reset_builder()
-
     def on_logout(self):
         """Clear state on logout."""
-        self.beta_exercises = []
         self.current_lecture_id = None
         self.reset_builder()
-        self.clear_selected_saved_exercise()
 
     @rx.var
     def source_material_preview(self) -> str:
@@ -307,11 +266,6 @@ class BetaAIExercisesState(SessionState):
     def misconception_target_count_str(self) -> str:
         """Return the misconception target count as a string for the input field."""
         return str(self.misconception_target_count)
-
-    @rx.var
-    def has_selected_saved_exercise(self) -> bool:
-        """Whether a saved exercise is selected for inspection."""
-        return self.selected_saved_exercise_id is not None
 
     @rx.var
     def is_editing(self) -> bool:
@@ -527,119 +481,6 @@ class BetaAIExercisesState(SessionState):
         )
         self.exercise_has_started = exercise_has_started
         self.selected_tags = [tag.name for tag in exercise.tags]
-
-    @rx.event
-    def load_beta_exercises(self):
-        """Load saved Beta AI exercises from the current lecture."""
-        if self.current_lecture_id is None:
-            self.beta_exercises = []
-            return
-        with rx.session() as session:
-            self.beta_exercises = list(
-                session.exec(
-                    select(BetaExercise)
-                    .options(selectinload(BetaExercise.tags))  # type: ignore
-                    .where(BetaExercise.lecture_id == self.current_lecture_id)
-                    .order_by(BetaExercise.id.desc())  # type: ignore
-                ).all()
-            )
-
-    @rx.event
-    def clear_selected_saved_exercise(self):
-        """Clear the saved exercise detail inspector."""
-        self.selected_saved_exercise_id = None
-        self.selected_saved_exercise_title = ""
-        self.selected_saved_exercise_description = ""
-        self.selected_saved_exercise_source_file = ""
-        self.selected_saved_concepts = []
-
-    @rx.event
-    def select_saved_exercise(self, exercise_id: int | None):
-        """Load a saved Beta AI exercise and its concept registry for inspection."""
-        if exercise_id is None:
-            return
-
-        with rx.session() as session:
-            exercise = session.get(BetaExercise, exercise_id)
-            if exercise is None or exercise.lecture_id != self.current_lecture_id:
-                return rx.toast.error(
-                    description=BT.beta_ai_exercise_not_found(self.language),
-                    duration=5000,
-                    position="bottom-center",
-                    invert=True,
-                )
-
-            concepts = list(
-                session.exec(
-                    select(BetaConcept)
-                    .where(BetaConcept.beta_exercise_id == exercise_id)
-                    .order_by(BetaConcept.order_index)  # type: ignore
-                ).all()
-            )
-            concept_details = []
-            for concept in concepts:
-                if concept.id is None:
-                    continue
-                core_points = list(
-                    session.exec(
-                        select(BetaCorePoint)
-                        .where(BetaCorePoint.beta_concept_id == concept.id)
-                        .order_by(BetaCorePoint.order_index)  # type: ignore
-                    ).all()
-                )
-                misconceptions = list(
-                    session.exec(
-                        select(BetaMisconception)
-                        .where(BetaMisconception.beta_concept_id == concept.id)
-                        .order_by(BetaMisconception.order_index)  # type: ignore
-                    ).all()
-                )
-                concept_details.append(
-                    SavedConceptDetail(
-                        id=concept.id,
-                        concept_id=concept.concept_id,
-                        label=concept.label,
-                        description=concept.description,
-                        core_points=[core_point.text for core_point in core_points],
-                        misconceptions=[
-                            misconception.label for misconception in misconceptions
-                        ],
-                    )
-                )
-
-        self.selected_saved_exercise_id = exercise_id
-        self.selected_saved_exercise_title = exercise.title
-        self.selected_saved_exercise_description = exercise.description
-        self.selected_saved_exercise_source_file = exercise.source_material_filename
-        self.selected_saved_concepts = concept_details
-
-    @rx.event
-    def delete_saved_exercise(self, exercise_id: int | None):
-        """Delete a saved Beta AI exercise and reload the saved list."""
-        if exercise_id is None:
-            return
-
-        with rx.session() as session:
-            exercise = session.get(BetaExercise, exercise_id)
-            if exercise is None or exercise.lecture_id != self.current_lecture_id:
-                return rx.toast.error(
-                    description=BT.beta_ai_exercise_not_found(self.language),
-                    duration=5000,
-                    position="bottom-center",
-                    invert=True,
-                )
-            session.delete(exercise)
-            session.commit()
-
-        if self.selected_saved_exercise_id == exercise_id:
-            self.clear_selected_saved_exercise()
-        self.load_beta_exercises()
-        return rx.toast.success(
-            description=BT.beta_ai_exercise_deleted(self.language),
-            duration=5000,
-            position="bottom-center",
-            invert=True,
-        )
 
     @rx.event
     async def extract_source_material(self, files: list[rx.UploadFile]):
