@@ -75,16 +75,16 @@ class BetaAIFinishedViewState(SessionState):
             self.exercise_title = exercise.title
             self.messages = list(finished_conversation)
 
+    @rx.var
+    def chat_url(self) -> str:
+        """Return the Beta AI chat URL."""
+        return f"{routes.BETA_AI_CHAT}/{self._beta_exercise_id}"
+
     def on_logout(self):
         """Clear state on logout."""
         self.messages = []
         self.exercise_title = ""
         self.current_lecture_id = None
-
-    @rx.var
-    def chat_url(self) -> str:
-        """Return the Beta AI chat URL."""
-        return f"{routes.BETA_AI_CHAT}/{self._beta_exercise_id}"
 
     @rx.event
     @state_require_role_or_permission(required_role=UserRole.STUDENT)

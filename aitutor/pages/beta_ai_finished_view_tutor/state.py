@@ -89,19 +89,19 @@ class BetaAIFinishedViewTutorState(SessionState):
                 list(finished_conversation),
             )
 
-    def on_logout(self):
-        """Clear state on logout."""
-        self.messages = []
-        self.exercise_title = ""
-        self.username = ""
-        self.current_lecture_id = None
-
     @rx.var
     def submissions_url(self) -> str:
         """Return to the shared submissions page for the current lecture."""
         if self.current_lecture_id is None:
             return routes.MY_LECTURES
         return f"{routes.LECTURE_SUBMISSIONS}/{self.current_lecture_id}"
+
+    def on_logout(self):
+        """Clear state on logout."""
+        self.messages = []
+        self.exercise_title = ""
+        self.username = ""
+        self.current_lecture_id = None
 
     def _user_may_view_submission(self, exercise: BetaExercise) -> bool:
         """Return whether the current user may view this Better AI submission."""
