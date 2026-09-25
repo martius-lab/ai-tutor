@@ -25,12 +25,9 @@ USER_SETTINGS = "/user_settings"
 VERIFY_EMAIL = "/verify_email"
 
 BETA_AI = "/beta_ai"
-BETA_AI_EXERCISES = BETA_AI + "/exercises"
 BETA_AI_DIAGNOSIS_LAB = BETA_AI + "/diagnosis_lab"
-BETA_AI_STUDENT_EXERCISES = BETA_AI + "/student_exercises"
 BETA_AI_CHAT = BETA_AI + "/chat"
 BETA_AI_TRACE_LOGS = BETA_AI + "/trace_logs"
-BETA_AI_SUBMISSIONS = BETA_AI + "/submissions"
 BETA_AI_FINISHED_VIEW = BETA_AI + "/finished_view"
 BETA_AI_FINISHED_VIEW_TUTOR = BETA_AI + "/finished_view_tutor"
 

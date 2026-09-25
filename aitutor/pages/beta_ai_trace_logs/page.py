@@ -11,7 +11,7 @@ from aitutor.models import GlobalPermission, LectureRole
 from aitutor.pages.beta_ai_trace_logs.components import beta_ai_trace_logs_content
 from aitutor.pages.beta_ai_trace_logs.state import BetaAITraceLogsState
 from aitutor.pages.navbar import with_navbar
-from aitutor.pages.navbar_beta_ai import with_beta_ai_navbar
+from aitutor.pages.navbar_specific_lecture import with_specific_lecture_navbar
 
 
 def trace_logs_content_page() -> rx.Component:
@@ -25,7 +25,7 @@ def trace_logs_content_page() -> rx.Component:
 
 
 @page_require_permission([GlobalPermission.ADMIN])
-@with_navbar(routes.BETA_AI_TRACE_LOGS)
+@with_navbar()
 def beta_ai_global_trace_logs_page() -> rx.Component:
     """Render traces across all lectures for global administrators."""
     return trace_logs_content_page()
@@ -33,8 +33,8 @@ def beta_ai_global_trace_logs_page() -> rx.Component:
 
 @page_require_lecture_role(LectureRole.TUTOR)
 @with_navbar(routes.LECTURES)
-@with_beta_ai_navbar(
-    routes.BETA_AI_TRACE_LOGS,
+@with_specific_lecture_navbar(
+    "submissions",
     BetaAITraceLogsState.current_lecture_id,
 )
 def beta_ai_trace_logs_page() -> rx.Component:

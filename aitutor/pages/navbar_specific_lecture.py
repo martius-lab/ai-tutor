@@ -3,10 +3,12 @@
 from typing import NamedTuple
 
 import reflex as rx
+from sqlmodel import select
 
 from aitutor import routes
 from aitutor.auth.state import SessionState
 from aitutor.language_state import LanguageState
+from aitutor.models import BetaExercise
 from aitutor.utilities.lecture_permissions import (
     user_may_edit_lecture,
     user_may_manage_lecture_exercises,
@@ -63,14 +65,28 @@ class SpecificLectureNavbarState(SessionState):
             )
 
     def _get_current_lecture_id(self) -> int | None:
-        """Return the current lecture id from the route, if available and valid."""
+        """Resolve a lecture route or the lecture of a Better AI detail page."""
         if self.authenticated_user is None or self.authenticated_user.id is None:
             return None
 
         try:
             return self._get_route_param_or_error("lecture_id", dtype=int)
         except Exception:
+            pass
+
+        try:
+            beta_exercise_id = self.get_route_param_or_error(
+                "beta_exercise_id", dtype=int
+            )
+        except Exception:
             return None
+
+        with rx.session() as session:
+            return session.exec(
+                select(BetaExercise.lecture_id).where(
+                    BetaExercise.id == beta_exercise_id
+                )
+            ).first()
 
 
 class SpecificLectureLink(NamedTuple):
