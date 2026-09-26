@@ -2,11 +2,12 @@
 
 import io
 from datetime import datetime
+from typing import Mapping
 
 import pdfplumber
 import reflex as rx
 from sqlalchemy.orm import selectinload
-from sqlmodel import func, select
+from sqlmodel import Session, SQLModel, func, select
 
 import aitutor.routes as routes
 from aitutor.auth.protection import state_require_lecture_role
@@ -64,23 +65,6 @@ class BetaAIExercisesState(SessionState):
     new_tag_name: str = ""
     add_tag_dialog_is_open: bool = False
 
-    @rx.var
-    def selectable_tags(self) -> list[str]:
-        """Return lecture tags that are not selected yet."""
-        return [tag for tag in self.tag_names if tag not in self.selected_tags]
-
-    @rx.event
-    def add_to_selected_tags(self, tag: str):
-        """Add one lecture tag to the Better AI exercise."""
-        if tag and tag not in self.selected_tags:
-            self.selected_tags.append(tag)
-
-    @rx.event
-    def remove_selected_tag(self, tag: str):
-        """Remove one selected tag."""
-        if tag in self.selected_tags:
-            self.selected_tags.remove(tag)
-
     @rx.event
     def set_new_tag_name(self, value: str):
         """Set the name used by the add-tag dialog."""
@@ -92,50 +76,6 @@ class BetaAIExercisesState(SessionState):
         self.add_tag_dialog_is_open = is_open
         if not is_open:
             self.new_tag_name = ""
-
-    @rx.event
-    def add_new_tag(self):
-        """Create a shared lecture tag and select it for this exercise."""
-        if self.current_lecture_id is None:
-            return rx.redirect(routes.MY_LECTURES)
-        tag_name = self.new_tag_name[:100]
-        if not tag_name:
-            return rx.window_alert("Please enter a tag name.")
-        with rx.session() as session:
-            existing_tag = session.exec(
-                select(Tag).where(
-                    Tag.name == tag_name,
-                    Tag.lecture_id == self.current_lecture_id,
-                )
-            ).one_or_none()
-            if existing_tag is not None:
-                return rx.window_alert("Tag exists already.")
-            session.add(Tag(name=tag_name, lecture_id=self.current_lecture_id))
-            session.commit()
-        self.load_tags()
-        self.add_to_selected_tags(tag_name)
-        self.add_tag_dialog_is_open = False
-        self.new_tag_name = ""
-        return rx.toast.success(
-            BT.tag_was_added(self.language),
-            duration=2500,
-            position="bottom-center",
-            invert=True,
-        )
-
-    def load_tags(self):
-        """Load the shared tags belonging to the current lecture."""
-        if self.current_lecture_id is None:
-            self.tag_names = []
-            return
-        with rx.session() as session:
-            self.tag_names = list(
-                session.exec(
-                    select(Tag.name)
-                    .where(Tag.lecture_id == self.current_lecture_id)
-                    .order_by(func.lower(Tag.name))
-                ).all()
-            )
 
     @rx.event
     def set_title(self, value: str):
@@ -220,10 +160,15 @@ class BetaAIExercisesState(SessionState):
             misconception_index
         ].label = value
 
-    def on_logout(self):
-        """Clear state on logout."""
-        self.current_lecture_id = None
-        self.reset_builder()
+    @rx.event
+    def set_builder_dialog_is_open(self, is_open: bool):
+        """Set whether the Beta AI builder dialog is open."""
+        self.builder_dialog_is_open = is_open
+
+    @rx.var
+    def selectable_tags(self) -> list[str]:
+        """Return lecture tags that are not selected yet."""
+        return [tag for tag in self.tag_names if tag not in self.selected_tags]
 
     @rx.var
     def source_material_preview(self) -> str:
@@ -271,6 +216,67 @@ class BetaAIExercisesState(SessionState):
     def is_editing(self) -> bool:
         """Whether the builder is editing an existing exercise."""
         return self.editing_exercise_id is not None
+
+    def on_logout(self):
+        """Clear state on logout."""
+        self.current_lecture_id = None
+        self.reset_builder()
+
+    def load_tags(self):
+        """Load the shared tags belonging to the current lecture."""
+        if self.current_lecture_id is None:
+            self.tag_names = []
+            return
+        with rx.session() as session:
+            self.tag_names = list(
+                session.exec(
+                    select(Tag.name)
+                    .where(Tag.lecture_id == self.current_lecture_id)
+                    .order_by(func.lower(Tag.name))
+                ).all()
+            )
+
+    @rx.event
+    def add_to_selected_tags(self, tag: str):
+        """Add one lecture tag to the Better AI exercise."""
+        if tag and tag not in self.selected_tags:
+            self.selected_tags.append(tag)
+
+    @rx.event
+    def remove_selected_tag(self, tag: str):
+        """Remove one selected tag."""
+        if tag in self.selected_tags:
+            self.selected_tags.remove(tag)
+
+    @rx.event
+    def add_new_tag(self):
+        """Create a shared lecture tag and select it for this exercise."""
+        if self.current_lecture_id is None:
+            return rx.redirect(routes.MY_LECTURES)
+        tag_name = self.new_tag_name[:100]
+        if not tag_name:
+            return rx.window_alert("Please enter a tag name.")
+        with rx.session() as session:
+            existing_tag = session.exec(
+                select(Tag).where(
+                    Tag.name == tag_name,
+                    Tag.lecture_id == self.current_lecture_id,
+                )
+            ).one_or_none()
+            if existing_tag is not None:
+                return rx.window_alert("Tag exists already.")
+            session.add(Tag(name=tag_name, lecture_id=self.current_lecture_id))
+            session.commit()
+        self.load_tags()
+        self.add_to_selected_tags(tag_name)
+        self.add_tag_dialog_is_open = False
+        self.new_tag_name = ""
+        return rx.toast.success(
+            BT.tag_was_added(self.language),
+            duration=2500,
+            position="bottom-center",
+            invert=True,
+        )
 
     def _set_generation_target(self, field_name: str, value: str, maximum: int):
         """Set a positive concept-generation target from a number input."""
@@ -327,6 +333,17 @@ class BetaAIExercisesState(SessionState):
             return None
         return datetime.fromisoformat(self.deadline), int(self.days_to_complete)
 
+    def _exercise_has_results(self, session: Session, exercise_id: int) -> bool:
+        """Check whether a student has started the exercise."""
+        return (
+            session.exec(
+                select(BetaExerciseResult).where(
+                    BetaExerciseResult.beta_exercise_id == exercise_id
+                )
+            ).first()
+            is not None
+        )
+
     @rx.event
     def reset_builder(self):
         """Reset the current builder form."""
@@ -348,14 +365,18 @@ class BetaAIExercisesState(SessionState):
         self.new_tag_name = ""
         self.add_tag_dialog_is_open = False
 
+    def _prepare_builder_for_lecture(self, lecture_id: int) -> None:
+        """Reset the builder and load the selected lecture's tags."""
+        self.current_lecture_id = lecture_id
+        self.reset_builder()
+        self.load_tags()
+
     @rx.event
     def open_builder_dialog(self, lecture_id: int | None):
         """Open a blank Beta AI builder for the selected lecture."""
         if lecture_id is None:
             return rx.redirect(routes.MY_LECTURES)
-        self.current_lecture_id = lecture_id
-        self.reset_builder()
-        self.load_tags()
+        self._prepare_builder_for_lecture(lecture_id)
         self.builder_dialog_is_open = True
 
     @rx.event
@@ -366,9 +387,7 @@ class BetaAIExercisesState(SessionState):
         """Open an existing Better AI exercise in the builder dialog."""
         if lecture_id is None or exercise_id is None:
             return rx.redirect(routes.MY_LECTURES)
-        self.current_lecture_id = lecture_id
-        self.reset_builder()
-        self.load_tags()
+        self._prepare_builder_for_lecture(lecture_id)
         result = self.load_exercise_for_editing(exercise_id)
         if result is not None:
             return result
@@ -380,11 +399,6 @@ class BetaAIExercisesState(SessionState):
         self.builder_dialog_is_open = False
 
     @rx.event
-    def set_builder_dialog_is_open(self, is_open: bool):
-        """Set whether the Beta AI builder dialog is open."""
-        self.builder_dialog_is_open = is_open
-
-    @rx.event
     def cancel_builder(self):
         """Reset the builder and return to the shared exercise management page."""
         self.reset_builder()
@@ -392,6 +406,59 @@ class BetaAIExercisesState(SessionState):
             return rx.redirect(routes.MY_LECTURES)
         return rx.redirect(
             f"{routes.LECTURE_MANAGE_EXERCISES}/{self.current_lecture_id}"
+        )
+
+    def _load_editable_concepts(
+        self, session: Session, concepts: list[BetaConcept]
+    ) -> list[EditableConcept]:
+        """Load the persisted concept hierarchy into builder editor models."""
+        editable_concepts = []
+        for concept in concepts:
+            if concept.id is None:
+                continue
+            editable_concepts.append(
+                self._load_editable_concept(session, concept, concept.id)
+            )
+        return editable_concepts
+
+    def _load_editable_concept(
+        self, session: Session, concept: BetaConcept, concept_id: int
+    ) -> EditableConcept:
+        """Load the ordered core points and misconceptions for one concept."""
+        core_points = list(
+            session.exec(
+                select(BetaCorePoint)
+                .where(BetaCorePoint.beta_concept_id == concept_id)
+                .order_by(BetaCorePoint.order_index)  # type: ignore
+            ).all()
+        )
+        misconceptions = list(
+            session.exec(
+                select(BetaMisconception)
+                .where(BetaMisconception.beta_concept_id == concept_id)
+                .order_by(BetaMisconception.order_index)  # type: ignore
+            ).all()
+        )
+        return EditableConcept(
+            id=concept.id,
+            concept_id=concept.concept_id,
+            label=concept.label,
+            description=concept.description,
+            core_points=[
+                EditableCorePoint(
+                    id=core_point.id,
+                    text=core_point.text,
+                    required=core_point.required,
+                )
+                for core_point in core_points
+            ],
+            misconceptions=[
+                EditableMisconception(
+                    id=misconception.id,
+                    label=misconception.label,
+                )
+                for misconception in misconceptions
+            ],
         )
 
     @rx.event
@@ -413,55 +480,8 @@ class BetaAIExercisesState(SessionState):
                     .order_by(BetaConcept.order_index)  # type: ignore
                 ).all()
             )
-            exercise_has_started = (
-                session.exec(
-                    select(BetaExerciseResult).where(
-                        BetaExerciseResult.beta_exercise_id == exercise_id
-                    )
-                ).first()
-                is not None
-            )
-            editable_concepts = []
-            for concept in concepts:
-                if concept.id is None:
-                    continue
-                core_points = list(
-                    session.exec(
-                        select(BetaCorePoint)
-                        .where(BetaCorePoint.beta_concept_id == concept.id)
-                        .order_by(BetaCorePoint.order_index)  # type: ignore
-                    ).all()
-                )
-                misconceptions = list(
-                    session.exec(
-                        select(BetaMisconception)
-                        .where(BetaMisconception.beta_concept_id == concept.id)
-                        .order_by(BetaMisconception.order_index)  # type: ignore
-                    ).all()
-                )
-                editable_concepts.append(
-                    EditableConcept(
-                        id=concept.id,
-                        concept_id=concept.concept_id,
-                        label=concept.label,
-                        description=concept.description,
-                        core_points=[
-                            EditableCorePoint(
-                                id=core_point.id,
-                                text=core_point.text,
-                                required=core_point.required,
-                            )
-                            for core_point in core_points
-                        ],
-                        misconceptions=[
-                            EditableMisconception(
-                                id=misconception.id,
-                                label=misconception.label,
-                            )
-                            for misconception in misconceptions
-                        ],
-                    )
-                )
+            exercise_has_started = self._exercise_has_results(session, exercise_id)
+            editable_concepts = self._load_editable_concepts(session, concepts)
 
         self.editing_exercise_id = exercise_id
         self.title = exercise.title
@@ -616,6 +636,15 @@ class BetaAIExercisesState(SessionState):
         """Delete a misconception."""
         del self.generated_concepts[concept_index].misconceptions[misconception_index]
 
+    @staticmethod
+    def _delete_removed_rows(
+        session: Session, existing: Mapping[int, SQLModel], retained_ids: set[int]
+    ) -> None:
+        """Delete persisted builder items that are no longer in the editor."""
+        for row_id, row in existing.items():
+            if row_id not in retained_ids:
+                session.delete(row)
+
     def _save_concepts(self, session, exercise_id: int):
         """Create or update the editable concept hierarchy."""
         existing_concepts = {
@@ -628,9 +657,7 @@ class BetaAIExercisesState(SessionState):
         retained_concept_ids = {
             concept.id for concept in self.generated_concepts if concept.id is not None
         }
-        for concept_id, db_concept in existing_concepts.items():
-            if concept_id not in retained_concept_ids:
-                session.delete(db_concept)
+        self._delete_removed_rows(session, existing_concepts, retained_concept_ids)
 
         for concept_index, concept in enumerate(self.generated_concepts):
             db_concept = existing_concepts.get(concept.id)
@@ -661,9 +688,7 @@ class BetaAIExercisesState(SessionState):
             for core_point in concept.core_points
             if core_point.id is not None
         }
-        for core_point_id, db_core_point in existing.items():
-            if core_point_id not in retained_ids:
-                session.delete(db_core_point)
+        self._delete_removed_rows(session, existing, retained_ids)
 
         for order_index, core_point in enumerate(concept.core_points):
             if not core_point.text.strip():
@@ -692,9 +717,7 @@ class BetaAIExercisesState(SessionState):
             for misconception in concept.misconceptions
             if misconception.id is not None
         }
-        for misconception_id, db_misconception in existing.items():
-            if misconception_id not in retained_ids:
-                session.delete(db_misconception)
+        self._delete_removed_rows(session, existing, retained_ids)
 
         for order_index, misconception in enumerate(concept.misconceptions):
             if not misconception.label.strip():
@@ -756,13 +779,10 @@ class BetaAIExercisesState(SessionState):
                     ):
                         self.saving_exercise = False
                         return rx.redirect(routes.NOT_FOUND)
-                    exercise_result = session.exec(
-                        select(BetaExerciseResult).where(
-                            BetaExerciseResult.beta_exercise_id
-                            == self.editing_exercise_id
-                        )
-                    ).first()
-                    if exercise_result is not None and not self.exercise_has_started:
+                    if (
+                        self._exercise_has_results(session, self.editing_exercise_id)
+                        and not self.exercise_has_started
+                    ):
                         self.saving_exercise = False
                         return rx.toast.error(
                             description=BT.beta_ai_started_while_editing(self.language),
