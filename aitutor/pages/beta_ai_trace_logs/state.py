@@ -10,7 +10,7 @@ import reflex as rx
 from pydantic import BaseModel
 from reflex_local_auth.user import LocalUser
 from sqlalchemy import func
-from sqlmodel import col, select
+from sqlmodel import Session, col, select
 
 from aitutor import routes
 from aitutor.auth.state import SessionState
@@ -211,6 +211,33 @@ class BetaAITraceLogsState(SessionState):
         self.selected_cumulative_diagnosis_json = ""
         self.selected_policy_basis = ""
 
+    def _trace_row_for_result(
+        self, session: Session, beta_result_id: int
+    ) -> TraceLogRow | None:
+        """Build an overview row only for an accessible result with trace entries."""
+        trace_logs = self._trace_logs_for_result(session, beta_result_id)
+        if not trace_logs:
+            return None
+        beta_result = session.get(BetaExerciseResult, beta_result_id)
+        if beta_result is None:
+            return None
+        exercise = self._exercise_for_result(session, beta_result)
+        if exercise is None:
+            return None
+        lecture = session.get(Lecture, exercise.lecture_id)
+        userinfo = session.get(UserInfo, beta_result.userinfo_id)
+        latest_trace_log = trace_logs[-1]
+        return TraceLogRow(
+            beta_exercise_result_id=beta_result_id,
+            lecture_name=lecture.lecture_name if lecture else "",
+            exercise_title=exercise.title
+            if exercise
+            else BT.beta_ai_deleted_exercise(self.language),
+            user_label=_username_for_userinfo(session, userinfo, self.language),
+            trace_count=len(trace_logs),
+            updated_at=_format_datetime(latest_trace_log.created_at),
+        )
+
     @rx.event
     def load_trace_logs(self):
         """Load trace log overview rows."""
@@ -224,35 +251,30 @@ class BetaAITraceLogsState(SessionState):
             )
 
             for beta_result_id in beta_result_ids:
-                trace_logs = self._trace_logs_for_result(session, beta_result_id)
-                if not trace_logs:
-                    continue
-
-                beta_result = session.get(BetaExerciseResult, beta_result_id)
-                if beta_result is None:
-                    continue
-                exercise = self._exercise_for_result(session, beta_result)
-                if exercise is None:
-                    continue
-                lecture = session.get(Lecture, exercise.lecture_id)
-                userinfo = session.get(UserInfo, beta_result.userinfo_id)
-                latest_trace_log = trace_logs[-1]
-                rows.append(
-                    TraceLogRow(
-                        beta_exercise_result_id=beta_result_id,
-                        lecture_name=lecture.lecture_name if lecture else "",
-                        exercise_title=exercise.title
-                        if exercise
-                        else BT.beta_ai_deleted_exercise(self.language),
-                        user_label=_username_for_userinfo(
-                            session, userinfo, self.language
-                        ),
-                        trace_count=len(trace_logs),
-                        updated_at=_format_datetime(latest_trace_log.created_at),
-                    )
-                )
+                row = self._trace_row_for_result(session, beta_result_id)
+                if row is not None:
+                    rows.append(row)
 
         self.trace_rows = rows
+
+    def _set_selected_trace_details(
+        self, beta_exercise_result_id: int, export_data: dict
+    ) -> None:
+        """Display the selected result's conversation and trace details."""
+        latest_trace = export_data["latest_trace"]
+        self.selected_beta_exercise_result_id = beta_exercise_result_id
+        self.selected_exercise_title = export_data["exercise_title"]
+        self.selected_user_label = export_data["user"]
+        self.selected_conversation_json = _pretty_json(export_data["conversation"])
+        self.selected_latest_trace_json = _pretty_json(latest_trace)
+        self.selected_trace_history_json = _pretty_json(export_data["trace_history"])
+        self.selected_latest_turn_diagnosis_json = _pretty_json(
+            latest_trace.get("latest_turn_diagnosis", {})
+        )
+        self.selected_cumulative_diagnosis_json = _pretty_json(
+            latest_trace.get("cumulative_diagnosis", {})
+        )
+        self.selected_policy_basis = latest_trace.get("policy_based_on", "")
 
     @rx.event
     def select_trace_log(self, beta_exercise_result_id: int | None):
@@ -290,23 +312,7 @@ class BetaAITraceLogsState(SessionState):
                 beta_result=beta_result,
                 trace_logs=trace_logs,
             )
-            latest_trace = export_data["latest_trace"]
-
-            self.selected_beta_exercise_result_id = beta_exercise_result_id
-            self.selected_exercise_title = export_data["exercise_title"]
-            self.selected_user_label = export_data["user"]
-            self.selected_conversation_json = _pretty_json(export_data["conversation"])
-            self.selected_latest_trace_json = _pretty_json(latest_trace)
-            self.selected_trace_history_json = _pretty_json(
-                export_data["trace_history"]
-            )
-            self.selected_latest_turn_diagnosis_json = _pretty_json(
-                latest_trace.get("latest_turn_diagnosis", {})
-            )
-            self.selected_cumulative_diagnosis_json = _pretty_json(
-                latest_trace.get("cumulative_diagnosis", {})
-            )
-            self.selected_policy_basis = latest_trace.get("policy_based_on", "")
+            self._set_selected_trace_details(beta_exercise_result_id, export_data)
 
     def _build_trace_export_for_result(
         self,
@@ -360,14 +366,11 @@ class BetaAITraceLogsState(SessionState):
         """Download one exercise-result trace history as JSON."""
         if not self._can_access_route():
             return
-        if beta_exercise_result_id is None:
-            return rx.toast.error(
-                description=BT.beta_ai_trace_log_not_found(self.language),
-                duration=5000,
-                position="bottom-center",
-                invert=True,
-            )
-        export_data = self._load_trace_export_for_result(beta_exercise_result_id)
+        export_data = (
+            self._load_trace_export_for_result(beta_exercise_result_id)
+            if beta_exercise_result_id is not None
+            else None
+        )
         if export_data is None:
             return rx.toast.error(
                 description=BT.beta_ai_trace_log_not_found(self.language),

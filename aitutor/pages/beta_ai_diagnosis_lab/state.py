@@ -1,7 +1,7 @@
 """State for the Beta AI diagnosis lab skeleton."""
 
 import reflex as rx
-from sqlmodel import select
+from sqlmodel import Session, select
 
 from aitutor import routes
 from aitutor.auth.protection import state_require_lecture_role
@@ -281,6 +281,33 @@ class BetaAIDiagnosisLabState(SessionState):
                 ).all()
             )
 
+    def _load_concepts(self, session: Session, exercise_id: int) -> None:
+        """Load concepts in the same order as the selected exercise."""
+        self.concepts = list(
+            session.exec(
+                select(BetaConcept)
+                .where(BetaConcept.beta_exercise_id == exercise_id)
+                .order_by(BetaConcept.order_index)  # type: ignore
+            ).all()
+        )
+
+    def _load_concept_details(self, session: Session, concept_id: int) -> None:
+        """Load ordered core points and misconceptions for the selected concept."""
+        self.core_points = list(
+            session.exec(
+                select(BetaCorePoint)
+                .where(BetaCorePoint.beta_concept_id == concept_id)
+                .order_by(BetaCorePoint.order_index)  # type: ignore
+            ).all()
+        )
+        self.misconceptions = list(
+            session.exec(
+                select(BetaMisconception)
+                .where(BetaMisconception.beta_concept_id == concept_id)
+                .order_by(BetaMisconception.order_index)  # type: ignore
+            ).all()
+        )
+
     @rx.event
     def select_exercise(self, exercise_id: int | None):
         """Select a Beta AI exercise and load its concepts."""
@@ -297,13 +324,7 @@ class BetaAIDiagnosisLabState(SessionState):
                     invert=True,
                 )
 
-            self.concepts = list(
-                session.exec(
-                    select(BetaConcept)
-                    .where(BetaConcept.beta_exercise_id == exercise_id)
-                    .order_by(BetaConcept.order_index)  # type: ignore
-                ).all()
-            )
+            self._load_concepts(session, exercise_id)
 
         self.selected_exercise_id = exercise_id
         self.selected_exercise_title = exercise.title
@@ -339,20 +360,7 @@ class BetaAIDiagnosisLabState(SessionState):
                     invert=True,
                 )
 
-            self.core_points = list(
-                session.exec(
-                    select(BetaCorePoint)
-                    .where(BetaCorePoint.beta_concept_id == concept_id)
-                    .order_by(BetaCorePoint.order_index)  # type: ignore
-                ).all()
-            )
-            self.misconceptions = list(
-                session.exec(
-                    select(BetaMisconception)
-                    .where(BetaMisconception.beta_concept_id == concept_id)
-                    .order_by(BetaMisconception.order_index)  # type: ignore
-                ).all()
-            )
+            self._load_concept_details(session, concept_id)
 
         self.selected_concept_id = concept_id
         self.selected_concept_label = concept.label
