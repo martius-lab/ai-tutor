@@ -461,10 +461,7 @@ def update_student_concept_state_from_diagnosis(
         if student_state.state not in {"satisfactory", "secure"}:
             student_state.state = "emerging"
     elif cumulative_pattern == "correct_but_incomplete":
-        if student_state.state == "unseen" or student_state.state not in {
-            "satisfactory",
-            "secure",
-        }:
+        if student_state.state not in {"satisfactory", "secure"}:
             student_state.state = "emerging"
     elif (
         cumulative_pattern

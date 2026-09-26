@@ -153,11 +153,12 @@ def preview_policy_action(
         )
 
     if diagnosis.diagnosis_pattern == "misconception_present":
-        misconception_hint = (
-            diagnosis.misconception_label or misconceptions[0].label
-            if misconceptions or diagnosis.misconception_label
-            else "the assumption in your answer"
-        )
+        if diagnosis.misconception_label:
+            misconception_hint = diagnosis.misconception_label
+        elif misconceptions:
+            misconception_hint = misconceptions[0].label
+        else:
+            misconception_hint = "the assumption in your answer"
         return PolicyPreview(
             rule_id="R-MISCON-01",
             action="ask_contrast_question",
