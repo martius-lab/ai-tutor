@@ -2,6 +2,8 @@
 
 from datetime import datetime, timezone
 
+import pytest
+
 from aitutor.beta_ai.diagnosis import (
     DiagnosisResponse,
     detect_copied_from_tutor,
@@ -14,6 +16,7 @@ from aitutor.beta_ai.policy import (
     preview_policy_action,
     should_use_level_transition_policy,
 )
+from aitutor.beta_ai.schemas import OpenAIUsageError
 from aitutor.beta_ai.student_state import (
     build_cumulative_evidence_summary,
     is_level_successful_answer,
@@ -22,6 +25,7 @@ from aitutor.beta_ai.student_state import (
 )
 from aitutor.beta_ai.tutor_turn import (
     TutorTurnResponse,
+    _require_tutor_turn,
     choose_question_level,
     safe_fallback_tutor_turn,
     tutor_turn_reveals_answer,
@@ -147,6 +151,28 @@ def test_misconception_takes_priority_over_incomplete_coverage():
     assert "misconception" in policy_preview.feedback_brief.lower()
 
 
+def test_misconception_hint_prefers_diagnosis_then_registry_then_fallback():
+    """Use the diagnosed misconception, known hint, or a neutral fallback."""
+    for label, known_misconceptions, expected_hint in [
+        ("New assumption", misconceptions(), "New assumption"),
+        ("", misconceptions(), misconceptions()[0].label),
+        ("", [], "the assumption in your answer"),
+    ]:
+        policy_preview = preview_policy_action(
+            DiagnosisResponse(
+                diagnosis_pattern="misconception_present",
+                misconception_label=label,
+            ),
+            concept_label="Binary search",
+            concept_description="",
+            core_points=core_points(),
+            misconceptions=known_misconceptions,
+        )
+
+        assert policy_preview.rule_id == "R-MISCON-01"
+        assert expected_hint in policy_preview.feedback_brief
+
+
 def test_sufficient_for_completion_is_only_potential_completion():
     """High core-point coverage should only preview potential completion."""
     validation_result, policy_preview = policy_for(
@@ -255,6 +281,40 @@ def test_cumulative_evidence_accumulates_core_points_across_turns():
     assert "15" in student_state.evidence_by_core_point
 
 
+def test_incomplete_answer_keeps_achieved_concept_state():
+    """Partial evidence starts progress without lowering a higher concept state."""
+    for initial_state, expected_state in [
+        ("unseen", "emerging"),
+        ("emerging", "emerging"),
+        ("satisfactory", "satisfactory"),
+        ("secure", "secure"),
+    ]:
+        student_state = BetaStudentConceptState(
+            userinfo_id=1,
+            beta_exercise_id=1,
+            beta_concept_id=1,
+            state=initial_state,
+        )
+        cumulative = update_student_concept_state_from_diagnosis(
+            student_state=student_state,
+            latest_diagnosis=DiagnosisResponse(
+                task_relevance=0.95,
+                correctness=0.8,
+                completeness=0.5,
+                diagnosis_pattern="correct_but_incomplete",
+                covered_core_point_ids=[14],
+                evidence_snippets=["Binary search assumes sorted input."],
+            ),
+            core_points=core_points(),
+            student_answer="Binary search assumes sorted input.",
+            trace_reference=1,
+            now=datetime.now(timezone.utc),
+        )
+
+        assert cumulative.diagnosis_pattern == "correct_but_incomplete"
+        assert student_state.state == expected_state
+
+
 def test_cumulative_summary_lists_covered_and_missing_core_points():
     """Prompt summary should tell the LLM what is already known and still missing."""
     summary = build_cumulative_evidence_summary(
@@ -298,6 +358,18 @@ def test_tutor_turn_detects_verbatim_core_point_leak():
     )
 
     assert tutor_turn_reveals_answer(tutor_turn, core_points=core_points()) is True
+
+
+def test_structured_tutor_turn_preserves_token_usage_on_success_and_failure():
+    """Tutor generation retains usage even when no structured turn is returned."""
+    turn = TutorTurnResponse(next_question="What changes?")
+
+    assert _require_tutor_turn(turn, 12, "Missing tutor turn.") is turn
+    assert turn.tokens_used == 12
+
+    with pytest.raises(OpenAIUsageError, match="Missing tutor turn.") as error:
+        _require_tutor_turn(None, 7, "Missing tutor turn.")
+    assert error.value.tokens_used == 7
 
 
 def test_basic_level_passes_only_after_all_required_core_points_are_covered():

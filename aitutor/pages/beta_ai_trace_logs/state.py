@@ -132,6 +132,11 @@ class BetaAITraceLogsState(SessionState):
         self.current_lecture_id = lecture_id
         self.load_trace_logs()
 
+    @rx.var
+    def has_selected_trace_log(self) -> bool:
+        """Whether a trace log is selected for inspection."""
+        return self.selected_beta_exercise_result_id is not None
+
     def on_logout(self):
         """Clear page-specific state on logout."""
         self.trace_rows = []
@@ -178,10 +183,20 @@ class BetaAITraceLogsState(SessionState):
             return None
         return exercise
 
-    @rx.var
-    def has_selected_trace_log(self) -> bool:
-        """Whether a trace log is selected for inspection."""
-        return self.selected_beta_exercise_result_id is not None
+    def _trace_logs_for_result(
+        self, session, beta_exercise_result_id: int
+    ) -> list[BetaExerciseTraceLog]:
+        """Load a result's trace history in turn order."""
+        return list(
+            session.exec(
+                select(BetaExerciseTraceLog)
+                .where(
+                    BetaExerciseTraceLog.beta_exercise_result_id
+                    == beta_exercise_result_id
+                )
+                .order_by(BetaExerciseTraceLog.turn_index)  # type: ignore
+            ).all()
+        )
 
     @rx.event
     def clear_selection(self):
@@ -209,16 +224,7 @@ class BetaAITraceLogsState(SessionState):
             )
 
             for beta_result_id in beta_result_ids:
-                trace_logs = list(
-                    session.exec(
-                        select(BetaExerciseTraceLog)
-                        .where(
-                            BetaExerciseTraceLog.beta_exercise_result_id
-                            == beta_result_id
-                        )
-                        .order_by(BetaExerciseTraceLog.turn_index)  # type: ignore
-                    )
-                )
+                trace_logs = self._trace_logs_for_result(session, beta_result_id)
                 if not trace_logs:
                     continue
 
@@ -258,16 +264,7 @@ class BetaAITraceLogsState(SessionState):
             return
 
         with rx.session() as session:
-            trace_logs = list(
-                session.exec(
-                    select(BetaExerciseTraceLog)
-                    .where(
-                        BetaExerciseTraceLog.beta_exercise_result_id
-                        == beta_exercise_result_id
-                    )
-                    .order_by(BetaExerciseTraceLog.turn_index)  # type: ignore
-                ).all()
-            )
+            trace_logs = self._trace_logs_for_result(session, beta_exercise_result_id)
             if not trace_logs:
                 return rx.toast.error(
                     description=BT.beta_ai_trace_logs_not_found(self.language),
@@ -344,16 +341,7 @@ class BetaAITraceLogsState(SessionState):
     ) -> dict | None:
         """Load one Beta AI trace export payload by result id."""
         with rx.session() as session:
-            trace_logs = list(
-                session.exec(
-                    select(BetaExerciseTraceLog)
-                    .where(
-                        BetaExerciseTraceLog.beta_exercise_result_id
-                        == beta_exercise_result_id
-                    )
-                    .order_by(BetaExerciseTraceLog.turn_index)  # type: ignore
-                ).all()
-            )
+            trace_logs = self._trace_logs_for_result(session, beta_exercise_result_id)
             beta_result = session.get(BetaExerciseResult, beta_exercise_result_id)
             if (
                 beta_result is None
