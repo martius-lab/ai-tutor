@@ -401,6 +401,7 @@ class BetaExerciseResult(SQLModel, table=True):
         sa_column=Column(JSON), default=[]
     )
     completion_unlocked: bool = Field(default=False)
+    analysis_allowed: bool = Field(default=True)
     completed_at: Optional[datetime] = Field(
         sa_column=Column(type_=DateTime(timezone=True)), default=None
     )

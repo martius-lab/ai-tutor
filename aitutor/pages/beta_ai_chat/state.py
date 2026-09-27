@@ -120,6 +120,7 @@ class BetaAIChatState(SessionState):
     level_status: dict[str, str] = {}
     completion_unlocked: bool = False
     conversation_is_submitted: bool = False
+    analysis_allowed: bool = True
     submit_time_stamp: str = ""
     is_overdue: bool = False
     current_tokens: int = 0
@@ -135,6 +136,41 @@ class BetaAIChatState(SessionState):
     def set_report_text(self, value: str):
         """Set the report text and enforce the configured maximum length."""
         self.report_text = value[: gv.REPORT_MAX_LEN]
+
+    @rx.event
+    @state_require_role_or_permission(required_role=UserRole.STUDENT)
+    def set_analysis_allowed(self, value: bool):
+        """Save this student's analysis preference for the current exercise."""
+        userinfo = self.authenticated_user_info
+        if (
+            userinfo is None
+            or userinfo.id is None
+            or self.current_beta_exercise_id is None
+            or self.current_userinfo_id != userinfo.id
+        ):
+            return
+        with rx.session() as session:
+            result = session.exec(
+                select(BetaExerciseResult).where(
+                    BetaExerciseResult.beta_exercise_id
+                    == self.current_beta_exercise_id,
+                    BetaExerciseResult.userinfo_id == userinfo.id,
+                )
+            ).one_or_none()
+            if result is None:
+                result = BetaExerciseResult(
+                    beta_exercise_id=self.current_beta_exercise_id,
+                    userinfo_id=userinfo.id,
+                    conversation_text=self.messages,
+                    analysis_allowed=value,
+                    started_at=datetime.now(ZoneInfo(TIME_ZONE)),
+                )
+            else:
+                result.analysis_allowed = value
+            result.updated_at = datetime.now(ZoneInfo(TIME_ZONE))
+            session.add(result)
+            session.commit()
+        self.analysis_allowed = value
 
     @rx.event
     @state_require_role_or_permission(required_role=UserRole.STUDENT)
@@ -544,6 +580,7 @@ class BetaAIChatState(SessionState):
     def load_beta_result_state(self, beta_result: BetaExerciseResult) -> None:
         """Restore persisted conversation metadata from a Beta AI result."""
         self.current_tokens = beta_result.tokens_used
+        self.analysis_allowed = beta_result.analysis_allowed
         self.completion_unlocked = beta_result.completion_unlocked
         self.conversation_is_submitted = bool(beta_result.submit_time_stamp)
         self.submit_time_stamp = (
@@ -640,6 +677,7 @@ class BetaAIChatState(SessionState):
         self.level_status = normalized_level_status(None)
         self.completion_unlocked = False
         self.conversation_is_submitted = False
+        self.analysis_allowed = True
         self.submit_time_stamp = ""
         self.is_overdue = False
         self.current_tokens = 0
