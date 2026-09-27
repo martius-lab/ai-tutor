@@ -471,7 +471,6 @@ class BetaAIExercisesState(SessionState):
                 EditableCorePoint(
                     id=core_point.id,
                     text=core_point.text,
-                    required=core_point.required,
                 )
                 for core_point in core_points
             ],
@@ -727,7 +726,6 @@ class BetaAIExercisesState(SessionState):
             if db_core_point is None:
                 db_core_point = BetaCorePoint(beta_concept_id=concept_id)
             db_core_point.text = core_point.text.strip()
-            db_core_point.required = core_point.required
             db_core_point.order_index = order_index
             session.add(db_core_point)
 
