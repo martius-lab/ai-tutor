@@ -372,8 +372,8 @@ def test_structured_tutor_turn_preserves_token_usage_on_success_and_failure():
     assert error.value.tokens_used == 7
 
 
-def test_basic_level_passes_only_after_all_required_core_points_are_covered():
-    """Basic level should require all required core points, not an 80% threshold."""
+def test_basic_level_passes_only_after_all_core_points_are_covered():
+    """Basic level should require every core point, not an 80% threshold."""
     student_state = BetaStudentConceptState(
         userinfo_id=1,
         beta_exercise_id=1,
@@ -422,6 +422,13 @@ def test_basic_level_passes_only_after_all_required_core_points_are_covered():
     )
 
     assert complete.covered_core_point_ids == [14, 15, 16]
+    assert student_state.level_evidence["basic_understanding"][
+        "covered_core_point_ids"
+    ] == [
+        14,
+        15,
+        16,
+    ]
     assert (
         normalized_level_status(student_state.level_status)["basic_understanding"]
         == "passed"

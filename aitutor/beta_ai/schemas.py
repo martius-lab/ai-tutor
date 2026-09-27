@@ -16,7 +16,6 @@ class EditableCorePoint(BaseModel):
 
     id: int | None = None
     text: str = ""
-    required: bool = True
 
 
 class EditableMisconception(BaseModel):
