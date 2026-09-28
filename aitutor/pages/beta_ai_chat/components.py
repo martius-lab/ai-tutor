@@ -14,7 +14,7 @@ def beta_chat_header() -> rx.Component:
             rx.hstack(
                 rx.heading(BetaAIChatState.exercise_title, size="6"),
                 rx.spacer(),
-                rx.badge(LS.beta_ai_chat_badge, color_scheme="purple"),
+                gv.level_ai_badge(),
                 width="100%",
                 align="center",
             ),

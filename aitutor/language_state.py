@@ -1557,26 +1557,31 @@ Please test the chat for functionality after changing the model.
 
     # Beta AI Strings ------------------------------------------------------------------
     @rx.var
+    def classic_ai(self) -> str:
+        """Student-facing name for the original exercise chat."""
+        return self.translate(de="Classic AI", en="Classic AI")
+
+    @rx.var
     def beta_ai(self) -> str:
-        return self.translate(de="Beta AI", en="Beta AI")
+        return self.translate(de="Level AI", en="Level AI")
 
     @rx.var
     def beta_ai_diagnosis_lab(self) -> str:
         return self.translate(
-            de="Diagnoselabor von Beta AI", en="Beta AI Diagnosis Lab"
+            de="Diagnoselabor von Level AI", en="Level AI Diagnosis Lab"
         )
 
     @rx.var
     def beta_ai_trace_logs(self) -> str:
         return self.translate(
-            de="Ablaufprotokolle von Beta AI", en="Beta AI Trace Logs"
+            de="Ablaufprotokolle von Level AI", en="Level AI Trace Logs"
         )
 
     @rx.var
     def beta_ai_privacy_addendum(self) -> str:
         """Level AI privacy addendum for analysis."""
         return self.translate(
-            de="**Ergänzung zur Datenschutzerklärung:** Konversationen aus Level-AI-Übungen, auch nicht eingereichte, können in anonymisierter Form über den in der Datenschutzerklärung angegebenen Zeitraum hinaus gespeichert und für Tests bei der Entwicklung neuer Funktionen verwendet werden.",
+            de="**Ergänzung zur Datenschutzerklärung:** Konversationen aus Übungen in Level AI, auch nicht eingereichte, können in anonymisierter Form über den in der Datenschutzerklärung angegebenen Zeitraum hinaus gespeichert und für Tests bei der Entwicklung neuer Funktionen verwendet werden.",
             en="**Addendum to the Privacy Policy:** Conversations from Level AI exercises, including unsubmitted conversations, may be stored in anonymized form beyond the period specified in the Privacy Policy and used for testing during the development of new features.",
         )
 
@@ -1594,20 +1599,20 @@ Please test the chat for functionality after changing the model.
     @rx.var
     def beta_ai_analysis_explanation(self) -> str:
         return self.translate(
-            de="Diese Einstellung gilt für die gesamte Level-AI-Übung, auch für nicht eingereichte und bereits bearbeitete Teile. Wenn du den Haken entfernst, werden deine Übungsdaten nicht für zusätzliche Tests und Analysen verwendet. Chat und Abgabe funktionieren weiterhin. Du kannst die Einstellung jederzeit hier ändern. Vielen Dank für deine Unterstützung!",
-            en="This setting applies to the entire Level AI exercise, including unsubmitted and previously completed parts. If you uncheck the box, your exercise data will not be used for additional testing and analysis. Chat and submission still work. You can change this setting here at any time. Thank you for your help!",
+            de="Diese Einstellung gilt für die gesamte Übung in Level AI, auch für nicht eingereichte Übungen. Wenn du den Haken entfernst, werden deine Übungsdaten nicht für zusätzliche Tests und Analysen verwendet. Chat und Abgabe funktionieren weiterhin. Du kannst die Einstellung jederzeit hier ändern. Vielen Dank für deine Unterstützung!",
+            en="This setting applies to the entire Level AI exercise, including unsubmitted exercises. If you uncheck the box, your exercise data will not be used for additional testing and analysis. Chat and submission still work. You can change this setting here at any time. Thank you for your help!",
         )
 
     @rx.var
     def beta_ai_submitted_chat(self) -> str:
         return self.translate(
-            de="Eingereichter Chat in Beta AI", en="Submitted Beta AI Chat"
+            de="Eingereichter Chat in Level AI", en="Submitted Level AI Chat"
         )
 
     @rx.var
     def beta_ai_view_submission(self) -> str:
         return self.translate(
-            de="Deine Abgabe in Beta AI ansehen", en="View your Beta AI submission"
+            de="Deine Abgabe in Level AI ansehen", en="View your Level AI submission"
         )
 
     @rx.var
@@ -1628,10 +1633,6 @@ Please test the chat for functionality after changing the model.
             de="Jede Nachricht wird einzeln ausgewertet. Für die weiteren Lernschritte werden anschließend alle bisher gesammelten Hinweise zum Konzept berücksichtigt.",
             en="This chat diagnoses each message as a latest turn, then uses cumulative concept evidence for policy decisions.",
         )
-
-    @rx.var
-    def beta_ai_chat_badge(self) -> str:
-        return self.translate(de="Beta Chat", en="Beta Chat")
 
     @rx.var
     def beta_ai_no_messages(self) -> str:
@@ -1665,15 +1666,15 @@ Please test the chat for functionality after changing the model.
     @rx.var
     def beta_ai_no_saved_exercises(self) -> str:
         return self.translate(
-            de="Noch keine Übungen in Beta AI gespeichert.",
-            en="No Beta AI exercises saved yet.",
+            de="Noch keine Übungen in Level AI gespeichert.",
+            en="No Level AI exercises saved yet.",
         )
 
     @rx.var
     def beta_ai_delete_exercise_description(self) -> str:
         return self.translate(
-            de="Diese Aktion kann nicht rückgängig gemacht werden. Beim Löschen dieser Übung in Beta AI werden auch ihre Konzepte, Kernpunkte, Fehlvorstellungen, alle Chats und Ergebnisse der Studierenden, Ablaufprotokolle und Lernstände gelöscht.",
-            en="This cannot be undone. Deleting this Beta AI exercise also deletes its concepts, core points, misconceptions, all student chats/results, trace logs, and student concept states for this exercise.",
+            de="Diese Aktion kann nicht rückgängig gemacht werden. Beim Löschen dieser Übung in Level AI werden auch ihre Konzepte, Kernpunkte, Fehlvorstellungen, alle Chats und Ergebnisse der Studierenden, Ablaufprotokolle und Lernstände gelöscht.",
+            en="This cannot be undone. Deleting this Level AI exercise also deletes its concepts, core points, misconceptions, all student chats/results, trace logs, and student concept states for this exercise.",
         )
 
     @rx.var
@@ -1802,7 +1803,7 @@ Please test the chat for functionality after changing the model.
     @rx.var
     def beta_ai_select_exercise_step(self) -> str:
         return self.translate(
-            de="1. Übung in Beta AI auswählen", en="1. Select Beta AI Exercise"
+            de="1. Übung in Level AI auswählen", en="1. Select Level AI Exercise"
         )
 
     @rx.var
@@ -1978,8 +1979,8 @@ Please test the chat for functionality after changing the model.
     @rx.var
     def beta_ai_trace_logs_subtitle(self) -> str:
         return self.translate(
-            de="Prüfe gespeicherte Chats in Beta AI sowie die Diagnose und Strategie der einzelnen Gesprächsschritte.",
-            en="Inspect persisted Beta AI chat conversations and per-turn diagnosis/policy traces.",
+            de="Prüfe gespeicherte Chats in Level AI sowie die Diagnose und Strategie der einzelnen Gesprächsschritte.",
+            en="Inspect persisted Level AI chat conversations and per-turn diagnosis/policy traces.",
         )
 
     @rx.var
@@ -1995,8 +1996,8 @@ Please test the chat for functionality after changing the model.
     @rx.var
     def beta_ai_no_trace_logs(self) -> str:
         return self.translate(
-            de="Noch keine Ablaufprotokolle von Beta AI vorhanden.",
-            en="No Beta AI trace logs found yet.",
+            de="Noch keine Ablaufprotokolle von Level AI vorhanden.",
+            en="No Level AI trace logs found yet.",
         )
 
     @rx.var
@@ -2319,8 +2320,8 @@ class BackendTranslations:
     def beta_ai_exercise_not_found(language: Language) -> str:
         return translate(
             language,
-            de="Übung in Beta AI nicht gefunden.",
-            en="Beta AI exercise not found.",
+            de="Übung in Level AI nicht gefunden.",
+            en="Level AI exercise not found.",
         )
 
     @staticmethod
@@ -2405,22 +2406,22 @@ class BackendTranslations:
     def beta_ai_title_exists(language: Language) -> str:
         return translate(
             language,
-            de="Eine Übung mit diesem Titel existiert bereits in Beta AI. Bitte wähle einen anderen Titel.",
-            en="A Beta AI exercise with this title already exists. Please choose a different title.",
+            de="Eine Übung mit diesem Titel existiert bereits in Level AI. Bitte wähle einen anderen Titel.",
+            en="A Level AI exercise with this title already exists. Please choose a different title.",
         )
 
     @staticmethod
     def beta_ai_save_failed(language: Language, error: object) -> str:
         return translate(
             language,
-            de=f"Übung in Beta AI konnte nicht gespeichert werden: {error}",
-            en=f"Failed to save Beta AI exercise: {error}",
+            de=f"Übung in Level AI konnte nicht gespeichert werden: {error}",
+            en=f"Failed to save Level AI exercise: {error}",
         )
 
     @staticmethod
     def beta_ai_exercise_saved(language: Language) -> str:
         return translate(
-            language, de="Übung in Beta AI gespeichert.", en="Beta AI exercise saved."
+            language, de="Übung in Level AI gespeichert.", en="Level AI exercise saved."
         )
 
     @staticmethod
@@ -2441,8 +2442,8 @@ class BackendTranslations:
     def beta_ai_concept_not_found(language: Language) -> str:
         return translate(
             language,
-            de="Konzept in Beta AI nicht gefunden.",
-            en="Beta AI concept not found.",
+            de="Konzept in Level AI nicht gefunden.",
+            en="Level AI concept not found.",
         )
 
     @staticmethod
@@ -2465,16 +2466,16 @@ class BackendTranslations:
     def beta_ai_complete_before_submit(language: Language) -> str:
         return translate(
             language,
-            de="Bearbeite zuerst alle Konzepte der Übung in Beta AI, bevor du einreichst.",
-            en="Complete all Beta AI concepts before submitting.",
+            de="Bearbeite zuerst alle Konzepte der Übung in Level AI, bevor du einreichst.",
+            en="Complete all Level AI concepts before submitting.",
         )
 
     @staticmethod
     def beta_ai_submitted(language: Language) -> str:
         return translate(
             language,
-            de="Übung in Beta AI eingereicht.",
-            en="Beta AI exercise submitted.",
+            de="Übung in Level AI eingereicht.",
+            en="Level AI exercise submitted.",
         )
 
     @staticmethod
@@ -2497,8 +2498,8 @@ class BackendTranslations:
     def beta_ai_no_selected_exercise(language: Language) -> str:
         return translate(
             language,
-            de="Keine Übung in Beta AI ausgewählt",
-            en="No Beta AI exercise selected",
+            de="Keine Übung in Level AI ausgewählt",
+            en="No Level AI exercise selected",
         )
 
     @staticmethod
@@ -2668,8 +2669,8 @@ class BackendTranslations:
     def beta_ai_all_concepts_completed(language: Language) -> str:
         return translate(
             language,
-            de="Sehr gut, du hast alle Konzepte dieser Übung in Beta AI auf den erforderlichen Ebenen bearbeitet. Du kannst deine Unterhaltung jetzt einreichen.",
-            en="Great, you have completed all concepts in this Beta AI exercise at the required levels. You can now submit your conversation.",
+            de="Sehr gut, du hast alle Konzepte dieser Übung in Level AI auf den erforderlichen Ebenen bearbeitet. Du kannst deine Unterhaltung jetzt einreichen.",
+            en="Great, you have completed all concepts in this Level AI exercise at the required levels. You can now submit your conversation.",
         )
 
     @staticmethod
@@ -2693,24 +2694,24 @@ class BackendTranslations:
     def beta_ai_trace_logs_not_found(language: Language) -> str:
         return translate(
             language,
-            de="Keine Ablaufprotokolle von Beta AI gefunden.",
-            en="Beta AI trace logs not found.",
+            de="Keine Ablaufprotokolle von Level AI gefunden.",
+            en="Level AI trace logs not found.",
         )
 
     @staticmethod
     def beta_ai_result_not_found(language: Language) -> str:
         return translate(
             language,
-            de="Verknüpfte Abgabe in Beta AI nicht gefunden.",
-            en="Linked Beta AI exercise result not found.",
+            de="Verknüpfte Abgabe in Level AI nicht gefunden.",
+            en="Linked Level AI exercise result not found.",
         )
 
     @staticmethod
     def beta_ai_trace_log_not_found(language: Language) -> str:
         return translate(
             language,
-            de="Ablaufprotokoll von Beta AI nicht gefunden.",
-            en="Beta AI trace log not found.",
+            de="Ablaufprotokoll von Level AI nicht gefunden.",
+            en="Level AI trace log not found.",
         )
 
     @staticmethod

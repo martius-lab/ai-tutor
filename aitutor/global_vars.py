@@ -22,6 +22,13 @@ CHAT_TOKEN_WARNING_THRESHOLD = 0.8  # Show warning at x% of limit
 
 """colors"""
 GREEN_CHECK_COLOR = rx.color("green", 9)
+LEVEL_AI_BADGE_LABEL = "Level"
+LEVEL_AI_BADGE_COLOR_SCHEME = "purple"
+
+
+def level_ai_badge() -> rx.Component:
+    """Render the shared badge for Level AI exercises."""
+    return rx.badge(LEVEL_AI_BADGE_LABEL, color_scheme=LEVEL_AI_BADGE_COLOR_SCHEME)
 
 
 # --- max length for UI input fields ---
