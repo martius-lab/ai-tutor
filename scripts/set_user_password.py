@@ -5,9 +5,9 @@ The database connection is taken from the Reflex configuration in ``rxconfig.py`
 (overridable with ``--db-url`` or the ``REFLEX_DB_URL`` environment variable), so
 the script must be run from the project root:
 
-    uv run ./scripts/set_user_password.py alice
+    uv run ./scripts/set_user_password.py --username alice
     uv run ./scripts/set_user_password.py --email alice@example.com --revoke-sessions
-    uv run ./scripts/set_user_password.py alice --password-stdin < password.txt
+    uv run ./scripts/set_user_password.py --username alice --password-stdin < file.txt
     uv run ./scripts/set_user_password.py --list
 
 Without ``--password-stdin`` the new password is asked for interactively (twice).
@@ -29,8 +29,7 @@ def parse_args() -> argparse.Namespace:
     )
     user_group = parser.add_mutually_exclusive_group(required=False)
     user_group.add_argument(
-        "--name",
-        dest="username",
+        "--username",
         help="Name of the user whose password is changed.",
     )
     user_group.add_argument(
