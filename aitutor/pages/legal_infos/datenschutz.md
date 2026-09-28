@@ -29,9 +29,6 @@ Es werden lediglich die vom Nutzer bei den Übungen eingegebenen Texte and OpenA
 
 
 ## 4. Speicherung
-Samtliche Nutzerdaten, die auf dem Server der Universität Tübingen gespeichert sind,
-werden spätestens 30 Tage nach Ende des jeweiligen Semesters gelöscht.
-
 Daten die an OpenAI übermittelt wurden unterliegen den im "Data processing addendum"
 beschriebenen Regeln (siehe Abschnitt 3).
 
