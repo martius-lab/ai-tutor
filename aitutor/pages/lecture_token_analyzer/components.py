@@ -2,6 +2,7 @@
 
 import reflex as rx
 
+import aitutor.global_vars as gv
 from aitutor.language_state import LanguageState
 from aitutor.pages.lecture_token_analyzer.state import (
     EXERCISE_ANALYSIS_VIEW,
@@ -299,7 +300,7 @@ def show_exercise_table_row(table_row: ExerciseTableRow) -> rx.Component:
                 rx.text(table_row.exercise_title),
                 rx.cond(
                     table_row.is_beta,
-                    rx.badge("Beta", color_scheme="purple"),
+                    gv.level_ai_badge(),
                 ),
                 align="center",
                 spacing="2",
