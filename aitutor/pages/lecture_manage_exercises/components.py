@@ -577,7 +577,14 @@ def pdf_upload() -> rx.Component:
                 rx.text(
                     LanguageState.pdf_upload_info,
                 ),
-                rx.text(rx.selected_files("upload1"), color="yellow", size="3"),
+                # show file icon with file name
+                rx.cond(
+                    ManageExercisesState.lesson_file_name,
+                    rx.hstack(
+                        rx.text(LanguageState.last_uploaded_file, size="3"),
+                        rx.text(ManageExercisesState.lesson_file_name, color="gray"),
+                    ),
+                ),
                 align="center",
             ),
             id="upload1",
@@ -589,25 +596,6 @@ def pdf_upload() -> rx.Component:
                 rx.upload_files(upload_id="upload1")  # type: ignore
             ),
             _hover={"cursor": "pointer"},
-        ),
-        rx.text(
-            LanguageState.last_uploaded_file,
-            size="3",
-            weight="medium",
-            text_align="left",
-            width="100%",
-            padding_top="1.5em",
-            padding_bottom="0.5em",
-        ),
-        # show file icon with file name
-        rx.cond(
-            ManageExercisesState.lesson_file_name,
-            rx.box(
-                rx.hstack(
-                    rx.icon("file-text", size=25),
-                    rx.text(ManageExercisesState.lesson_file_name, color="green"),
-                ),
-            ),
         ),
     )
 
