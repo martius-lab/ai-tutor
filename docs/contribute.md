@@ -42,10 +42,10 @@ And to see the log (for debugging):
 sudo make dev-logs
 ```
 
-To easily backup/restore the database, you may use the `postgres.xsh` script (requires
-Xonsh).  To see all options, run
+To easily backup/restore the database, you may use the `postgres.py` script.  To see all
+options, run
 ```
-./postgres.xsh -h
+./postgres.py -h
 ```
 Note that the script requires root permission (i.e. run with `sudo`) to be able to
 access the Docker container.
@@ -69,6 +69,12 @@ uv run ./scripts/seed_demo_data.py
 
 Apart from adding some dummy data, it also changes the password of the initial admin
 user and the registration code to "1234".
+
+You may also use the following command to reset the database and seed with the demo data
+in one go:
+```
+make dev-db-reset
+```
 
 
 ## Reflex
