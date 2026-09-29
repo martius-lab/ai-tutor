@@ -198,6 +198,16 @@ def config_form() -> rx.Component:
                     max_length=CONFIG_FIELD_MAX_LENGTHS["check_ai_model"],
                 ),
                 input(
+                    name="level_ai_model",
+                    heading=LS.level_ai_model,
+                    value=ManageConfigState.current_config.level_ai_model,
+                    on_change=lambda value: ManageConfigState.set_config_value(
+                        "level_ai_model", value
+                    ),
+                    info=info_icon(LS.level_ai_model_info),
+                    max_length=CONFIG_FIELD_MAX_LENGTHS["level_ai_model"],
+                ),
+                input(
                     name="exercise_token_limit",
                     heading=LS.exercise_token_limit,
                     value=ManageConfigState.exercise_token_limit_str,
