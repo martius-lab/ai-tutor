@@ -407,7 +407,7 @@ async def generate_mediocre_student_answer(
         base_url=settings.OPENAI_BASE_URL,
     )
     completion = await client.chat.completions.create(
-        model=get_config().response_ai_model,
+        model=get_config().level_ai_model,
         messages=[
             {
                 "role": "system",
