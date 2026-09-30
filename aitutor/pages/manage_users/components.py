@@ -2,6 +2,7 @@
 
 import reflex as rx
 
+import aitutor.global_vars as gv
 from aitutor.components import password_input
 from aitutor.components.dialogs import destructive_confirm
 from aitutor.language_state import LanguageState as LS
@@ -45,11 +46,19 @@ def delete_user_button(user: LocalUser) -> rx.Component:
     )
 
 
+def last_login_text(user_info: UserInfo) -> rx.Component:
+    """Show the time of the last login or a placeholder if there was none yet."""
+    return rx.cond(
+        user_info.last_login_at == None,
+        rx.text(LS.never),
+        rx.moment(user_info.last_login_at, format=gv.MOMENT_DATETIME_FORMAT),
+    )
+
+
 def user_table_row(user: tuple[LocalUser, UserInfo]) -> rx.Component:
     """Create a single row of the users table."""
     return rx.table.row(
         rx.table.cell(user[0].username),
-        rx.table.cell(user[1].email),
         rx.table.cell(role_to_text(user[1].role)),
         rx.table.cell(
             rx.cond(
@@ -58,6 +67,16 @@ def user_table_row(user: tuple[LocalUser, UserInfo]) -> rx.Component:
                 rx.icon("square-x", color=rx.color("red", 9)),
             )
         ),
+        rx.table.cell(
+            rx.cond(
+                user[1].verified,
+                rx.icon("square-check"),
+                # not an error but a pending state, so amber instead of red
+                rx.icon("square-x", color=rx.color("amber", 9)),
+            )
+        ),
+        rx.table.cell(rx.moment(user[1].created_at, format=gv.MOMENT_DATETIME_FORMAT)),
+        rx.table.cell(last_login_text(user[1])),
         rx.table.cell(
             rx.hstack(
                 rx.button(
@@ -129,6 +148,14 @@ def edit_user_dialog() -> rx.Component:
                             name="email",
                             max_length=MANAGE_USERS_FIELD_MAX_LENGTHS["email"],
                         ),
+                        rx.box(
+                            rx.cond(
+                                user_info.verified,
+                                rx.badge(LS.email_verified, color_scheme="green"),
+                                rx.badge(LS.email_not_verified, color_scheme="amber"),
+                            ),
+                            padding_top="0.5em",
+                        ),
                         form_label(LS.new_password),
                         password_input(
                             name="new_password",
@@ -182,6 +209,30 @@ def edit_user_dialog() -> rx.Component:
                             name="enabled",
                             default_checked=local_user.enabled,
                         ),
+                        # read-only information about the account
+                        rx.vstack(
+                            rx.hstack(
+                                rx.text(LS.created_at + ":", size="2", weight="medium"),
+                                rx.moment(
+                                    user_info.created_at,
+                                    format=gv.MOMENT_DATETIME_FORMAT,
+                                ),
+                                spacing="2",
+                                align="center",
+                            ),
+                            rx.hstack(
+                                rx.text(
+                                    LS.last_login_at + ":", size="2", weight="medium"
+                                ),
+                                last_login_text(user_info),
+                                spacing="2",
+                                align="center",
+                            ),
+                            align="start",
+                            spacing="1",
+                            padding_top="1.5em",
+                            width="100%",
+                        ),
                         # buttons
                         rx.hstack(
                             rx.button(
@@ -225,9 +276,11 @@ def users_table() -> rx.Component:
             rx.table.header(
                 rx.table.row(
                     rx.table.column_header_cell(LS.username),
-                    rx.table.column_header_cell(LS.email),
                     rx.table.column_header_cell(LS.role),
                     rx.table.column_header_cell(LS.enabled),
+                    rx.table.column_header_cell(LS.email_verified),
+                    rx.table.column_header_cell(LS.created_at),
+                    rx.table.column_header_cell(LS.last_login_at),
                     rx.table.column_header_cell(""),
                 ),
             ),
@@ -236,6 +289,7 @@ def users_table() -> rx.Component:
             variant="surface",
             size="3",
             width="85vw",
+            overflow_x="auto",
             overflow_y="auto",
             max_height="66vh",
         ),

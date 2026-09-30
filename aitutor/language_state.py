@@ -930,6 +930,31 @@ class LanguageState(SessionState):
         return self.translate(de="Aktiviert", en="Enabled")
 
     @rx.var
+    def email_verified(self) -> str:
+        """Column header / badge for the email verification state."""
+        return self.translate(de="Bestätigt", en="Verified")
+
+    @rx.var
+    def email_not_verified(self) -> str:
+        """Badge for users who did not confirm their email address yet."""
+        return self.translate(de="Nicht bestätigt", en="Not confirmed")
+
+    @rx.var
+    def created_at(self) -> str:
+        """Label for the time an account was created."""
+        return self.translate(de="Erstellt", en="Created")
+
+    @rx.var
+    def last_login_at(self) -> str:
+        """Label for the time of the last login of a user."""
+        return self.translate(de="Letzte Anmeldung", en="Last login")
+
+    @rx.var
+    def never(self) -> str:
+        """Shown instead of a date if an event did not happen yet."""
+        return self.translate(de="nie", en="never")
+
+    @rx.var
     def new_password(self) -> str:
         return self.translate(de="Neues Passwort", en="New Password")
 
