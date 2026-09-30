@@ -1,5 +1,7 @@
 """Account welcome email helpers."""
 
+import urllib.parse
+
 from aitutor import routes
 from aitutor.env_settings import get_env_settings
 from aitutor.global_vars import VERIFICATION_TOKEN_VALIDITY
@@ -12,9 +14,15 @@ def public_base_url() -> str:
     return f"https://{get_env_settings().DOMAIN}".rstrip("/")
 
 
-def email_verification_url(token: str) -> str:
-    """Build the link a user has to open to confirm their email address."""
-    return f"{public_base_url()}{routes.VERIFY_EMAIL}/{token}"
+def email_verification_url(token: str, language: Language) -> str:
+    """
+    Build the link a user has to open to confirm their email address.
+
+    The link carries the language of the mail, so that the page it leads to is shown in
+    the same language, even in a browser in which the user is not logged in.
+    """
+    query = urllib.parse.urlencode({"token": token, "lang": language.value})
+    return f"{public_base_url()}{routes.VERIFY_EMAIL}?{query}"
 
 
 def send_signup_welcome_email(
@@ -31,7 +39,7 @@ def send_signup_welcome_email(
         body=BT.signup_welcome_body(
             language,
             username=username,
-            verification_url=email_verification_url(verification_token),
+            verification_url=email_verification_url(verification_token, language),
             validity_hours=validity_hours,
         ),
     )
@@ -57,7 +65,7 @@ def send_email_verification_email(
         body=BT.email_verification_body(
             language,
             username=username,
-            verification_url=email_verification_url(verification_token),
+            verification_url=email_verification_url(verification_token, language),
             validity_hours=validity_hours,
         ),
     )
