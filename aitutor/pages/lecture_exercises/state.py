@@ -265,11 +265,12 @@ class LectureExercisesState(FilterMixin, SessionState):
                 ),
                 isouter=True,
             )
-            .where(
-                BetaExercise.lecture_id == self._lecture_id,
-                BetaExercise.is_hidden.is_(False),  # type: ignore[attr-defined]
-            )
+            .where(BetaExercise.lecture_id == self._lecture_id)
         )
+
+        assert self.user_role is not None, "User role not set.  This is a bug."
+        if self.user_role < UserRole.TUTOR:
+            stmt = stmt.where(BetaExercise.is_hidden == False)  # noqa: E712
 
         for key, value in self.search_values:
             match key:
@@ -294,7 +295,7 @@ class LectureExercisesState(FilterMixin, SessionState):
         for exercise, result in session.exec(stmt).all():
             if exercise.id is None:
                 continue
-            if not exercise.is_started:
+            if self.user_role < UserRole.TUTOR and not exercise.is_started:
                 continue
             cards.append(
                 ExerciseCard(
@@ -303,11 +304,9 @@ class LectureExercisesState(FilterMixin, SessionState):
                     description=exercise.description,
                     deadline=exercise.deadline,
                     deadline_exceeded=exercise.deadline_exceeded,
-                    is_hidden=False,
+                    is_hidden=exercise.is_hidden or not exercise.is_started,
                     is_beta=True,
-                    is_submitted=bool(
-                        result is not None and result.finished_conversation
-                    ),
+                    is_submitted=bool(result and result.finished_conversation),
                     submit_time_stamp=(
                         result.submit_time_stamp.strftime(TIME_FORMAT)
                         if result is not None and result.submit_time_stamp is not None
