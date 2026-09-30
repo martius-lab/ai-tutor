@@ -8,7 +8,7 @@ from zoneinfo import ZoneInfo
 import reflex as rx
 from sqlmodel import and_, func, or_, select
 
-import aitutor.routes as routes
+from aitutor import routes
 from aitutor.auth.protection import state_require_role_or_permission
 from aitutor.auth.state import SessionState
 from aitutor.global_vars import TIME_ZONE
@@ -35,6 +35,15 @@ class HomeExerciseCard:
 
 
 LectureExerciseGroup = tuple[Lecture, list[HomeExerciseCard]]
+
+
+def _deadline_sort_key(deadline: datetime | None) -> datetime:
+    """Compare stored (naive) and timezone-aware deadlines consistently."""
+    if deadline is None:
+        return datetime.max.replace(tzinfo=ZoneInfo(TIME_ZONE))
+    if deadline.tzinfo is None:
+        return deadline.replace(tzinfo=ZoneInfo(TIME_ZONE))
+    return deadline.astimezone(ZoneInfo(TIME_ZONE))
 
 
 def build_home_exercises_statement(
@@ -187,7 +196,7 @@ class HomeState(SessionState):
             started_rows.sort(
                 key=lambda row: (
                     row[1].lecture_name.lower(),
-                    row[0].deadline or datetime.max,
+                    _deadline_sort_key(row[0].deadline),
                 )
             )
             self.exercise_cards = [exercise for exercise, _ in started_rows]

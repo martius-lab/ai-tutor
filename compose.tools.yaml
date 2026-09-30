@@ -1,6 +1,6 @@
 # Use this override file with `compose.prod.yaml` to run admin tools
 # for production services.
-#     docker compose -f compose.yaml -f compose.prod.yaml -f compose.tools.yaml up -d
+#     docker compose -f compose.prod.yaml -f compose.tools.yaml up -d
 services:
   adminer:
     image: adminer

@@ -1,8 +1,9 @@
 """SMTP email helpers for account-related messages."""
 
+from collections.abc import Callable
 from email.message import EmailMessage
 from smtplib import SMTP, SMTP_SSL, SMTPException
-from typing import Any, Callable
+from typing import Any
 
 from aitutor.env_settings import SmtpSettings, get_env_settings
 

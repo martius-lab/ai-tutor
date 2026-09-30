@@ -1,6 +1,6 @@
 """The Components for the manage exercises page."""
 
-from typing import Sequence
+from collections.abc import Sequence
 
 import reflex as rx
 
@@ -1098,7 +1098,7 @@ def import_exercises_button() -> rx.Component:
                         LanguageState.exercises_upload_info,
                     ),
                     rx.text(
-                        rx.selected_files("exercises_upload"), color="yellow", size="3"
+                        rx.selected_files("exercises_upload"), color="gray", size="3"
                     ),
                     id="exercises_upload",
                     multiple=False,

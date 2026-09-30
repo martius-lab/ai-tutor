@@ -6,7 +6,7 @@ Frontend: Reflex (generates UI from Python code)
 
 Backend: Python-based, processes requests and evaluates solutions
 
-Database: SQLite (standard), can be replaced by PostgreSQL or MySQL
+Database: PostgreSQL
 
 
 ## Pages

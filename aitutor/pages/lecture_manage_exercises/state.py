@@ -5,16 +5,19 @@ import json
 from datetime import datetime
 from enum import Enum
 from typing import override
+from zoneinfo import ZoneInfo
 
+import jsonschema
 import pdfplumber
 import reflex as rx
 from sqlalchemy.orm import selectinload
 from sqlmodel import and_, func, or_, select
 
 import aitutor.global_vars as gv
-import aitutor.routes as routes
+from aitutor import routes
 from aitutor.auth.protection import state_require_lecture_role
 from aitutor.auth.state import SessionState
+from aitutor.config import get_exercises_json_schema
 from aitutor.language_state import BackendTranslations as BT
 from aitutor.models import (
     BetaExercise,
@@ -43,6 +46,14 @@ class DialogMode(Enum):
 
     ADD = "add"
     EDIT = "edit"
+
+
+def _format_validation_error(e: jsonschema.ValidationError) -> str:
+    """Render a schema violation as a short, located message."""
+    location = e.json_path if e.json_path != "$" else "document"
+    if e.validator == "required":
+        return f"{location}: {e.message}"
+    return f"{location} violates constraint {e.validator}={e.validator_value}."
 
 
 class LectureManageExercisesState(FilterMixin, SessionState):
@@ -178,7 +189,7 @@ class LectureManageExercisesState(FilterMixin, SessionState):
                         select(Prompt)
                         .where(
                             or_(
-                                Prompt.lecture_id == None,  # noqa: E711
+                                Prompt.lecture_id == None,
                                 Prompt.lecture_id == lecture_id,
                             )
                         )
@@ -316,7 +327,7 @@ class LectureManageExercisesState(FilterMixin, SessionState):
             },
             indent=4,
         )
-        timestamp = datetime.today().date().isoformat()
+        timestamp = datetime.now(tz=ZoneInfo(gv.TIME_ZONE)).date().isoformat()
 
         return rx.download(
             data=json_data, filename=f"aitutor-exercises-{timestamp}.json"
@@ -360,6 +371,7 @@ class LectureManageExercisesState(FilterMixin, SessionState):
           prompt is renamed
         - If a prompt does not exist, it is created
         """
+
         events = [rx.clear_selected_files("exercises_upload")]
 
         if self.current_lecture_id is None:
@@ -377,14 +389,16 @@ class LectureManageExercisesState(FilterMixin, SessionState):
             except json.JSONDecodeError:
                 raise ValueError("Invalid JSON file.") from None
 
-            prompt_templates = data.get("prompt_templates", {})
-            exercises_list = data.get("exercises", [])
+            # Validate JSON against schema
+            schema = get_exercises_json_schema()
+            try:
+                jsonschema.validate(instance=data, schema=schema)
+            except jsonschema.ValidationError as e:
+                msg = f"Invalid data format: {_format_validation_error(e)}"
+                raise ValueError(msg) from None
 
-            MAX_EXERCISES_IMPORT = 500
-            if len(exercises_list) > MAX_EXERCISES_IMPORT:
-                raise ValueError(
-                    f"Cannot import more than {MAX_EXERCISES_IMPORT} exercises at once."
-                )
+            prompt_templates = data.get("prompt_templates", {})
+            exercises_list = data["exercises"]
 
             with rx.session() as session:
                 # --- 2. Process Prompts ---
@@ -402,7 +416,7 @@ class LectureManageExercisesState(FilterMixin, SessionState):
                         select(Prompt).where(
                             Prompt.name == p_name,
                             or_(
-                                Prompt.lecture_id == None,  # noqa: E711
+                                Prompt.lecture_id == None,
                                 Prompt.lecture_id == self.current_lecture_id,
                             ),
                         )
@@ -420,7 +434,7 @@ class LectureManageExercisesState(FilterMixin, SessionState):
                                 select(Prompt).where(
                                     Prompt.name == new_name,
                                     or_(
-                                        Prompt.lecture_id == None,  # noqa: E711
+                                        Prompt.lecture_id == None,
                                         Prompt.lecture_id == self.current_lecture_id,
                                     ),
                                 )
@@ -451,25 +465,6 @@ class LectureManageExercisesState(FilterMixin, SessionState):
 
                 # --- 3. Process Exercises ---
                 for ex_data in exercises_list:
-                    # validate required fields
-                    required_fields = [
-                        "title",
-                        "description",
-                        "lesson_context",
-                        "is_hidden",
-                        "deadline",
-                        "days_to_complete",
-                        "tags",
-                    ]
-                    missing_fields = [
-                        field for field in required_fields if field not in ex_data
-                    ]
-                    if missing_fields:
-                        raise ValueError(
-                            "Missing field in exercise data: "
-                            f"{', '.join(missing_fields)}"
-                        )
-
                     # Handle Title Duplicates
                     title = ex_data["title"]
                     original_title = title
@@ -540,7 +535,7 @@ class LectureManageExercisesState(FilterMixin, SessionState):
                     BT.successfully_imported_exercises(
                         self.language, len(exercises_list)
                     ),
-                    duration=3000,
+                    duration=10000,
                     position="bottom-center",
                     invert=True,
                 )

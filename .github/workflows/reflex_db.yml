@@ -18,6 +18,12 @@ jobs:
       - name: Install the project
         run: uv sync
 
+      - name: Run database
+        run: |
+          echo POSTGRES_PASSWORD=secret > .env
+          make dev-up
+          sleep 10
+
       - name: Run reflex db migrate
         run: uv run reflex db migrate
 
@@ -26,3 +32,6 @@ jobs:
           out=$(uv run reflex db makemigrations 2>&1)
           echo $out
           test -z "$out"
+
+      - name: Test if seed_demo_data.py runs without errors
+        run: uv run ./scripts/seed_demo_data.py

@@ -9,7 +9,7 @@ from sqlalchemy.sql.elements import ColumnElement
 from sqlmodel import func, select
 
 import aitutor.global_vars as gv
-import aitutor.routes as routes
+from aitutor import routes
 from aitutor.auth.protection import state_require_lecture_role
 from aitutor.auth.state import SessionState
 from aitutor.language_state import BackendTranslations as BT

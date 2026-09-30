@@ -3,7 +3,6 @@ Utilities for access control and role-based protection.
 """
 
 import functools
-from typing import Optional
 
 import reflex as rx
 from reflex_local_auth.login import LoginState
@@ -62,8 +61,7 @@ def lecture_has_role_at_least(role) -> rx.vars.Var[bool]:
     ADMIN permission.
     """
     return (
-        (SessionState.user_role != None)  # noqa: E711
-        & (SessionState.user_role >= role)
+        (SessionState.user_role != None) & (SessionState.user_role >= role)
     ) | SessionState.global_permissions.contains(GlobalPermission.ADMIN)
 
 
@@ -78,8 +76,8 @@ def has_permission(
 
 def page_require_role_or_permission(
     *,
-    required_role: Optional[UserRole] = None,
-    allowed_permissions: Optional[list[GlobalPermission]] = None,
+    required_role: UserRole | None = None,
+    allowed_permissions: list[GlobalPermission] | None = None,
 ):
     """
     Protects a page. Allows access if the user has the required UserRole
@@ -151,7 +149,7 @@ def page_require_role_or_permission(
 
 def page_require_lecture_role(
     required_role: LectureRole,
-    allowed_permissions: Optional[list[GlobalPermission]] = None,
+    allowed_permissions: list[GlobalPermission] | None = None,
 ):
     """Protect a lecture route by lecture role or global permissions."""
     perms_to_check = list(allowed_permissions) if allowed_permissions else []
@@ -252,8 +250,8 @@ def state_require_lecture_role(required_role: LectureRole):
 
 def state_require_role_or_permission(
     *,
-    required_role: Optional[UserRole] = None,
-    allowed_permissions: Optional[list[GlobalPermission]] = None,
+    required_role: UserRole | None = None,
+    allowed_permissions: list[GlobalPermission] | None = None,
 ):
     """
     Protects a state event. Allows execution if the user has the required UserRole
