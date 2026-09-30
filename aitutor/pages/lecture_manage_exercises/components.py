@@ -911,7 +911,7 @@ def add_edit_exercise_form(mode: DialogMode) -> Sequence[rx.Component]:
                 mode == DialogMode.ADD,
                 rx.form.submit(
                     rx.button(
-                        LanguageState.add_task,
+                        LanguageState.add_exercise,
                         color_scheme="green",
                         type="submit",
                         _hover={"cursor": "pointer"},
