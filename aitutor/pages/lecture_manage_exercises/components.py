@@ -140,6 +140,7 @@ def edit_tags_button() -> rx.Component:
             rx.button(
                 rx.icon("tags"),
                 rx.text(LanguageState.edit_tags, size="3"),
+                variant="outline",
                 _hover={"cursor": "pointer"},
                 type="button",
             )
@@ -382,7 +383,7 @@ def hide_exercise_button(exercise: Exercise):
 def add_exercise_button() -> rx.Component:
     """Button for adding new exercises."""
     return rx.button(
-        rx.icon("file-plus"),
+        rx.icon("plus"),
         rx.desktop_only(
             rx.text(LanguageState.add_exercise, size="3"),
         ),
@@ -414,6 +415,7 @@ def delete_selected_exercises_button() -> rx.Component:
                 size="3",
             ),
             color_scheme="red",
+            variant="outline",
             _hover=rx.cond(
                 ManageExercisesState.something_is_selected,
                 {"cursor": "pointer"},
@@ -436,6 +438,7 @@ def export_selected_exercises_button() -> rx.Component:
             + ")",
             size="3",
         ),
+        variant="outline",
         _hover=rx.cond(
             ManageExercisesState.something_is_selected,
             {"cursor": "pointer"},
@@ -947,6 +950,7 @@ def import_exercises_button() -> rx.Component:
                 rx.mobile_and_tablet(
                     rx.text(LanguageState.import_, size="3"),
                 ),
+                variant="outline",
                 _hover={"cursor": "pointer"},
             )
         ),
