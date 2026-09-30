@@ -7,10 +7,12 @@ Siehe [Impressum](/impressum).
 Beim Nutzen des AI-Tutors werden folgende Daten auf einem Server der Universität
 Tübingen gespeichert:
 - Allgemeine Nutzerdaten: Username, E-Mail-Adresse, Passwort (verschlüsselt), Zeitpunkt
-  des letzten Logins
+  zu dem der Account angelegt wurde, Zeitpunkt des letzten Logins
 - Beim Bearbeiten der Übungen: Der gesamte Konversationsverlauf (also alle Eingaben des
   Nutzers sowie die Antworten des Chatbots).  Bei Abgabe einer Übung außerdem der
   Zeitpunkt der Abgabe.
+- Beim Melden von Problemen, der eingegebene Text.
+- Mitgliedschaft in Vorlesungen, denen der Nutzer beitritt.
 
 Darüber hinaus werden die Eingaben des Nutzers bei der Bearbeitung der Übungen an OpenAI
 übermittelt (siehe Abschnitt 3).
