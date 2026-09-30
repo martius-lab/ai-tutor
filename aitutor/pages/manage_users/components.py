@@ -55,8 +55,31 @@ def last_login_text(user_info: UserInfo) -> rx.Component:
     )
 
 
-def user_table_row(user: tuple[LocalUser, UserInfo]) -> rx.Component:
-    """Create a single row of the users table."""
+def verified_icon(user_info: UserInfo, pending_email: rx.Var[str]) -> rx.Component:
+    """Show whether the email address of a user is confirmed."""
+    return rx.cond(
+        user_info.verified,
+        rx.cond(
+            pending_email != "",
+            rx.hover_card.root(
+                rx.hover_card.trigger(rx.icon("clock", color=rx.color("amber", 9))),
+                rx.hover_card.content(
+                    rx.text(LS.email_change_pending_tooltip, " ", pending_email)
+                ),
+            ),
+            rx.icon("square-check"),
+        ),
+        # not an error but a pending state, so amber instead of red
+        rx.icon("square-x", color=rx.color("amber", 9)),
+    )
+
+
+def user_table_row(user: tuple[LocalUser, UserInfo, str]) -> rx.Component:
+    """
+    Create a single row of the users table.
+
+    The third element is the address of a pending email change, "" if there is none.
+    """
     return rx.table.row(
         rx.table.cell(user[0].username),
         rx.table.cell(role_to_text(user[1].role)),
@@ -67,14 +90,7 @@ def user_table_row(user: tuple[LocalUser, UserInfo]) -> rx.Component:
                 rx.icon("square-x", color=rx.color("red", 9)),
             )
         ),
-        rx.table.cell(
-            rx.cond(
-                user[1].verified,
-                rx.icon("square-check"),
-                # not an error but a pending state, so amber instead of red
-                rx.icon("square-x", color=rx.color("amber", 9)),
-            )
-        ),
+        rx.table.cell(verified_icon(user[1], user[2])),  # type: ignore
         rx.table.cell(rx.moment(user[1].created_at, format=gv.MOMENT_DATETIME_FORMAT)),
         rx.table.cell(last_login_text(user[1])),
         rx.table.cell(
@@ -103,6 +119,57 @@ def form_label(text: str | rx.vars.StringVar[str]) -> rx.Component:
         width="100%",
         padding_top="1.5em",
         padding_bottom="0.5em",
+    )
+
+
+def email_verification_info(user_info: UserInfo) -> rx.Component:
+    """
+    Verification state of the email address of the edited user.
+
+    Also offers to resend the confirmation link if there is anything to confirm.
+    """
+    has_pending_change = ManageUsersState.edited_user_pending_email != ""
+    return rx.vstack(
+        rx.hstack(
+            rx.cond(
+                user_info.verified,
+                rx.cond(
+                    has_pending_change,
+                    rx.badge(LS.email_change_pending, color_scheme="amber"),
+                    rx.badge(LS.email_verified, color_scheme="green"),
+                ),
+                rx.badge(LS.email_not_verified, color_scheme="amber"),
+            ),
+            rx.cond(
+                ~user_info.verified | has_pending_change,
+                rx.button(
+                    rx.icon("mail", size=15),
+                    LS.resend_verification_email,
+                    size="1",
+                    variant="soft",
+                    # do not submit the form
+                    type="button",
+                    on_click=ManageUsersState.resend_verification_email_to_edited_user,
+                    loading=ManageUsersState.resend_in_progress,
+                    _hover={"cursor": "pointer"},
+                ),
+            ),
+            spacing="2",
+            align="center",
+        ),
+        rx.cond(
+            user_info.verified & has_pending_change,
+            rx.text(
+                LS.email_change_pending_description,
+                " ",
+                user_info.email,
+                size="2",
+                color_scheme="gray",
+            ),
+        ),
+        spacing="2",
+        padding_top="0.5em",
+        width="100%",
     )
 
 
@@ -141,21 +208,20 @@ def edit_user_dialog() -> rx.Component:
                         ),
                         form_label(LS.email),
                         rx.input(
-                            default_value=user_info.email,
+                            # show the address of a pending change, so that saving the
+                            # form without touching this field keeps the change
+                            default_value=rx.cond(
+                                ManageUsersState.edited_user_pending_email != "",
+                                ManageUsersState.edited_user_pending_email,
+                                user_info.email,
+                            ),
                             size="3",
                             width="100%",
                             type="text",
                             name="email",
                             max_length=MANAGE_USERS_FIELD_MAX_LENGTHS["email"],
                         ),
-                        rx.box(
-                            rx.cond(
-                                user_info.verified,
-                                rx.badge(LS.email_verified, color_scheme="green"),
-                                rx.badge(LS.email_not_verified, color_scheme="amber"),
-                            ),
-                            padding_top="0.5em",
-                        ),
+                        email_verification_info(user_info),
                         form_label(LS.new_password),
                         password_input(
                             name="new_password",
@@ -245,6 +311,7 @@ def edit_user_dialog() -> rx.Component:
                             rx.button(
                                 LS.save,
                                 type="submit",
+                                loading=ManageUsersState.save_in_progress,
                                 _hover={"cursor": "pointer"},
                             ),
                             spacing="2",
