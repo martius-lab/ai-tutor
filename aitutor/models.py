@@ -597,6 +597,9 @@ class Config(SQLModel, table=True):
     #: Name of the AI model used for the exercise conversations.  Which models are
     #: available depends on the used provider.
     response_ai_model: str
+    #: Name of the AI model used by Level AI for concept generation, diagnosis,
+    #: and tutor responses. Available models depend on the provider.
+    level_ai_model: str
     #: Name of the AI model used for checking conversations.  Which models are available
     #: depends on the used provider.
     check_ai_model: str

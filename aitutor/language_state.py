@@ -1059,6 +1059,23 @@ Please test the chat for functionality after changing the model.
         return self.translate(de="Überprüfungs-KI-Modell", en="Check AI Model")
 
     @rx.var
+    def level_ai_model(self) -> str:
+        return self.translate(de="Level AI Modell", en="Level AI Model")
+
+    @rx.var
+    def level_ai_model_info(self) -> str:
+        return self.translate(
+            de=(
+                "Das KI Modell für Level AI: Konzepterstellung, Diagnose und "
+                f"Antworten im Chat.  \n{self.openai_api_model_info}"
+            ),
+            en=(
+                "The AI model for Level AI: concept generation, diagnosis, and "
+                f"chat responses.  \n{self.openai_api_model_info}"
+            ),
+        )
+
+    @rx.var
     def check_ai_model_info(self) -> str:
         return self.translate(
             de=f"Das KI-Modell, welches die Konversation überprüft.  \n\
@@ -1576,6 +1593,17 @@ Please test the chat for functionality after changing the model.
     @rx.var
     def beta_ai_exercise_metadata(self) -> str:
         return self.translate(de="2. Übungsinformationen", en="2. Exercise metadata")
+
+    @rx.var
+    def beta_ai_description_placeholder(self) -> str:
+        return self.translate(
+            de="(Optional) Hier kannst du die Übung beschreiben. Studierende sehen "
+            "diesen Text als Beschreibung der Übung. Er wird außerdem an die KI "
+            "übermittelt, wenn sie Konzepte und Kernpunkte erstellt.",
+            en="(Optional) Describe the exercise here. Students can see this text "
+            "as the exercise description. It is also sent to the AI when it "
+            "generates concepts and core points.",
+        )
 
     @rx.var
     def beta_ai_generation_targets(self) -> str:
