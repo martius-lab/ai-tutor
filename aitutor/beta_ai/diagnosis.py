@@ -139,21 +139,6 @@ def _clamp_score(value: float) -> float:
     return max(0.0, min(1.0, value))
 
 
-def _required_core_point_ids(core_points: list[BetaCorePoint]) -> set[int]:
-    """Return required core-point IDs used for transparent completion checks.
-
-    Completion should not depend on an arbitrary percentage threshold. It should
-    require the instructor-curated required core points. In the current builder,
-    core points are required by default, so this behaves like a strict 100%
-    required-coverage rule unless optional core points are introduced later.
-    """
-    return {
-        core_point.id
-        for core_point in core_points
-        if core_point.id and core_point.required
-    }
-
-
 def _clear_answer_coverage(
     diagnosis: DiagnosisResponse, valid_core_point_ids: set[int]
 ) -> None:
@@ -435,10 +420,9 @@ def validate_and_normalize_diagnosis(
         warnings.append("Completeness score was clamped to the 0.0-1.0 range.")
 
     covered_count = len(normalized.covered_core_point_ids)
-    required_ids = _required_core_point_ids(core_points)
-    all_required_covered = bool(required_ids) and required_ids.issubset(
-        set(normalized.covered_core_point_ids)
-    )
+    all_core_points_covered = bool(
+        valid_core_point_ids
+    ) and valid_core_point_ids.issubset(normalized.covered_core_point_ids)
 
     if not normalized.is_answer_attempt:
         final_pattern: DiagnosisPattern = "help_seeking"
@@ -456,7 +440,7 @@ def validate_and_normalize_diagnosis(
         final_pattern = "off_task"
     elif normalized.misconception_flag:
         final_pattern = "misconception_present"
-    elif all_required_covered and normalized.task_relevance >= 0.5:
+    elif all_core_points_covered and normalized.task_relevance >= 0.5:
         final_pattern = "sufficient_for_completion"
     elif covered_count > 0 and normalized.task_relevance >= 0.3:
         final_pattern = "correct_but_incomplete"

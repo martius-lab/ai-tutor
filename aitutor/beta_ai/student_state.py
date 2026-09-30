@@ -48,21 +48,6 @@ def valid_core_point_ids(core_points: list[BetaCorePoint]) -> list[int]:
     return sorted(core_point.id for core_point in core_points if core_point.id)
 
 
-def required_core_point_ids(core_points: list[BetaCorePoint]) -> list[int]:
-    """Return required persisted core-point IDs in deterministic order.
-
-    This is the completion criterion for the Beta AI Tutor: a concept can only
-    be considered sufficiently covered when all instructor-curated required core
-    points have cumulative student-owned evidence. This replaces the earlier
-    prototype heuristic that used an arbitrary 80% coverage threshold.
-    """
-    return sorted(
-        core_point.id
-        for core_point in core_points
-        if core_point.id and core_point.required
-    )
-
-
 def build_cumulative_evidence_summary(
     *,
     core_points: list[BetaCorePoint],
@@ -205,7 +190,6 @@ def derive_cumulative_pattern(
     latest_diagnosis: DiagnosisResponse,
     cumulative_covered_ids: list[int],
     all_core_point_ids: list[int],
-    required_core_point_ids: list[int],
     student_answer: str,
 ) -> DiagnosisPattern:
     """Derive the policy-facing pattern from cumulative concept evidence.
@@ -228,9 +212,9 @@ def derive_cumulative_pattern(
     if latest_diagnosis.diagnosis_pattern == "shallow_keyword_only":
         return "shallow_keyword_only"
 
-    all_required_covered = bool(required_core_point_ids) and set(
-        required_core_point_ids
-    ).issubset(set(cumulative_covered_ids))
+    all_core_points_covered = bool(all_core_point_ids) and set(
+        all_core_point_ids
+    ).issubset(cumulative_covered_ids)
 
     if not student_answer.strip() or (
         latest_diagnosis.task_relevance < 0.3 and not cumulative_covered_ids
@@ -238,7 +222,7 @@ def derive_cumulative_pattern(
         return "off_task"
     if latest_diagnosis.misconception_flag:
         return "misconception_present"
-    if all_required_covered and latest_diagnosis.task_relevance >= 0.5:
+    if all_core_points_covered and latest_diagnosis.task_relevance >= 0.5:
         return "sufficient_for_completion"
     if cumulative_covered_ids and latest_diagnosis.task_relevance >= 0.3:
         return "correct_but_incomplete"
@@ -251,7 +235,7 @@ def is_level_successful_answer(
 ) -> bool:
     """Return whether the latest turn is sufficient evidence for its level.
 
-    Basic understanding is still governed by cumulative required core-point
+    Basic understanding is still governed by cumulative core-point
     coverage in ``update_student_concept_state_from_diagnosis``. Higher levels
     are concept-level checks: one relevant, correct, student-owned explanation
     or application answer can pass the level without re-covering every core
@@ -307,7 +291,6 @@ def update_student_concept_state_from_diagnosis(
     over all evidence collected for the current student/concept so far.
     """
     all_core_point_ids = valid_core_point_ids(core_points)
-    required_ids = required_core_point_ids(core_points)
     all_core_point_id_set = set(all_core_point_ids)
     has_active_misconception_before_turn = bool(student_state.active_misconceptions)
     evidence_relevance_threshold = (
@@ -373,10 +356,11 @@ def update_student_concept_state_from_diagnosis(
         latest_diagnosis=latest_diagnosis,
         cumulative_covered_ids=cumulative_covered_ids,
         all_core_point_ids=all_core_point_ids,
-        required_core_point_ids=required_ids,
         student_answer=student_answer,
     )
-    all_required_covered = set(required_ids).issubset(set(cumulative_covered_ids))
+    all_core_points_covered = bool(
+        all_core_point_ids
+    ) and all_core_point_id_set.issubset(cumulative_covered_ids)
     active_misconceptions, resolved_misconceptions, resolved_this_turn = (
         update_misconception_memory(
             student_state=student_state,
@@ -397,11 +381,11 @@ def update_student_concept_state_from_diagnosis(
     if question_level in level_status and level_status[question_level] == "not_started":
         level_status[question_level] = "in_progress"
 
-    if all_required_covered and not has_active_misconception:
+    if all_core_points_covered and not has_active_misconception:
         level_status["basic_understanding"] = "passed"
         level_evidence["basic_understanding"] = {
             "passed_at_turn": trace_reference,
-            "covered_required_core_point_ids": required_ids,
+            "covered_core_point_ids": all_core_point_ids,
         }
 
     if (

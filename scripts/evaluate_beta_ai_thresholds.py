@@ -511,7 +511,7 @@ def recommendation_for_threshold(
     if name == "completion_relevance_guard":
         return (
             "vorläufig behalten als Sicherheitsgurt",
-            "Completion hängt primär an allen required Core Points; 0.5 "
+            "Completion hängt primär an allen Core Points; 0.5 "
             "ist sekundär und sollte nur off-topic Voll-Coverage verhindern.",
         )
     return (
