@@ -11,10 +11,15 @@ from aitutor.pages.beta_ai_finished_view_tutor.evaluations import (
 )
 from aitutor.pages.beta_ai_finished_view_tutor.state import BetaAIFinishedViewTutorState
 from aitutor.pages.navbar import with_navbar
+from aitutor.pages.navbar_specific_lecture import with_specific_lecture_navbar
 
 
 @page_require_role_or_permission(required_role=UserRole.STUDENT)
-@with_navbar(routes.MY_LECTURES)
+@with_navbar(routes.LECTURES)
+@with_specific_lecture_navbar(
+    "submissions",
+    BetaAIFinishedViewTutorState.current_lecture_id,
+)
 def beta_ai_finished_view_tutor_page() -> rx.Component:
     """Render the tutor Beta AI finished view."""
     return rx.container(

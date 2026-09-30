@@ -1,7 +1,7 @@
 """State for the Beta AI diagnosis lab skeleton."""
 
 import reflex as rx
-from sqlmodel import select
+from sqlmodel import Session, select
 
 import aitutor.routes as routes
 from aitutor.auth.protection import state_require_lecture_role
@@ -9,6 +9,7 @@ from aitutor.auth.state import SessionState
 from aitutor.beta_ai.audit import DiagnosisTrace, build_diagnosis_trace
 from aitutor.beta_ai.diagnosis import (
     DiagnosisResponse,
+    DiagnosisValidationResult,
     run_llm_diagnosis,
     run_mock_diagnosis,
     validate_and_normalize_diagnosis,
@@ -26,7 +27,7 @@ from aitutor.models import (
 
 
 class BetaAIDiagnosisLabState(SessionState):
-    """State for inspecting Beta AI concept data before diagnosis is implemented."""
+    """State for inspecting concept data and previewing diagnosis decisions."""
 
     beta_exercises: list[BetaExercise] = []
     current_lecture_id: int | None = None
@@ -49,7 +50,7 @@ class BetaAIDiagnosisLabState(SessionState):
 
     @rx.event
     def set_student_answer(self, value: str):
-        """Set the example student answer for the future diagnosis step."""
+        """Set the example student answer for diagnosis."""
         self.student_answer = value
 
     @rx.event
@@ -71,12 +72,6 @@ class BetaAIDiagnosisLabState(SessionState):
         self.current_lecture_id = lecture_id
         self.load_beta_exercises()
 
-    def on_logout(self):
-        """Clear page-specific state on logout."""
-        self.beta_exercises = []
-        self.current_lecture_id = None
-        self.reset_selection()
-
     @rx.var
     def has_selected_exercise(self) -> bool:
         """Whether an exercise has been selected."""
@@ -89,7 +84,7 @@ class BetaAIDiagnosisLabState(SessionState):
 
     @rx.var
     def has_diagnosis(self) -> bool:
-        """Whether a mock diagnosis has been created."""
+        """Whether a diagnosis has been created."""
         return self.diagnosis is not None
 
     @rx.var
@@ -208,6 +203,56 @@ class BetaAIDiagnosisLabState(SessionState):
         """Return diagnosis explanation for display."""
         return self.diagnosis.explanation if self.diagnosis else ""
 
+    def on_logout(self):
+        """Clear page-specific state on logout."""
+        self.beta_exercises = []
+        self.current_lecture_id = None
+        self.reset_selection()
+
+    def _set_diagnosis_result(
+        self,
+        validation_result: DiagnosisValidationResult,
+        *,
+        exercise_title: str,
+        concept_label: str,
+        concept_description: str,
+        core_points: list[BetaCorePoint],
+        misconceptions: list[BetaMisconception],
+        student_answer: str,
+    ) -> None:
+        """Store a validated diagnosis with its policy and audit preview."""
+        self.diagnosis = validation_result.diagnosis
+        self.llm_suggested_pattern = validation_result.llm_suggested_pattern
+        self.diagnosis_validation_errors = validation_result.errors
+        self.diagnosis_validation_warnings = validation_result.warnings
+        self.policy_preview = preview_policy_action(
+            validation_result.diagnosis,
+            concept_label=concept_label,
+            concept_description=concept_description,
+            core_points=core_points,
+            misconceptions=misconceptions,
+        )
+        self.diagnosis_trace = build_diagnosis_trace(
+            exercise_title=exercise_title,
+            concept_label=concept_label,
+            concept_description=concept_description,
+            student_answer=student_answer,
+            diagnosis=self.diagnosis,
+            llm_suggested_pattern=self.llm_suggested_pattern,
+            validation_errors=self.diagnosis_validation_errors,
+            validation_warnings=self.diagnosis_validation_warnings,
+            policy_preview=self.policy_preview,
+        )
+
+    def _clear_diagnosis_result(self) -> None:
+        """Clear the diagnosis and its derived policy and audit previews."""
+        self.diagnosis = None
+        self.llm_suggested_pattern = ""
+        self.diagnosis_validation_errors = []
+        self.diagnosis_validation_warnings = []
+        self.policy_preview = None
+        self.diagnosis_trace = None
+
     def reset_selection(self):
         """Reset selected exercise, concept and loaded child data."""
         self.concepts = []
@@ -219,12 +264,7 @@ class BetaAIDiagnosisLabState(SessionState):
         self.selected_concept_label = ""
         self.selected_concept_description = ""
         self.student_answer = ""
-        self.diagnosis = None
-        self.llm_suggested_pattern = ""
-        self.diagnosis_validation_errors = []
-        self.diagnosis_validation_warnings = []
-        self.policy_preview = None
-        self.diagnosis_trace = None
+        self._clear_diagnosis_result()
         self.running_llm_diagnosis = False
 
     def load_beta_exercises(self):
@@ -240,6 +280,33 @@ class BetaAIDiagnosisLabState(SessionState):
                     .order_by(BetaExercise.id.desc())  # type: ignore
                 ).all()
             )
+
+    def _load_concepts(self, session: Session, exercise_id: int) -> None:
+        """Load concepts in the same order as the selected exercise."""
+        self.concepts = list(
+            session.exec(
+                select(BetaConcept)
+                .where(BetaConcept.beta_exercise_id == exercise_id)
+                .order_by(BetaConcept.order_index)  # type: ignore
+            ).all()
+        )
+
+    def _load_concept_details(self, session: Session, concept_id: int) -> None:
+        """Load ordered core points and misconceptions for the selected concept."""
+        self.core_points = list(
+            session.exec(
+                select(BetaCorePoint)
+                .where(BetaCorePoint.beta_concept_id == concept_id)
+                .order_by(BetaCorePoint.order_index)  # type: ignore
+            ).all()
+        )
+        self.misconceptions = list(
+            session.exec(
+                select(BetaMisconception)
+                .where(BetaMisconception.beta_concept_id == concept_id)
+                .order_by(BetaMisconception.order_index)  # type: ignore
+            ).all()
+        )
 
     @rx.event
     def select_exercise(self, exercise_id: int | None):
@@ -257,13 +324,7 @@ class BetaAIDiagnosisLabState(SessionState):
                     invert=True,
                 )
 
-            self.concepts = list(
-                session.exec(
-                    select(BetaConcept)
-                    .where(BetaConcept.beta_exercise_id == exercise_id)
-                    .order_by(BetaConcept.order_index)  # type: ignore
-                ).all()
-            )
+            self._load_concepts(session, exercise_id)
 
         self.selected_exercise_id = exercise_id
         self.selected_exercise_title = exercise.title
@@ -272,12 +333,7 @@ class BetaAIDiagnosisLabState(SessionState):
         self.selected_concept_description = ""
         self.core_points = []
         self.misconceptions = []
-        self.diagnosis = None
-        self.llm_suggested_pattern = ""
-        self.diagnosis_validation_errors = []
-        self.diagnosis_validation_warnings = []
-        self.policy_preview = None
-        self.diagnosis_trace = None
+        self._clear_diagnosis_result()
 
     @rx.event
     def select_concept(self, concept_id: int | None):
@@ -304,30 +360,12 @@ class BetaAIDiagnosisLabState(SessionState):
                     invert=True,
                 )
 
-            self.core_points = list(
-                session.exec(
-                    select(BetaCorePoint)
-                    .where(BetaCorePoint.beta_concept_id == concept_id)
-                    .order_by(BetaCorePoint.order_index)  # type: ignore
-                ).all()
-            )
-            self.misconceptions = list(
-                session.exec(
-                    select(BetaMisconception)
-                    .where(BetaMisconception.beta_concept_id == concept_id)
-                    .order_by(BetaMisconception.order_index)  # type: ignore
-                ).all()
-            )
+            self._load_concept_details(session, concept_id)
 
         self.selected_concept_id = concept_id
         self.selected_concept_label = concept.label
         self.selected_concept_description = concept.description
-        self.diagnosis = None
-        self.llm_suggested_pattern = ""
-        self.diagnosis_validation_errors = []
-        self.diagnosis_validation_warnings = []
-        self.policy_preview = None
-        self.diagnosis_trace = None
+        self._clear_diagnosis_result()
 
     @rx.event
     def run_mock_diagnosis(self):
@@ -349,27 +387,14 @@ class BetaAIDiagnosisLabState(SessionState):
             core_points=self.core_points,
             student_answer=self.student_answer,
         )
-        self.diagnosis = validation_result.diagnosis
-        self.llm_suggested_pattern = validation_result.llm_suggested_pattern
-        self.diagnosis_validation_errors = validation_result.errors
-        self.diagnosis_validation_warnings = validation_result.warnings
-        self.policy_preview = preview_policy_action(
-            validation_result.diagnosis,
+        self._set_diagnosis_result(
+            validation_result,
+            exercise_title=self.selected_exercise_title,
             concept_label=self.selected_concept_label,
             concept_description=self.selected_concept_description,
             core_points=self.core_points,
             misconceptions=self.misconceptions,
-        )
-        self.diagnosis_trace = build_diagnosis_trace(
-            exercise_title=self.selected_exercise_title,
-            concept_label=self.selected_concept_label,
-            concept_description=self.selected_concept_description,
             student_answer=self.student_answer,
-            diagnosis=self.diagnosis,
-            llm_suggested_pattern=self.llm_suggested_pattern,
-            validation_errors=self.diagnosis_validation_errors,
-            validation_warnings=self.diagnosis_validation_warnings,
-            policy_preview=self.policy_preview,
         )
 
     @rx.event(background=True)
@@ -430,27 +455,14 @@ class BetaAIDiagnosisLabState(SessionState):
             return
 
         async with self:
-            self.diagnosis = validation_result.diagnosis
-            self.llm_suggested_pattern = validation_result.llm_suggested_pattern
-            self.diagnosis_validation_errors = validation_result.errors
-            self.diagnosis_validation_warnings = validation_result.warnings
-            self.policy_preview = preview_policy_action(
-                validation_result.diagnosis,
+            self._set_diagnosis_result(
+                validation_result,
+                exercise_title=exercise_title,
                 concept_label=concept_label,
                 concept_description=concept_description,
                 core_points=core_points,
                 misconceptions=misconceptions,
-            )
-            self.diagnosis_trace = build_diagnosis_trace(
-                exercise_title=exercise_title,
-                concept_label=concept_label,
-                concept_description=concept_description,
                 student_answer=student_answer,
-                diagnosis=self.diagnosis,
-                llm_suggested_pattern=self.llm_suggested_pattern,
-                validation_errors=self.diagnosis_validation_errors,
-                validation_warnings=self.diagnosis_validation_warnings,
-                policy_preview=self.policy_preview,
             )
             self.running_llm_diagnosis = False
         yield rx.toast.success(

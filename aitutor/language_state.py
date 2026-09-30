@@ -1416,24 +1416,10 @@ Please test the chat for functionality after changing the model.
         return self.translate(de="Beta AI", en="Beta AI")
 
     @rx.var
-    def beta_ai_student_exercises(self) -> str:
-        return self.translate(
-            de="Übungen für Studierende in Beta AI", en="Beta AI Student Exercises"
-        )
-
-    @rx.var
-    def beta_ai_exercises(self) -> str:
-        return self.translate(de="Übungen in Beta AI", en="Beta AI Exercises")
-
-    @rx.var
     def beta_ai_diagnosis_lab(self) -> str:
         return self.translate(
             de="Diagnoselabor von Beta AI", en="Beta AI Diagnosis Lab"
         )
-
-    @rx.var
-    def beta_ai_submissions(self) -> str:
-        return self.translate(de="Abgaben in Beta AI", en="Beta AI Submissions")
 
     @rx.var
     def beta_ai_trace_logs(self) -> str:
@@ -1442,42 +1428,12 @@ Please test the chat for functionality after changing the model.
         )
 
     @rx.var
-    def beta_ai_student_exercises_nav(self) -> str:
-        return self.translate(de="Übungen für Studierende", en="Student Exercises")
-
-    @rx.var
-    def beta_ai_diagnosis_lab_nav(self) -> str:
-        return self.translate(de="Diagnoselabor", en="Diagnosis Lab")
-
-    @rx.var
-    def beta_ai_trace_logs_nav(self) -> str:
-        return self.translate(de="Ablaufprotokolle", en="Trace Logs")
-
-    @rx.var
     def beta_ai_privacy_addendum(self) -> str:
         """Privacy addendum shown on the Beta AI student exercise page."""
         return self.translate(
             de='**Ergänzung zur Datenschutzerklärung:** Eingereichte Konversationen aus Übungen in "Beta AI" können in anonymisierter Form über den in der Datenschutzerklärung angegebenen Zeitraum hinaus gespeichert und für Tests verwendet werden, um neue Funktionen zu entwickeln.',
             en='**Addendum to the Privacy Policy:** Submitted conversations from "Beta AI" exercises may be stored in anonymized form beyond the period specified in the privacy policy and used for testing to develop new features.',
         )
-
-    @rx.var
-    def beta_ai_choose_exercise(self) -> str:
-        return self.translate(
-            de="Wähle eine Übung in Beta AI aus und öffne den Chat.",
-            en="Choose a Beta AI exercise and open the chat.",
-        )
-
-    @rx.var
-    def beta_ai_no_visible_exercises(self) -> str:
-        return self.translate(
-            de="Derzeit sind keine sichtbaren Übungen in Beta AI verfügbar.",
-            en="No visible Beta AI exercises are available yet.",
-        )
-
-    @rx.var
-    def beta_ai_open_chat(self) -> str:
-        return self.translate(de="Chat öffnen", en="Open Chat")
 
     @rx.var
     def beta_ai_submitted_chat(self) -> str:
@@ -1537,23 +1493,10 @@ Please test the chat for functionality after changing the model.
         )
 
     @rx.var
-    def beta_ai_builder_subtitle(self) -> str:
-        return self.translate(
-            de="Erstelle eigenständige Übungen für den Beta AI Tutor aus Dokumenten im PDF-Format",
-            en="Create independent Beta AI Tutor exercises from PDFs",
-        )
-
-    @rx.var
     def beta_ai_started_exercise_content_locked(self) -> str:
         return self.translate(
             de="Diese Übung wurde bereits von mindestens einem Studierenden begonnen. Titel, Sichtbarkeit, Abgabefrist und Bearbeitungsdauer können weiterhin bearbeitet werden. Quellmaterial, Beschreibung, Konzepte, Kernpunkte und Fehlvorstellungen können deshalb nicht mehr verändert werden.",
             en="At least one student has already started this exercise. The title, visibility, deadline, and editing duration can still be changed. Its source material, description, concepts, core points, and misconceptions can no longer be changed.",
-        )
-
-    @rx.var
-    def beta_ai_saved_exercises(self) -> str:
-        return self.translate(
-            de="Gespeicherte Übungen in Beta AI", en="Saved Beta AI Exercises"
         )
 
     @rx.var
@@ -1564,35 +1507,10 @@ Please test the chat for functionality after changing the model.
         )
 
     @rx.var
-    def beta_ai_saved_exercise_details(self) -> str:
-        return self.translate(
-            de="Details der gespeicherten Übung", en="Saved Exercise Details"
-        )
-
-    @rx.var
-    def beta_ai_delete_exercise_question(self) -> str:
-        return self.translate(
-            de="Übung in Beta AI löschen: ", en="Delete Beta AI exercise: "
-        )
-
-    @rx.var
     def beta_ai_delete_exercise_description(self) -> str:
         return self.translate(
             de="Diese Aktion kann nicht rückgängig gemacht werden. Beim Löschen dieser Übung in Beta AI werden auch ihre Konzepte, Kernpunkte, Fehlvorstellungen, alle Chats und Ergebnisse der Studierenden, Ablaufprotokolle und Lernstände gelöscht.",
             en="This cannot be undone. Deleting this Beta AI exercise also deletes its concepts, core points, misconceptions, all student chats/results, trace logs, and student concept states for this exercise.",
-        )
-
-    @rx.var
-    def beta_ai_persisted_concept_registry(self) -> str:
-        return self.translate(
-            de="Gespeichertes Konzeptverzeichnis", en="Persisted Concept Registry"
-        )
-
-    @rx.var
-    def beta_ai_no_concepts_saved(self) -> str:
-        return self.translate(
-            de="Für diese Übung wurden keine Konzepte gespeichert.",
-            en="No concepts saved for this exercise.",
         )
 
     @rx.var
@@ -1639,10 +1557,6 @@ Please test the chat for functionality after changing the model.
     @rx.var
     def beta_ai_exercise_metadata(self) -> str:
         return self.translate(de="2. Übungsinformationen", en="2. Exercise metadata")
-
-    @rx.var
-    def beta_ai_description_optional(self) -> str:
-        return self.translate(de="Beschreibung (optional)", en="Description (optional)")
 
     @rx.var
     def beta_ai_generation_targets(self) -> str:
@@ -1896,17 +1810,6 @@ Please test the chat for functionality after changing the model.
         return self.translate(
             de="Nachvollziehbare Vorschau der Diagnose, ihrer Validierung und der ausgewählten Strategieregel. Noch nicht gespeichert.",
             en="Replayable preview of the diagnosis, validation, and selected policy rule. Not persisted yet.",
-        )
-
-    @rx.var
-    def beta_ai_not_submitted(self) -> str:
-        return self.translate(de="Nicht abgegeben", en="Not submitted")
-
-    @rx.var
-    def beta_ai_no_submissions(self) -> str:
-        return self.translate(
-            de="Noch keine abgegebenen Übungen in Beta AI.",
-            en="No submitted Beta AI exercises yet.",
         )
 
     @rx.var
@@ -2255,20 +2158,6 @@ class BackendTranslations:
             language,
             de="Übung in Beta AI nicht gefunden.",
             en="Beta AI exercise not found.",
-        )
-
-    @staticmethod
-    def beta_ai_exercise_deleted(language: Language) -> str:
-        return translate(
-            language, de="Übung in Beta AI gelöscht.", en="Beta AI exercise deleted."
-        )
-
-    @staticmethod
-    def beta_ai_started_exercise_cannot_delete(language: Language) -> str:
-        return translate(
-            language,
-            de="Diese Übung kann nicht gelöscht werden, weil sie bereits von mindestens einem Studierenden begonnen wurde.",
-            en="This exercise cannot be deleted because at least one student has already started it.",
         )
 
     @staticmethod
