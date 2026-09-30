@@ -144,7 +144,7 @@ def upgrade() -> None:
     sa.PrimaryKeyConstraint('id', name=op.f('pk_betastudentconceptstate'))
     )
     with op.batch_alter_table('config', schema=None) as batch_op:
-        batch_op.add_column(sa.Column('level_ai_model', sqlmodel.sql.sqltypes.AutoString(), nullable=False))
+        batch_op.add_column(sa.Column('level_ai_model', sqlmodel.sql.sqltypes.AutoString(), server_default=sa.text("'gpt-4.1'"), nullable=False))
 
     with op.batch_alter_table('report', schema=None) as batch_op:
         batch_op.add_column(sa.Column('beta_exercise_id', sa.Integer(), nullable=True))
