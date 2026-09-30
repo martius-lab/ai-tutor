@@ -13,6 +13,7 @@ import aitutor.routes as routes
 from aitutor.auth.protection import state_require_lecture_role
 from aitutor.auth.state import SessionState
 from aitutor.models import (
+    BetaExercise,
     Exercise,
     Lecture,
     LectureRole,
@@ -34,6 +35,7 @@ class LectureReportTableRow:
     report_view_route: str
     username: str
     exercise_title: str | None
+    exercise_type: str
     report_preview: str
     looked_at: bool
 
@@ -94,9 +96,14 @@ class LectureReportsState(FilterMixin, SessionState):
             # exercises can still be shown as "Deleted" in the lecture-specific table.
             stmt = (
                 select(Report)
+                .join(UserInfo, Report.userinfo)  # type: ignore
+                .join(LocalUser, UserInfo.local_user)  # type: ignore
+                .outerjoin(Exercise, Report.exercise)  # type: ignore
+                .outerjoin(BetaExercise, Report.beta_exercise)  # type: ignore
                 .where(Report.lecture_id == self.current_lecture_id)
                 .options(
                     selectinload(Report.exercise),  # type: ignore
+                    selectinload(Report.beta_exercise),  # type: ignore
                     selectinload(Report.userinfo).selectinload(UserInfo.local_user),  # type: ignore
                 )
                 .order_by(Report.id.desc())  # type: ignore
@@ -108,27 +115,23 @@ class LectureReportsState(FilterMixin, SessionState):
                 for key, value in self.search_values:
                     match key:
                         case gv.SEARCH_USER_KEY:
-                            stmt = stmt.join(UserInfo, Report.userinfo).join(  # type: ignore
-                                LocalUser,
-                                UserInfo.local_user,  # type: ignore
-                            )  # type: ignore
                             search_conditions.append(
                                 LocalUser.username.ilike(f"%{value}%")  # type: ignore
                             )
                         case gv.SEARCH_EXERCISE_KEY:
-                            stmt = stmt.outerjoin(Exercise, Report.exercise)  # type: ignore
-                            search_conditions.append(Exercise.title.ilike(f"%{value}%"))  # type: ignore
+                            search_conditions.append(
+                                or_(
+                                    Exercise.title.ilike(f"%{value}%"),  # type: ignore
+                                    BetaExercise.title.ilike(f"%{value}%"),  # type: ignore
+                                )
+                            )
 
                         case _:
-                            stmt = (
-                                stmt.join(UserInfo, Report.userinfo)  # type: ignore
-                                .join(LocalUser, UserInfo.local_user)  # type: ignore
-                                .outerjoin(Exercise, Report.exercise)  # type: ignore
-                            )
                             search_conditions.append(
                                 or_(
                                     LocalUser.username.ilike(f"%{value}%"),  # type: ignore
                                     Exercise.title.ilike(f"%{value}%"),  # type: ignore
+                                    BetaExercise.title.ilike(f"%{value}%"),  # type: ignore
                                     Report.report_text.ilike(f"%{value}%"),  # type: ignore
                                 )
                             )
@@ -149,7 +152,11 @@ class LectureReportsState(FilterMixin, SessionState):
                 else:
                     preview = report.report_text
 
-                exercise_title = report.exercise.title if report.exercise else None
+                exercise_title = None
+                if report.exercise_type == "beta" and report.beta_exercise:
+                    exercise_title = report.beta_exercise.title
+                elif report.exercise:
+                    exercise_title = report.exercise.title
 
                 # Append a LectureReportTableRow
                 self.table_rows.append(
@@ -161,6 +168,7 @@ class LectureReportsState(FilterMixin, SessionState):
                         ),
                         username=report.userinfo.local_user.username,
                         exercise_title=exercise_title,
+                        exercise_type=report.exercise_type,
                         report_preview=preview,
                         looked_at=report.looked_at,
                     )

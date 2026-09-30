@@ -10,6 +10,7 @@ from aitutor.pages.beta_ai_chat.components import (
     beta_submission_status,
     message_input,
     messages_panel,
+    report_conversation_button,
 )
 from aitutor.pages.beta_ai_chat.state import BetaAIChatState
 from aitutor.pages.navbar import with_navbar
@@ -37,12 +38,26 @@ def beta_ai_chat_page() -> rx.Component:
                         rx.heading(BetaAIChatState.exercise_title, size="5"),
                         align="center",
                     ),
-                    rx.tablet_and_desktop(beta_submission_status()),
+                    rx.tablet_and_desktop(
+                        rx.hstack(
+                            report_conversation_button(),
+                            beta_submission_status(),
+                            spacing="4",
+                            align="center",
+                        )
+                    ),
                     align="center",
                     justify="between",
                     width="100%",
                 ),
-                rx.mobile_only(beta_submission_status()),
+                rx.mobile_only(
+                    rx.hstack(
+                        report_conversation_button(),
+                        beta_submission_status(),
+                        spacing="4",
+                        align="center",
+                    )
+                ),
                 rx.tablet_and_desktop(
                     rx.cond(
                         BetaAIChatState.token_warning_threshold_reached
