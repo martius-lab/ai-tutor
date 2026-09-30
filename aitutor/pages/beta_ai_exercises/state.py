@@ -66,11 +66,13 @@ class BetaAIExercisesState(SessionState):
     add_tag_dialog_is_open: bool = False
 
     @rx.event
+    @state_require_lecture_role(LectureRole.OWNER)
     def set_new_tag_name(self, value: str):
         """Set the name used by the add-tag dialog."""
         self.new_tag_name = value[:100]
 
     @rx.event
+    @state_require_lecture_role(LectureRole.OWNER)
     def set_add_tag_dialog_is_open(self, is_open: bool):
         """Set whether the add-tag dialog is open."""
         self.add_tag_dialog_is_open = is_open
@@ -78,11 +80,13 @@ class BetaAIExercisesState(SessionState):
             self.new_tag_name = ""
 
     @rx.event
+    @state_require_lecture_role(LectureRole.OWNER)
     def set_title(self, value: str):
         """Set beta exercise title."""
         self.title = value[: LECTURE_MANAGE_EXERCISES_FIELD_MAX_LENGTHS["title"]]
 
     @rx.event
+    @state_require_lecture_role(LectureRole.OWNER)
     def set_description(self, value: str):
         """Set beta exercise description."""
         self.description = value[
@@ -90,16 +94,19 @@ class BetaAIExercisesState(SessionState):
         ]
 
     @rx.event
+    @state_require_lecture_role(LectureRole.OWNER)
     def set_is_hidden(self, value: bool):
         """Set whether the exercise is hidden from students."""
         self.is_hidden = value
 
     @rx.event
+    @state_require_lecture_role(LectureRole.OWNER)
     def set_deadline(self, value: str):
         """Set the exercise deadline."""
         self.deadline = value
 
     @rx.event
+    @state_require_lecture_role(LectureRole.OWNER)
     def set_days_to_complete(self, value: str):
         """Set the number of days available for the exercise."""
         self.days_to_complete = value[
@@ -107,11 +114,13 @@ class BetaAIExercisesState(SessionState):
         ]
 
     @rx.event
+    @state_require_lecture_role(LectureRole.OWNER)
     def set_use_deadline(self, value: bool):
         """Set whether this exercise uses a deadline."""
         self.use_deadline = value
 
     @rx.event
+    @state_require_lecture_role(LectureRole.OWNER)
     def set_concept_target_count(self, value: str):
         """Set the approximate number of concepts to generate."""
         self._set_generation_target(
@@ -119,6 +128,7 @@ class BetaAIExercisesState(SessionState):
         )
 
     @rx.event
+    @state_require_lecture_role(LectureRole.OWNER)
     def set_core_point_target_count(self, value: str):
         """Set the approximate number of core points per concept."""
         self._set_generation_target(
@@ -126,6 +136,7 @@ class BetaAIExercisesState(SessionState):
         )
 
     @rx.event
+    @state_require_lecture_role(LectureRole.OWNER)
     def set_misconception_target_count(self, value: str):
         """Set the approximate number of misconceptions per concept."""
         self._set_generation_target(
@@ -133,16 +144,19 @@ class BetaAIExercisesState(SessionState):
         )
 
     @rx.event
+    @state_require_lecture_role(LectureRole.OWNER)
     def set_concept_label(self, concept_index: int, value: str):
         """Set concept label."""
         self.generated_concepts[concept_index].label = value
 
     @rx.event
+    @state_require_lecture_role(LectureRole.OWNER)
     def set_concept_description(self, concept_index: int, value: str):
         """Set concept description."""
         self.generated_concepts[concept_index].description = value
 
     @rx.event
+    @state_require_lecture_role(LectureRole.OWNER)
     def set_core_point_text(
         self, concept_index: int, core_point_index: int, value: str
     ):
@@ -152,6 +166,7 @@ class BetaAIExercisesState(SessionState):
         ].text = value
 
     @rx.event
+    @state_require_lecture_role(LectureRole.OWNER)
     def set_misconception_label(
         self, concept_index: int, misconception_index: int, value: str
     ):
@@ -161,6 +176,7 @@ class BetaAIExercisesState(SessionState):
         ].label = value
 
     @rx.event
+    @state_require_lecture_role(LectureRole.OWNER)
     def set_builder_dialog_is_open(self, is_open: bool):
         """Set whether the Beta AI builder dialog is open."""
         self.builder_dialog_is_open = is_open
@@ -237,18 +253,21 @@ class BetaAIExercisesState(SessionState):
             )
 
     @rx.event
+    @state_require_lecture_role(LectureRole.OWNER)
     def add_to_selected_tags(self, tag: str):
         """Add one lecture tag to the Better AI exercise."""
         if tag and tag not in self.selected_tags:
             self.selected_tags.append(tag)
 
     @rx.event
+    @state_require_lecture_role(LectureRole.OWNER)
     def remove_selected_tag(self, tag: str):
         """Remove one selected tag."""
         if tag in self.selected_tags:
             self.selected_tags.remove(tag)
 
     @rx.event
+    @state_require_lecture_role(LectureRole.OWNER)
     def add_new_tag(self):
         """Create a shared lecture tag and select it for this exercise."""
         if self.current_lecture_id is None:
@@ -345,6 +364,7 @@ class BetaAIExercisesState(SessionState):
         )
 
     @rx.event
+    @state_require_lecture_role(LectureRole.OWNER)
     def reset_builder(self):
         """Reset the current builder form."""
         self.title = ""
@@ -372,6 +392,7 @@ class BetaAIExercisesState(SessionState):
         self.load_tags()
 
     @rx.event
+    @state_require_lecture_role(LectureRole.OWNER)
     def open_builder_dialog(self, lecture_id: int | None):
         """Open a blank Beta AI builder for the selected lecture."""
         if lecture_id is None:
@@ -394,11 +415,13 @@ class BetaAIExercisesState(SessionState):
         self.builder_dialog_is_open = True
 
     @rx.event
+    @state_require_lecture_role(LectureRole.OWNER)
     def close_builder_dialog(self):
         """Close the Beta AI builder dialog."""
         self.builder_dialog_is_open = False
 
     @rx.event
+    @state_require_lecture_role(LectureRole.OWNER)
     def cancel_builder(self):
         """Reset the builder and return to the shared exercise management page."""
         self.reset_builder()
@@ -462,6 +485,7 @@ class BetaAIExercisesState(SessionState):
         )
 
     @rx.event
+    @state_require_lecture_role(LectureRole.OWNER)
     def load_exercise_for_editing(self, exercise_id: int):
         """Load one Better AI exercise into the existing builder."""
         with rx.session() as session:
@@ -599,6 +623,7 @@ class BetaAIExercisesState(SessionState):
         )
 
     @rx.event
+    @state_require_lecture_role(LectureRole.OWNER)
     def add_concept(self):
         """Add an empty concept manually."""
         self.generated_concepts.append(
@@ -610,21 +635,25 @@ class BetaAIExercisesState(SessionState):
         )
 
     @rx.event
+    @state_require_lecture_role(LectureRole.OWNER)
     def delete_concept(self, concept_index: int):
         """Delete a concept."""
         del self.generated_concepts[concept_index]
 
     @rx.event
+    @state_require_lecture_role(LectureRole.OWNER)
     def add_core_point(self, concept_index: int):
         """Add a core point."""
         self.generated_concepts[concept_index].core_points.append(EditableCorePoint())
 
     @rx.event
+    @state_require_lecture_role(LectureRole.OWNER)
     def delete_core_point(self, concept_index: int, core_point_index: int):
         """Delete a core point."""
         del self.generated_concepts[concept_index].core_points[core_point_index]
 
     @rx.event
+    @state_require_lecture_role(LectureRole.OWNER)
     def add_misconception(self, concept_index: int):
         """Add a misconception."""
         self.generated_concepts[concept_index].misconceptions.append(
@@ -632,6 +661,7 @@ class BetaAIExercisesState(SessionState):
         )
 
     @rx.event
+    @state_require_lecture_role(LectureRole.OWNER)
     def delete_misconception(self, concept_index: int, misconception_index: int):
         """Delete a misconception."""
         del self.generated_concepts[concept_index].misconceptions[misconception_index]
@@ -730,6 +760,7 @@ class BetaAIExercisesState(SessionState):
             session.add(db_misconception)
 
     @rx.event
+    @state_require_lecture_role(LectureRole.OWNER)
     def save_beta_exercise(self):
         """Persist the exercise and reviewed concepts."""
         if not self.can_save_exercise:
