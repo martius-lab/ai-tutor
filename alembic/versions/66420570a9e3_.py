@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: 458d936f7bca
+Revision ID: 66420570a9e3
 Revises: 0ce810c7ed80
-Create Date: 2026-09-30 21:14:40.077238
+Create Date: 2026-10-01 00:23:05.969581
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 import sqlmodel
 
 # revision identifiers, used by Alembic.
-revision: str = '458d936f7bca'
+revision: str = '66420570a9e3'
 down_revision: Union[str, None] = '0ce810c7ed80'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -144,7 +144,7 @@ def upgrade() -> None:
     sa.PrimaryKeyConstraint('id', name=op.f('pk_betastudentconceptstate'))
     )
     with op.batch_alter_table('config', schema=None) as batch_op:
-        batch_op.add_column(sa.Column('level_ai_model', sqlmodel.sql.sqltypes.AutoString(), server_default=sa.text("'gpt-4.1'"), nullable=False))
+        batch_op.add_column(sa.Column('level_ai_model', sqlmodel.sql.sqltypes.AutoString(), nullable=False))
 
     with op.batch_alter_table('report', schema=None) as batch_op:
         batch_op.add_column(sa.Column('beta_exercise_id', sa.Integer(), nullable=True))
