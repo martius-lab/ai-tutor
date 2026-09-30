@@ -4,9 +4,9 @@ from pyparsing import (
     ParserElement,
     Word,
     alphanums,
-    dblQuotedString,
-    oneOf,
-    removeQuotes,
+    dbl_quoted_string,
+    one_of,
+    remove_quotes,
 )
 
 
@@ -20,17 +20,17 @@ def parse_query_keys(query: str, keys: list[str]) -> tuple[str, str]:
 
     Else it returns ('rest', query).
     """
-    ParserElement.setDefaultWhitespaceChars(" \t")
+    ParserElement.set_default_whitespace_chars(" \t")
 
-    key = oneOf(keys)
-    quoted_value = dblQuotedString.setParseAction(removeQuotes)
+    key = one_of(keys)
+    quoted_value = dbl_quoted_string.set_parse_action(remove_quotes)
     unquoted_value = Word(alphanums + "_-./")
     value = quoted_value | unquoted_value
 
-    pair = (key + ":" + value).setParseAction(lambda t: (t[0], t[2]))
+    pair = (key + ":" + value).set_parse_action(lambda t: (t[0], t[2]))
 
     try:
-        result = pair.parseString(query, parseAll=True)[0]
+        result = pair.parse_string(query, parse_all=True)[0]
         return (str(result[0]), str(result[1]))
     except Exception:
         return ("rest", query)
