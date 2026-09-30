@@ -68,6 +68,7 @@
 *.sage.py
 *.so
 *.spec
+*.sql
 .Python
 .cache
 .coverage

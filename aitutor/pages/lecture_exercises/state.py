@@ -10,7 +10,7 @@ from sqlalchemy.orm import selectinload
 from sqlmodel import and_, func, or_, select
 
 import aitutor.global_vars as gv
-import aitutor.routes as routes
+from aitutor import routes
 from aitutor.auth.protection import state_require_lecture_role
 from aitutor.auth.state import SessionState
 from aitutor.global_vars import TIME_FORMAT, TIME_ZONE
@@ -43,6 +43,15 @@ class ExerciseCard:
     submit_time_stamp: str
     tags: list[str]
     chat_route: str
+
+
+def _deadline_sort_key(deadline: datetime | None) -> datetime:
+    """Compare stored (naive) and timezone-aware deadlines consistently."""
+    if deadline is None:
+        return datetime.max.replace(tzinfo=ZoneInfo(TIME_ZONE))
+    if deadline.tzinfo is None:
+        return deadline.replace(tzinfo=ZoneInfo(TIME_ZONE))
+    return deadline.astimezone(ZoneInfo(TIME_ZONE))
 
 
 class LectureExercisesState(FilterMixin, SessionState):
@@ -338,10 +347,10 @@ class LectureExercisesState(FilterMixin, SessionState):
                 self.open_deadline_exercises.append(exercise)
 
         self.open_deadline_exercises.sort(
-            key=lambda exercise: exercise.deadline or datetime.max
+            key=lambda exercise: _deadline_sort_key(exercise.deadline)
         )
         self.closed_deadline_exercises.sort(
-            key=lambda exercise: exercise.deadline or datetime.min,
+            key=lambda exercise: _deadline_sort_key(exercise.deadline),
             reverse=True,
         )
         self.no_deadline_exercises.sort(

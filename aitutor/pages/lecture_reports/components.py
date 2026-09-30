@@ -91,7 +91,7 @@ def show_table_row(table_row: LectureReportTableRow) -> rx.Component:
                         variant="ghost",
                         on_click=LectureReportsState.toggle_looked_at(
                             rx.cond(
-                                table_row.report_id != None,  # noqa: E711
+                                table_row.report_id != None,
                                 table_row.report_id,
                                 0,
                             ).to(int)
@@ -133,7 +133,7 @@ def show_table_row(table_row: LectureReportTableRow) -> rx.Component:
                 cancel_text=LanguageState.cancel,
                 on_confirm=LectureReportsState.delete_report(
                     rx.cond(
-                        table_row.report_id != None,  # noqa: E711
+                        table_row.report_id != None,
                         table_row.report_id,
                         0,
                     ).to(int)

@@ -1,8 +1,9 @@
 """Module defining database models."""
+# ruff: file-ignore[UP045] -- `x | None` does not seem to work for SQLAlchemy
 
 from datetime import datetime, timedelta
 from enum import IntEnum, StrEnum
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 from zoneinfo import ZoneInfo
 
 import pydantic
@@ -102,16 +103,16 @@ class Lecture(SQLModel, table=True):
     default_prompt_id: Optional[int] = Field(default=None)
 
     # ORM relationships
-    user_links: List["LinkUserLecture"] = Relationship(
+    user_links: list[LinkUserLecture] = Relationship(
         back_populates="lecture", sa_relationship_kwargs={"passive_deletes": True}
     )
-    exercises: List["Exercise"] = Relationship(
+    exercises: list[Exercise] = Relationship(
         back_populates="lecture", sa_relationship_kwargs={"passive_deletes": True}
     )
-    beta_exercises: List["BetaExercise"] = Relationship(
+    beta_exercises: list[BetaExercise] = Relationship(
         back_populates="lecture", sa_relationship_kwargs={"passive_deletes": True}
     )
-    tags: List["Tag"] = Relationship(
+    tags: list[Tag] = Relationship(
         back_populates="lecture", sa_relationship_kwargs={"passive_deletes": True}
     )
 
@@ -134,7 +135,7 @@ class LinkUserLecture(SQLModel, table=True):
 
     # ORM relationships
     lecture: Optional[Lecture] = Relationship(back_populates="user_links")
-    user: Optional["LocalUser"] = Relationship()
+    user: Optional[LocalUser] = Relationship()
 
 
 class ExerciseTagLink(SQLModel, table=True):
@@ -180,10 +181,10 @@ class Tag(SQLModel, table=True):
     )
 
     # ORM relationship
-    exercises: List["Exercise"] = Relationship(
+    exercises: list[Exercise] = Relationship(
         back_populates="tags", link_model=ExerciseTagLink
     )
-    beta_exercises: List["BetaExercise"] = Relationship(
+    beta_exercises: list[BetaExercise] = Relationship(
         back_populates="tags", link_model=BetaExerciseTagLink
     )
     lecture: Optional[Lecture] = Relationship(back_populates="tags")
@@ -210,13 +211,13 @@ class Exercise(SQLModel, table=True):
     days_to_complete: Optional[int] = Field(default=None)
 
     # ORM relationship
-    submissions: List["ExerciseResult"] = Relationship(
+    submissions: list[ExerciseResult] = Relationship(
         back_populates="exercise", sa_relationship_kwargs={"passive_deletes": True}
     )
-    tags: List[Tag] = Relationship(
+    tags: list[Tag] = Relationship(
         back_populates="exercises", link_model=ExerciseTagLink
     )
-    prompt: Optional["Prompt"] = Relationship()
+    prompt: Optional[Prompt] = Relationship()
     lecture: Optional[Lecture] = Relationship(back_populates="exercises")
 
     @property
@@ -266,9 +267,9 @@ class ExerciseResult(SQLModel, table=True):
     """
 
     id: Optional[int] = Field(default=None, primary_key=True)
-    conversation_text: List[Dict[str, Any]] = Field(sa_column=Column(JSON), default=[])
+    conversation_text: list[dict[str, Any]] = Field(sa_column=Column(JSON), default=[])
     check_passed: bool = Field(default=False)
-    finished_conversation: List[Dict[str, Any]] = Field(
+    finished_conversation: list[dict[str, Any]] = Field(
         sa_column=Column(JSON), default=[]
     )
     submit_time_stamp: Optional[datetime] = Field(
@@ -284,8 +285,8 @@ class ExerciseResult(SQLModel, table=True):
     userinfo_id: int = Field(foreign_key="userinfo.id", ondelete="CASCADE")
 
     # ORM relationships
-    exercise: "Exercise" = Relationship(back_populates="submissions")
-    user: "UserInfo" = Relationship(back_populates="exercise_results")
+    exercise: Exercise = Relationship(back_populates="submissions")
+    user: UserInfo = Relationship(back_populates="exercise_results")
 
     def __repr__(self):
         return (
@@ -327,10 +328,10 @@ class BetaExercise(SQLModel, table=True):
     days_to_complete: Optional[int] = Field(default=None)
 
     # ORM relationships
-    concepts: List["BetaConcept"] = Relationship(
+    concepts: list[BetaConcept] = Relationship(
         back_populates="beta_exercise", sa_relationship_kwargs={"passive_deletes": True}
     )
-    tags: List[Tag] = Relationship(
+    tags: list[Tag] = Relationship(
         back_populates="beta_exercises", link_model=BetaExerciseTagLink
     )
     lecture: Optional[Lecture] = Relationship(back_populates="beta_exercises")
@@ -381,8 +382,8 @@ class BetaExerciseResult(SQLModel, table=True):
     """
 
     id: Optional[int] = Field(default=None, primary_key=True)
-    conversation_text: List[Dict[str, Any]] = Field(sa_column=Column(JSON), default=[])
-    finished_conversation: List[Dict[str, Any]] = Field(
+    conversation_text: list[dict[str, Any]] = Field(sa_column=Column(JSON), default=[])
+    finished_conversation: list[dict[str, Any]] = Field(
         sa_column=Column(JSON), default=[]
     )
     completion_unlocked: bool = Field(default=False)
@@ -439,7 +440,7 @@ class BetaExerciseTraceLog(SQLModel, table=True):
     selected_action: str = Field(nullable=False, default="")
     selected_rule_id: str = Field(nullable=False, default="")
     question_level: str = Field(nullable=False, default="")
-    trace_entry: Dict[str, Any] = Field(sa_column=Column(JSON), default={})
+    trace_entry: dict[str, Any] = Field(sa_column=Column(JSON), default={})
     created_at: Optional[datetime] = Field(
         sa_column=Column(type_=DateTime(timezone=True)), default=None
     )
@@ -467,15 +468,15 @@ class BetaStudentConceptState(SQLModel, table=True):
     attempts_total: int = Field(default=0)
     successful_attempts: int = Field(default=0)
     misconception_hits: int = Field(default=0)
-    covered_core_point_ids: List[int] = Field(sa_column=Column(JSON), default=[])
-    missing_core_point_ids: List[int] = Field(sa_column=Column(JSON), default=[])
-    evidence_by_core_point: Dict[str, Any] = Field(sa_column=Column(JSON), default={})
-    level_status: Dict[str, Any] = Field(sa_column=Column(JSON), default={})
-    level_evidence: Dict[str, Any] = Field(sa_column=Column(JSON), default={})
-    active_misconceptions: List[Dict[str, Any]] = Field(
+    covered_core_point_ids: list[int] = Field(sa_column=Column(JSON), default=[])
+    missing_core_point_ids: list[int] = Field(sa_column=Column(JSON), default=[])
+    evidence_by_core_point: dict[str, Any] = Field(sa_column=Column(JSON), default={})
+    level_status: dict[str, Any] = Field(sa_column=Column(JSON), default={})
+    level_evidence: dict[str, Any] = Field(sa_column=Column(JSON), default={})
+    active_misconceptions: list[dict[str, Any]] = Field(
         sa_column=Column(JSON), default=[]
     )
-    resolved_misconceptions: List[Dict[str, Any]] = Field(
+    resolved_misconceptions: list[dict[str, Any]] = Field(
         sa_column=Column(JSON), default=[]
     )
     last_diagnosis_pattern: str = Field(nullable=False, default="")
@@ -507,11 +508,11 @@ class BetaConcept(SQLModel, table=True):
     order_index: int = Field(default=0)
 
     # ORM relationships
-    beta_exercise: "BetaExercise" = Relationship(back_populates="concepts")
-    core_points: List["BetaCorePoint"] = Relationship(
+    beta_exercise: BetaExercise = Relationship(back_populates="concepts")
+    core_points: list[BetaCorePoint] = Relationship(
         back_populates="beta_concept", sa_relationship_kwargs={"passive_deletes": True}
     )
-    misconceptions: List["BetaMisconception"] = Relationship(
+    misconceptions: list[BetaMisconception] = Relationship(
         back_populates="beta_concept", sa_relationship_kwargs={"passive_deletes": True}
     )
 
@@ -528,7 +529,7 @@ class BetaCorePoint(SQLModel, table=True):
     order_index: int = Field(default=0)
 
     # ORM relationships
-    beta_concept: "BetaConcept" = Relationship(back_populates="core_points")
+    beta_concept: BetaConcept = Relationship(back_populates="core_points")
 
     def __repr__(self):
         return f"<BetaCorePoint(id={self.id}, beta_concept_id={self.beta_concept_id})>"
@@ -543,7 +544,7 @@ class BetaMisconception(SQLModel, table=True):
     order_index: int = Field(default=0)
 
     # ORM relationships
-    beta_concept: "BetaConcept" = Relationship(back_populates="misconceptions")
+    beta_concept: BetaConcept = Relationship(back_populates="misconceptions")
 
     def __repr__(self):
         return (
@@ -563,10 +564,10 @@ class UserInfo(SQLModel, table=True):
     language: Language = Field(default=Language.EN)
 
     # ORM relationship
-    exercise_results: List["ExerciseResult"] = Relationship(
+    exercise_results: list[ExerciseResult] = Relationship(
         back_populates="user", sa_relationship_kwargs={"passive_deletes": True}
     )
-    local_user: "LocalUser" = Relationship()
+    local_user: LocalUser = Relationship()
 
 
 class Permission(SQLModel, table=True):
@@ -709,13 +710,13 @@ class Report(SQLModel, table=True):
     )
     report_text: str
     looked_at: bool = Field(default=False)
-    conversation_snapshot: List[Dict[str, Any]] = Field(
+    conversation_snapshot: list[dict[str, Any]] = Field(
         sa_column=Column(JSON), default=[]
     )
 
-    exercise: Optional["Exercise"] = Relationship()
-    beta_exercise: Optional["BetaExercise"] = Relationship()
-    userinfo: "UserInfo" = Relationship()
+    exercise: Optional[Exercise] = Relationship()
+    beta_exercise: Optional[BetaExercise] = Relationship()
+    userinfo: UserInfo = Relationship()
 
 
 class LecturerRegistrationToken(SQLModel, table=True):

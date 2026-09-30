@@ -3,7 +3,7 @@
 import reflex as rx
 from sqlmodel import Session, select
 
-import aitutor.routes as routes
+from aitutor import routes
 from aitutor.auth.protection import state_require_lecture_role
 from aitutor.auth.state import SessionState
 from aitutor.beta_ai.audit import DiagnosisTrace, build_diagnosis_trace

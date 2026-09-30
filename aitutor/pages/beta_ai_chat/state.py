@@ -7,7 +7,7 @@ import reflex as rx
 from sqlmodel import select
 
 import aitutor.global_vars as gv
-import aitutor.routes as routes
+from aitutor import routes
 from aitutor.auth.protection import state_require_role_or_permission
 from aitutor.auth.state import SessionState
 from aitutor.beta_ai.audit import build_diagnosis_trace
@@ -985,16 +985,17 @@ class BetaAIChatState(SessionState):
                         BetaStudentConceptState.beta_concept_id == concept.id,
                     )
                 ).one_or_none()
-            if student_state is None or student_state.state != "secure":
-                if self.load_concept_context(next_index):
-                    return {
-                        "advanced": True,
-                        "completed_all": False,
-                        "from_concept_id": previous_concept_id,
-                        "to_concept_id": self.selected_concept_id,
-                        "previous_label": previous_label,
-                        "reason": "current_concept_secure",
-                    }
+            if (
+                student_state is None or student_state.state != "secure"
+            ) and self.load_concept_context(next_index):
+                return {
+                    "advanced": True,
+                    "completed_all": False,
+                    "from_concept_id": previous_concept_id,
+                    "to_concept_id": self.selected_concept_id,
+                    "previous_label": previous_label,
+                    "reason": "current_concept_secure",
+                }
 
         self.all_concepts_completed = self.are_all_concepts_secure()
         if self.all_concepts_completed:

@@ -39,9 +39,7 @@ def initialize_config_db():
 def add_default_prompts_to_db():
     """Add default prompts to the database."""
     with rx.session() as session:
-        _prompt = session.exec(
-            select(Prompt).where(Prompt.lecture_id == None)  # noqa: E711
-        ).first()
+        _prompt = session.exec(select(Prompt).where(Prompt.lecture_id == None)).first()
         if _prompt:
             return
 

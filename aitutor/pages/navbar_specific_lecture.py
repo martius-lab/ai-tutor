@@ -5,7 +5,7 @@ from typing import NamedTuple
 import reflex as rx
 from sqlmodel import select
 
-import aitutor.routes as routes
+from aitutor import routes
 from aitutor.auth.state import SessionState
 from aitutor.language_state import LanguageState
 from aitutor.models import BetaExercise
@@ -71,7 +71,8 @@ class SpecificLectureNavbarState(SessionState):
 
         try:
             return self.get_route_param_or_error("lecture_id", dtype=int)
-        except Exception:
+        except KeyError, ValueError:
+            # Better AI detail routes carry an exercise ID instead of a lecture ID.
             pass
 
         try:

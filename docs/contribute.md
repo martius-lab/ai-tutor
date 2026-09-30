@@ -26,6 +26,57 @@ We use uv for managing the package.  See the README (section "Installation") on 
 use uv to initially set up and run the AI Tutor application.
 
 
+## Run the database for development
+
+For development, we use a PostgreSQL database which is run via Docker Compose using this
+command:
+```
+sudo make dev-up
+```
+Once started it will automatically be restarted when rebooting.  To stop it, call
+```
+sudo make dev-down
+```
+And to see the log (for debugging):
+```
+sudo make dev-logs
+```
+
+To easily backup/restore the database, you may use the `postgres.py` script.  To see all
+options, run
+```
+./postgres.py -h
+```
+Note that the script requires root permission (i.e. run with `sudo`) to be able to
+access the Docker container.
+
+When starting with an fresh database, you need to run the database migration once to
+create all the tables used by AI Tutor:
+```
+uv run reflex db migrate
+```
+
+
+## Seed database with dummy data for testing
+
+For testing, it can be useful to have some users, lectures, exercises, etc. created, so
+the application is not empty.  This can be done using the following command from the
+packages root directory (after migration):
+
+```
+uv run ./scripts/seed_demo_data.py
+```
+
+Apart from adding some dummy data, it also changes the password of the initial admin
+user and the registration code to "1234".
+
+You may also use the following command to reset the database and seed with the demo data
+in one go:
+```
+make dev-db-reset
+```
+
+
 ## Reflex
 
 We use [Reflex](https://reflex.dev) to build the application.  Reflex is a full-stack
@@ -73,7 +124,7 @@ the package to the project's virtual environment.
 Database tables are defined as classes that are derived from `SQLModel` (see
 `aitutor/models.py`).  Reflex uses [Alembic](https://alembic.sqlalchemy.org/en/latest/)
 for dealing with changes on those models (so existing databases can be updated
-accordingly when switching to a newer version of AI Tutor).  For this, the following two
+accordingly when switching to a newer version of AI Tutor).  For this, the following
 commands need to be run:
 
 1. **makemigrations:** This needs to be run once by the developer who changes an
@@ -81,29 +132,18 @@ commands need to be run:
    `alembic/versions/`, which should be committed in the same commit that changed the
    model.
    ```
-   uv run reflex db makemigrations
+   uv run reflex db makemigrations --message "short description of the change"
    ```
 
-   In some cases, manual modifications have to be made to the migration
-   file.  Most importantly, **if an existing table is modified**, add the following code
-   snippet at the beginning of both the `upgrade` and the `downgrade` function:
-   ```python
-   # Need to disable foreign key constraints for SQLite.  SQLite recreates tables
-   # for batch alters, and active foreign keys can trigger cascaded deletes.
-   conn = op.get_bind()
-   if conn.engine.name.startswith("sqlite"):
-       conn.execute(sa.text("PRAGMA foreign_keys=OFF"))
-   ```
-   This is needed as in SQLite tables are altered by deleting the old table and creating
-   a new, modified one.  With foreign keys enabled, this can lead to unwanted cascaded
-   deletes (aka **data loss**).
+   In some cases, manual modifications have to be made to the generated migration file
+   afterwards.
 
-   Another typical modification that is needed: When adding boolean fields with default
-   values, alembic does for some reason use `sa.text('0')`, which works for SQLite but
-   not for PostgreSQL, which is strict regarding types.  So this needs to be changed
-   manually to `sa.sql.false()` (or `true()` respectively).
+   A typical example: When adding boolean fields with default values, alembic does for
+   some reason use `sa.text('0')`, which does not work for PostgreSQL, which is strict
+   regarding types.  So this needs to be changed manually to `sa.sql.false()` (or
+   `true()` respectively).
 
-   Finally, Alembic only takes care of changing the table definitions.  If any existing
+   Further, Alembic only takes care of changing the table definitions.  If any existing
    data needs to be converted/copied/etc., this has to be done by adding the appropriate
    SQL commands manually.  For an example, see `alembic/versions/cce41a34a7fa_.py`.
 
@@ -113,6 +153,10 @@ commands need to be run:
    ```
    uv run reflex db migrate
    ```
+
+3. **Update `scripts/seed_demo_data.py`**:  When changing the database schema, please
+   also check if the script for seeding the database with dummy data needs to be
+   updated.
 
 ## Tests
 

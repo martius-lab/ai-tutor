@@ -1,5 +1,5 @@
 # Use this override file to test SMTP delivery locally with Mailpit.
-#     docker compose -f compose.yaml -f compose.mailpit.yaml up
+#     docker compose -f compose.mailpit.yaml up
 services:
   mailpit:
     image: axllent/mailpit

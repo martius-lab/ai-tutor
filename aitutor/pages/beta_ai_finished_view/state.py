@@ -3,7 +3,7 @@
 import reflex as rx
 from sqlmodel import Session, select
 
-import aitutor.routes as routes
+from aitutor import routes
 from aitutor.auth.protection import state_require_role_or_permission
 from aitutor.auth.state import SessionState
 from aitutor.language_state import BackendTranslations as BT
@@ -51,7 +51,7 @@ class BetaAIFinishedViewState(SessionState):
                 .where(
                     BetaExercise.id == self._beta_exercise_id,
                     BetaExerciseResult.userinfo_id == userinfo.id,
-                    BetaExerciseResult.submit_time_stamp != None,  # noqa: E711
+                    BetaExerciseResult.submit_time_stamp != None,
                 )
             ).one_or_none()
             if result is None:
@@ -110,7 +110,7 @@ class BetaAIFinishedViewState(SessionState):
                 select(BetaExerciseResult).where(
                     BetaExerciseResult.beta_exercise_id == self._beta_exercise_id,
                     BetaExerciseResult.userinfo_id == userinfo.id,
-                    BetaExerciseResult.submit_time_stamp != None,  # noqa: E711
+                    BetaExerciseResult.submit_time_stamp != None,
                 )
             ).one_or_none()
             if beta_result is None:
