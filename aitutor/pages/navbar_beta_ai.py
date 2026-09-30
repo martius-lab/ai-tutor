@@ -4,6 +4,7 @@ import reflex as rx
 
 import aitutor.routes as routes
 from aitutor.language_state import LanguageState as LS
+from aitutor.pages.navbar_specific_lecture import lecture_route
 
 beta_ai_links = [
     (
@@ -36,7 +37,7 @@ def tab_content(link):
     )
 
 
-def beta_ai_navbar(tab_to_highlight: str) -> rx.Component:
+def beta_ai_navbar(tab_to_highlight: str, lecture_id) -> rx.Component:
     """Create a navigation bar for Beta AI pages."""
     return rx.box(
         rx.tabs.root(
@@ -46,7 +47,7 @@ def beta_ai_navbar(tab_to_highlight: str) -> rx.Component:
                     lambda link: rx.tabs.trigger(
                         tab_content(link),
                         value=link[1],
-                        on_click=rx.redirect(link[1]),
+                        on_click=rx.redirect(lecture_route(link[1], lecture_id)),
                         _hover={"cursor": "pointer"},
                     ),
                 ),
@@ -60,14 +61,14 @@ def beta_ai_navbar(tab_to_highlight: str) -> rx.Component:
     )
 
 
-def with_beta_ai_navbar(tab_to_highlight: str):
+def with_beta_ai_navbar(tab_to_highlight: str, lecture_id):
     """Decorator to add the Beta AI navigation bar to a page."""
 
     def decorator(
         component_factory: rx.app.ComponentCallable,
     ) -> rx.app.ComponentCallable:
         return lambda: rx.vstack(
-            beta_ai_navbar(tab_to_highlight),
+            beta_ai_navbar(tab_to_highlight, lecture_id),
             component_factory(),
             spacing="0",
             padding="0",

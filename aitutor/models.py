@@ -108,6 +108,9 @@ class Lecture(SQLModel, table=True):
     exercises: List["Exercise"] = Relationship(
         back_populates="lecture", sa_relationship_kwargs={"passive_deletes": True}
     )
+    beta_exercises: List["BetaExercise"] = Relationship(
+        back_populates="lecture", sa_relationship_kwargs={"passive_deletes": True}
+    )
     tags: List["Tag"] = Relationship(
         back_populates="lecture", sa_relationship_kwargs={"passive_deletes": True}
     )
@@ -280,18 +283,29 @@ class ExerciseResult(SQLModel, table=True):
 
 class BetaExercise(SQLModel, table=True):
     """
-    Independent exercise model for the Beta AI Tutor workflow.
+    Lecture-specific exercise model for the Beta AI Tutor workflow.
 
     Beta exercises intentionally do not reuse the regular Exercise/ExerciseResult
     tables. They are the author-facing container for generated and manually curated
     concepts, core points, and misconception hints.
     """
 
+    __table_args__ = (
+        sa.UniqueConstraint(
+            "lecture_id",
+            "title",
+            name="uq_betaexercise_lecture_id_title",
+        ),
+    )
+
     id: Optional[int] = Field(default=None, primary_key=True)
-    title: str = Field(nullable=False, default="", unique=True)
+    title: str = Field(nullable=False, default="")
     description: str = Field(nullable=False, default="")
     source_material_text: str = Field(nullable=False, default="")
     source_material_filename: str = Field(nullable=False, default="")
+    lecture_id: Optional[int] = Field(
+        default=None, foreign_key="lecture.id", ondelete="CASCADE", index=True
+    )
     is_hidden: bool = Field(default=False)
     deadline: Optional[datetime] = Field(
         sa_column=Column(DateTime, nullable=True), default=None
@@ -302,6 +316,7 @@ class BetaExercise(SQLModel, table=True):
     concepts: List["BetaConcept"] = Relationship(
         back_populates="beta_exercise", sa_relationship_kwargs={"passive_deletes": True}
     )
+    lecture: Optional[Lecture] = Relationship(back_populates="beta_exercises")
 
     @property
     def editing_period(self) -> str:

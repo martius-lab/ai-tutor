@@ -3,7 +3,8 @@
 import reflex as rx
 from sqlmodel import select
 
-from aitutor.auth.protection import state_require_role_or_permission
+import aitutor.routes as routes
+from aitutor.auth.protection import state_require_lecture_role
 from aitutor.auth.state import SessionState
 from aitutor.beta_ai.audit import DiagnosisTrace, build_diagnosis_trace
 from aitutor.beta_ai.diagnosis import (
@@ -19,7 +20,8 @@ from aitutor.models import (
     BetaCorePoint,
     BetaExercise,
     BetaMisconception,
-    UserRole,
+    Lecture,
+    LectureRole,
 )
 
 
@@ -27,6 +29,7 @@ class BetaAIDiagnosisLabState(SessionState):
     """State for inspecting Beta AI concept data before diagnosis is implemented."""
 
     beta_exercises: list[BetaExercise] = []
+    current_lecture_id: int | None = None
     concepts: list[BetaConcept] = []
     core_points: list[BetaCorePoint] = []
     misconceptions: list[BetaMisconception] = []
@@ -50,16 +53,28 @@ class BetaAIDiagnosisLabState(SessionState):
         self.student_answer = value
 
     @rx.event
-    @state_require_role_or_permission(required_role=UserRole.TUTOR)
+    @state_require_lecture_role(LectureRole.TUTOR)
     def on_load(self):
         """Initialize the diagnosis lab."""
         self.global_load()
+        self.current_lecture_id = None
         self.reset_selection()
+        try:
+            lecture_id = self.get_route_param_or_error("lecture_id", dtype=int)
+        except Exception:
+            return rx.redirect(routes.NOT_FOUND)
+
+        with rx.session() as session:
+            if session.get(Lecture, lecture_id) is None:
+                return rx.redirect(routes.NOT_FOUND)
+
+        self.current_lecture_id = lecture_id
         self.load_beta_exercises()
 
     def on_logout(self):
         """Clear page-specific state on logout."""
         self.beta_exercises = []
+        self.current_lecture_id = None
         self.reset_selection()
 
     @rx.var
@@ -213,11 +228,16 @@ class BetaAIDiagnosisLabState(SessionState):
         self.running_llm_diagnosis = False
 
     def load_beta_exercises(self):
-        """Load all saved Beta AI exercises."""
+        """Load saved Beta AI exercises from the current lecture."""
+        if self.current_lecture_id is None:
+            self.beta_exercises = []
+            return
         with rx.session() as session:
             self.beta_exercises = list(
                 session.exec(
-                    select(BetaExercise).order_by(BetaExercise.id.desc())  # type: ignore
+                    select(BetaExercise)
+                    .where(BetaExercise.lecture_id == self.current_lecture_id)
+                    .order_by(BetaExercise.id.desc())  # type: ignore
                 ).all()
             )
 
@@ -229,7 +249,7 @@ class BetaAIDiagnosisLabState(SessionState):
 
         with rx.session() as session:
             exercise = session.get(BetaExercise, exercise_id)
-            if exercise is None:
+            if exercise is None or exercise.lecture_id != self.current_lecture_id:
                 return rx.toast.error(
                     description=BT.beta_ai_exercise_not_found(self.language),
                     duration=5000,
@@ -267,7 +287,16 @@ class BetaAIDiagnosisLabState(SessionState):
 
         with rx.session() as session:
             concept = session.get(BetaConcept, concept_id)
-            if concept is None:
+            exercise = (
+                session.get(BetaExercise, concept.beta_exercise_id)
+                if concept is not None
+                else None
+            )
+            if (
+                concept is None
+                or exercise is None
+                or exercise.lecture_id != self.current_lecture_id
+            ):
                 return rx.toast.error(
                     description=BT.beta_ai_concept_not_found(self.language),
                     duration=5000,

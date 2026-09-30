@@ -15,9 +15,12 @@ from aitutor.pages.navbar import with_navbar
 from aitutor.pages.navbar_beta_ai import with_beta_ai_navbar
 
 
-@with_navbar(routes.BETA_AI)
-@with_beta_ai_navbar(routes.BETA_AI_STUDENT_EXERCISES)
 @page_require_role_or_permission(required_role=UserRole.STUDENT)
+@with_navbar(routes.LECTURES)
+@with_beta_ai_navbar(
+    routes.BETA_AI_STUDENT_EXERCISES,
+    BetaAIChatState.current_lecture_id,
+)
 def beta_ai_chat_page() -> rx.Component:
     """Render the Beta AI chat page with the student chat layout."""
     return rx.container(
@@ -27,7 +30,7 @@ def beta_ai_chat_page() -> rx.Component:
                     rx.hstack(
                         rx.button(
                             rx.icon("arrow-left", size=20),
-                            on_click=rx.redirect(routes.BETA_AI_STUDENT_EXERCISES),
+                            on_click=rx.redirect(BetaAIChatState.exercises_url),
                             _hover={"cursor": "pointer"},
                         ),
                         rx.heading(BetaAIChatState.exercise_title, size="5"),

@@ -1,5 +1,6 @@
 """State for the lecture overview page."""
 
+from collections.abc import Iterator
 from datetime import datetime
 from typing import Optional
 from zoneinfo import ZoneInfo
@@ -11,7 +12,14 @@ import aitutor.routes as routes
 from aitutor.auth.protection import state_require_lecture_role
 from aitutor.auth.state import SessionState
 from aitutor.global_vars import TIME_ZONE
-from aitutor.models import Exercise, ExerciseResult, Lecture, LectureRole
+from aitutor.models import (
+    BetaExercise,
+    BetaExerciseResult,
+    Exercise,
+    ExerciseResult,
+    Lecture,
+    LectureRole,
+)
 from aitutor.utilities.lecture_permissions import user_may_view_lecture
 
 
@@ -23,6 +31,9 @@ class LectureOverviewState(SessionState):
     lecturer_name: str = ""
     lecture_information_text: str = ""
     exercises_with_result: list[tuple[Exercise, Optional[ExerciseResult]]] = []
+    beta_exercises_with_result: list[
+        tuple[BetaExercise, Optional[BetaExerciseResult]]
+    ] = []
 
     @rx.event
     @state_require_lecture_role(LectureRole.STUDENT)
@@ -55,6 +66,7 @@ class LectureOverviewState(SessionState):
         self.lecturer_name = ""
         self.lecture_information_text = ""
         self.exercises_with_result = []
+        self.beta_exercises_with_result = []
 
     def _apply_lecture_to_state(self, lecture: Lecture) -> None:
         """Copy the loaded lecture into state variables for rendering."""
@@ -67,6 +79,7 @@ class LectureOverviewState(SessionState):
         """Load visible, started exercises for the selected lecture and current user."""
         if self.current_lecture_id is None:
             self.exercises_with_result = []
+            self.beta_exercises_with_result = []
             return
 
         with rx.session() as session:
@@ -93,43 +106,86 @@ class LectureOverviewState(SessionState):
                     )
                 )
             )
-            exercises_with_result = session.exec(stmt).all()
-
-            self.exercises_with_result = [(x[0], x[1]) for x in exercises_with_result]
-
             self.exercises_with_result = [
                 (exercise, result)
-                for exercise, result in self.exercises_with_result
+                for exercise, result in session.exec(stmt).all()
                 if exercise.is_started
             ]
+
+            beta_stmt = (
+                select(BetaExercise, BetaExerciseResult)
+                .join(
+                    BetaExerciseResult,
+                    and_(
+                        BetaExercise.id == BetaExerciseResult.beta_exercise_id,
+                        BetaExerciseResult.userinfo_id
+                        == self.authenticated_user_info.id,  # type: ignore
+                    ),
+                    isouter=True,
+                )
+                .where(
+                    BetaExercise.lecture_id == self.current_lecture_id,
+                    BetaExercise.is_hidden.is_(False),  # type: ignore[attr-defined]
+                )
+                .where(
+                    or_(
+                        BetaExercise.deadline == None,  # noqa: E711
+                        BetaExercise.deadline > datetime.now(ZoneInfo(TIME_ZONE)),  # type: ignore
+                    )
+                )
+            )
+            self.beta_exercises_with_result = [
+                (exercise, result)
+                for exercise, result in session.exec(beta_stmt).all()
+                if exercise.is_started
+            ]
+
+    def _iter_exercises_with_result(
+        self,
+    ) -> Iterator[
+        tuple[
+            Exercise | BetaExercise,
+            ExerciseResult | BetaExerciseResult | None,
+        ]
+    ]:
+        """Iterate over Alpha Tutor and Better AI exercises uniformly."""
+        yield from self.exercises_with_result
+        yield from self.beta_exercises_with_result
+
+    @rx.var
+    def exercises_num(self) -> int:
+        """Total number of Alpha Tutor and Better AI exercises."""
+        return len(self.exercises_with_result) + len(self.beta_exercises_with_result)
 
     @rx.var
     def completed_exercises_num(self) -> int:
         """Number of completed lecture exercises."""
         return sum(
             1
-            for _, result in self.exercises_with_result
+            for _, result in self._iter_exercises_with_result()
             if result and result.finished_conversation
         )
 
     @rx.var
     def progress_value(self) -> int:
         """Progress value for the lecture-specific progress bar."""
-        total = len(self.exercises_with_result)
+        total = self.exercises_num
         return int((self.completed_exercises_num / total) * 100) if total > 0 else 100
 
     @rx.var
     def next_deadline_task(self) -> str:
         """Next lecture exercise with a deadline."""
         time_now = datetime.now(ZoneInfo(TIME_ZONE))
+        tasks: list[tuple[str, datetime]] = []
+        for exercise, result in self._iter_exercises_with_result():
+            if exercise.deadline is None:
+                continue
+            if result and result.finished_conversation:
+                continue
 
-        tasks = [
-            (ex.title, ex.deadline.replace(tzinfo=ZoneInfo(TIME_ZONE)))
-            for ex, res in self.exercises_with_result
-            if ex.deadline
-            and ex.deadline.replace(tzinfo=ZoneInfo(TIME_ZONE)) > time_now
-            and not (res and res.finished_conversation)  # not submitted
-        ]
+            deadline = exercise.deadline.replace(tzinfo=ZoneInfo(TIME_ZONE))
+            if deadline > time_now:
+                tasks.append((exercise.title, deadline))
 
         if not tasks:
             return ""
