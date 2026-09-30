@@ -815,9 +815,9 @@ class LanguageState(SessionState):
         return self.translate(de="Hinzufügen", en="Add")
 
     @rx.var
-    def update_task(self) -> str:
+    def save_changes(self) -> str:
         """Update task string"""
-        return self.translate(de="Änderungen speichern", en="Update exercise")
+        return self.translate(de="Änderungen speichern", en="Save changes")
 
     @rx.var
     def delete_selected_info(self) -> str:
