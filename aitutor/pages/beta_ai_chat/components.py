@@ -167,13 +167,25 @@ def message_input() -> rx.Component:
 
     return rx.form(
         rx.vstack(
-            rx.desktop_only(
-                text_area_with_key_submit(True),
-                width="100%",
-            ),
-            rx.mobile_and_tablet(
-                text_area_with_key_submit(False),
-                width="100%",
+            rx.cond(
+                BetaAIChatState.token_limit_reached,
+                rx.callout(
+                    LS.token_limit_message,
+                    icon="triangle-alert",
+                    color_scheme="red",
+                    width="100%",
+                    variant="surface",
+                ),
+                rx.fragment(
+                    rx.desktop_only(
+                        text_area_with_key_submit(True),
+                        width="100%",
+                    ),
+                    rx.mobile_and_tablet(
+                        text_area_with_key_submit(False),
+                        width="100%",
+                    ),
+                ),
             ),
             rx.hstack(
                 beta_submit_button(),
