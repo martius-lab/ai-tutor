@@ -176,12 +176,25 @@ def _import_exercises(lecture_id: int, file_content: bytes):
                 tags.append(tag)
 
             # Resolve Prompt ID
-            prompt_id = prompt_name_to_id.get(ex_data.get("prompt_name"))
-            if prompt_id is None:
-                raise ValueError(
-                    f"Prompt '{ex_data.get('prompt_name')}' not found for "
-                    "exercise '{title}'."
-                )
+            prompt_name = ex_data.get("prompt_name")
+            if prompt_name:
+                prompt_id = prompt_name_to_id.get(ex_data.get("prompt_name"))
+                if prompt_id is None:
+                    raise ValueError(
+                        f"Prompt '{ex_data.get('prompt_name')}' not found for "
+                        "exercise '{title}'."
+                    )
+            else:
+                default_prompt_id = session.exec(
+                    select(Lecture.default_prompt_id).where(Lecture.id == lecture_id)
+                ).one()
+                if default_prompt_id is None:
+                    raise RuntimeError(
+                        f"No prompt specified for exercise '{title}', and lecture "
+                        "has no default prompt.  Set a default prompt or specify a "
+                        "prompt in the import file."
+                    )
+                prompt_id = default_prompt_id
 
             # Parse deadline
             deadline_str = ex_data["deadline"]
