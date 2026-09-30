@@ -742,8 +742,10 @@ def render_markdown(
                 "**Diagnosis / Policy:**",
                 "",
                 f"- LLM suggested: `{entry['llm_suggested_pattern']}`",
-                "- Validated pattern: "
-                f"`{entry['validated_diagnosis']['diagnosis_pattern']}`",
+                (
+                    "- Validated pattern: "
+                    f"`{entry['validated_diagnosis']['diagnosis_pattern']}`"
+                ),
                 f"- Cumulative pattern: `{diagnosis['diagnosis_pattern']}`",
                 f"- Policy: `{policy['action']}` (`{policy['rule_id']}`)",
                 f"- Covered IDs: `{state['covered_core_point_ids']}`",
@@ -751,13 +753,17 @@ def render_markdown(
                 f"- Level status: `{state['level_status']}`",
                 f"- Concept state: `{state['state']}`",
                 f"- Active misconceptions: `{state.get('active_misconceptions', [])}`",
-                "- Resolved misconceptions: "
-                f"`{state.get('resolved_misconceptions', [])}`",
+                (
+                    "- Resolved misconceptions: "
+                    f"`{state.get('resolved_misconceptions', [])}`"
+                ),
                 "",
                 "**Tutor:**",
                 "",
-                f"{tutor.get('feedback_brief', '')}\n\n"
-                f"Question: {tutor.get('next_question', '')}",
+                (
+                    f"{tutor.get('feedback_brief', '')}\n\n"
+                    f"Question: {tutor.get('next_question', '')}"
+                ),
                 "",
             ]
         )
