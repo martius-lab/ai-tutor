@@ -6,6 +6,7 @@ from pydantic import BaseModel, Field
 class EditableCorePoint(BaseModel):
     """Editable UI representation of a concept core point."""
 
+    id: int | None = None
     text: str = ""
     required: bool = True
 
@@ -13,12 +14,14 @@ class EditableCorePoint(BaseModel):
 class EditableMisconception(BaseModel):
     """Editable UI representation of a misconception hint."""
 
+    id: int | None = None
     label: str = ""
 
 
 class EditableConcept(BaseModel):
     """Editable UI representation of a generated or manually added concept."""
 
+    id: int | None = None
     concept_id: str = ""
     label: str = ""
     description: str = ""

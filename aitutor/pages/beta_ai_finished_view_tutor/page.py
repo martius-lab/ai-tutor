@@ -9,15 +9,10 @@ from aitutor.models import UserRole
 from aitutor.pages.beta_ai_chat.components import chat_message
 from aitutor.pages.beta_ai_finished_view_tutor.state import BetaAIFinishedViewTutorState
 from aitutor.pages.navbar import with_navbar
-from aitutor.pages.navbar_beta_ai import with_beta_ai_navbar
 
 
 @page_require_role_or_permission(required_role=UserRole.STUDENT)
-@with_navbar(routes.LECTURES)
-@with_beta_ai_navbar(
-    routes.BETA_AI_SUBMISSIONS,
-    BetaAIFinishedViewTutorState.current_lecture_id,
-)
+@with_navbar(routes.MY_LECTURES)
 def beta_ai_finished_view_tutor_page() -> rx.Component:
     """Render the tutor Beta AI finished view."""
     return rx.container(
