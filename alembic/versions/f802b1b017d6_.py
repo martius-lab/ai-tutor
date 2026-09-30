@@ -25,7 +25,7 @@ def upgrade() -> None:
         batch_op.drop_column('required')
 
     with op.batch_alter_table('betaexerciseresult', schema=None) as batch_op:
-        batch_op.add_column(sa.Column('analysis_allowed', sa.Boolean(), server_default=sa.text('1'), nullable=False))
+        batch_op.add_column(sa.Column('analysis_allowed', sa.Boolean(), server_default=sa.sql.true(), nullable=False))
 
     # ### end Alembic commands ###
 
