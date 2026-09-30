@@ -166,6 +166,11 @@ app.add_page(
     on_load=pages.BetaAITraceLogsState.on_load,
 )
 app.add_page(
+    pages.beta_ai_global_trace_logs_page,
+    route=routes.BETA_AI_TRACE_LOGS,
+    on_load=pages.BetaAITraceLogsState.on_load,
+)
+app.add_page(
     pages.user_settings_page,
     route=routes.USER_SETTINGS,
 )

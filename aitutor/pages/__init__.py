@@ -16,7 +16,10 @@ from aitutor.pages.beta_ai_student_exercises.page import beta_ai_student_exercis
 from aitutor.pages.beta_ai_student_exercises.state import BetaAIStudentExercisesState
 from aitutor.pages.beta_ai_submissions.page import beta_ai_submissions_page
 from aitutor.pages.beta_ai_submissions.state import BetaAISubmissionsState
-from aitutor.pages.beta_ai_trace_logs.page import beta_ai_trace_logs_page
+from aitutor.pages.beta_ai_trace_logs.page import (
+    beta_ai_global_trace_logs_page,
+    beta_ai_trace_logs_page,
+)
 from aitutor.pages.beta_ai_trace_logs.state import BetaAITraceLogsState
 from aitutor.pages.chat.page import chat_page
 from aitutor.pages.chat.state import ChatState
@@ -82,6 +85,7 @@ __all__ = [
     "beta_ai_student_exercises_page",
     "beta_ai_submissions_page",
     "beta_ai_trace_logs_page",
+    "beta_ai_global_trace_logs_page",
     "home_page",
     "manage_users_page",
     "my_lectures_page",
