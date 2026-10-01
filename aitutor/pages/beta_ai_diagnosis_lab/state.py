@@ -4,7 +4,7 @@ import reflex as rx
 from sqlmodel import Session, select
 
 from aitutor import routes
-from aitutor.auth.protection import state_require_lecture_role
+from aitutor.auth.protection import state_has_lecture_role, state_require_lecture_role
 from aitutor.auth.state import SessionState
 from aitutor.beta_ai.audit import DiagnosisTrace, build_diagnosis_trace
 from aitutor.beta_ai.diagnosis import (
@@ -204,12 +204,6 @@ class BetaAIDiagnosisLabState(SessionState):
         """Return diagnosis explanation for display."""
         return self.diagnosis.explanation if self.diagnosis else ""
 
-    def on_logout(self):
-        """Clear page-specific state on logout."""
-        self.beta_exercises = []
-        self.current_lecture_id = None
-        self.reset_selection()
-
     def _set_diagnosis_result(
         self,
         validation_result: DiagnosisValidationResult,
@@ -346,11 +340,7 @@ class BetaAIDiagnosisLabState(SessionState):
 
         with rx.session() as session:
             concept = session.get(BetaConcept, concept_id)
-            exercise = (
-                session.get(BetaExercise, concept.beta_exercise_id)
-                if concept is not None
-                else None
-            )
+            exercise = concept.beta_exercise if concept is not None else None
             if (
                 concept is None
                 or exercise is None
@@ -405,6 +395,12 @@ class BetaAIDiagnosisLabState(SessionState):
     async def run_llm_diagnosis(self):
         """Run a structured OpenAI diagnosis for the selected concept."""
         async with self:
+            if not state_has_lecture_role(self, LectureRole.TUTOR):
+                return
+            if self.current_lecture_id != self.get_route_param_or_error(
+                "lecture_id", dtype=int
+            ):
+                return
             if self.selected_concept_id is None:
                 yield rx.toast.error(
                     description=BT.beta_ai_select_concept_first(self.language),

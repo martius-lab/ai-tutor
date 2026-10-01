@@ -186,7 +186,7 @@ def analysis_preference() -> rx.Component:
 
 
 def report_conversation_button() -> rx.Component:
-    """Render the standard report dialog for the Better AI conversation."""
+    """Render the standard report dialog for the Beta AI conversation."""
     return rx.alert_dialog.root(
         rx.hover_card.root(
             rx.hover_card.trigger(
@@ -367,7 +367,14 @@ def beta_submission_status() -> rx.Component:
             ),
             rx.desktop_only(
                 rx.text(
-                    LS.beta_ai_last_submit + BetaAIChatState.submit_time_stamp,
+                    LS.beta_ai_last_submit,
+                    rx.cond(
+                        BetaAIChatState.submit_time_stamp,
+                        rx.moment(
+                            date=BetaAIChatState.submit_time_stamp,
+                            format=gv.MOMENT_DEADLINE_FORMAT,
+                        ),
+                    ),
                     color_scheme="green",
                 ),
             ),

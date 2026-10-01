@@ -1,4 +1,4 @@
-"""State for the Better AI builder in lecture exercise management."""
+"""State for the Beta AI builder in lecture exercise management."""
 
 import io
 from collections.abc import Mapping
@@ -10,7 +10,7 @@ from sqlalchemy.orm import selectinload
 from sqlmodel import Session, SQLModel, func, select
 
 from aitutor import routes
-from aitutor.auth.protection import state_require_lecture_role
+from aitutor.auth.protection import state_has_lecture_role, state_require_lecture_role
 from aitutor.auth.state import SessionState
 from aitutor.beta_ai.concept_generation import generate_concepts_from_material
 from aitutor.beta_ai.schemas import (
@@ -233,11 +233,6 @@ class BetaAIExercisesState(SessionState):
         """Whether the builder is editing an existing exercise."""
         return self.editing_exercise_id is not None
 
-    def on_logout(self):
-        """Clear state on logout."""
-        self.current_lecture_id = None
-        self.reset_builder()
-
     def load_tags(self):
         """Load the shared tags belonging to the current lecture."""
         if self.current_lecture_id is None:
@@ -255,7 +250,7 @@ class BetaAIExercisesState(SessionState):
     @rx.event
     @state_require_lecture_role(LectureRole.OWNER)
     def add_to_selected_tags(self, tag: str):
-        """Add one lecture tag to the Better AI exercise."""
+        """Add one lecture tag to the Beta AI exercise."""
         if tag and tag not in self.selected_tags:
             self.selected_tags.append(tag)
 
@@ -405,7 +400,7 @@ class BetaAIExercisesState(SessionState):
     def open_builder_dialog_for_editing(
         self, lecture_id: int | None, exercise_id: int | None
     ):
-        """Open an existing Better AI exercise in the builder dialog."""
+        """Open an existing Beta AI exercise in the builder dialog."""
         if lecture_id is None or exercise_id is None:
             return rx.redirect(routes.MY_LECTURES)
         self._prepare_builder_for_lecture(lecture_id)
@@ -437,8 +432,7 @@ class BetaAIExercisesState(SessionState):
         """Load the persisted concept hierarchy into builder editor models."""
         editable_concepts = []
         for concept in concepts:
-            if concept.id is None:
-                continue
+            assert concept.id is not None, "Persisted Beta AI concept has no ID."
             editable_concepts.append(
                 self._load_editable_concept(session, concept, concept.id)
             )
@@ -486,7 +480,7 @@ class BetaAIExercisesState(SessionState):
     @rx.event
     @state_require_lecture_role(LectureRole.OWNER)
     def load_exercise_for_editing(self, exercise_id: int):
-        """Load one Better AI exercise into the existing builder."""
+        """Load one Beta AI exercise into the existing builder."""
         with rx.session() as session:
             exercise = session.exec(
                 select(BetaExercise)
@@ -526,6 +520,7 @@ class BetaAIExercisesState(SessionState):
         self.selected_tags = [tag.name for tag in exercise.tags]
 
     @rx.event
+    @state_require_lecture_role(LectureRole.OWNER)
     async def extract_source_material(self, files: list[rx.UploadFile]):
         """Extract source material text from uploaded PDFs."""
         self.extracting_source_material = True
@@ -565,6 +560,12 @@ class BetaAIExercisesState(SessionState):
     async def generate_concepts(self):
         """Generate editable concepts from the current source material."""
         async with self:
+            if not state_has_lecture_role(self, LectureRole.OWNER):
+                return
+            if self.current_lecture_id != self.get_route_param_or_error(
+                "lecture_id", dtype=int
+            ):
+                return
             if not self.can_generate_concepts:
                 return
             self.generating_concepts = True

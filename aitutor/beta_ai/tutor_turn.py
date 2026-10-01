@@ -218,12 +218,10 @@ def tutor_turn_reveals_answer(
 
 
 def _format_core_points(core_points: list[BetaCorePoint]) -> str:
+    for core_point in core_points:
+        assert core_point.id is not None, "Persisted Beta AI core point has no ID."
     return (
-        "\n".join(
-            f"- {core_point.id}: {core_point.text}"
-            for core_point in core_points
-            if core_point.id
-        )
+        "\n".join(f"- {core_point.id}: {core_point.text}" for core_point in core_points)
         or "No core points provided."
     )
 

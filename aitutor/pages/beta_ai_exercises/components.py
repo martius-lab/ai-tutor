@@ -1,4 +1,4 @@
-"""Components for the Better AI builder dialog in lecture exercise management."""
+"""Components for the Beta AI builder dialog in lecture exercise management."""
 
 import reflex as rx
 
@@ -451,7 +451,7 @@ def concepts_card() -> rx.Component:
 
 
 def new_tag_dialog() -> rx.Component:
-    """Render the add-tag interaction for the Better AI builder."""
+    """Render the add-tag interaction for the Beta AI builder."""
     return rx.dialog.root(
         rx.dialog.trigger(
             rx.button(

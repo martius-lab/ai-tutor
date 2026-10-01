@@ -250,7 +250,7 @@ class LectureTokenAnalyzerState(SessionState):
     @rx.event
     @state_require_lecture_role(LectureRole.TUTOR)
     def load_exercise_options(self):
-        """Load selectable standard and Better AI exercises for filtering."""
+        """Load selectable standard and Beta AI exercises for filtering."""
         if self.current_lecture_id is None:
             self.exercise_options = []
             return
@@ -473,7 +473,7 @@ class LectureTokenAnalyzerState(SessionState):
         standard_rows: list[tuple[str, int | None]],
         beta_rows: list[tuple[str, int | None]],
     ) -> list[tuple[str, int]]:
-        """Combine standard and Better AI usage and return ranked source rows."""
+        """Combine standard and Beta AI usage and return ranked source rows."""
         totals_by_user: dict[str, int] = {}
         for username, tokens_used in [*standard_rows, *beta_rows]:
             totals_by_user[username] = totals_by_user.get(username, 0) + int(
@@ -488,7 +488,7 @@ class LectureTokenAnalyzerState(SessionState):
         standard_rows: list[tuple[str, int | None]],
         beta_rows: list[tuple[str, int | None]],
     ) -> list[ExerciseTableRow]:
-        """Combine exercise usage while retaining the Better AI row marker."""
+        """Combine exercise usage while retaining the Beta AI row marker."""
         combined_rows = [
             (title, int(tokens_used or 0), False)
             for title, tokens_used in standard_rows

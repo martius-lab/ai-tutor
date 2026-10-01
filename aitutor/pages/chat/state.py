@@ -17,7 +17,10 @@ from aitutor.config import get_config
 from aitutor.env_settings import get_env_settings
 from aitutor.language_state import BackendTranslations as BT
 from aitutor.models import Exercise, ExerciseResult, Lecture, Report, UserRole
-from aitutor.utilities.lecture_permissions import user_may_view_lecture
+from aitutor.utilities.lecture_permissions import (
+    user_may_view_lecture,
+    user_may_view_lecture_submissions,
+)
 
 CHAT_FIELD_MAX_LENGTHS: dict[str, int] = {
     "chat_message": gv.CHAT_MESSAGE_MAX_LEN,
@@ -248,6 +251,15 @@ class ChatState(SessionState):
                 )
             ):
                 yield rx.redirect(routes.MY_LECTURES)
+                return
+            can_preview = user_may_view_lecture_submissions(
+                session,
+                user_id=self.authenticated_user.id,
+                global_permissions=self.global_permissions,
+                lecture_id=exercise.lecture_id,
+            )
+            if not can_preview and (exercise.is_hidden or not exercise.is_started):
+                yield rx.redirect(routes.NOT_FOUND)
                 return
             self.current_lecture_id = exercise.lecture_id
 
