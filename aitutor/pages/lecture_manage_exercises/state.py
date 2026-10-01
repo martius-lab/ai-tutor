@@ -789,6 +789,7 @@ class LectureManageExercisesState(FilterMixin, SessionState):
                     break
 
     @rx.event
+    @state_require_lecture_role(LectureRole.OWNER)
     def toggle_beta_visibility(self, exercise_id: int | None):
         """Toggle the visibility of a Beta AI exercise."""
         if exercise_id is None:
@@ -892,6 +893,8 @@ class LectureManageExercisesState(FilterMixin, SessionState):
             invert=True,
         )
 
+    @rx.event
+    @state_require_lecture_role(LectureRole.OWNER)
     def delete_beta_exercise(self, exercise_id: int | None):
         """Delete a Beta AI exercise from the current lecture."""
         if exercise_id is None:

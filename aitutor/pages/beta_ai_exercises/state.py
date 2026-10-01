@@ -65,6 +65,14 @@ class BetaAIExercisesState(SessionState):
     new_tag_name: str = ""
     add_tag_dialog_is_open: bool = False
 
+    def _matches_lecture_route(self, lecture_id: int | None) -> bool:
+        """Keep builder operations scoped to the authorized route lecture."""
+        try:
+            route_lecture_id = self.get_route_param_or_error("lecture_id", dtype=int)
+        except KeyError, ValueError, TypeError:
+            return False
+        return lecture_id is not None and lecture_id == route_lecture_id
+
     @rx.event
     @state_require_lecture_role(LectureRole.OWNER)
     def set_new_tag_name(self, value: str):
@@ -265,7 +273,7 @@ class BetaAIExercisesState(SessionState):
     @state_require_lecture_role(LectureRole.OWNER)
     def add_new_tag(self):
         """Create a shared lecture tag and select it for this exercise."""
-        if self.current_lecture_id is None:
+        if not self._matches_lecture_route(self.current_lecture_id):
             return rx.redirect(routes.MY_LECTURES)
         tag_name = self.new_tag_name[:100]
         if not tag_name:
@@ -390,7 +398,7 @@ class BetaAIExercisesState(SessionState):
     @state_require_lecture_role(LectureRole.OWNER)
     def open_builder_dialog(self, lecture_id: int | None):
         """Open a blank Beta AI builder for the selected lecture."""
-        if lecture_id is None:
+        if lecture_id is None or not self._matches_lecture_route(lecture_id):
             return rx.redirect(routes.MY_LECTURES)
         self._prepare_builder_for_lecture(lecture_id)
         self.builder_dialog_is_open = True
@@ -401,7 +409,11 @@ class BetaAIExercisesState(SessionState):
         self, lecture_id: int | None, exercise_id: int | None
     ):
         """Open an existing Beta AI exercise in the builder dialog."""
-        if lecture_id is None or exercise_id is None:
+        if (
+            lecture_id is None
+            or exercise_id is None
+            or not self._matches_lecture_route(lecture_id)
+        ):
             return rx.redirect(routes.MY_LECTURES)
         self._prepare_builder_for_lecture(lecture_id)
         result = self.load_exercise_for_editing(exercise_id)
@@ -481,6 +493,8 @@ class BetaAIExercisesState(SessionState):
     @state_require_lecture_role(LectureRole.OWNER)
     def load_exercise_for_editing(self, exercise_id: int):
         """Load one Beta AI exercise into the existing builder."""
+        if not self._matches_lecture_route(self.current_lecture_id):
+            return rx.redirect(routes.NOT_FOUND)
         with rx.session() as session:
             exercise = session.exec(
                 select(BetaExercise)
@@ -562,9 +576,7 @@ class BetaAIExercisesState(SessionState):
         async with self:
             if not state_has_lecture_role(self, LectureRole.OWNER):
                 return
-            if self.current_lecture_id != self.get_route_param_or_error(
-                "lecture_id", dtype=int
-            ):
+            if not self._matches_lecture_route(self.current_lecture_id):
                 return
             if not self.can_generate_concepts:
                 return
@@ -589,8 +601,9 @@ class BetaAIExercisesState(SessionState):
         except Exception as exc:
             async with self:
                 self.generating_concepts = False
+                error_message = BT.beta_ai_generation_failed(self.language, exc)
             yield rx.toast.error(
-                description=BT.beta_ai_generation_failed(self.language, exc),
+                description=error_message,
                 duration=5000,
                 position="bottom-center",
                 invert=True,
@@ -598,6 +611,9 @@ class BetaAIExercisesState(SessionState):
             return
 
         async with self:
+            if not self._matches_lecture_route(self.current_lecture_id):
+                self.generating_concepts = False
+                return
             self.generated_concepts = [
                 EditableConcept(
                     concept_id=concept.concept_id,
@@ -615,8 +631,9 @@ class BetaAIExercisesState(SessionState):
                 for concept in response.concepts
             ]
             self.generating_concepts = False
+            success_message = BT.beta_ai_concepts_generated(self.language)
         yield rx.toast.success(
-            description=BT.beta_ai_concepts_generated(self.language),
+            description=success_message,
             duration=5000,
             position="bottom-center",
             invert=True,
@@ -716,7 +733,7 @@ class BetaAIExercisesState(SessionState):
         retained_ids = {
             core_point.id
             for core_point in concept.core_points
-            if core_point.id is not None
+            if core_point.id is not None and core_point.text.strip()
         }
         self._delete_removed_rows(session, existing, retained_ids)
 
@@ -762,6 +779,8 @@ class BetaAIExercisesState(SessionState):
     @state_require_lecture_role(LectureRole.OWNER)
     def save_beta_exercise(self):
         """Persist the exercise and reviewed concepts."""
+        if not self._matches_lecture_route(self.current_lecture_id):
+            return rx.redirect(routes.MY_LECTURES)
         if not self.can_save_exercise:
             return rx.toast.error(
                 description=BT.beta_ai_generate_concept_first(self.language),
@@ -769,9 +788,6 @@ class BetaAIExercisesState(SessionState):
                 position="bottom-center",
                 invert=True,
             )
-
-        if self.current_lecture_id is None:
-            return rx.redirect(routes.MY_LECTURES)
 
         title = self.title.strip()
         validation_error = self._validate_generated_concepts()
@@ -807,13 +823,11 @@ class BetaAIExercisesState(SessionState):
                         exercise is None
                         or exercise.lecture_id != self.current_lecture_id
                     ):
-                        self.saving_exercise = False
                         return rx.redirect(routes.NOT_FOUND)
                     if (
                         self._exercise_has_results(session, self.editing_exercise_id)
                         and not self.exercise_has_started
                     ):
-                        self.saving_exercise = False
                         return rx.toast.error(
                             description=BT.beta_ai_started_while_editing(self.language),
                             duration=5000,
@@ -844,15 +858,15 @@ class BetaAIExercisesState(SessionState):
                     self._save_concepts(session, exercise.id)
                 session.commit()
         except Exception as exc:
-            self.saving_exercise = False
             return rx.toast.error(
                 description=BT.beta_ai_save_failed(self.language, exc),
                 duration=5000,
                 position="bottom-center",
                 invert=True,
             )
+        finally:
+            self.saving_exercise = False
 
-        self.saving_exercise = False
         self.builder_dialog_is_open = False
         self.reset_builder()
         return [
