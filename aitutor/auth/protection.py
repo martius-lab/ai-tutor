@@ -74,8 +74,8 @@ def has_permission(
     return okay
 
 
-def page_require_role_or_permission(
-    allowed_permissions: list[GlobalPermission] | None = None,
+def page_require_permission(
+    allowed_permissions: GlobalPermission | list[GlobalPermission],
 ):
     """
     Protects a page. Allows access if the user has the required UserRole

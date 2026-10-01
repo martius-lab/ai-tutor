@@ -3,14 +3,14 @@
 import reflex as rx
 
 from aitutor import routes
-from aitutor.auth.protection import page_require_role_or_permission
+from aitutor.auth.protection import page_require_permission
 from aitutor.models import GlobalPermission
 from aitutor.pages.configuration import components
 from aitutor.pages.navbar import with_navbar
 from aitutor.pages.navbar_admin import with_admin_navbar
 
 
-@page_require_role_or_permission(allowed_permissions=[GlobalPermission.ADMIN])
+@page_require_permission(allowed_permissions=[GlobalPermission.ADMIN])
 @with_navbar(routes.ADMIN_SETTINGS)
 @with_admin_navbar(routes.CONFIGURATION)
 def configuration_page() -> rx.Component:
