@@ -94,8 +94,7 @@ def _format_core_points(core_points: list[BetaCorePoint]) -> str:
     """Format persisted core points for the diagnosis prompt."""
     formatted_points = []
     for core_point in core_points:
-        if core_point.id is None:
-            continue
+        assert core_point.id is not None, "Persisted Beta AI core point has no ID."
         formatted_points.append(f"- {core_point.id}: {core_point.text}")
     return "\n".join(formatted_points) or "No core points provided."
 

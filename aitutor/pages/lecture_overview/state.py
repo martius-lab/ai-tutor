@@ -147,22 +147,24 @@ class LectureOverviewState(SessionState):
             ExerciseResult | BetaExerciseResult | None,
         ]
     ]:
-        """Iterate over Alpha Tutor and Better AI exercises uniformly."""
+        """Iterate over Alpha Tutor and Beta AI exercises uniformly."""
         yield from self.exercises_with_result
         yield from self.beta_exercises_with_result
 
     @rx.var
     def exercises_num(self) -> int:
-        """Total number of Alpha Tutor and Better AI exercises."""
+        """Total number of Alpha Tutor and Beta AI exercises."""
         return len(self.exercises_with_result) + len(self.beta_exercises_with_result)
 
     @rx.var
     def completed_exercises_num(self) -> int:
         """Number of completed lecture exercises."""
-        return sum(
-            1
-            for _, result in self._iter_exercises_with_result()
-            if result and result.finished_conversation
+        return len(
+            [
+                result
+                for _, result in self._iter_exercises_with_result()
+                if result and result.finished_conversation
+            ]
         )
 
     @rx.var

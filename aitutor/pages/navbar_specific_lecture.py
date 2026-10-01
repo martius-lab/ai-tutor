@@ -65,13 +65,14 @@ class SpecificLectureNavbarState(SessionState):
             )
 
     def _get_current_lecture_id(self) -> int | None:
-        """Resolve a lecture route or the lecture of a Better AI detail page."""
+        """Resolve a lecture route or the lecture of a Beta AI detail page."""
         if self.authenticated_user is None or self.authenticated_user.id is None:
             return None
 
         try:
             return self._get_route_param_or_error("lecture_id", dtype=int)
         except KeyError, ValueError, TypeError:
+            # Beta AI detail routes carry an exercise ID instead of a lecture ID.
             pass
 
         try:

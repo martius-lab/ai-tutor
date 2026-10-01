@@ -4,15 +4,15 @@ import reflex as rx
 from sqlmodel import Session, select
 
 from aitutor import routes
-from aitutor.auth.protection import state_require_role_or_permission
+from aitutor.auth.protection import state_require_lecture_role
 from aitutor.auth.state import SessionState
 from aitutor.language_state import BackendTranslations as BT
-from aitutor.models import BetaExercise, BetaExerciseResult, UserRole
+from aitutor.models import BetaExercise, BetaExerciseResult, LectureRole
 from aitutor.utilities.lecture_permissions import user_may_view_lecture
 
 
 def withdraw_beta_submission(beta_result: BetaExerciseResult) -> None:
-    """Withdraw only the submitted snapshot while preserving Better AI progress."""
+    """Withdraw only the submitted snapshot while preserving Beta AI progress."""
     beta_result.finished_conversation = []
     beta_result.submit_time_stamp = None
 
@@ -26,17 +26,20 @@ class BetaAIFinishedViewState(SessionState):
     exercise_title: str = ""
 
     @rx.event
-    @state_require_role_or_permission(required_role=UserRole.STUDENT)
+    @state_require_lecture_role(LectureRole.STUDENT)
     def on_load(self):
         """Load the submitted Beta AI conversation for the current student."""
         self._global_load()
         self.current_lecture_id = None
+        self.messages = []
+        self.exercise_title = ""
         userinfo = self._authenticated_user_info
         if userinfo is None or userinfo.id is None:
             yield rx.redirect(routes.LOGIN)
             return
 
         try:
+            lecture_id = self._get_route_param_or_error("lecture_id", dtype=int)
             self._beta_exercise_id = self._get_route_param_or_error(
                 "beta_exercise_id", dtype=int
             )
@@ -58,6 +61,9 @@ class BetaAIFinishedViewState(SessionState):
                 yield rx.redirect(routes.NOT_FOUND)
                 return
             exercise, finished_conversation = result
+            if exercise.lecture_id != lecture_id:
+                yield rx.redirect(routes.NOT_FOUND)
+                return
             if not self._user_may_view_exercise(session, exercise):
                 yield rx.redirect(routes.MY_LECTURES)
                 return
@@ -68,13 +74,9 @@ class BetaAIFinishedViewState(SessionState):
     @rx.var
     def chat_url(self) -> str:
         """Return the Beta AI chat URL."""
-        return f"{routes.BETA_AI_CHAT}/{self._beta_exercise_id}"
-
-    def on_logout(self):
-        """Clear state on logout."""
-        self.messages = []
-        self.exercise_title = ""
-        self.current_lecture_id = None
+        return (
+            f"{routes.BETA_AI_CHAT}/{self.current_lecture_id}/{self._beta_exercise_id}"
+        )
 
     def _user_may_view_exercise(self, session: Session, exercise: BetaExercise) -> bool:
         """Check the same lecture access for viewing and withdrawing a submission."""
@@ -91,7 +93,7 @@ class BetaAIFinishedViewState(SessionState):
         )
 
     @rx.event
-    @state_require_role_or_permission(required_role=UserRole.STUDENT)
+    @state_require_lecture_role(LectureRole.STUDENT)
     def delete_submission(self):
         """Withdraw the current student's submission without deleting learning state."""
         userinfo = self._authenticated_user_info
@@ -101,6 +103,11 @@ class BetaAIFinishedViewState(SessionState):
         with rx.session() as session:
             exercise = session.get(BetaExercise, self._beta_exercise_id)
             if exercise is None or exercise.lecture_id is None:
+                return rx.redirect(routes.NOT_FOUND)
+
+            if exercise.lecture_id != self._get_route_param_or_error(
+                "lecture_id", dtype=int
+            ):
                 return rx.redirect(routes.NOT_FOUND)
 
             if not self._user_may_view_exercise(session, exercise):

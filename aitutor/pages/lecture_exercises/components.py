@@ -107,7 +107,14 @@ def render_exercise_card(exercise: ExerciseCard) -> rx.Component:
                                 size=20,
                             ),
                             rx.text(
-                                LanguageState.last_submit + exercise.submit_time_stamp,
+                                LanguageState.last_submit,
+                                rx.cond(
+                                    exercise.submit_time_stamp,
+                                    rx.moment(
+                                        date=exercise.submit_time_stamp,
+                                        format=gv.MOMENT_DEADLINE_FORMAT,
+                                    ),
+                                ),
                                 color_scheme="green",
                                 size="2",
                             ),

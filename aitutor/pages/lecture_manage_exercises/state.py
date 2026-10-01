@@ -790,7 +790,7 @@ class LectureManageExercisesState(FilterMixin, SessionState):
 
     @rx.event
     def toggle_beta_visibility(self, exercise_id: int | None):
-        """Toggle the visibility of a Better AI exercise."""
+        """Toggle the visibility of a Beta AI exercise."""
         if exercise_id is None:
             return
         with rx.session() as session:
@@ -893,7 +893,7 @@ class LectureManageExercisesState(FilterMixin, SessionState):
         )
 
     def delete_beta_exercise(self, exercise_id: int | None):
-        """Delete a Better AI exercise from the current lecture."""
+        """Delete a Beta AI exercise from the current lecture."""
         if exercise_id is None:
             return
         with rx.session() as session:
@@ -1026,7 +1026,7 @@ class LectureManageTagsState(LectureManageExercisesState):
         Format: {tag_id: number_of_exercises_with_tag}
         """
         self.exercises  # update when exercises change # noqa: B018
-        self.beta_exercises  # update when Better AI exercises change # noqa: B018
+        self.beta_exercises  # update when Beta AI exercises change # noqa: B018
         with rx.session() as session:
             stmt = (
                 select(ExerciseTagLink.tag_id, func.count())

@@ -3,11 +3,9 @@
 import reflex as rx
 
 from aitutor import routes
-from aitutor.beta_ai.legacy_page_protection import (
-    legacy_beta_page_require_role_or_permission,
-)
+from aitutor.auth.protection import page_require_lecture_role
 from aitutor.language_state import LanguageState as LS
-from aitutor.models import UserRole
+from aitutor.models import LectureRole
 from aitutor.pages.beta_ai_finished_view_tutor.evaluations import (
     evaluated_chat_message,
 )
@@ -16,7 +14,7 @@ from aitutor.pages.navbar import with_navbar
 from aitutor.pages.navbar_specific_lecture import with_specific_lecture_navbar
 
 
-@legacy_beta_page_require_role_or_permission(required_role=UserRole.STUDENT)
+@page_require_lecture_role(LectureRole.TUTOR)
 @with_navbar(routes.LECTURES)
 @with_specific_lecture_navbar(
     "submissions",

@@ -167,7 +167,7 @@ class ExerciseTagLink(SQLModel, table=True):
 
 
 class BetaExerciseTagLink(SQLModel, table=True):
-    """Link table between Better AI exercises and lecture tags."""
+    """Link table between Beta AI exercises and lecture tags."""
 
     beta_exercise_id: Optional[int] = Field(
         foreign_key="betaexercise.id", primary_key=True, ondelete="CASCADE"
@@ -312,7 +312,7 @@ class ExerciseResult(SQLModel, table=True):
 
 class BetaExercise(SQLModel, table=True):
     """
-    Lecture-specific exercise model for the Beta AI Tutor workflow.
+    Exercise model for the Beta AI Tutor workflow.
 
     Beta exercises intentionally do not reuse the regular Exercise/ExerciseResult
     tables. They are the author-facing container for generated and manually curated
@@ -419,6 +419,9 @@ class BetaExerciseResult(SQLModel, table=True):
     # database relationships
     beta_exercise_id: int = Field(foreign_key="betaexercise.id", ondelete="CASCADE")
     userinfo_id: int = Field(foreign_key="userinfo.id", ondelete="CASCADE")
+
+    # ORM relationships
+    beta_exercise: Optional[BetaExercise] = Relationship()
 
     def __repr__(self):
         return (
@@ -677,8 +680,8 @@ class Report(SQLModel, table=True):
     Attributes:
         id: Primary key of the report.
         exercise_id: Foreign key referencing the associated Alpha Exercise
-        (nullable if exercise deleted or this is a Better AI report).
-        beta_exercise_id: Foreign key referencing the associated Better AI exercise
+        (nullable if exercise deleted or this is a Beta AI report).
+        beta_exercise_id: Foreign key referencing the associated Beta AI exercise
         (nullable if exercise deleted or this is an Alpha report).
         exercise_type: Stable source marker used even after an exercise is deleted.
         lecture_id: Foreign key referencing the lecture the report belongs to
@@ -688,7 +691,7 @@ class Report(SQLModel, table=True):
         looked_at: Flag indicating whether the report has been viewed by a tutor.
         conversation_snapshot: Snapshot of the conversation at report submission time.
         exercise: Relationship to the associated Alpha Exercise (may be None).
-        beta_exercise: Relationship to the associated Better AI exercise (may be None).
+        beta_exercise: Relationship to the associated Beta AI exercise (may be None).
         user: Relationship to the user who submitted the report.
     """
 

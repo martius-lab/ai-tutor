@@ -1,4 +1,4 @@
-"""Components for the student Better AI finished view."""
+"""Components for the student Beta AI finished view."""
 
 import reflex as rx
 
@@ -8,7 +8,7 @@ from aitutor.pages.beta_ai_finished_view.state import BetaAIFinishedViewState
 
 
 def delete_submission_button() -> rx.Component:
-    """Render the confirmation button for withdrawing a Better AI submission."""
+    """Render the confirmation button for withdrawing a Beta AI submission."""
     return destructive_confirm(
         title=LanguageState.delete_submission,
         description=LanguageState.delete_submission_info,

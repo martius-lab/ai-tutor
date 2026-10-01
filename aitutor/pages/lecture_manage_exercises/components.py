@@ -306,7 +306,7 @@ def show_exercise(exercise: Exercise):
 
 
 def delete_beta_exercise_button(exercise: BetaExercise):
-    """Button for deleting a Better AI exercise."""
+    """Button for deleting a Beta AI exercise."""
     return destructive_confirm(
         title=LanguageState.delete_exercise,
         description=LanguageState.beta_ai_delete_exercise_description,
@@ -324,7 +324,7 @@ def delete_beta_exercise_button(exercise: BetaExercise):
 
 
 def show_beta_exercise(exercise: BetaExercise):
-    """Show a Better AI exercise in the shared exercise table."""
+    """Show a Beta AI exercise in the shared exercise table."""
     return rx.table.row(
         rx.table.cell(rx.checkbox(disabled=True)),
         rx.table.cell(
