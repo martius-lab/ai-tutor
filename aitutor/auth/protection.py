@@ -75,8 +75,6 @@ def has_permission(
 
 
 def page_require_role_or_permission(
-    *,
-    required_role: UserRole | None = None,
     allowed_permissions: list[GlobalPermission] | None = None,
 ):
     """
@@ -90,34 +88,16 @@ def page_require_role_or_permission(
 
     def decorator(page: rx.app.ComponentCallable) -> rx.app.ComponentCallable:
         def protected_page():
-            # Lecture role condition
-            if required_role is not None:
-                role_cond = rx.cond(
-                    SessionState.user_role,
-                    SessionState.user_role >= required_role,  # type: ignore
-                    False,
-                )
-            else:
-                role_cond = False
-
             # Global permissions condition
-            if perms_to_check:
-                perm_cond = SessionState.global_permissions.contains(perms_to_check[0])
-                for perm in perms_to_check[1:]:
-                    perm_cond = perm_cond | SessionState.global_permissions.contains(
-                        perm
-                    )
-            else:
-                perm_cond = False
-
-            # grant access if the user has a required lecture role or global permission
-            final_access_cond = role_cond | perm_cond
+            perm_cond = SessionState.global_permissions.contains(perms_to_check[0])
+            for perm in perms_to_check[1:]:
+                perm_cond = perm_cond | SessionState.global_permissions.contains(perm)
 
             return rx.fragment(
                 rx.cond(
                     LoginState.is_hydrated & LoginState.is_authenticated,
                     rx.cond(
-                        final_access_cond,
+                        perm_cond,
                         page(),
                         rx.center(
                             rx.text(
