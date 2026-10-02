@@ -43,7 +43,7 @@ class LectureOverviewState(SessionState):
 
         try:
             lecture_id = self._get_route_param_or_error("lecture_id", dtype=int)
-        except Exception:
+        except KeyError, ValueError, TypeError:
             return rx.redirect(routes.NOT_FOUND)
 
         if not self._user_may_view_lecture(lecture_id):
@@ -159,10 +159,12 @@ class LectureOverviewState(SessionState):
     @rx.var
     def completed_exercises_num(self) -> int:
         """Number of completed lecture exercises."""
-        return sum(
-            1
-            for _, result in self._iter_exercises_with_result()
-            if result and result.finished_conversation
+        return len(
+            [
+                result
+                for _, result in self._iter_exercises_with_result()
+                if result and result.finished_conversation
+            ]
         )
 
     @rx.var

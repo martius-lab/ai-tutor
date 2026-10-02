@@ -1,7 +1,7 @@
 """State for the Beta AI diagnosis lab skeleton."""
 
 import reflex as rx
-from sqlmodel import Session, select
+from sqlmodel import Session, col, select
 
 from aitutor import routes
 from aitutor.auth.protection import state_has_lecture_role, state_require_lecture_role
@@ -63,7 +63,7 @@ class BetaAIDiagnosisLabState(SessionState):
         self.reset_selection()
         try:
             lecture_id = self._get_route_param_or_error("lecture_id", dtype=int)
-        except Exception:
+        except KeyError, ValueError, TypeError:
             return rx.redirect(routes.NOT_FOUND)
 
         with rx.session() as session:
@@ -272,7 +272,7 @@ class BetaAIDiagnosisLabState(SessionState):
                 session.exec(
                     select(BetaExercise)
                     .where(BetaExercise.lecture_id == self.current_lecture_id)
-                    .order_by(BetaExercise.id.desc())  # type: ignore
+                    .order_by(col(BetaExercise.id).desc())
                 ).all()
             )
 
@@ -282,7 +282,7 @@ class BetaAIDiagnosisLabState(SessionState):
             session.exec(
                 select(BetaConcept)
                 .where(BetaConcept.beta_exercise_id == exercise_id)
-                .order_by(BetaConcept.order_index)  # type: ignore
+                .order_by(col(BetaConcept.order_index))
             ).all()
         )
 
@@ -292,14 +292,14 @@ class BetaAIDiagnosisLabState(SessionState):
             session.exec(
                 select(BetaCorePoint)
                 .where(BetaCorePoint.beta_concept_id == concept_id)
-                .order_by(BetaCorePoint.order_index)  # type: ignore
+                .order_by(col(BetaCorePoint.order_index))
             ).all()
         )
         self.misconceptions = list(
             session.exec(
                 select(BetaMisconception)
                 .where(BetaMisconception.beta_concept_id == concept_id)
-                .order_by(BetaMisconception.order_index)  # type: ignore
+                .order_by(col(BetaMisconception.order_index))
             ).all()
         )
 

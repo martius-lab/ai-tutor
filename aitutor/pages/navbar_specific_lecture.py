@@ -79,7 +79,7 @@ class SpecificLectureNavbarState(SessionState):
             beta_exercise_id = self._get_route_param_or_error(
                 "beta_exercise_id", dtype=int
             )
-        except Exception:
+        except KeyError, ValueError, TypeError:
             return None
 
         with rx.session() as session:

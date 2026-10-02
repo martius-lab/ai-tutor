@@ -4,7 +4,7 @@ from datetime import datetime
 from zoneinfo import ZoneInfo
 
 import reflex as rx
-from sqlmodel import select
+from sqlmodel import col, select
 
 import aitutor.global_vars as gv
 from aitutor import routes
@@ -192,7 +192,7 @@ class BetaAIChatState(SessionState):
             beta_exercise_id = self._get_route_param_or_error(
                 "beta_exercise_id", dtype=int
             )
-        except Exception:
+        except KeyError, ValueError, TypeError:
             yield rx.redirect(routes.NOT_FOUND)
             return
 
@@ -232,7 +232,7 @@ class BetaAIChatState(SessionState):
                 session.exec(
                     select(BetaConcept)
                     .where(BetaConcept.beta_exercise_id == beta_exercise_id)
-                    .order_by(BetaConcept.order_index)  # type: ignore
+                    .order_by(col(BetaConcept.order_index))
                 ).all()
             )
             concept_states = {
@@ -275,14 +275,14 @@ class BetaAIChatState(SessionState):
                     session.exec(
                         select(BetaCorePoint)
                         .where(BetaCorePoint.beta_concept_id == concept.id)
-                        .order_by(BetaCorePoint.order_index)  # type: ignore
+                        .order_by(col(BetaCorePoint.order_index))
                     ).all()
                 )
                 misconceptions = list(
                     session.exec(
                         select(BetaMisconception)
                         .where(BetaMisconception.beta_concept_id == concept.id)
-                        .order_by(BetaMisconception.order_index)  # type: ignore
+                        .order_by(col(BetaMisconception.order_index))
                     ).all()
                 )
 
@@ -303,7 +303,7 @@ class BetaAIChatState(SessionState):
                                 BetaExerciseTraceLog.beta_exercise_result_id
                                 == beta_result.id
                             )
-                            .order_by(BetaExerciseTraceLog.turn_index)  # type: ignore
+                            .order_by(col(BetaExerciseTraceLog.turn_index))
                         ).all()
                     )
                     if trace_logs:
@@ -828,14 +828,14 @@ class BetaAIChatState(SessionState):
                 session.exec(
                     select(BetaCorePoint)
                     .where(BetaCorePoint.beta_concept_id == persisted_concept.id)
-                    .order_by(BetaCorePoint.order_index)  # type: ignore
+                    .order_by(col(BetaCorePoint.order_index))
                 ).all()
             )
             misconceptions = list(
                 session.exec(
                     select(BetaMisconception)
                     .where(BetaMisconception.beta_concept_id == persisted_concept.id)
-                    .order_by(BetaMisconception.order_index)  # type: ignore
+                    .order_by(col(BetaMisconception.order_index))
                 ).all()
             )
             student_concept_state = session.exec(
@@ -1211,7 +1211,7 @@ class BetaAIChatState(SessionState):
                         BetaExerciseTraceLog.beta_exercise_result_id
                         == beta_exercise_result_id
                     )
-                    .order_by(BetaExerciseTraceLog.turn_index)  # type: ignore
+                    .order_by(col(BetaExerciseTraceLog.turn_index))
                 ).all()
             )
             next_turn_index = (

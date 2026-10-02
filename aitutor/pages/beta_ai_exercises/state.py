@@ -7,7 +7,7 @@ from datetime import datetime
 import pdfplumber
 import reflex as rx
 from sqlalchemy.orm import selectinload
-from sqlmodel import Session, SQLModel, func, select
+from sqlmodel import Session, SQLModel, col, func, select
 
 from aitutor import routes
 from aitutor.auth.protection import state_has_lecture_role, state_require_lecture_role
@@ -458,14 +458,14 @@ class BetaAIExercisesState(SessionState):
             session.exec(
                 select(BetaCorePoint)
                 .where(BetaCorePoint.beta_concept_id == concept_id)
-                .order_by(BetaCorePoint.order_index)  # type: ignore
+                .order_by(col(BetaCorePoint.order_index))
             ).all()
         )
         misconceptions = list(
             session.exec(
                 select(BetaMisconception)
                 .where(BetaMisconception.beta_concept_id == concept_id)
-                .order_by(BetaMisconception.order_index)  # type: ignore
+                .order_by(col(BetaMisconception.order_index))
             ).all()
         )
         return EditableConcept(
@@ -508,7 +508,7 @@ class BetaAIExercisesState(SessionState):
                 session.exec(
                     select(BetaConcept)
                     .where(BetaConcept.beta_exercise_id == exercise_id)
-                    .order_by(BetaConcept.order_index)  # type: ignore
+                    .order_by(col(BetaConcept.order_index))
                 ).all()
             )
             exercise_has_started = self._exercise_has_results(session, exercise_id)
