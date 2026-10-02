@@ -19,7 +19,7 @@ import re
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
-from typing import Any, cast
+from typing import Any, Literal
 from zoneinfo import ZoneInfo
 
 from openai import AsyncOpenAI
@@ -40,6 +40,7 @@ from aitutor.beta_ai.student_state import (
     update_student_concept_state_from_diagnosis,
 )
 from aitutor.beta_ai.tutor_turn import (
+    QuestionLevel,
     TutorTurnResponse,
     choose_question_level,
     repair_leaky_tutor_turn,
@@ -149,10 +150,10 @@ class SimulationState:
 
     messages: list[dict[str, str]] = field(default_factory=list)
     current_question: str = ""
-    current_question_level: str = "basic_understanding"
+    current_question_level: QuestionLevel = "basic_understanding"
     current_focus_core_point_id: int | None = None
     trace_reference: int = 0
-    intro_transition_kind: str = "initial"
+    intro_transition_kind: Literal["initial", "automatic", "manual"] = "initial"
     previous_concept_label: str = ""
 
 
@@ -238,7 +239,7 @@ async def generate_initial_tutor_turn(
     *,
     exercise: BetaExercise,
     bundle: ConceptBundle,
-    transition_kind: str = "initial",
+    transition_kind: Literal["initial", "automatic", "manual"] = "initial",
     previous_concept_label: str = "",
 ) -> TutorTurnResponse:
     """Generate the first tutor turn using the same helper as the app."""
@@ -250,7 +251,7 @@ async def generate_initial_tutor_turn(
             core_points=bundle.core_points,
             misconceptions=bundle.misconceptions,
             previous_concept_label=previous_concept_label,
-            transition_kind=cast(Any, transition_kind),
+            transition_kind=transition_kind,
         )
         if tutor_turn_reveals_answer(intro_turn, core_points=bundle.core_points):
             raise ValueError("Generated intro turn revealed expected answer wording.")
@@ -519,7 +520,7 @@ async def simulate_turn(
         student_answer=answer,
         trace_reference=sim_state.trace_reference,
         now=datetime.now(ZoneInfo("UTC")),
-        question_level=sim_state.current_question_level,  # type: ignore[arg-type]
+        question_level=sim_state.current_question_level,
     )
 
     if student_state.state == "secure":
@@ -529,7 +530,7 @@ async def simulate_turn(
                 "bearbeitet."
             ),
             next_question="Wir gehen zum nächsten Konzept über.",
-            question_level=cast(Any, sim_state.current_question_level),
+            question_level=sim_state.current_question_level,
             focus_core_point_id=None,
             reveals_answer=False,
         )
@@ -554,7 +555,7 @@ async def simulate_turn(
         next_question_level = choose_question_level(
             cumulative_diagnosis,
             normalized_level_status(student_state.level_status),
-            current_question_level=sim_state.current_question_level,  # type: ignore[arg-type]
+            current_question_level=sim_state.current_question_level,
         )
         transition_policy = policy_preview_for_next_level(
             concept_label=concept.label,

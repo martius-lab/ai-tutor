@@ -203,7 +203,9 @@ def tutor_turn_reveals_answer(
     tutor_turn: TutorTurnResponse, *, core_points: list[BetaCorePoint]
 ) -> bool:
     """Heuristically detect direct core-point text leakage in generated questions."""
-    combined_text = f"{tutor_turn.feedback_brief} {tutor_turn.next_question}".lower()
+    combined_text = " ".join(
+        f"{tutor_turn.feedback_brief} {tutor_turn.next_question}".lower().split()
+    )
     for core_point in core_points:
         core_text = " ".join(core_point.text.lower().split())
         if len(core_text) >= 24 and core_text in combined_text:

@@ -176,7 +176,7 @@ class BetaAITraceLogsState(SessionState):
         )
 
     def _trace_logs_for_result(
-        self, session, beta_exercise_result_id: int
+        self, session: Session, beta_exercise_result_id: int
     ) -> list[BetaExerciseTraceLog]:
         """Load a result's trace history in turn order."""
         return list(
@@ -186,7 +186,7 @@ class BetaAITraceLogsState(SessionState):
                     BetaExerciseTraceLog.beta_exercise_result_id
                     == beta_exercise_result_id
                 )
-                .order_by(BetaExerciseTraceLog.turn_index)  # type: ignore
+                .order_by(col(BetaExerciseTraceLog.turn_index))
             ).all()
         )
 
@@ -224,9 +224,7 @@ class BetaAITraceLogsState(SessionState):
         return TraceLogRow(
             beta_exercise_result_id=beta_result_id,
             lecture_name=lecture.lecture_name if lecture else "",
-            exercise_title=exercise.title
-            if exercise
-            else BT.beta_ai_deleted_exercise(self.language),
+            exercise_title=exercise.title,
             user_label=_username_for_userinfo(userinfo, self.language),
             trace_count=len(trace_logs),
             updated_at=_format_datetime(latest_trace_log.created_at),
@@ -313,7 +311,7 @@ class BetaAITraceLogsState(SessionState):
     def _build_trace_export_for_result(
         self,
         *,
-        session,
+        session: Session,
         beta_result: BetaExerciseResult,
         trace_logs: list[BetaExerciseTraceLog],
     ) -> dict:

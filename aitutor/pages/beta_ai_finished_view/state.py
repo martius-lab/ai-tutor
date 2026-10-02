@@ -80,16 +80,17 @@ class BetaAIFinishedViewState(SessionState):
 
     def _user_may_view_exercise(self, session: Session, exercise: BetaExercise) -> bool:
         """Check the same lecture access for viewing and withdrawing a submission."""
-        return not (
+        if (
             exercise.lecture_id is None
             or self.authenticated_user is None
             or self.authenticated_user.id is None
-            or not user_may_view_lecture(
-                session,
-                user_id=self.authenticated_user.id,
-                global_permissions=self.global_permissions,
-                lecture_id=exercise.lecture_id,
-            )
+        ):
+            return False
+        return user_may_view_lecture(
+            session,
+            user_id=self.authenticated_user.id,
+            global_permissions=self.global_permissions,
+            lecture_id=exercise.lecture_id,
         )
 
     @rx.event

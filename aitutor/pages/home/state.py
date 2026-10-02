@@ -21,6 +21,7 @@ from aitutor.models import (
     LinkUserLecture,
     UserRole,
 )
+from aitutor.utilities.helper_functions import deadline_sort_key
 
 
 @dataclass
@@ -35,15 +36,6 @@ class HomeExerciseCard:
 
 
 LectureExerciseGroup = tuple[Lecture, list[HomeExerciseCard]]
-
-
-def _deadline_sort_key(deadline: datetime | None) -> datetime:
-    """Compare stored (naive) and timezone-aware deadlines consistently."""
-    if deadline is None:
-        return datetime.max.replace(tzinfo=ZoneInfo(TIME_ZONE))
-    if deadline.tzinfo is None:
-        return deadline.replace(tzinfo=ZoneInfo(TIME_ZONE))
-    return deadline.astimezone(ZoneInfo(TIME_ZONE))
 
 
 def build_home_exercises_statement(
@@ -196,7 +188,7 @@ class HomeState(SessionState):
             started_rows.sort(
                 key=lambda row: (
                     row[1].lecture_name.lower(),
-                    _deadline_sort_key(row[0].deadline),
+                    deadline_sort_key(row[0].deadline),
                 )
             )
             self.exercise_cards = [exercise for exercise, _ in started_rows]
@@ -207,9 +199,7 @@ class HomeState(SessionState):
     @rx.var
     def completed_exercises_num(self) -> int:
         """Number of completed exercises."""
-        return len(
-            [exercise for exercise in self.exercise_cards if exercise.is_submitted]
-        )
+        return sum(1 for exercise in self.exercise_cards if exercise.is_submitted)
 
     @rx.var
     def progress_value(self) -> int:

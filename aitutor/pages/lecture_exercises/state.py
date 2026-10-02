@@ -24,6 +24,7 @@ from aitutor.models import (
     Tag,
 )
 from aitutor.utilities.filtering_components import FilterMixin
+from aitutor.utilities.helper_functions import deadline_sort_key
 from aitutor.utilities.lecture_permissions import (
     user_may_view_lecture,
     user_may_view_lecture_submissions,
@@ -45,15 +46,6 @@ class ExerciseCard:
     submit_time_stamp: str
     tags: list[str]
     chat_route: str
-
-
-def _deadline_sort_key(deadline: datetime | None) -> datetime:
-    """Compare stored (naive) and timezone-aware deadlines consistently."""
-    if deadline is None:
-        return datetime.max.replace(tzinfo=ZoneInfo(TIME_ZONE))
-    if deadline.tzinfo is None:
-        return deadline.replace(tzinfo=ZoneInfo(TIME_ZONE))
-    return deadline.astimezone(ZoneInfo(TIME_ZONE))
 
 
 class LectureExercisesState(FilterMixin, SessionState):
@@ -370,10 +362,10 @@ class LectureExercisesState(FilterMixin, SessionState):
                 self.open_deadline_exercises.append(exercise)
 
         self.open_deadline_exercises.sort(
-            key=lambda exercise: _deadline_sort_key(exercise.deadline)
+            key=lambda exercise: deadline_sort_key(exercise.deadline)
         )
         self.closed_deadline_exercises.sort(
-            key=lambda exercise: _deadline_sort_key(exercise.deadline),
+            key=lambda exercise: deadline_sort_key(exercise.deadline),
             reverse=True,
         )
         self.no_deadline_exercises.sort(
