@@ -159,12 +159,10 @@ class LectureOverviewState(SessionState):
     @rx.var
     def completed_exercises_num(self) -> int:
         """Number of completed lecture exercises."""
-        return len(
-            [
-                result
-                for _, result in self._iter_exercises_with_result()
-                if result and result.finished_conversation
-            ]
+        return sum(
+            1
+            for _, result in self._iter_exercises_with_result()
+            if result and result.finished_conversation
         )
 
     @rx.var

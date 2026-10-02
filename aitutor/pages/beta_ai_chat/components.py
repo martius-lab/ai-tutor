@@ -336,13 +336,9 @@ def beta_submit_button() -> rx.Component:
             color_scheme="green",
             type="button",
             on_click=BetaAIChatState.submit_beta_conversation,
-            disabled=rx.cond(
-                BetaAIChatState.completion_unlocked,
-                False,
-                True,
-            ),
+            disabled=~BetaAIChatState.can_submit_conversation,
             _hover=rx.cond(
-                BetaAIChatState.completion_unlocked,
+                BetaAIChatState.can_submit_conversation,
                 {"cursor": "pointer"},
                 {"cursor": "not-allowed"},
             ),

@@ -24,6 +24,7 @@ from aitutor.models import (
     Tag,
 )
 from aitutor.utilities.filtering_components import FilterMixin
+from aitutor.utilities.helper_functions import deadline_sort_key
 from aitutor.utilities.lecture_permissions import (
     user_may_view_lecture,
     user_may_view_lecture_submissions,
@@ -361,14 +362,10 @@ class LectureExercisesState(FilterMixin, SessionState):
                 self.open_deadline_exercises.append(exercise)
 
         self.open_deadline_exercises.sort(
-            key=lambda exercise: (
-                exercise.deadline or datetime.max.replace(tzinfo=ZoneInfo(TIME_ZONE))
-            )
+            key=lambda exercise: deadline_sort_key(exercise.deadline)
         )
         self.closed_deadline_exercises.sort(
-            key=lambda exercise: (
-                exercise.deadline or datetime.min.replace(tzinfo=ZoneInfo(TIME_ZONE))
-            ),
+            key=lambda exercise: deadline_sort_key(exercise.deadline),
             reverse=True,
         )
         self.no_deadline_exercises.sort(

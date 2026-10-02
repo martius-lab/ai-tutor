@@ -7,7 +7,7 @@ from typing import Any, Literal, cast
 
 import reflex as rx
 from pydantic import BaseModel, Field
-from sqlmodel import Session, select
+from sqlmodel import Session, col, select
 
 from aitutor.beta_ai.student_state import (
     BASIC_EVIDENCE_COMPLETENESS_THRESHOLD,
@@ -205,7 +205,7 @@ def evaluated_messages(
     traces = session.exec(
         select(BetaExerciseTraceLog)
         .where(BetaExerciseTraceLog.beta_exercise_result_id == result.id)
-        .order_by(BetaExerciseTraceLog.turn_index)  # type: ignore[arg-type]
+        .order_by(col(BetaExerciseTraceLog.turn_index))
     ).all()
     student_indices = [
         i for i, message in enumerate(messages) if message.role == "student"

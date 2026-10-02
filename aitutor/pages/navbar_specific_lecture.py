@@ -72,7 +72,7 @@ class SpecificLectureNavbarState(SessionState):
         try:
             return self._get_route_param_or_error("lecture_id", dtype=int)
         except KeyError, ValueError, TypeError:
-            # Beta AI detail routes carry an exercise ID instead of a lecture ID.
+            # Fall back to the exercise when no valid lecture ID is available.
             pass
 
         try:
