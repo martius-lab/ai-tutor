@@ -50,8 +50,7 @@ class BetaAIFinishedViewTutorState(SessionState):
                 select(
                     BetaExercise,
                     LocalUser.username,
-                    BetaExerciseResult.finished_conversation,
-                    BetaExerciseResult.id,
+                    BetaExerciseResult,
                 )
                 .select_from(BetaExerciseResult)
                 .join(
@@ -81,7 +80,7 @@ class BetaAIFinishedViewTutorState(SessionState):
             if result is None:
                 yield rx.redirect(routes.NOT_FOUND)
                 return
-            exercise, username, finished_conversation, result_id = result
+            exercise, username, exercise_result = result
             if exercise.lecture_id != lecture_id:
                 yield rx.redirect(routes.NOT_FOUND)
                 return
@@ -93,8 +92,8 @@ class BetaAIFinishedViewTutorState(SessionState):
             self.username = username
             self.messages = evaluated_messages(
                 session,
-                session.get(BetaExerciseResult, result_id),
-                list(finished_conversation),
+                exercise_result,
+                list(exercise_result.finished_conversation),
             )
 
     @rx.var

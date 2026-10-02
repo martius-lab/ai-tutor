@@ -1,7 +1,4 @@
-"""Tutor-only, per-message summaries of persisted Beta AI trace evaluations.
-
-Inspired by the badge view in commit 29e555e; no imported JSON is required.
-"""
+"""Tutor-only, per-message summaries of persisted Beta AI trace evaluations."""
 
 from typing import Any, Literal, cast
 

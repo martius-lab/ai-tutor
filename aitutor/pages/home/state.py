@@ -199,7 +199,9 @@ class HomeState(SessionState):
     @rx.var
     def completed_exercises_num(self) -> int:
         """Number of completed exercises."""
-        return sum(1 for exercise in self.exercise_cards if exercise.is_submitted)
+        return len(
+            [exercise for exercise in self.exercise_cards if exercise.is_submitted]
+        )
 
     @rx.var
     def progress_value(self) -> int:

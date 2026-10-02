@@ -71,7 +71,7 @@ class SpecificLectureNavbarState(SessionState):
 
         try:
             return self.get_route_param_or_error("lecture_id", dtype=int)
-        except KeyError, ValueError:
+        except KeyError, ValueError, TypeError:
             # Fall back to the exercise when no valid lecture ID is available.
             pass
 
@@ -79,7 +79,7 @@ class SpecificLectureNavbarState(SessionState):
             beta_exercise_id = self.get_route_param_or_error(
                 "beta_exercise_id", dtype=int
             )
-        except Exception:
+        except KeyError, ValueError, TypeError:
             return None
 
         with rx.session() as session:

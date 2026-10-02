@@ -21,10 +21,9 @@ from aitutor.models import (
     BetaExerciseTraceLog,
     GlobalPermission,
     Lecture,
-    LectureRole,
-    LinkUserLecture,
     UserInfo,
 )
+from aitutor.utilities.lecture_permissions import user_may_view_lecture_submissions
 
 
 class TraceLogRow(BaseModel):
@@ -159,13 +158,12 @@ class BetaAITraceLogsState(SessionState):
         if lecture_id is None:
             return False
         with rx.session() as session:
-            link = session.exec(
-                select(LinkUserLecture).where(
-                    LinkUserLecture.lecture_id == lecture_id,
-                    LinkUserLecture.user_id == self.authenticated_user.id,
-                )
-            ).one_or_none()
-            return link is not None and link.role >= LectureRole.TUTOR
+            return user_may_view_lecture_submissions(
+                session,
+                user_id=self.authenticated_user.id,
+                global_permissions=self.global_permissions,
+                lecture_id=lecture_id,
+            )
 
     def _result_belongs_to_route(self, beta_result: BetaExerciseResult) -> bool:
         """Check the related exercise against the URL's lecture context."""

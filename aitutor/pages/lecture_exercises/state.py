@@ -93,7 +93,7 @@ class LectureExercisesState(FilterMixin, SessionState):
 
         try:
             self._lecture_id = self.get_route_param_or_error("lecture_id", dtype=int)
-        except Exception:
+        except KeyError, ValueError, TypeError:
             return rx.redirect(routes.NOT_FOUND)
 
         if not self._user_may_view_lecture(self._lecture_id):
