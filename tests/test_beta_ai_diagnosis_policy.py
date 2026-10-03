@@ -507,7 +507,7 @@ def test_basic_evidence_requires_minimum_completeness():
         latest_diagnosis=DiagnosisResponse(
             task_relevance=1.0,
             correctness=0.8,
-            completeness=0.4,
+            completeness=0.29,
             diagnosis_pattern="sufficient_for_completion",
             covered_core_point_ids=[14],
             evidence_snippets=["I think it needs sorted input, but I am not sure."],
@@ -527,8 +527,9 @@ def test_basic_evidence_requires_minimum_completeness():
     )
 
 
-def test_basic_evidence_accepts_fair_partial_completeness_boundary():
-    """Basic can still collect legitimate partial evidence at completeness 0.5."""
+@pytest.mark.parametrize("completeness", [0.3, 0.4, 0.5])
+def test_basic_evidence_accepts_fair_partial_completeness_boundary(completeness):
+    """Basic accepts partial evidence at and above completeness 0.3."""
     student_state = BetaStudentConceptState(
         userinfo_id=1,
         beta_exercise_id=1,
@@ -541,7 +542,7 @@ def test_basic_evidence_accepts_fair_partial_completeness_boundary():
         latest_diagnosis=DiagnosisResponse(
             task_relevance=0.5,
             correctness=0.7,
-            completeness=0.5,
+            completeness=completeness,
             diagnosis_pattern="correct_but_incomplete",
             covered_core_point_ids=[14],
             evidence_snippets=["Binary search needs sorted input."],
