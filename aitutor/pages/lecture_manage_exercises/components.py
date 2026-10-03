@@ -4,10 +4,13 @@ from collections.abc import Sequence
 
 import reflex as rx
 
+import aitutor.global_vars as gv
 from aitutor.components.dialogs import destructive_confirm
 from aitutor.global_vars import SEARCH_TAG_KEY, TIME_ZONE
 from aitutor.language_state import LanguageState
-from aitutor.models import Exercise
+from aitutor.models import BetaExercise, Exercise
+from aitutor.pages.beta_ai_exercises.components import beta_ai_exercise_builder
+from aitutor.pages.beta_ai_exercises.state import BetaAIExercisesState
 from aitutor.pages.lecture_manage_exercises.state import (
     LECTURE_MANAGE_EXERCISES_FIELD_MAX_LENGTHS,
     DialogMode,
@@ -301,6 +304,96 @@ def show_exercise(exercise: Exercise):
     )
 
 
+def delete_beta_exercise_button(exercise: BetaExercise):
+    """Button for deleting a Beta AI exercise."""
+    return destructive_confirm(
+        title=LanguageState.delete_exercise,
+        description=LanguageState.beta_ai_delete_exercise_description,
+        confirm_text=LanguageState.delete,
+        cancel_text=LanguageState.cancel,
+        on_confirm=ManageExercisesState.delete_beta_exercise(exercise.id),  # type: ignore
+        trigger=rx.icon_button(
+            rx.icon("trash"),
+            size="2",
+            variant="ghost",
+            color_scheme="red",
+            _hover={"cursor": "pointer"},
+        ),
+    )
+
+
+def show_beta_exercise(exercise: BetaExercise):
+    """Show a Beta AI exercise in the shared exercise table."""
+    return rx.table.row(
+        rx.table.cell(rx.checkbox(disabled=True)),
+        rx.table.cell(
+            rx.hstack(
+                rx.text(exercise.title),
+                gv.level_ai_badge(),
+                align="center",
+                wrap="wrap",
+            ),
+            max_width="175px",
+        ),
+        rx.table.cell(
+            truncate_text_reflex_var(exercise.description, max_length=150),
+            max_width="400px",
+        ),
+        rx.table.cell(
+            rx.hstack(
+                rx.foreach(
+                    exercise.tags,
+                    lambda tag: rx.badge(
+                        tag.name,
+                        variant="soft",
+                        on_click=ManageExercisesState.add_search_value(
+                            {"search_value": f'{SEARCH_TAG_KEY}:"{tag.name}"'}
+                        ),
+                        _hover={"cursor": "pointer"},
+                    ),
+                ),
+                spacing="1",
+                wrap="wrap",
+            )
+        ),
+        rx.table.cell(
+            ManageExercisesState.beta_editing_periods[exercise.id]  # type: ignore
+        ),
+        rx.table.cell(
+            rx.hstack(
+                rx.center(
+                    rx.cond(
+                        exercise.is_hidden,
+                        rx.icon("eye-off", size=18),
+                        rx.cond(
+                            ManageExercisesState.beta_exercise_is_started[exercise.id],  # type: ignore
+                            rx.icon("eye", size=18),
+                            rx.icon("view", size=18),
+                        ),
+                    ),
+                    _hover={"cursor": "pointer"},
+                    on_click=ManageExercisesState.toggle_beta_visibility(exercise.id),
+                ),
+                rx.icon_button(
+                    rx.icon("wrench", size=22),
+                    color_scheme="yellow",
+                    size="2",
+                    variant="ghost",
+                    on_click=BetaAIExercisesState.open_builder_dialog_for_editing(
+                        ManageExercisesState.current_lecture_id,
+                        exercise.id,
+                    ),
+                    _hover={"cursor": "pointer"},
+                ),
+                delete_beta_exercise_button(exercise),
+                spacing="5",
+            )
+        ),
+        style={"_hover": {"bg": rx.color("gray", 3)}},
+        align="center",
+    )
+
+
 def header_cell(text, icon: str):
     """Create header cells."""
     return rx.table.column_header_cell(
@@ -336,7 +429,8 @@ def exercise_table():
                 ),
                 # dynamically render each new entry
                 rx.table.body(
-                    rx.foreach(ManageExercisesState.exercises, show_exercise)
+                    rx.foreach(ManageExercisesState.exercises, show_exercise),
+                    rx.foreach(ManageExercisesState.beta_exercises, show_beta_exercise),
                 ),
                 variant="surface",
                 size="3",
@@ -346,6 +440,7 @@ def exercise_table():
             ),
             edit_exercise_dialog(),
             add_exercise_dialog(),
+            beta_ai_exercise_dialog(),
         ),
     )
 
@@ -381,17 +476,63 @@ def hide_exercise_button(exercise: Exercise):
 
 def add_exercise_button() -> rx.Component:
     """Button for adding new exercises."""
-    return rx.button(
-        rx.icon("file-plus"),
-        rx.desktop_only(
-            rx.text(LanguageState.add_exercise, size="3"),
+    return rx.dialog.root(
+        rx.dialog.trigger(
+            rx.button(
+                rx.icon("file-plus"),
+                rx.desktop_only(
+                    rx.text(LanguageState.add_exercise, size="3"),
+                ),
+                rx.mobile_and_tablet(
+                    rx.text(LanguageState.add, size="3"),
+                ),
+                _hover={"cursor": "pointer"},
+                type="button",
+            )
         ),
-        rx.mobile_and_tablet(
-            rx.text(LanguageState.add, size="3"),
+        rx.dialog.content(
+            rx.dialog.title(LanguageState.add_exercise),
+            rx.vstack(
+                rx.dialog.close(
+                    rx.button(
+                        LanguageState.classic_ai,
+                        on_click=ManageExercisesState.open_add_dialog,
+                        width="100%",
+                        _hover={"cursor": "pointer"},
+                    )
+                ),
+                rx.dialog.close(
+                    rx.button(
+                        LanguageState.beta_ai,
+                        on_click=BetaAIExercisesState.open_builder_dialog(
+                            ManageExercisesState.current_lecture_id
+                        ),
+                        width="100%",
+                        _hover={"cursor": "pointer"},
+                    )
+                ),
+                spacing="3",
+                width="100%",
+            ),
+            width="24em",
+            max_width="90vw",
         ),
-        _hover={"cursor": "pointer"},
-        on_click=ManageExercisesState.open_add_dialog,
-        type="button",
+    )
+
+
+def beta_ai_exercise_dialog() -> rx.Component:
+    """Dialog for creating Beta AI exercises."""
+    return rx.dialog.root(
+        rx.dialog.content(
+            beta_ai_exercise_builder(),
+            width="42em",
+            max_width="90vw",
+            max_height="85vh",
+            overflow_y="auto",
+            on_escape_key_down=BetaAIExercisesState.close_builder_dialog,
+        ),
+        open=BetaAIExercisesState.builder_dialog_is_open,
+        on_open_change=BetaAIExercisesState.set_builder_dialog_is_open,
     )
 
 
