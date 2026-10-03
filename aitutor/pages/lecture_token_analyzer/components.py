@@ -2,6 +2,7 @@
 
 import reflex as rx
 
+import aitutor.global_vars as gv
 from aitutor.language_state import LanguageState
 from aitutor.pages.lecture_token_analyzer.state import (
     EXERCISE_ANALYSIS_VIEW,
@@ -294,7 +295,17 @@ def show_exercise_table_row(table_row: ExerciseTableRow) -> rx.Component:
     """Show token usage in an exercise table row."""
     return rx.table.row(
         rx.table.cell(table_row.rank),
-        rx.table.cell(table_row.exercise_title),
+        rx.table.cell(
+            rx.hstack(
+                rx.text(table_row.exercise_title),
+                rx.cond(
+                    table_row.is_beta,
+                    gv.level_ai_badge(),
+                ),
+                align="center",
+                spacing="2",
+            )
+        ),
         rx.table.cell(table_row.tokens_used),
         style={"_hover": {"bg": rx.color("gray", 3)}},
         align="center",
