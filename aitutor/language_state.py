@@ -117,6 +117,7 @@ class LanguageState(SessionState):
         )
 
     # Search Bar Strings ---------------------------------------------------------------
+
     @rx.var
     def search_placeholder(self) -> str:
         """Search placeholder string"""
@@ -134,6 +135,7 @@ class LanguageState(SessionState):
         )
 
     # Navigation Bar Strings -----------------------------------------------------------
+
     @rx.var
     def home_link(self) -> str:
         """The string for the 'Home' link."""
@@ -169,6 +171,7 @@ class LanguageState(SessionState):
         return self.translate(de="Abmelden", en="Log out")
 
     # Admin Settings Navbar Strings ---------------------------------------------------
+
     @rx.var
     def manage_exercises_link(self) -> str:
         """The string for the 'Manage Exercises' link."""
@@ -201,6 +204,7 @@ class LanguageState(SessionState):
         )
 
     # Home Page Strings ----------------------------------------------------------------
+
     @rx.var
     def dashboard(self) -> str:
         """The string for the 'Dashboard' heading."""
@@ -292,6 +296,7 @@ class LanguageState(SessionState):
         )
 
     # Exercise Page Strings ------------------------------------------------------------
+
     @rx.var
     def deadline(self) -> str:
         """Deadline string"""
@@ -350,6 +355,7 @@ class LanguageState(SessionState):
         )
 
     # Chat Page Strings ----------------------------------------------------------------
+
     @rx.var
     def view_your_submission(self) -> str:
         """View your submission string"""
@@ -493,6 +499,7 @@ class LanguageState(SessionState):
         )
 
     # Finished View Page Strings -------------------------------------------------------
+
     @rx.var
     def delete_submission(self) -> str:
         """Delete submission string"""
@@ -540,18 +547,21 @@ class LanguageState(SessionState):
         return self.translate(de="Abgabe", en="Submission")
 
     # Submission Page Strings --------------------------------------------------------
+
     @rx.var
     def token_limit_reached(self) -> str:
         """Submission string"""
         return self.translate(de="Token-Limit erreicht", en="Token limit reached")
 
     # Finished View Tutor Page Strings -----------------------------------------------
+
     @rx.var
     def submitted_chat_tutor(self) -> str:
         """Submitted chat string"""
         return self.translate(de="Abgegebener Chat", en="Submitted chat")
 
     # Token Analyzer Page Strings ------------------------------------------------------
+
     @rx.var
     def rank(self) -> str:
         return self.translate(de="Rang", en="Rank")
@@ -593,6 +603,7 @@ class LanguageState(SessionState):
         return self.translate(de="Gesamt-Tokens", en="Total Tokens")
 
     # Manage Exercises Page Strings ----------------------------------------------------
+
     @rx.var
     def exercise_count_info(self) -> str:
         return self.translate(
@@ -755,7 +766,7 @@ class LanguageState(SessionState):
     @rx.var
     def title(self) -> str:
         """Title string"""
-        return self.translate(de="Titel:", en="Title:")
+        return self.translate(de="Titel", en="Title")
 
     @rx.var
     def exercise_title_placeholder(self) -> str:
@@ -841,6 +852,7 @@ class LanguageState(SessionState):
         return self.translate(de="Exportieren", en="Export")
 
     # Login and Registration Page Strings ----------------------------------------------
+
     @rx.var
     def login_heading(self) -> str:
         """Login heading string"""
@@ -982,6 +994,7 @@ class LanguageState(SessionState):
         return self.translate(de="Lecturer", en="Lecturer")
 
     # user settings --------------------------------------------------------------------
+
     @rx.var
     def user_settings(self) -> str:
         return self.translate(de="Benutzereinstellungen", en="User Settings")
@@ -1057,6 +1070,23 @@ Please test the chat for functionality after changing the model.
     @rx.var
     def check_ai_model(self) -> str:
         return self.translate(de="Überprüfungs-KI-Modell", en="Check AI Model")
+
+    @rx.var
+    def level_ai_model(self) -> str:
+        return self.translate(de="Level AI Modell", en="Level AI Model")
+
+    @rx.var
+    def level_ai_model_info(self) -> str:
+        return self.translate(
+            de=(
+                "Das KI Modell für Level AI: Konzepterstellung, Diagnose und "
+                f"Antworten im Chat.  \n{self.openai_api_model_info}"
+            ),
+            en=(
+                "The AI model for Level AI: concept generation, diagnosis, and "
+                f"chat responses.  \n{self.openai_api_model_info}"
+            ),
+        )
 
     @rx.var
     def check_ai_model_info(self) -> str:
@@ -1327,6 +1357,7 @@ Please test the chat for functionality after changing the model.
         )
 
     # Report Strings -------------------------------------------------------------------
+
     @rx.var
     def status(self) -> str:
         return self.translate(de="Status", en="Status")
@@ -1410,7 +1441,620 @@ Please test the chat for functionality after changing the model.
     def report_submitted_conversation(self) -> str:
         return self.translate(de="Eingereichter Chat:", en="Submitted Conversation:")
 
+    # Beta AI Strings ------------------------------------------------------------------
+
+    @rx.var
+    def beta_ai_source_material_help(self) -> str:
+        return self.translate(
+            de="Lade zuerst eine PDF mit dem relevanten Lehrmaterial hoch, zum Beispiel Vorlesungsfolien oder ein Skript. Prüfe anschließend die Textvorschau: Dieses Material dient der KI als Grundlage für die Konzepte und Fragen.",
+            en="First upload a PDF containing the relevant teaching material, such as lecture slides or notes. Then check the text preview: the AI uses this material as the basis for concepts and questions.",
+        )
+
+    @rx.var
+    def beta_ai_exercise_metadata_help(self) -> str:
+        return self.translate(
+            de="Vergib einen aussagekräftigen Titel und beschreibe das Lernziel sowie den gewünschten Schwerpunkt. Wähle die Anzahl der Konzepte, Kernpunkte und Fehlvorstellungen pro Konzept und klicke auf „Konzepte generieren“. Die Vorschläge kannst du im nächsten Abschnitt bearbeiten. Mehr über Kernpunkte und den Ablauf erfährst du über das Info-Symbol neben „Übungsinformationen“.",
+            en="Enter a meaningful title and describe the learning objective and focus. Choose the number of concepts, core points and misconceptions per concept, then click “Generate concepts”. You can edit the suggestions in the next section. For more information about core points and how Level AI works, click the info icon next to “Exercise metadata”.",
+        )
+
+    @rx.var
+    def beta_ai_builder_info_title(self) -> str:
+        return self.translate(de="So funktioniert Level AI", en="How Level AI works")
+
+    @rx.var
+    def beta_ai_builder_concept_info(self) -> str:
+        return self.translate(
+            de="**Konzept = eine zusammenhängende Lerneinheit**\n\nEin Konzept legt fest, welches Thema Studierende verstehen sollen. Zu jedem Konzept gehören Kernpunkte (erwartetes Wissen) und Fehlvorstellungen (typische Denkfehler). Studierende bearbeiten dasselbe Konzept auf drei Levels, bevor sie zum nächsten Konzept wechseln.",
+            en="**Concept = one coherent learning unit**\n\nA concept defines the topic students should understand. Each concept has core points (expected knowledge) and misconceptions (common misunderstandings). Students work through the same concept at three levels before moving to the next concept.",
+        )
+
+    @rx.var
+    def beta_ai_builder_core_points_info(self) -> str:
+        return self.translate(
+            de="**Kernpunkte = die Bausteine des erwarteten Wissens**\n\nFormuliere jeden Kernpunkt als eine konkrete, fachlich richtige Aussage zum Konzept. Im Basic Understanding müssen Studierende alle Kernpunkte in eigenen Worten abdecken. Die KI sammelt diese Nachweise über mehrere Antworten; nicht alle müssen in einer einzigen Antwort vorkommen. Kernpunkte sind Bewertungskriterien, keine vorgegebenen Fragen.",
+            en="**Core points = the building blocks of expected knowledge**\n\nWrite each core point as a specific, correct statement about the concept. In Basic Understanding, students must cover all core points in their own words. The AI collects this evidence across answers; they do not all have to appear in a single answer. Core points are assessment criteria, not predefined questions.",
+        )
+
+    @rx.var
+    def beta_ai_builder_misconceptions_info(self) -> str:
+        return self.translate(
+            de="**Fehlvorstellungen = typische Denkfehler zum Konzept**\n\nBeschreibe falsche Annahmen, die Studierende häufig haben. Sie helfen der KI, problematische Antworten zu erkennen und gezielt nachzufragen. Eine erkannte Fehlvorstellung muss geklärt werden, bevor es weitergeht. Fehlvorstellungen sind weder zusätzliche Kernpunkte noch ein eigenes Level.",
+            en="**Misconceptions = common misunderstandings about the concept**\n\nDescribe incorrect assumptions students often make. These help the AI recognize problematic answers and ask targeted follow-up questions. A detected misconception must be resolved before progressing. Misconceptions are neither additional core points nor a separate level.",
+        )
+
+    @rx.var
+    def beta_ai_builder_levels_title(self) -> str:
+        return self.translate(
+            de="Dasselbe Konzept auf drei Lernlevels",
+            en="The same concept at three learning levels",
+        )
+
+    @rx.var
+    def beta_ai_builder_basic_info(self) -> str:
+        return self.translate(
+            de="**1.  Basic Understanding: alle Kernpunkte abdecken**\n\nStudierende zeigen das grundlegende Wissen zum Konzept. Die KI fragt gezielt nach noch fehlenden Kernpunkten. Erst wenn alle Kernpunkte ausreichend abgedeckt und aktive Fehlvorstellungen geklärt sind, ist Basic Understanding abgeschlossen. Danach folgt Explain.",
+            en="**1.  Basic Understanding: cover all core points**\n\nStudents demonstrate the concept’s foundational knowledge. The AI follows up on any missing core points. Basic Understanding is complete only when all core points are sufficiently covered and active misconceptions are resolved. Then the student moves to Explain.",
+        )
+
+    @rx.var
+    def beta_ai_builder_explain_info(self) -> str:
+        return self.translate(
+            de="**2.  Explain: Zusammenhänge begründen**\n\nAufbauend auf den abgedeckten Kernpunkten erklären Studierende, warum oder wie das Konzept funktioniert und wie seine Bestandteile zusammenhängen. Es geht nicht darum, dieselben Fakten erneut aufzuzählen. Eine ausreichend begründete Antwort ohne aktive Fehlvorstellungen schließt dieses Level ab; danach folgt Compare & Apply.",
+            en="**2.  Explain: explain the reasoning**\n\nBuilding on the covered core points, students explain why or how the concept works and how its parts relate. This is not another list of the same facts. A sufficiently reasoned answer without active misconceptions completes this level; Compare & Apply follows.",
+        )
+
+    @rx.var
+    def beta_ai_builder_apply_info(self) -> str:
+        return self.translate(
+            de="**3.  Compare & Apply: Wissen übertragen**\n\nStudierende wenden das Konzept auf einen neuen Fall an oder vergleichen es mit einem verwandten Fall und begründen Gemeinsamkeiten oder Unterschiede. So zeigen sie, dass sie das Wissen auch außerhalb der ursprünglichen Erklärung nutzen können. Nach erfolgreicher Bearbeitung ohne aktive Fehlvorstellungen ist das Konzept abgeschlossen.",
+            en="**3.  Compare & Apply: transfer the knowledge**\n\nStudents apply the concept to a new case or compare it with a related case, explaining similarities or differences. This demonstrates that they can use their knowledge beyond the original explanation. Successful completion without active misconceptions finishes the concept.",
+        )
+
+    @rx.var
+    def beta_ai_builder_flow_info(self) -> str:
+        return self.translate(
+            de="Für Lehrende: Die Anzahl der Konzepte bestimmt die Zahl der Lerneinheiten; die Kernpunkte bestimmen den Wissensumfang je Konzept. Alle drei Levels beziehen sich auf dieselbe Lerneinheit, nicht auf drei verschiedene Gruppen von Kernpunkten. Die KI erstellt passende Fragen und Rückfragen dynamisch. Entscheidend ist das gezeigte Verständnis, nicht eine feste Fragenzahl.",
+            en="For lecturers: the concept count determines the number of learning units; the core points define the knowledge scope of each concept. All three levels concern the same learning unit, not three separate groups of core points. The AI creates suitable questions and follow-ups dynamically. Progress depends on demonstrated understanding, not a fixed question count.",
+        )
+
+    @rx.var
+    def beta_ai_review_concepts_help(self) -> str:
+        return self.translate(
+            de="Prüfe jedes Konzept auf fachliche Richtigkeit und passenden Umfang. Ein Konzept ist ein Lerninhalt; seine Kernpunkte sind die einzelnen Aussagen, die Studierende erklären können sollen. Formuliere diese klar und ergänze typische Fehlvorstellungen als Hinweise für die KI. Du kannst Konzepte und Kernpunkte hinzufügen, bearbeiten oder entfernen. Jedes Konzept benötigt einen Namen und mindestens einen ausgefüllten Kernpunkt.",
+            en="Check each concept for accuracy and appropriate scope. A concept is a learning topic; its core points are the individual statements students should be able to explain. Write these clearly and add common misconceptions as guidance for the AI. You can add, edit or remove concepts and core points. Each concept needs a name and at least one filled core point.",
+        )
+
+    @rx.var
+    def beta_ai_exercise_settings_help(self) -> str:
+        return self.translate(
+            de="Lege fest, ob die Übung zunächst verborgen bleiben soll, und wähle bei Bedarf eine Abgabefrist und Tags. Speichere anschließend die Übung.",
+            en="Decide whether the exercise should initially stay hidden, and optionally set a deadline and tags. Then save the exercise.",
+        )
+
+    @rx.var
+    def beta_ai_estimated_duration(self) -> str:
+        return self.translate(
+            de="Geschätzte Bearbeitungszeit", en="Estimated completion time"
+        )
+
+    @rx.var
+    def beta_ai_estimated_duration_prefix(self) -> str:
+        return self.translate(
+            de="Geschätzte Bearbeitungszeit: ca. ",
+            en="Estimated completion time: about ",
+        )
+
+    @rx.var
+    def beta_ai_estimated_duration_suffix(self) -> str:
+        return self.translate(de=" Minuten", en=" minutes")
+
+    @rx.var
+    def classic_ai(self) -> str:
+        """Student-facing name for the original exercise chat."""
+        return self.translate(de="Classic AI", en="Classic AI")
+
+    @rx.var
+    def beta_ai(self) -> str:
+        return self.translate(de="Level AI", en="Level AI")
+
+    @rx.var
+    def beta_ai_diagnosis_lab(self) -> str:
+        return self.translate(
+            de="Diagnoselabor von Level AI", en="Level AI Diagnosis Lab"
+        )
+
+    @rx.var
+    def beta_ai_trace_logs(self) -> str:
+        return self.translate(
+            de="Ablaufprotokolle von Level AI", en="Level AI Trace Logs"
+        )
+
+    @rx.var
+    def beta_ai_privacy_addendum(self) -> str:
+        """Level AI privacy addendum for analysis."""
+        return self.translate(
+            de="**Ergänzung zur Datenschutzerklärung:** Konversationen aus Übungen in Level AI, auch nicht eingereichte, können in anonymisierter Form über den in der Datenschutzerklärung angegebenen Zeitraum hinaus gespeichert und für Tests bei der Entwicklung neuer Funktionen verwendet werden.",
+            en="**Addendum to the Privacy Policy:** Conversations from Level AI exercises, including unsubmitted conversations, may be stored in anonymized form beyond the period specified in the Privacy Policy and used for testing during the development of new features.",
+        )
+
+    @rx.var
+    def beta_ai_analysis_label(self) -> str:
+        return self.translate(
+            de="Analyse meiner Übungsdaten erlauben",
+            en="Allow analysis of my exercise data",
+        )
+
+    @rx.var
+    def beta_ai_analysis_details(self) -> str:
+        return self.translate(de="Datenschutzhinweis", en="Privacy details")
+
+    @rx.var
+    def beta_ai_analysis_explanation(self) -> str:
+        return self.translate(
+            de="Diese Einstellung gilt für die gesamte Übung in Level AI, auch für nicht eingereichte Übungen. Wenn du den Haken entfernst, werden deine Übungsdaten nicht für zusätzliche Tests und Analysen verwendet. Chat und Abgabe funktionieren weiterhin. Du kannst die Einstellung jederzeit hier ändern. Vielen Dank für deine Unterstützung!",
+            en="This setting applies to the entire Level AI exercise, including unsubmitted exercises. If you uncheck the box, your exercise data will not be used for additional testing and analysis. Chat and submission still work. You can change this setting here at any time. Thank you for your help!",
+        )
+
+    @rx.var
+    def beta_ai_submitted_chat(self) -> str:
+        return self.translate(
+            de="Eingereichter Chat in Level AI", en="Submitted Level AI Chat"
+        )
+
+    @rx.var
+    def beta_ai_view_submission(self) -> str:
+        return self.translate(
+            de="Deine Abgabe in Level AI ansehen", en="View your Level AI submission"
+        )
+
+    @rx.var
+    def beta_ai_previous_concept(self) -> str:
+        return self.translate(de="Vorheriges Konzept", en="Previous concept")
+
+    @rx.var
+    def beta_ai_next_concept(self) -> str:
+        return self.translate(de="Nächstes Konzept", en="Next concept")
+
+    @rx.var
+    def beta_ai_source_file(self) -> str:
+        return self.translate(de="Quelldatei: ", en="Source file: ")
+
+    @rx.var
+    def beta_ai_chat_diagnosis_info(self) -> str:
+        return self.translate(
+            de="Jede Nachricht wird einzeln ausgewertet. Für die weiteren Lernschritte werden anschließend alle bisher gesammelten Hinweise zum Konzept berücksichtigt.",
+            en="This chat diagnoses each message as a latest turn, then uses cumulative concept evidence for policy decisions.",
+        )
+
+    @rx.var
+    def beta_ai_no_messages(self) -> str:
+        return self.translate(de="Noch keine Nachrichten.", en="No messages yet.")
+
+    @rx.var
+    def beta_ai_last_submit(self) -> str:
+        return self.translate(de="Letzte Abgabe: ", en="Last submit: ")
+
+    @rx.var
+    def beta_ai_latest_diagnosis(self) -> str:
+        return self.translate(
+            de="Letzte Diagnose und Vorschau der Lernstrategie",
+            en="Latest Diagnosis / Policy Preview",
+        )
+
+    @rx.var
+    def beta_ai_no_diagnosis_chat(self) -> str:
+        return self.translate(
+            de="In diesem Chat wurde noch keine Diagnose durchgeführt.",
+            en="No diagnosis has been run in this chat yet.",
+        )
+
+    @rx.var
+    def beta_ai_started_exercise_content_locked(self) -> str:
+        return self.translate(
+            de="Diese Übung wurde bereits von mindestens einem Studierenden begonnen. Titel, Sichtbarkeit, Abgabefrist und Bearbeitungsdauer können weiterhin bearbeitet werden. Quellmaterial, Beschreibung, Konzepte, Kernpunkte und Fehlvorstellungen können deshalb nicht mehr verändert werden.",
+            en="At least one student has already started this exercise. The title, visibility, deadline, and editing duration can still be changed. Its source material, description, concepts, core points, and misconceptions can no longer be changed.",
+        )
+
+    @rx.var
+    def beta_ai_no_saved_exercises(self) -> str:
+        return self.translate(
+            de="Noch keine Übungen in Level AI gespeichert.",
+            en="No Level AI exercises saved yet.",
+        )
+
+    @rx.var
+    def beta_ai_delete_exercise_description(self) -> str:
+        return self.translate(
+            de="Diese Aktion kann nicht rückgängig gemacht werden. Beim Löschen dieser Übung in Level AI werden auch ihre Konzepte, Kernpunkte, Fehlvorstellungen, alle Chats und Ergebnisse der Studierenden, Ablaufprotokolle und Lernstände gelöscht.",
+            en="This cannot be undone. Deleting this Level AI exercise also deletes its concepts, core points, misconceptions, all student chats/results, trace logs, and student concept states for this exercise.",
+        )
+
+    @rx.var
+    def beta_ai_core_points(self) -> str:
+        return self.translate(de="Kernpunkte", en="Core Points")
+
+    @rx.var
+    def beta_ai_misconceptions(self) -> str:
+        return self.translate(de="Fehlvorstellungen", en="Misconceptions")
+
+    @rx.var
+    def beta_ai_no_core_points(self) -> str:
+        return self.translate(
+            de="Für dieses Konzept wurden keine Kernpunkte gespeichert.",
+            en="No core points saved for this concept.",
+        )
+
+    @rx.var
+    def beta_ai_no_misconceptions(self) -> str:
+        return self.translate(
+            de="Für dieses Konzept wurden keine Fehlvorstellungen gespeichert.",
+            en="No misconceptions saved for this concept.",
+        )
+
+    @rx.var
+    def beta_ai_source_material(self) -> str:
+        return self.translate(de="1. Quellmaterial", en="1. Source material")
+
+    @rx.var
+    def beta_ai_select_pdf(self) -> str:
+        return self.translate(de="PDF auswählen", en="Select PDF")
+
+    @rx.var
+    def beta_ai_drop_pdfs(self) -> str:
+        return self.translate(
+            de="Lege hier ein oder mehrere PDF-Dokumente der Vorlesung ab.",
+            en="Drop one or more lecture PDFs here.",
+        )
+
+    @rx.var
+    def beta_ai_preview(self) -> str:
+        return self.translate(de="Vorschau", en="Preview")
+
+    @rx.var
+    def beta_ai_exercise_metadata(self) -> str:
+        return self.translate(de="2. Übungsinformationen", en="2. Exercise metadata")
+
+    @rx.var
+    def beta_ai_description_placeholder(self) -> str:
+        return self.translate(
+            de="(Optional) Hier kannst du die Übung beschreiben. Studierende sehen "
+            "diesen Text als Beschreibung der Übung. Er wird außerdem an die KI "
+            "übermittelt, wenn sie Konzepte und Kernpunkte erstellt.",
+            en="(Optional) Describe the exercise here. Students can see this text "
+            "as the exercise description. It is also sent to the AI when it "
+            "generates concepts and core points.",
+        )
+
+    @rx.var
+    def beta_ai_generation_targets(self) -> str:
+        return self.translate(
+            de="Zielwerte für die Generierung", en="Generation targets"
+        )
+
+    @rx.var
+    def beta_ai_generation_targets_info(self) -> str:
+        return self.translate(
+            de="Richtwerte für die Anzahl der Inhalte, die mit der KI generiert werden.",
+            en="Approximate counts used by the AI prompt.",
+        )
+
+    @rx.var
+    def beta_ai_generate_concepts(self) -> str:
+        return self.translate(de="Konzepte generieren", en="Generate Concepts")
+
+    @rx.var
+    def beta_ai_regenerate_concepts(self) -> str:
+        return self.translate(
+            de="Konzepte neu generieren (ersetzt die aktuelle Liste)",
+            en="Regenerate Concepts (replaces current list)",
+        )
+
+    @rx.var
+    def beta_ai_concepts(self) -> str:
+        return self.translate(de="Konzepte", en="Concepts")
+
+    @rx.var
+    def beta_ai_review_concepts(self) -> str:
+        return self.translate(de="3. Konzepte prüfen", en="3. Review concepts")
+
+    @rx.var
+    def beta_ai_exercise_settings(self) -> str:
+        return self.translate(de="4. Übungseinstellungen", en="4. Exercise settings")
+
+    @rx.var
+    def beta_ai_add_concept(self) -> str:
+        return self.translate(de="Konzept hinzufügen", en="Add Concept")
+
+    @rx.var
+    def beta_ai_add_core_point(self) -> str:
+        return self.translate(de="Kernpunkt hinzufügen", en="Add Core Point")
+
+    @rx.var
+    def beta_ai_add_misconception(self) -> str:
+        return self.translate(de="Fehlvorstellung hinzufügen", en="Add Misconception")
+
+    @rx.var
+    def beta_ai_no_concepts_yet(self) -> str:
+        return self.translate(
+            de="Noch keine Konzepte. Lade eine PDF hoch und generiere Konzepte.",
+            en="No concepts yet. Upload a PDF and generate concepts.",
+        )
+
+    @rx.var
+    def beta_ai_save_exercise(self) -> str:
+        return self.translate(de="Übung speichern", en="Save Exercise")
+
+    @rx.var
+    def beta_ai_inspect(self) -> str:
+        return self.translate(de="Ansehen", en="Inspect")
+
+    @rx.var
+    def beta_ai_action(self) -> str:
+        return self.translate(de="Aktion", en="Action")
+
+    @rx.var
+    def beta_ai_actions(self) -> str:
+        return self.translate(de="Aktionen", en="Actions")
+
+    @rx.var
+    def beta_ai_diagnosis_subtitle(self) -> str:
+        return self.translate(
+            de="Prüfe gespeicherte Konzeptdaten und führe für die Kernpunkte des ausgewählten Konzepts eine strukturierte Diagnose mit dem LLM durch.",
+            en="Inspect saved concept data and run structured LLM diagnosis against the selected concept's core points.",
+        )
+
+    @rx.var
+    def beta_ai_select_exercise_step(self) -> str:
+        return self.translate(
+            de="1. Übung in Level AI auswählen", en="1. Select Level AI Exercise"
+        )
+
+    @rx.var
+    def beta_ai_select_concept_step(self) -> str:
+        return self.translate(de="2. Konzept auswählen", en="2. Select Concept")
+
+    @rx.var
+    def beta_ai_inspect_concept_step(self) -> str:
+        return self.translate(
+            de="3. Konzeptdaten ansehen", en="3. Inspect Concept Data"
+        )
+
+    @rx.var
+    def beta_ai_example_answer_step(self) -> str:
+        return self.translate(
+            de="4. Beispielantwort eines Studierenden", en="4. Example Student Answer"
+        )
+
+    @rx.var
+    def beta_ai_diagnosis_output_step(self) -> str:
+        return self.translate(de="5. Diagnoseergebnis", en="5. Diagnosis Output")
+
+    @rx.var
+    def beta_ai_select(self) -> str:
+        return self.translate(de="Auswählen", en="Select")
+
+    @rx.var
+    def beta_ai_select_exercise_first(self) -> str:
+        return self.translate(
+            de="Wähle zuerst eine Übung aus.", en="Select an exercise first."
+        )
+
+    @rx.var
+    def beta_ai_select_concept_first(self) -> str:
+        return self.translate(
+            de="Wähle zuerst ein Konzept aus.", en="Select a concept first."
+        )
+
+    @rx.var
+    def beta_ai_selected_exercise(self) -> str:
+        return self.translate(de="Ausgewählte Übung: ", en="Selected exercise: ")
+
+    @rx.var
+    def beta_ai_selected_concept(self) -> str:
+        return self.translate(de="Ausgewähltes Konzept: ", en="Selected concept: ")
+
+    @rx.var
+    def beta_ai_no_concepts_in_exercise(self) -> str:
+        return self.translate(
+            de="Die ausgewählte Übung enthält keine Konzepte.",
+            en="The selected exercise has no concepts.",
+        )
+
+    @rx.var
+    def beta_ai_sample_answer_placeholder(self) -> str:
+        return self.translate(
+            de="Gib hier eine Beispielantwort ein …",
+            en="Type a sample student answer here...",
+        )
+
+    @rx.var
+    def beta_ai_diagnosis_actions_info(self) -> str:
+        return self.translate(
+            de="Nutze die schnelle Testdiagnose für Prüfungen der Benutzeroberfläche oder OpenAI für eine strukturierte Diagnose anhand der ausgewählten Kernpunkte.",
+            en="Run the cheap mock diagnosis for UI checks or call OpenAI for a structured diagnosis against the selected core points.",
+        )
+
+    @rx.var
+    def beta_ai_run_mock_diagnosis(self) -> str:
+        return self.translate(de="Testdiagnose ausführen", en="Run Mock Diagnosis")
+
+    @rx.var
+    def beta_ai_run_llm_diagnosis(self) -> str:
+        return self.translate(
+            de="Diagnose mit dem LLM ausführen", en="Run LLM Diagnosis"
+        )
+
+    @rx.var
+    def beta_ai_no_diagnosis(self) -> str:
+        return self.translate(
+            de="Noch keine Diagnose. Wähle ein Konzept, gib eine Antwort ein und führe eine Diagnose aus.",
+            en="No diagnosis yet. Select a concept, enter an answer, and run a diagnosis.",
+        )
+
+    @rx.var
+    def beta_ai_concept(self) -> str:
+        return self.translate(de="Konzept", en="Concept")
+
+    @rx.var
+    def beta_ai_final_pattern(self) -> str:
+        return self.translate(
+            de="Von der Anwendung abschließend normalisiertes Muster",
+            en="Final app-normalized pattern",
+        )
+
+    @rx.var
+    def beta_ai_llm_suggested_pattern(self) -> str:
+        return self.translate(
+            de="Vom LLM vorgeschlagenes Muster: ", en="LLM suggested pattern: "
+        )
+
+    @rx.var
+    def beta_ai_task_relevance(self) -> str:
+        return self.translate(de="Aufgabenrelevanz: ", en="Task relevance: ")
+
+    @rx.var
+    def beta_ai_correctness(self) -> str:
+        return self.translate(de="Korrektheit: ", en="Correctness: ")
+
+    @rx.var
+    def beta_ai_completeness(self) -> str:
+        return self.translate(de="Vollständigkeit: ", en="Completeness: ")
+
+    @rx.var
+    def beta_ai_covered_core_point_ids(self) -> str:
+        return self.translate(
+            de="IDs der abgedeckten Kernpunkte", en="Covered Core Point IDs"
+        )
+
+    @rx.var
+    def beta_ai_missing_core_point_ids(self) -> str:
+        return self.translate(
+            de="IDs der fehlenden Kernpunkte", en="Missing Core Point IDs"
+        )
+
+    @rx.var
+    def beta_ai_evidence_snippets(self) -> str:
+        return self.translate(de="Textbelege", en="Evidence Snippets")
+
+    @rx.var
+    def beta_ai_policy_preview(self) -> str:
+        return self.translate(de="Vorschau der Lernstrategie", en="Policy Preview")
+
+    @rx.var
+    def beta_ai_rule(self) -> str:
+        return self.translate(de="Regel: ", en="Rule: ")
+
+    @rx.var
+    def beta_ai_policy_action(self) -> str:
+        return self.translate(de="Aktion: ", en="Action: ")
+
+    @rx.var
+    def beta_ai_focus_core_point(self) -> str:
+        return self.translate(de="Kernpunkt im Fokus", en="Focus core point")
+
+    @rx.var
+    def beta_ai_feedback_brief(self) -> str:
+        return self.translate(de="Kurzes Feedback", en="Feedback brief")
+
+    @rx.var
+    def beta_ai_rationale(self) -> str:
+        return self.translate(de="Begründung", en="Rationale")
+
+    @rx.var
+    def beta_ai_suggested_tutor_prompt(self) -> str:
+        return self.translate(
+            de="Vorgeschlagener Prompt für den Tutor", en="Suggested tutor prompt"
+        )
+
+    @rx.var
+    def beta_ai_audit_trace_preview(self) -> str:
+        return self.translate(
+            de="Vorschau des Prüfprotokolls", en="Audit Trace Preview"
+        )
+
+    @rx.var
+    def beta_ai_audit_trace_info(self) -> str:
+        return self.translate(
+            de="Nachvollziehbare Vorschau der Diagnose, ihrer Validierung und der ausgewählten Strategieregel. Noch nicht gespeichert.",
+            en="Replayable preview of the diagnosis, validation, and selected policy rule. Not persisted yet.",
+        )
+
+    @rx.var
+    def beta_ai_trace_logs_subtitle(self) -> str:
+        return self.translate(
+            de="Prüfe gespeicherte Chats in Level AI sowie die Diagnose und Strategie der einzelnen Gesprächsschritte.",
+            en="Inspect persisted Level AI chat conversations and per-turn diagnosis/policy traces.",
+        )
+
+    @rx.var
+    def beta_ai_persisted_trace_logs(self) -> str:
+        return self.translate(
+            de="Gespeicherte Ablaufprotokolle", en="Persisted Trace Logs"
+        )
+
+    @rx.var
+    def beta_ai_download_all(self) -> str:
+        return self.translate(de="Alle herunterladen", en="Download all")
+
+    @rx.var
+    def beta_ai_no_trace_logs(self) -> str:
+        return self.translate(
+            de="Noch keine Ablaufprotokolle von Level AI vorhanden.",
+            en="No Level AI trace logs found yet.",
+        )
+
+    @rx.var
+    def beta_ai_trace_count(self) -> str:
+        return self.translate(de="Anzahl der Protokolle", en="Trace count")
+
+    @rx.var
+    def beta_ai_updated_at(self) -> str:
+        return self.translate(de="Aktualisiert am", en="Updated at")
+
+    @rx.var
+    def beta_ai_selected_trace_log(self) -> str:
+        return self.translate(
+            de="Ausgewähltes Ablaufprotokoll", en="Selected Trace Log"
+        )
+
+    @rx.var
+    def beta_ai_policy_based_on(self) -> str:
+        return self.translate(
+            de="Grundlage der Lernstrategie: ", en="Policy based on: "
+        )
+
+    @rx.var
+    def beta_ai_conversation_json(self) -> str:
+        return self.translate(de="Konversation (JSON)", en="Conversation JSON")
+
+    @rx.var
+    def beta_ai_latest_turn_diagnosis_json(self) -> str:
+        return self.translate(
+            de="Diagnose des letzten Gesprächsschritts (JSON)",
+            en="Latest Turn Diagnosis JSON",
+        )
+
+    @rx.var
+    def beta_ai_cumulative_diagnosis_json(self) -> str:
+        return self.translate(
+            de="Für die Strategie verwendete Gesamtdiagnose (JSON)",
+            en="Cumulative Diagnosis Used For Policy JSON",
+        )
+
+    @rx.var
+    def beta_ai_latest_trace_json(self) -> str:
+        return self.translate(
+            de="Letztes Ablaufprotokoll (JSON)", en="Latest Trace JSON"
+        )
+
+    @rx.var
+    def beta_ai_full_trace_history_json(self) -> str:
+        return self.translate(
+            de="Vollständiger Protokollverlauf (JSON)", en="Full Trace History JSON"
+        )
+
     # Lecture Strings -----------------------------------------------------------------------------
+
     @rx.var
     def lecture_name(self) -> str:
         """Lecture name string."""
@@ -1469,6 +2113,7 @@ Please test the chat for functionality after changing the model.
         )
 
     # My Lectures Strings -------------------------------------------------------------------------
+
     @rx.var
     def my_lectures(self) -> str:
         """The string for the 'My Lectures' tab/page."""
@@ -1582,6 +2227,7 @@ Please test the chat for functionality after changing the model.
         )
 
     # All Lectures Strings ------------------------------------------------------------------------
+
     @rx.var
     def all_lectures(self) -> str:
         """The string for the 'All Lectures' tab/page."""
@@ -1640,6 +2286,7 @@ Please test the chat for functionality after changing the model.
         )
 
     # Member Strings --------------------------------------------------------------------------------
+
     @rx.var
     def kick_member_description(self) -> str:
         """Kick member confirmation description."""
@@ -1663,6 +2310,7 @@ Please test the chat for functionality after changing the model.
         )
 
     # Lecture_overview Strings --------------------------------------------------------------------------------
+
     @rx.var
     def overview(self) -> str:
         """Overview label."""
@@ -1674,6 +2322,417 @@ Please test the chat for functionality after changing the model.
 
 class BackendTranslations:
     """Translations for use in the backend (where LanguageState is not available)."""
+
+    # Beta AI states -------------------------------------------------------------------
+    @staticmethod
+    def beta_ai_exercise_not_found(language: Language) -> str:
+        return translate(
+            language,
+            de="Übung in Level AI nicht gefunden.",
+            en="Level AI exercise not found.",
+        )
+
+    @staticmethod
+    def beta_ai_started_while_editing(language: Language) -> str:
+        return translate(
+            language,
+            de="Die Übung wurde inzwischen von einem Studierenden begonnen. Die fachlichen Änderungen wurden deshalb nicht gespeichert. Lade die Seite neu, um nur noch administrative Angaben zu bearbeiten.",
+            en="A student started this exercise while it was being edited, so the didactic changes were not saved. Reload the page to edit administrative fields only.",
+        )
+
+    @staticmethod
+    def beta_ai_pdf_extraction_failed(language: Language, error: object) -> str:
+        return translate(
+            language,
+            de=f"Text konnte nicht aus dem PDF-Dokument extrahiert werden: {error}",
+            en=f"Failed to extract PDF text: {error}",
+        )
+
+    @staticmethod
+    def beta_ai_pdf_extracted(language: Language) -> str:
+        return translate(
+            language,
+            de="Text aus dem PDF-Dokument extrahiert.",
+            en="PDF text extracted.",
+        )
+
+    @staticmethod
+    def beta_ai_generation_failed(language: Language, error: object) -> str:
+        return translate(
+            language,
+            de=f"Konzeptgenerierung fehlgeschlagen: {error}",
+            en=f"Concept generation failed: {error}",
+        )
+
+    @staticmethod
+    def beta_ai_concepts_generated(language: Language) -> str:
+        return translate(
+            language,
+            de="Konzepte generiert. Bitte prüfe sie vor dem Speichern.",
+            en="Concepts generated. Please review them before saving.",
+        )
+
+    @staticmethod
+    def beta_ai_new_concept(language: Language) -> str:
+        return translate(language, de="Neues Konzept", en="New concept")
+
+    @staticmethod
+    def beta_ai_generate_concept_first(language: Language) -> str:
+        return translate(
+            language,
+            de="Bitte generiere oder ergänze zuerst mindestens ein Konzept.",
+            en="Please generate or add at least one concept first.",
+        )
+
+    @staticmethod
+    def beta_ai_concept_label_required(language: Language, concept: int) -> str:
+        return translate(
+            language,
+            de=f"Konzept {concept} benötigt eine Bezeichnung.",
+            en=f"Concept {concept} needs a non-empty label.",
+        )
+
+    @staticmethod
+    def beta_ai_core_point_required(language: Language, concept: int) -> str:
+        return translate(
+            language,
+            de=f"Konzept {concept} benötigt mindestens einen ausgefüllten Kernpunkt.",
+            en=f"Concept {concept} needs at least one non-empty core point.",
+        )
+
+    @staticmethod
+    def beta_ai_misconception_label_required(
+        language: Language, concept: int, misconception: int
+    ) -> str:
+        return translate(
+            language,
+            de=f"Fehlvorstellung {misconception} in Konzept {concept} benötigt eine Bezeichnung.",
+            en=f"Concept {concept}, misconception {misconception} needs a non-empty label.",
+        )
+
+    @staticmethod
+    def beta_ai_title_exists(language: Language) -> str:
+        return translate(
+            language,
+            de="Eine Übung mit diesem Titel existiert bereits in Level AI. Bitte wähle einen anderen Titel.",
+            en="A Level AI exercise with this title already exists. Please choose a different title.",
+        )
+
+    @staticmethod
+    def beta_ai_save_failed(language: Language, error: object) -> str:
+        return translate(
+            language,
+            de=f"Übung in Level AI konnte nicht gespeichert werden: {error}",
+            en=f"Failed to save Level AI exercise: {error}",
+        )
+
+    @staticmethod
+    def beta_ai_exercise_saved(language: Language) -> str:
+        return translate(
+            language, de="Übung in Level AI gespeichert.", en="Level AI exercise saved."
+        )
+
+    @staticmethod
+    def beta_ai_select_concept_first(language: Language) -> str:
+        return translate(
+            language, de="Wähle zuerst ein Konzept aus.", en="Select a concept first."
+        )
+
+    @staticmethod
+    def beta_ai_enter_answer_first(language: Language) -> str:
+        return translate(
+            language,
+            de="Gib zuerst eine Antwort ein.",
+            en="Enter a student answer first.",
+        )
+
+    @staticmethod
+    def beta_ai_concept_not_found(language: Language) -> str:
+        return translate(
+            language,
+            de="Konzept in Level AI nicht gefunden.",
+            en="Level AI concept not found.",
+        )
+
+    @staticmethod
+    def beta_ai_llm_diagnosis_failed(language: Language, error: object) -> str:
+        return translate(
+            language,
+            de=f"Diagnose mit dem LLM fehlgeschlagen: {error}",
+            en=f"LLM diagnosis failed: {error}",
+        )
+
+    @staticmethod
+    def beta_ai_llm_diagnosis_completed(language: Language) -> str:
+        return translate(
+            language,
+            de="Diagnose mit dem LLM abgeschlossen.",
+            en="LLM diagnosis completed.",
+        )
+
+    @staticmethod
+    def beta_ai_complete_before_submit(language: Language) -> str:
+        return translate(
+            language,
+            de="Bearbeite zuerst alle Konzepte der Übung in Level AI, bevor du einreichst.",
+            en="Complete all Level AI concepts before submitting.",
+        )
+
+    @staticmethod
+    def beta_ai_submitted(language: Language) -> str:
+        return translate(
+            language,
+            de="Übung in Level AI eingereicht.",
+            en="Level AI exercise submitted.",
+        )
+
+    @staticmethod
+    def beta_ai_no_concept_registry(language: Language) -> str:
+        return translate(
+            language,
+            de="Diese Übung enthält noch keine Konzepte.",
+            en="This exercise has no concept registry yet.",
+        )
+
+    @staticmethod
+    def beta_ai_generic_processing_error(language: Language) -> str:
+        return translate(
+            language,
+            de="Beim Verarbeiten deiner Antwort ist etwas schiefgelaufen. Bitte versuche es noch einmal.",
+            en="Something went wrong while processing your answer. Please try again.",
+        )
+
+    @staticmethod
+    def beta_ai_no_selected_exercise(language: Language) -> str:
+        return translate(
+            language,
+            de="Keine Übung in Level AI ausgewählt",
+            en="No Level AI exercise selected",
+        )
+
+    @staticmethod
+    def beta_ai_concept_progress(language: Language, current: int, total: int) -> str:
+        return translate(
+            language, de=f"Konzept {current}/{total}", en=f"Concept {current}/{total}"
+        )
+
+    @staticmethod
+    def beta_ai_concept_summary(
+        language: Language,
+        *,
+        progress: str,
+        label: str,
+        core_points: int,
+        misconceptions: int,
+        completed: bool,
+    ) -> str:
+        suffix = (
+            translate(
+                language,
+                de=" | alle Konzepte abgeschlossen",
+                en=" | all concepts completed",
+            )
+            if completed
+            else ""
+        )
+        return translate(
+            language,
+            de=f"{progress}: {label} ({core_points} Kernpunkte, {misconceptions} Fehlvorstellungen){suffix}",
+            en=f"{progress}: {label} ({core_points} core points, {misconceptions} misconceptions){suffix}",
+        )
+
+    @staticmethod
+    def beta_ai_no_concepts_found(language: Language) -> str:
+        return translate(
+            language,
+            de="Für diese Übung wurde kein Konzeptverzeichnis gefunden.",
+            en="No concept registry found for this exercise.",
+        )
+
+    @staticmethod
+    def beta_ai_trace_entries(language: Language, count: int) -> str:
+        return translate(
+            language,
+            de=f"Einträge im Ablaufprotokoll: {count}",
+            en=f"Trace entries: {count}",
+        )
+
+    @staticmethod
+    def beta_ai_trace_log_id(language: Language, trace_id: int) -> str:
+        return translate(
+            language,
+            de=f"ID des Ablaufprotokolls: {trace_id}",
+            en=f"Trace log id: {trace_id}",
+        )
+
+    @staticmethod
+    def beta_ai_concept_state_summary(
+        language: Language,
+        *,
+        state: str,
+        attempts: int,
+        successful: int,
+        misconceptions: int,
+    ) -> str:
+        return translate(
+            language,
+            de=f"Konzeptstatus: {state} | Versuche: {attempts} | Erfolgreich: {successful} | Fehlvorstellungen: {misconceptions}",
+            en=f"Concept state: {state} | Attempts: {attempts} | Successful: {successful} | Misconceptions: {misconceptions}",
+        )
+
+    @staticmethod
+    def beta_ai_evidence_summary(language: Language, covered: str, missing: str) -> str:
+        return translate(
+            language,
+            de=f"Bisher abgedeckt:\n{covered}\n\nNoch offen:\n{missing}",
+            en=f"Covered so far:\n{covered}\n\nStill missing:\n{missing}",
+        )
+
+    @staticmethod
+    def beta_ai_none_yet(language: Language) -> str:
+        return translate(language, de="Noch keine.", en="None yet.")
+
+    @staticmethod
+    def beta_ai_none(language: Language) -> str:
+        return translate(language, de="Keine.", en="None.")
+
+    @staticmethod
+    def beta_ai_level_summary(
+        language: Language, basic: str, explain: str, apply: str
+    ) -> str:
+        return translate(
+            language,
+            de=f"Stufen | Grundlagen: {basic} | Erklären: {explain} | Anwenden/Vergleichen: {apply}",
+            en=f"Levels | Basic: {basic} | Explain: {explain} | Apply/Compare: {apply}",
+        )
+
+    @staticmethod
+    def beta_ai_initial_message(
+        language: Language, progress: str, label: str, question: str
+    ) -> str:
+        return translate(
+            language,
+            de=f"Wir starten mit {progress}: {label}. Ich begleite dich Schritt für Schritt und achte darauf, welche Ideen du schon in eigenen Worten erklärt hast.\n\nFrage: {question}",
+            en=f"We will start with {progress}: {label}. I will guide you step by step and keep track of which ideas you have already explained in your own words.\n\nQuestion: {question}",
+        )
+
+    @staticmethod
+    def beta_ai_initial_question(language: Language, label: str) -> str:
+        return translate(
+            language,
+            de=f"Lass uns mit {label} starten. Kannst du die Grundidee in eigenen Worten erklären und ein konkretes Detail nennen?",
+            en=f"Let's start with {label}. Can you explain the basic idea in your own words and give one concrete detail?",
+        )
+
+    @staticmethod
+    def beta_ai_fallback_explain_question(language: Language, label: str) -> str:
+        return translate(
+            language,
+            de=f"Die Grundpunkte zu {label} sind abgedeckt. Kannst du begründen, warum eine dieser Ideen für das Konzept wichtig ist?",
+            en=f"The basic points of {label} are covered. Can you explain why one of these ideas is important for the concept?",
+        )
+
+    @staticmethod
+    def beta_ai_fallback_apply_question(language: Language, label: str) -> str:
+        return translate(
+            language,
+            de=f"Wende {label} auf ein kleines Beispiel an oder vergleiche es mit einem verwandten Fall. Was verändert sich dabei?",
+            en=f"Apply {label} to a small example or compare it with a related case. What changes?",
+        )
+
+    @staticmethod
+    def beta_ai_question_prefix(language: Language) -> str:
+        return translate(language, de="Frage: ", en="Question: ")
+
+    @staticmethod
+    def beta_ai_transition(
+        language: Language,
+        *,
+        previous: str,
+        progress: str,
+        label: str,
+        question: str,
+        automatic: bool,
+    ) -> str:
+        intro = (
+            translate(
+                language,
+                de=f"Das vorherige Konzept ist abgeschlossen: {previous}.",
+                en=f"The previous concept is complete: {previous}.",
+            )
+            if automatic
+            else translate(
+                language,
+                de=f"Du hast das Konzept gewechselt. Vorheriges Konzept: {previous}.",
+                en=f"You changed concepts. Previous concept: {previous}.",
+            )
+        )
+        return translate(
+            language,
+            de=f"{intro}\n\nWir machen weiter mit {progress}: {label}.\n\nFrage: {question}",
+            en=f"{intro}\n\nWe will continue with {progress}: {label}.\n\nQuestion: {question}",
+        )
+
+    @staticmethod
+    def beta_ai_all_concepts_completed(language: Language) -> str:
+        return translate(
+            language,
+            de="Sehr gut, du hast alle Konzepte dieser Übung in Level AI auf den erforderlichen Ebenen bearbeitet. Du kannst deine Unterhaltung jetzt einreichen.",
+            en="Great, you have completed all concepts in this Level AI exercise at the required levels. You can now submit your conversation.",
+        )
+
+    @staticmethod
+    def beta_ai_processing_failed(language: Language, step: str, error: object) -> str:
+        names = {
+            "diagnosis": ("Diagnose", "Diagnosis"),
+            "student_state": ("Aktualisierung des Lernstands", "Student-state update"),
+            "policy": ("Auswahl der Lernstrategie", "Policy selection"),
+            "completion": ("Abschluss des Konzepts", "Concept completion"),
+            "question_level": ("Auswahl des Fragenniveaus", "Question-level selection"),
+            "tutor_response": ("Speichern der Tutor-Antwort", "Saving tutor response"),
+        }
+        de_name, en_name = names[step]
+        return translate(
+            language,
+            de=f"{de_name} fehlgeschlagen: {error}",
+            en=f"{en_name} failed: {error}",
+        )
+
+    @staticmethod
+    def beta_ai_trace_logs_not_found(language: Language) -> str:
+        return translate(
+            language,
+            de="Keine Ablaufprotokolle von Level AI gefunden.",
+            en="Level AI trace logs not found.",
+        )
+
+    @staticmethod
+    def beta_ai_result_not_found(language: Language) -> str:
+        return translate(
+            language,
+            de="Verknüpfte Abgabe in Level AI nicht gefunden.",
+            en="Linked Level AI exercise result not found.",
+        )
+
+    @staticmethod
+    def beta_ai_trace_log_not_found(language: Language) -> str:
+        return translate(
+            language,
+            de="Ablaufprotokoll von Level AI nicht gefunden.",
+            en="Level AI trace log not found.",
+        )
+
+    @staticmethod
+    def beta_ai_unknown_user(language: Language) -> str:
+        return translate(language, de="Unbekannter Benutzer", en="Unknown user")
+
+    @staticmethod
+    def beta_ai_deleted_exercise(language: Language) -> str:
+        return translate(language, de="<gelöschte Übung>", en="<deleted exercise>")
+
+    @staticmethod
+    def beta_ai_unnamed_file(language: Language) -> str:
+        return translate(language, de="<unbenannte Datei>", en="<unnamed file>")
 
     # ManageUsersState -----------------------------------------------------------------
     @staticmethod

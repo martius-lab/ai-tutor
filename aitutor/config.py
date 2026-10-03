@@ -23,6 +23,7 @@ def get_default_config() -> Config:
     """Get the default configuration."""
     return Config(
         response_ai_model="gpt-4.1-mini",
+        level_ai_model="gpt-4.1",
         check_ai_model="gpt-4.1",
         how_to_use_text="""
 I am your AI tutor and I want to help you understand the content of the lecture. Here's
@@ -88,6 +89,7 @@ def get_config() -> Config:
             raise ValueError("Configuration not found in the database.")
         return Config(
             response_ai_model=_config.response_ai_model,
+            level_ai_model=_config.level_ai_model,
             check_ai_model=_config.check_ai_model,
             how_to_use_text=_config.how_to_use_text,
             general_information_text=_config.general_information_text,
