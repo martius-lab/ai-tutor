@@ -1,0 +1,416 @@
+"""State for the Beta AI trace log inspector."""
+
+import json
+import re
+import unicodedata
+from datetime import datetime
+from zoneinfo import ZoneInfo
+
+import reflex as rx
+from pydantic import BaseModel
+from sqlalchemy import func
+from sqlmodel import Session, col, select
+
+from aitutor import routes
+from aitutor.auth.state import SessionState
+from aitutor.global_vars import TIME_ZONE
+from aitutor.language_state import BackendTranslations as BT
+from aitutor.models import (
+    BetaExercise,
+    BetaExerciseResult,
+    BetaExerciseTraceLog,
+    GlobalPermission,
+    Lecture,
+    UserInfo,
+)
+from aitutor.utilities.lecture_permissions import user_may_view_lecture_submissions
+
+
+class TraceLogRow(BaseModel):
+    """Simple DTO for rendering trace log rows in Reflex."""
+
+    beta_exercise_result_id: int
+    lecture_name: str
+    exercise_title: str
+    user_label: str
+    trace_count: int
+    updated_at: str
+
+
+def _pretty_json(value) -> str:
+    """Return deterministic pretty JSON for inspector display."""
+    return json.dumps(value, indent=2, ensure_ascii=False, default=str)
+
+
+def _format_datetime(value: datetime | None) -> str:
+    """Format optional datetimes for display in the project timezone."""
+    if value is None:
+        return ""
+    if value.tzinfo is None:
+        return value.strftime("%d.%m.%Y, %H:%M:%S")
+    return value.astimezone(ZoneInfo(TIME_ZONE)).strftime("%d.%m.%Y, %H:%M:%S")
+
+
+def _filename_timestamp(value: datetime | None = None) -> str:
+    """Return a sortable timestamp suitable for filenames."""
+    value = value or datetime.now(ZoneInfo(TIME_ZONE))
+    if value.tzinfo is None:
+        return value.strftime("%Y-%m-%d_%H-%M-%S")
+    return value.astimezone(ZoneInfo(TIME_ZONE)).strftime("%Y-%m-%d_%H-%M-%S")
+
+
+def _safe_filename_part(value: str | None, fallback: str = "unknown") -> str:
+    """Return a lowercase, filesystem-friendly filename segment."""
+    normalized = unicodedata.normalize("NFKD", value or "")
+    ascii_value = normalized.encode("ascii", "ignore").decode("ascii")
+    slug = re.sub(r"[^a-zA-Z0-9]+", "-", ascii_value).strip("-").lower()
+    return (slug or fallback)[:60]
+
+
+def _username_for_userinfo(userinfo: UserInfo | None, language) -> str:
+    """Return the linked LocalUser username for display/export."""
+    if userinfo is None:
+        return BT.beta_ai_unknown_user(language)
+    local_user = userinfo.local_user
+    return local_user.username if local_user else BT.beta_ai_unknown_user(language)
+
+
+def trace_result_ids_statement(lecture_id: int | None):
+    """Select traced results across lectures, or limit the query to one lecture."""
+    statement = (
+        select(BetaExerciseTraceLog.beta_exercise_result_id)
+        .join(
+            BetaExerciseResult,
+            col(BetaExerciseTraceLog.beta_exercise_result_id)
+            == col(BetaExerciseResult.id),
+        )
+        .join(
+            BetaExercise,
+            col(BetaExerciseResult.beta_exercise_id) == col(BetaExercise.id),
+        )
+    )
+    if lecture_id is not None:
+        statement = statement.where(BetaExercise.lecture_id == lecture_id)
+    statement = statement.where(BetaExerciseResult.analysis_allowed == True)  # noqa: E712
+    return statement.group_by(
+        col(BetaExerciseTraceLog.beta_exercise_result_id)
+    ).order_by(func.max(BetaExerciseTraceLog.created_at).desc())
+
+
+class BetaAITraceLogsState(SessionState):
+    """State for inspecting persisted Beta AI trace histories."""
+
+    trace_rows: list[TraceLogRow] = []
+    current_lecture_id: int | None = None
+    selected_beta_exercise_result_id: int | None = None
+    selected_exercise_title: str = ""
+    selected_user_label: str = ""
+    selected_conversation_json: str = ""
+    selected_latest_trace_json: str = ""
+    selected_trace_history_json: str = ""
+    selected_latest_turn_diagnosis_json: str = ""
+    selected_cumulative_diagnosis_json: str = ""
+    selected_policy_basis: str = ""
+
+    @rx.event
+    def on_load(self):
+        """Initialize the trace log inspector."""
+        self.current_lecture_id = None
+        self.trace_rows = []
+        self.clear_selection()
+        if not self._can_access_route():
+            return rx.redirect(routes.NOT_FOUND)
+        self.global_load()
+        lecture_id = self._route_lecture_id()
+
+        if lecture_id is not None:
+            with rx.session() as session:
+                if session.get(Lecture, lecture_id) is None:
+                    return rx.redirect(routes.NOT_FOUND)
+
+        self.current_lecture_id = lecture_id
+        self.load_trace_logs()
+
+    @rx.var
+    def has_selected_trace_log(self) -> bool:
+        """Whether a trace log is selected for inspection."""
+        return self.selected_beta_exercise_result_id is not None
+
+    def _route_lecture_id(self) -> int | None:
+        """None represents the global (no lecture ID) route."""
+        value = self.get_route_param_or_default("lecture_id", default=None)
+        return int(value) if value is not None else None
+
+    def _can_access_route(self) -> bool:
+        """Check permissions for the current URL, never for a stored state ID."""
+        if (
+            not self.is_authenticated
+            or self.authenticated_user is None
+            or self.authenticated_user.id is None
+        ):
+            return False
+        try:
+            lecture_id = self._route_lecture_id()
+        except ValueError, TypeError:
+            return False
+        if GlobalPermission.ADMIN in self.global_permissions:
+            return True
+        if lecture_id is None:
+            return False
+        with rx.session() as session:
+            return user_may_view_lecture_submissions(
+                session,
+                user_id=self.authenticated_user.id,
+                global_permissions=self.global_permissions,
+                lecture_id=lecture_id,
+            )
+
+    def _result_belongs_to_route(self, beta_result: BetaExerciseResult) -> bool:
+        """Check the related exercise against the URL's lecture context."""
+        exercise = beta_result.beta_exercise
+        lecture_id = self._route_lecture_id()
+        return exercise is not None and (
+            lecture_id is None or exercise.lecture_id == lecture_id
+        )
+
+    def _trace_logs_for_result(
+        self, session: Session, beta_exercise_result_id: int
+    ) -> list[BetaExerciseTraceLog]:
+        """Load a result's trace history in turn order."""
+        return list(
+            session.exec(
+                select(BetaExerciseTraceLog)
+                .where(
+                    BetaExerciseTraceLog.beta_exercise_result_id
+                    == beta_exercise_result_id
+                )
+                .order_by(col(BetaExerciseTraceLog.turn_index))
+            ).all()
+        )
+
+    @rx.event
+    def clear_selection(self):
+        """Clear the selected trace log details."""
+        self.selected_beta_exercise_result_id = None
+        self.selected_exercise_title = ""
+        self.selected_user_label = ""
+        self.selected_conversation_json = ""
+        self.selected_latest_trace_json = ""
+        self.selected_trace_history_json = ""
+        self.selected_latest_turn_diagnosis_json = ""
+        self.selected_cumulative_diagnosis_json = ""
+        self.selected_policy_basis = ""
+
+    def _trace_row_for_result(
+        self, session: Session, beta_result_id: int
+    ) -> TraceLogRow | None:
+        """Build an overview row only for an accessible result with trace entries."""
+        trace_logs = self._trace_logs_for_result(session, beta_result_id)
+        if not trace_logs:
+            return None
+        beta_result = session.get(BetaExerciseResult, beta_result_id)
+        if beta_result is None or not beta_result.analysis_allowed:
+            return None
+        if not self._result_belongs_to_route(beta_result):
+            return None
+        exercise = beta_result.beta_exercise
+        if exercise is None:
+            return None
+        lecture = exercise.lecture
+        userinfo = session.get(UserInfo, beta_result.userinfo_id)
+        latest_trace_log = trace_logs[-1]
+        return TraceLogRow(
+            beta_exercise_result_id=beta_result_id,
+            lecture_name=lecture.lecture_name if lecture else "",
+            exercise_title=exercise.title,
+            user_label=_username_for_userinfo(userinfo, self.language),
+            trace_count=len(trace_logs),
+            updated_at=_format_datetime(latest_trace_log.created_at),
+        )
+
+    @rx.event
+    def load_trace_logs(self):
+        """Load trace log overview rows."""
+        rows: list[TraceLogRow] = []
+        if not self._can_access_route():
+            self.trace_rows = []
+            return
+        with rx.session() as session:
+            beta_result_ids = list(
+                session.exec(trace_result_ids_statement(self._route_lecture_id())).all()
+            )
+
+            for beta_result_id in beta_result_ids:
+                row = self._trace_row_for_result(session, beta_result_id)
+                if row is not None:
+                    rows.append(row)
+
+        self.trace_rows = rows
+
+    def _set_selected_trace_details(
+        self, beta_exercise_result_id: int, export_data: dict
+    ) -> None:
+        """Display the selected result's conversation and trace details."""
+        latest_trace = export_data["latest_trace"]
+        self.selected_beta_exercise_result_id = beta_exercise_result_id
+        self.selected_exercise_title = export_data["exercise_title"]
+        self.selected_user_label = export_data["user"]
+        self.selected_conversation_json = _pretty_json(export_data["conversation"])
+        self.selected_latest_trace_json = _pretty_json(latest_trace)
+        self.selected_trace_history_json = _pretty_json(export_data["trace_history"])
+        self.selected_latest_turn_diagnosis_json = _pretty_json(
+            latest_trace.get("latest_turn_diagnosis", {})
+        )
+        self.selected_cumulative_diagnosis_json = _pretty_json(
+            latest_trace.get("cumulative_diagnosis", {})
+        )
+        self.selected_policy_basis = latest_trace.get("policy_based_on", "")
+
+    @rx.event
+    def select_trace_log(self, beta_exercise_result_id: int | None):
+        """Load one trace history with its linked conversation for inspection."""
+        if not self._can_access_route():
+            self.clear_selection()
+            return
+        if beta_exercise_result_id is None:
+            return
+
+        with rx.session() as session:
+            trace_logs = self._trace_logs_for_result(session, beta_exercise_result_id)
+            if not trace_logs:
+                return rx.toast.error(
+                    description=BT.beta_ai_trace_logs_not_found(self.language),
+                    duration=5000,
+                    position="bottom-center",
+                    invert=True,
+                )
+
+            beta_result = session.get(BetaExerciseResult, beta_exercise_result_id)
+            if (
+                beta_result is None
+                or not beta_result.analysis_allowed
+                or not self._result_belongs_to_route(beta_result)
+            ):
+                self.clear_selection()
+                return rx.toast.error(
+                    description=BT.beta_ai_result_not_found(self.language),
+                    duration=5000,
+                    position="bottom-center",
+                    invert=True,
+                )
+
+            export_data = self._build_trace_export_for_result(
+                session=session,
+                beta_result=beta_result,
+                trace_logs=trace_logs,
+            )
+            self._set_selected_trace_details(beta_exercise_result_id, export_data)
+
+    def _build_trace_export_for_result(
+        self,
+        *,
+        session: Session,
+        beta_result: BetaExerciseResult,
+        trace_logs: list[BetaExerciseTraceLog],
+    ) -> dict:
+        """Build a copy/export payload for one Beta AI exercise result."""
+        exercise = beta_result.beta_exercise
+        lecture = exercise.lecture if exercise else None
+        userinfo = session.get(UserInfo, beta_result.userinfo_id)
+        trace_history = [trace_log.trace_entry for trace_log in trace_logs]
+        latest_trace = trace_history[-1] if trace_history else {}
+
+        return {
+            "beta_exercise_result_id": beta_result.id,
+            "beta_exercise_id": beta_result.beta_exercise_id,
+            "lecture_name": lecture.lecture_name if lecture else "",
+            "exercise_title": exercise.title
+            if exercise
+            else BT.beta_ai_deleted_exercise(self.language),
+            "user": _username_for_userinfo(userinfo, self.language),
+            "conversation": beta_result.conversation_text,
+            "trace_count": len(trace_logs),
+            "latest_trace": latest_trace,
+            "trace_history": trace_history,
+        }
+
+    def _load_trace_export_for_result(
+        self, beta_exercise_result_id: int
+    ) -> dict | None:
+        """Load one Beta AI trace export payload by result id."""
+        with rx.session() as session:
+            trace_logs = self._trace_logs_for_result(session, beta_exercise_result_id)
+            beta_result = session.get(BetaExerciseResult, beta_exercise_result_id)
+            if (
+                beta_result is None
+                or not beta_result.analysis_allowed
+                or not trace_logs
+                or not self._result_belongs_to_route(beta_result)
+            ):
+                return None
+            return self._build_trace_export_for_result(
+                session=session,
+                beta_result=beta_result,
+                trace_logs=trace_logs,
+            )
+
+    @rx.event
+    def copy_trace_log(self, beta_exercise_result_id: int | None):
+        """Download one exercise-result trace history as JSON."""
+        if not self._can_access_route():
+            return
+        export_data = (
+            self._load_trace_export_for_result(beta_exercise_result_id)
+            if beta_exercise_result_id is not None
+            else None
+        )
+        if export_data is None:
+            return rx.toast.error(
+                description=BT.beta_ai_trace_log_not_found(self.language),
+                duration=5000,
+                position="bottom-center",
+                invert=True,
+            )
+        timestamp = _filename_timestamp()
+        exercise_slug = _safe_filename_part(
+            export_data.get("exercise_title"), "exercise"
+        )
+        user_slug = _safe_filename_part(export_data.get("user"), "user")
+        result_id = export_data.get("beta_exercise_result_id", beta_exercise_result_id)
+        return rx.download(
+            data=_pretty_json(export_data),
+            filename=(
+                f"beta-ai-trace__{exercise_slug}__{user_slug}__"
+                f"result-{result_id}__{timestamp}.json"
+            ),
+        )
+
+    @rx.event
+    def copy_all_trace_logs(self):
+        """Download all persisted Beta AI trace histories as JSON."""
+        if not self._can_access_route():
+            return
+        # Never trust a stale or client-provided overview for bulk downloads.
+        self.load_trace_logs()
+        results = []
+        for row in self.trace_rows:
+            export_data = self._load_trace_export_for_result(
+                row.beta_exercise_result_id
+            )
+            if export_data is not None:
+                results.append(export_data)
+
+        exported_at = datetime.now(ZoneInfo(TIME_ZONE))
+        return rx.download(
+            data=_pretty_json(
+                {
+                    "exported_at": _format_datetime(exported_at),
+                    "result_count": len(results),
+                    "results": results,
+                }
+            ),
+            filename=(
+                f"beta-ai-trace-logs__all-results__count-{len(results)}__"
+                f"{_filename_timestamp(exported_at)}.json"
+            ),
+        )
