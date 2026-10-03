@@ -1,0 +1,36 @@
+"""Shared Beta AI Tutor schemas used by UI state and domain helpers."""
+
+from pydantic import BaseModel, Field
+
+
+class OpenAIUsageError(ValueError):
+    """Error raised after OpenAI returned usage but no usable application result."""
+
+    def __init__(self, message: str, *, tokens_used: int = 0):
+        super().__init__(message)
+        self.tokens_used = tokens_used
+
+
+class EditableCorePoint(BaseModel):
+    """Editable UI representation of a concept core point."""
+
+    id: int | None = None
+    text: str = ""
+
+
+class EditableMisconception(BaseModel):
+    """Editable UI representation of a misconception hint."""
+
+    id: int | None = None
+    label: str = ""
+
+
+class EditableConcept(BaseModel):
+    """Editable UI representation of a generated or manually added concept."""
+
+    id: int | None = None
+    concept_id: str = ""
+    label: str = ""
+    description: str = ""
+    core_points: list[EditableCorePoint] = Field(default_factory=list)
+    misconceptions: list[EditableMisconception] = Field(default_factory=list)
