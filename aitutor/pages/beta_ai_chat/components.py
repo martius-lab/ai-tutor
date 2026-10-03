@@ -1,0 +1,456 @@
+"""Components for the Beta AI chat skeleton page."""
+
+import reflex as rx
+
+import aitutor.global_vars as gv
+from aitutor.language_state import LanguageState as LS
+from aitutor.pages.beta_ai_chat.state import BetaAIChatState
+
+
+def beta_chat_header() -> rx.Component:
+    """Render metadata for the selected Beta AI exercise."""
+    return rx.card(
+        rx.vstack(
+            rx.hstack(
+                rx.heading(BetaAIChatState.exercise_title, size="6"),
+                rx.spacer(),
+                gv.level_ai_badge(),
+                width="100%",
+                align="center",
+            ),
+            rx.cond(
+                BetaAIChatState.exercise_description,
+                rx.text(BetaAIChatState.exercise_description, color_scheme="gray"),
+            ),
+            rx.cond(
+                BetaAIChatState.source_material_filename,
+                rx.callout(
+                    LS.beta_ai_source_file + BetaAIChatState.source_material_filename,
+                    icon="file-text",
+                    width="100%",
+                ),
+            ),
+            rx.callout(
+                BetaAIChatState.concept_summary,
+                icon="target",
+                width="100%",
+            ),
+            rx.hstack(
+                rx.badge(BetaAIChatState.concept_progress_label, color_scheme="purple"),
+                rx.button(
+                    rx.icon("chevron-left"),
+                    LS.beta_ai_previous_concept,
+                    size="2",
+                    variant="soft",
+                    on_click=BetaAIChatState.go_to_previous_concept,
+                    disabled=~BetaAIChatState.can_go_previous_concept,
+                    _hover=rx.cond(
+                        BetaAIChatState.can_go_previous_concept,
+                        {"cursor": "pointer"},
+                        {"cursor": "not-allowed"},
+                    ),
+                ),
+                rx.button(
+                    LS.beta_ai_next_concept,
+                    rx.icon("chevron-right"),
+                    size="2",
+                    variant="soft",
+                    on_click=BetaAIChatState.go_to_next_concept,
+                    disabled=~BetaAIChatState.can_go_next_concept,
+                    _hover=rx.cond(
+                        BetaAIChatState.can_go_next_concept,
+                        {"cursor": "pointer"},
+                        {"cursor": "not-allowed"},
+                    ),
+                ),
+                spacing="2",
+                wrap="wrap",
+                align="center",
+            ),
+            rx.callout(
+                BetaAIChatState.concept_state_summary,
+                icon="chart-no-axes-column-increasing",
+                width="100%",
+            ),
+            rx.callout(
+                BetaAIChatState.level_status_summary,
+                icon="layers-3",
+                width="100%",
+            ),
+            rx.callout(
+                BetaAIChatState.cumulative_evidence_summary,
+                icon="list-checks",
+                width="100%",
+                white_space="pre-wrap",
+            ),
+            rx.callout(
+                LS.beta_ai_chat_diagnosis_info,
+                icon="info",
+                width="100%",
+            ),
+            spacing="3",
+            align="start",
+            width="100%",
+        ),
+        width="100%",
+    )
+
+
+def chat_message(message: dict[str, str]) -> rx.Component:
+    """Render one Beta AI chat message using the normal exercise chat bubble style."""
+    return rx.box(
+        rx.markdown(
+            message["content"].replace("\n", "  \n"),
+            background_color=rx.cond(
+                message["role"] == "student",
+                rx.color("accent", 3),
+                rx.color("gray", 3),
+            ),
+            color=rx.cond(
+                message["role"] == "student",
+                rx.color("accent", 12),
+                rx.color("gray", 12),
+            ),
+            text_align="left",
+            display="inline-block",
+            padding="1em",
+            border_radius="8px",
+            max_width=["30em", "30em", "50em", "50em", "50em", "50em"],
+        ),
+        text_align=rx.cond(
+            message["role"] == "student",
+            "right",
+            "left",
+        ),
+        margin_top="1em",
+        width="100%",
+    )
+
+
+def messages_panel() -> rx.Component:
+    """Render the current Beta AI chat messages in the normal chat scroll style."""
+    return rx.box(
+        rx.auto_scroll(
+            rx.cond(
+                BetaAIChatState.messages.length() == 0,  # type: ignore
+                rx.callout(LS.beta_ai_no_messages, icon="info", width="100%"),
+                rx.foreach(BetaAIChatState.messages, chat_message),
+            ),
+            scroll_to_bottom_on_update=True,
+            width="100%",
+            height="100%",
+            padding_right="8px",
+        ),
+        width="100%",
+        height="45vh",
+        min_height="16em",
+        overflow_y="auto",
+    )
+
+
+def analysis_preference() -> rx.Component:
+    """Keep the per-exercise analysis option reachable below the chat controls."""
+    return rx.flex(
+        rx.checkbox(
+            LS.beta_ai_analysis_label,
+            checked=BetaAIChatState.analysis_allowed,
+            on_change=BetaAIChatState.set_analysis_allowed,
+            size="2",
+        ),
+        rx.dialog.root(
+            rx.dialog.trigger(
+                rx.button(
+                    LS.beta_ai_analysis_details,
+                    variant="ghost",
+                    size="1",
+                    type="button",
+                )
+            ),
+            rx.dialog.content(
+                rx.dialog.title(LS.beta_ai_analysis_details),
+                rx.markdown(LS.beta_ai_privacy_addendum),
+                rx.text(LS.beta_ai_analysis_explanation, size="2"),
+                rx.box(
+                    rx.dialog.close(rx.button("OK", variant="soft", type="button")),
+                    margin_top="1em",
+                ),
+                max_width="32em",
+            ),
+        ),
+        align="center",
+        justify="between",
+        wrap="wrap",
+        gap="2",
+        width="100%",
+    )
+
+
+def report_conversation_button() -> rx.Component:
+    """Render the standard report dialog for the Beta AI conversation."""
+    return rx.alert_dialog.root(
+        rx.hover_card.root(
+            rx.hover_card.trigger(
+                rx.alert_dialog.trigger(
+                    rx.button(
+                        rx.icon("flag", size=20),
+                        _hover={"cursor": "pointer"},
+                    ),
+                ),
+            ),
+            rx.hover_card.content(rx.text(LS.report_problematic_chat)),
+        ),
+        rx.alert_dialog.content(
+            rx.alert_dialog.title(LS.report_conversation),
+            rx.alert_dialog.description(
+                rx.vstack(
+                    rx.text_area(
+                        placeholder=LS.report_placeholder,
+                        value=BetaAIChatState.report_text,
+                        on_change=BetaAIChatState.set_report_text,
+                        width="100%",
+                        rows="4",
+                        max_length=gv.REPORT_MAX_LEN,
+                    ),
+                    rx.text(
+                        f"{BetaAIChatState.report_char_count} / {gv.REPORT_MAX_LEN}",
+                        size="2",
+                        text_align="right",
+                        width="100%",
+                        color=rx.cond(
+                            BetaAIChatState.report_char_count > gv.REPORT_MAX_LEN,
+                            rx.color("red", 11),
+                            rx.color("gray", 11),
+                        ),
+                    ),
+                    spacing="2",
+                )
+            ),
+            rx.hstack(
+                rx.alert_dialog.cancel(
+                    rx.button(
+                        LS.cancel,
+                        variant="outline",
+                        _hover={"cursor": "pointer"},
+                    ),
+                ),
+                rx.alert_dialog.action(
+                    rx.button(
+                        LS.submit,
+                        on_click=BetaAIChatState.submit_report,
+                        disabled=~BetaAIChatState.report_is_valid,
+                        _hover=rx.cond(
+                            BetaAIChatState.report_is_valid,
+                            {"cursor": "pointer"},
+                            {"cursor": "not-allowed"},
+                        ),
+                    ),
+                ),
+                justify="end",
+                spacing="3",
+            ),
+        ),
+    )
+
+
+def message_input() -> rx.Component:
+    """Render the Beta AI student message input in the normal chat form style."""
+
+    def text_area_with_key_submit(with_key_submit: bool) -> rx.Component:
+        return rx.text_area(
+            name="student_message",
+            placeholder=LS.your_answer,
+            value=BetaAIChatState.student_message,
+            on_change=BetaAIChatState.set_student_message,
+            required=True,
+            width="100%",
+            max_height="40vh",
+            enter_key_submit=with_key_submit,
+            resize="vertical",
+            rows="4",
+        )
+
+    return rx.form(
+        rx.vstack(
+            rx.cond(
+                BetaAIChatState.token_limit_reached,
+                rx.callout(
+                    LS.token_limit_message,
+                    icon="triangle-alert",
+                    color_scheme="red",
+                    width="100%",
+                    variant="surface",
+                ),
+                rx.fragment(
+                    rx.desktop_only(
+                        text_area_with_key_submit(True),
+                        width="100%",
+                    ),
+                    rx.mobile_and_tablet(
+                        text_area_with_key_submit(False),
+                        width="100%",
+                    ),
+                ),
+            ),
+            rx.hstack(
+                beta_submit_button(),
+                rx.spacer(),
+                rx.button(
+                    rx.icon("send-horizontal", size=20),
+                    type="submit",
+                    loading=BetaAIChatState.running_diagnosis,
+                    disabled=~BetaAIChatState.can_send_message,
+                    _hover=rx.cond(
+                        BetaAIChatState.can_send_message,
+                        {"cursor": "pointer"},
+                        {"cursor": "not-allowed"},
+                    ),
+                ),
+                width="100%",
+            ),
+            spacing="3",
+            width="100%",
+        ),
+        on_submit=BetaAIChatState.send_message,
+        reset_on_submit=True,
+    )
+
+
+def beta_submit_button() -> rx.Component:
+    """Render the Beta AI submit button in the chat action row."""
+    return rx.cond(
+        BetaAIChatState.is_overdue,
+        rx.hover_card.root(
+            rx.hover_card.trigger(
+                rx.button(
+                    LS.submit,
+                    color_scheme="green",
+                    type="button",
+                    disabled=True,
+                    _hover={"cursor": "disabled"},
+                ),
+            ),
+            rx.hover_card.content(rx.text(LS.deadline_has_passed_info)),
+        ),
+        rx.button(
+            LS.submit,
+            color_scheme="green",
+            type="button",
+            on_click=BetaAIChatState.submit_beta_conversation,
+            disabled=~BetaAIChatState.can_submit_conversation,
+            _hover=rx.cond(
+                BetaAIChatState.can_submit_conversation,
+                {"cursor": "pointer"},
+                {"cursor": "not-allowed"},
+            ),
+        ),
+    )
+
+
+def beta_submission_status() -> rx.Component:
+    """Render compact Beta AI submission status for the page header."""
+    return rx.cond(
+        BetaAIChatState.conversation_is_submitted,
+        rx.hstack(
+            rx.hover_card.root(
+                rx.hover_card.trigger(
+                    rx.button(
+                        rx.icon("eye", size=20),
+                        on_click=rx.redirect(BetaAIChatState.beta_finished_view_url),
+                        _hover={"cursor": "pointer"},
+                    ),
+                ),
+                rx.hover_card.content(rx.text(LS.beta_ai_view_submission)),
+            ),
+            rx.desktop_only(
+                rx.text(
+                    LS.beta_ai_last_submit,
+                    rx.cond(
+                        BetaAIChatState.submit_time_stamp,
+                        rx.moment(
+                            date=BetaAIChatState.submit_time_stamp,
+                            format=gv.MOMENT_DEADLINE_FORMAT,
+                        ),
+                    ),
+                    color_scheme="green",
+                ),
+            ),
+            rx.icon("circle-check", color=gv.GREEN_CHECK_COLOR, size=30),
+            align="center",
+        ),
+        rx.cond(
+            ~BetaAIChatState.is_overdue,
+            rx.hstack(
+                rx.icon("info", size=20),
+                rx.text(LS.not_submitted_yet),
+                spacing="1",
+                align="center",
+            ),
+        ),
+    )
+
+
+def diagnosis_status_card() -> rx.Component:
+    """Render the latest diagnosis and policy status."""
+    return rx.card(
+        rx.vstack(
+            rx.heading(LS.beta_ai_latest_diagnosis, size="4"),
+            rx.hstack(
+                rx.badge(
+                    BetaAIChatState.trace_history_count_label,
+                    color_scheme="blue",
+                ),
+                rx.cond(
+                    BetaAIChatState.has_trace_log_id,
+                    rx.badge(
+                        BetaAIChatState.last_trace_log_id_label,
+                        color_scheme="gray",
+                    ),
+                ),
+                spacing="2",
+                wrap="wrap",
+            ),
+            rx.cond(
+                BetaAIChatState.has_last_trace,
+                rx.vstack(
+                    rx.hstack(
+                        rx.badge(BetaAIChatState.last_diagnosis_pattern),
+                        rx.badge(
+                            BetaAIChatState.last_policy_action, color_scheme="purple"
+                        ),
+                        rx.badge(
+                            BetaAIChatState.last_policy_rule_id, color_scheme="gray"
+                        ),
+                        spacing="2",
+                        wrap="wrap",
+                    ),
+                    rx.code_block(
+                        BetaAIChatState.last_trace_json,
+                        language="json",
+                        width="100%",
+                    ),
+                    spacing="3",
+                    align="start",
+                    width="100%",
+                ),
+                rx.callout(
+                    LS.beta_ai_no_diagnosis_chat,
+                    icon="info",
+                    width="100%",
+                ),
+            ),
+            spacing="3",
+            align="start",
+            width="100%",
+        ),
+        width="100%",
+    )
+
+
+def beta_ai_chat_content() -> rx.Component:
+    """Render the full Beta AI chat skeleton content."""
+    return rx.vstack(
+        messages_panel(),
+        message_input(),
+        spacing="4",
+        width="100%",
+    )
