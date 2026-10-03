@@ -208,6 +208,30 @@ def page_require_lecture_role(
     return decorator
 
 
+def state_has_lecture_role(state: SessionState, required_role: LectureRole) -> bool:
+    """Check authenticated access to the lecture in the current route."""
+    if (
+        not state.is_authenticated
+        or state.authenticated_user is None
+        or state.authenticated_user.id is None
+    ):
+        return False
+    try:
+        lecture_id = int(state.get_route_param_or_default("lecture_id", default=""))
+    except ValueError, TypeError:
+        return False
+    if GlobalPermission.ADMIN in state.global_permissions:
+        return True
+    with rx.session() as session:
+        link = session.exec(
+            select(LinkUserLecture).where(
+                LinkUserLecture.lecture_id == lecture_id,
+                LinkUserLecture.user_id == state.authenticated_user.id,
+            )
+        ).one_or_none()
+    return link is not None and link.role >= required_role
+
+
 def state_require_lecture_role(required_role: LectureRole):
     """Protect a state event by requiring a lecture-specific role.
 
@@ -217,30 +241,7 @@ def state_require_lecture_role(required_role: LectureRole):
     def decorator(func):
         @functools.wraps(func)
         def wrapper(self: SessionState, *args, **kwargs):
-            if not self.is_authenticated:
-                return
-            if self.authenticated_user is None or self.authenticated_user.id is None:
-                return
-
-            try:
-                lecture_id = int(
-                    self.get_route_param_or_default("lecture_id", default="")
-                )
-            except ValueError:
-                return
-
-            if GlobalPermission.ADMIN in self.global_permissions:
-                return func(self, *args, **kwargs)
-
-            with rx.session() as session:
-                link = session.exec(
-                    select(LinkUserLecture).where(
-                        LinkUserLecture.lecture_id == lecture_id,
-                        LinkUserLecture.user_id == self.authenticated_user.id,
-                    )
-                ).one_or_none()
-
-            if link is not None and link.role >= required_role:
+            if state_has_lecture_role(self, required_role):
                 return func(self, *args, **kwargs)
 
         return wrapper
