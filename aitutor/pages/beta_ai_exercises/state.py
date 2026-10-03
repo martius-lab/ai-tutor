@@ -32,6 +32,8 @@ from aitutor.pages.lecture_manage_exercises.state import (
     LECTURE_MANAGE_EXERCISES_FIELD_MAX_LENGTHS,
 )
 
+SECONDS_PER_ESTIMATED_QUESTION = 90
+
 
 class BetaAIExercisesState(SessionState):
     """State for the UI-first Beta AI exercise builder."""
@@ -60,6 +62,7 @@ class BetaAIExercisesState(SessionState):
     use_deadline: bool = True
     exercise_has_started: bool = False
     builder_dialog_is_open: bool = False
+    metadata_info_dialog_is_open: bool = False
     tag_names: list[str] = []
     selected_tags: list[str] = []
     new_tag_name: str = ""
@@ -72,6 +75,10 @@ class BetaAIExercisesState(SessionState):
         except KeyError, ValueError, TypeError:
             return False
         return lecture_id is not None and lecture_id == route_lecture_id
+    @rx.event
+    def set_metadata_info_dialog_is_open(self, value: bool):
+        """Synchronize dismissal by Escape or the dialog overlay."""
+        self.metadata_info_dialog_is_open = value
 
     @rx.event
     @state_require_lecture_role(LectureRole.OWNER)
@@ -212,6 +219,24 @@ class BetaAIExercisesState(SessionState):
         )
 
     @rx.var
+    def estimated_question_count(self) -> int:
+        """Estimate one question per filled core point plus two per concept."""
+        question_count = 0
+        for concept in self.generated_concepts:
+            core_point_count = sum(
+                bool(point.text.strip()) for point in concept.core_points
+            )
+            if core_point_count:
+                question_count += core_point_count + 2
+        return question_count
+
+    @rx.var
+    def estimated_duration_minutes(self) -> int:
+        """Round the planning estimate up to whole minutes."""
+        seconds = self.estimated_question_count * SECONDS_PER_ESTIMATED_QUESTION
+        return (seconds + 59) // 60
+
+    @rx.var
     def can_save_exercise(self) -> bool:
         """Whether the save button should be enabled."""
         return bool(
@@ -240,6 +265,24 @@ class BetaAIExercisesState(SessionState):
     def is_editing(self) -> bool:
         """Whether the builder is editing an existing exercise."""
         return self.editing_exercise_id is not None
+
+    @rx.event
+    def open_metadata_info_dialog(self):
+        """Open the authoring guide using the app's controlled-dialog pattern."""
+        self.metadata_info_dialog_is_open = True
+
+    @rx.event
+    def close_metadata_info_dialog(self):
+        """Close the authoring guide from either close button."""
+        self.metadata_info_dialog_is_open = False
+
+    def _matches_lecture_route(self, lecture_id: int | None) -> bool:
+        """Keep builder operations scoped to the authorized route lecture."""
+        try:
+            route_lecture_id = self.get_route_param_or_error("lecture_id", dtype=int)
+        except KeyError, ValueError, TypeError:
+            return False
+        return lecture_id is not None and lecture_id == route_lecture_id
 
     def load_tags(self):
         """Load the shared tags belonging to the current lecture."""
