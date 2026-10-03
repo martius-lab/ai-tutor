@@ -13,6 +13,21 @@ from aitutor.config import get_config
 from aitutor.env_settings import get_env_settings
 from aitutor.pages.all_lectures.page import all_lectures_page
 from aitutor.pages.all_lectures.state import AllLecturesState
+from aitutor.pages.beta_ai_chat.page import beta_ai_chat_page
+from aitutor.pages.beta_ai_chat.state import BetaAIChatState
+from aitutor.pages.beta_ai_diagnosis_lab.page import beta_ai_diagnosis_lab_page
+from aitutor.pages.beta_ai_diagnosis_lab.state import BetaAIDiagnosisLabState
+from aitutor.pages.beta_ai_finished_view.page import beta_ai_finished_view_page
+from aitutor.pages.beta_ai_finished_view.state import BetaAIFinishedViewState
+from aitutor.pages.beta_ai_finished_view_tutor.page import (
+    beta_ai_finished_view_tutor_page,
+)
+from aitutor.pages.beta_ai_finished_view_tutor.state import BetaAIFinishedViewTutorState
+from aitutor.pages.beta_ai_trace_logs.page import (
+    beta_ai_global_trace_logs_page,
+    beta_ai_trace_logs_page,
+)
+from aitutor.pages.beta_ai_trace_logs.state import BetaAITraceLogsState
 from aitutor.pages.chat.page import chat_page
 from aitutor.pages.chat.state import ChatState
 from aitutor.pages.configuration.page import configuration_page
@@ -84,6 +99,22 @@ app.add_page(
     finished_view_page,
     route=routes.FINISHED_VIEW + "/[exercise_id]",
     on_load=FinishedViewState.on_load,
+)
+app.add_page(
+    beta_ai_chat_page,
+    route=routes.BETA_AI_CHAT + "/[lecture_id]/[beta_exercise_id]",
+    on_load=BetaAIChatState.on_load,
+)
+app.add_page(
+    beta_ai_finished_view_tutor_page,
+    route=routes.BETA_AI_FINISHED_VIEW_TUTOR
+    + "/[lecture_id]/[beta_exercise_id]/[url_user_id]",
+    on_load=BetaAIFinishedViewTutorState.on_load,
+)
+app.add_page(
+    beta_ai_finished_view_page,
+    route=routes.BETA_AI_FINISHED_VIEW + "/[lecture_id]/[beta_exercise_id]",
+    on_load=BetaAIFinishedViewState.on_load,
 )
 app.add_page(
     my_lectures_page,
@@ -167,6 +198,21 @@ app.add_page(
     prompts_page,
     route=routes.PROMPTS,
     on_load=ManagePromptsState.on_load,
+)
+app.add_page(
+    beta_ai_diagnosis_lab_page,
+    route=routes.BETA_AI_DIAGNOSIS_LAB + "/[lecture_id]",
+    on_load=BetaAIDiagnosisLabState.on_load,
+)
+app.add_page(
+    beta_ai_trace_logs_page,
+    route=routes.BETA_AI_TRACE_LOGS + "/[lecture_id]",
+    on_load=BetaAITraceLogsState.on_load,
+)
+app.add_page(
+    beta_ai_global_trace_logs_page,
+    route=routes.BETA_AI_TRACE_LOGS,
+    on_load=BetaAITraceLogsState.on_load,
 )
 app.add_page(
     user_settings_page,
