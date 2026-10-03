@@ -117,6 +117,7 @@ class LanguageState(SessionState):
         )
 
     # Search Bar Strings ---------------------------------------------------------------
+
     @rx.var
     def search_placeholder(self) -> str:
         """Search placeholder string"""
@@ -134,6 +135,7 @@ class LanguageState(SessionState):
         )
 
     # Navigation Bar Strings -----------------------------------------------------------
+
     @rx.var
     def home_link(self) -> str:
         """The string for the 'Home' link."""
@@ -169,6 +171,7 @@ class LanguageState(SessionState):
         return self.translate(de="Abmelden", en="Log out")
 
     # Admin Settings Navbar Strings ---------------------------------------------------
+
     @rx.var
     def manage_exercises_link(self) -> str:
         """The string for the 'Manage Exercises' link."""
@@ -201,6 +204,7 @@ class LanguageState(SessionState):
         )
 
     # Home Page Strings ----------------------------------------------------------------
+
     @rx.var
     def dashboard(self) -> str:
         """The string for the 'Dashboard' heading."""
@@ -292,6 +296,7 @@ class LanguageState(SessionState):
         )
 
     # Exercise Page Strings ------------------------------------------------------------
+
     @rx.var
     def deadline(self) -> str:
         """Deadline string"""
@@ -350,6 +355,7 @@ class LanguageState(SessionState):
         )
 
     # Chat Page Strings ----------------------------------------------------------------
+
     @rx.var
     def view_your_submission(self) -> str:
         """View your submission string"""
@@ -493,6 +499,7 @@ class LanguageState(SessionState):
         )
 
     # Finished View Page Strings -------------------------------------------------------
+
     @rx.var
     def delete_submission(self) -> str:
         """Delete submission string"""
@@ -540,18 +547,21 @@ class LanguageState(SessionState):
         return self.translate(de="Abgabe", en="Submission")
 
     # Submission Page Strings --------------------------------------------------------
+
     @rx.var
     def token_limit_reached(self) -> str:
         """Submission string"""
         return self.translate(de="Token-Limit erreicht", en="Token limit reached")
 
     # Finished View Tutor Page Strings -----------------------------------------------
+
     @rx.var
     def submitted_chat_tutor(self) -> str:
         """Submitted chat string"""
         return self.translate(de="Abgegebener Chat", en="Submitted chat")
 
     # Token Analyzer Page Strings ------------------------------------------------------
+
     @rx.var
     def rank(self) -> str:
         return self.translate(de="Rang", en="Rank")
@@ -593,6 +603,7 @@ class LanguageState(SessionState):
         return self.translate(de="Gesamt-Tokens", en="Total Tokens")
 
     # Manage Exercises Page Strings ----------------------------------------------------
+
     @rx.var
     def exercise_count_info(self) -> str:
         return self.translate(
@@ -841,6 +852,7 @@ class LanguageState(SessionState):
         return self.translate(de="Exportieren", en="Export")
 
     # Login and Registration Page Strings ----------------------------------------------
+
     @rx.var
     def login_heading(self) -> str:
         """Login heading string"""
@@ -982,6 +994,7 @@ class LanguageState(SessionState):
         return self.translate(de="Lecturer", en="Lecturer")
 
     # user settings --------------------------------------------------------------------
+
     @rx.var
     def user_settings(self) -> str:
         return self.translate(de="Benutzereinstellungen", en="User Settings")
@@ -1344,6 +1357,7 @@ Please test the chat for functionality after changing the model.
         )
 
     # Report Strings -------------------------------------------------------------------
+
     @rx.var
     def status(self) -> str:
         return self.translate(de="Status", en="Status")
@@ -1428,6 +1442,112 @@ Please test the chat for functionality after changing the model.
         return self.translate(de="Eingereichter Chat:", en="Submitted Conversation:")
 
     # Beta AI Strings ------------------------------------------------------------------
+
+    @rx.var
+    def beta_ai_source_material_help(self) -> str:
+        return self.translate(
+            de="Lade zuerst eine PDF mit dem relevanten Lehrmaterial hoch, zum Beispiel Vorlesungsfolien oder ein Skript. Prüfe anschließend die Textvorschau: Dieses Material dient der KI als Grundlage für die Konzepte und Fragen.",
+            en="First upload a PDF containing the relevant teaching material, such as lecture slides or notes. Then check the text preview: the AI uses this material as the basis for concepts and questions.",
+        )
+
+    @rx.var
+    def beta_ai_exercise_metadata_help(self) -> str:
+        return self.translate(
+            de="Vergib einen aussagekräftigen Titel und beschreibe das Lernziel sowie den gewünschten Schwerpunkt. Wähle die Anzahl der Konzepte, Kernpunkte und Fehlvorstellungen pro Konzept und klicke auf „Konzepte generieren“. Die Vorschläge kannst du im nächsten Abschnitt bearbeiten. Mehr über Kernpunkte und den Ablauf erfährst du über das Info-Symbol neben „Übungsinformationen“.",
+            en="Enter a meaningful title and describe the learning objective and focus. Choose the number of concepts, core points and misconceptions per concept, then click “Generate concepts”. You can edit the suggestions in the next section. For more information about core points and how Level AI works, click the info icon next to “Exercise metadata”.",
+        )
+
+    @rx.var
+    def beta_ai_builder_info_title(self) -> str:
+        return self.translate(de="So funktioniert Level AI", en="How Level AI works")
+
+    @rx.var
+    def beta_ai_builder_concept_info(self) -> str:
+        return self.translate(
+            de="**Konzept = eine zusammenhängende Lerneinheit**\n\nEin Konzept legt fest, welches Thema Studierende verstehen sollen. Zu jedem Konzept gehören Kernpunkte (erwartetes Wissen) und Fehlvorstellungen (typische Denkfehler). Studierende bearbeiten dasselbe Konzept auf drei Levels, bevor sie zum nächsten Konzept wechseln.",
+            en="**Concept = one coherent learning unit**\n\nA concept defines the topic students should understand. Each concept has core points (expected knowledge) and misconceptions (common misunderstandings). Students work through the same concept at three levels before moving to the next concept.",
+        )
+
+    @rx.var
+    def beta_ai_builder_core_points_info(self) -> str:
+        return self.translate(
+            de="**Kernpunkte = die Bausteine des erwarteten Wissens**\n\nFormuliere jeden Kernpunkt als eine konkrete, fachlich richtige Aussage zum Konzept. Im Basic Understanding müssen Studierende alle Kernpunkte in eigenen Worten abdecken. Die KI sammelt diese Nachweise über mehrere Antworten; nicht alle müssen in einer einzigen Antwort vorkommen. Kernpunkte sind Bewertungskriterien, keine vorgegebenen Fragen.",
+            en="**Core points = the building blocks of expected knowledge**\n\nWrite each core point as a specific, correct statement about the concept. In Basic Understanding, students must cover all core points in their own words. The AI collects this evidence across answers; they do not all have to appear in a single answer. Core points are assessment criteria, not predefined questions.",
+        )
+
+    @rx.var
+    def beta_ai_builder_misconceptions_info(self) -> str:
+        return self.translate(
+            de="**Fehlvorstellungen = typische Denkfehler zum Konzept**\n\nBeschreibe falsche Annahmen, die Studierende häufig haben. Sie helfen der KI, problematische Antworten zu erkennen und gezielt nachzufragen. Eine erkannte Fehlvorstellung muss geklärt werden, bevor es weitergeht. Fehlvorstellungen sind weder zusätzliche Kernpunkte noch ein eigenes Level.",
+            en="**Misconceptions = common misunderstandings about the concept**\n\nDescribe incorrect assumptions students often make. These help the AI recognize problematic answers and ask targeted follow-up questions. A detected misconception must be resolved before progressing. Misconceptions are neither additional core points nor a separate level.",
+        )
+
+    @rx.var
+    def beta_ai_builder_levels_title(self) -> str:
+        return self.translate(
+            de="Dasselbe Konzept auf drei Lernlevels",
+            en="The same concept at three learning levels",
+        )
+
+    @rx.var
+    def beta_ai_builder_basic_info(self) -> str:
+        return self.translate(
+            de="**1.  Basic Understanding: alle Kernpunkte abdecken**\n\nStudierende zeigen das grundlegende Wissen zum Konzept. Die KI fragt gezielt nach noch fehlenden Kernpunkten. Erst wenn alle Kernpunkte ausreichend abgedeckt und aktive Fehlvorstellungen geklärt sind, ist Basic Understanding abgeschlossen. Danach folgt Explain.",
+            en="**1.  Basic Understanding: cover all core points**\n\nStudents demonstrate the concept’s foundational knowledge. The AI follows up on any missing core points. Basic Understanding is complete only when all core points are sufficiently covered and active misconceptions are resolved. Then the student moves to Explain.",
+        )
+
+    @rx.var
+    def beta_ai_builder_explain_info(self) -> str:
+        return self.translate(
+            de="**2.  Explain: Zusammenhänge begründen**\n\nAufbauend auf den abgedeckten Kernpunkten erklären Studierende, warum oder wie das Konzept funktioniert und wie seine Bestandteile zusammenhängen. Es geht nicht darum, dieselben Fakten erneut aufzuzählen. Eine ausreichend begründete Antwort ohne aktive Fehlvorstellungen schließt dieses Level ab; danach folgt Compare & Apply.",
+            en="**2.  Explain: explain the reasoning**\n\nBuilding on the covered core points, students explain why or how the concept works and how its parts relate. This is not another list of the same facts. A sufficiently reasoned answer without active misconceptions completes this level; Compare & Apply follows.",
+        )
+
+    @rx.var
+    def beta_ai_builder_apply_info(self) -> str:
+        return self.translate(
+            de="**3.  Compare & Apply: Wissen übertragen**\n\nStudierende wenden das Konzept auf einen neuen Fall an oder vergleichen es mit einem verwandten Fall und begründen Gemeinsamkeiten oder Unterschiede. So zeigen sie, dass sie das Wissen auch außerhalb der ursprünglichen Erklärung nutzen können. Nach erfolgreicher Bearbeitung ohne aktive Fehlvorstellungen ist das Konzept abgeschlossen.",
+            en="**3.  Compare & Apply: transfer the knowledge**\n\nStudents apply the concept to a new case or compare it with a related case, explaining similarities or differences. This demonstrates that they can use their knowledge beyond the original explanation. Successful completion without active misconceptions finishes the concept.",
+        )
+
+    @rx.var
+    def beta_ai_builder_flow_info(self) -> str:
+        return self.translate(
+            de="Für Lehrende: Die Anzahl der Konzepte bestimmt die Zahl der Lerneinheiten; die Kernpunkte bestimmen den Wissensumfang je Konzept. Alle drei Levels beziehen sich auf dieselbe Lerneinheit, nicht auf drei verschiedene Gruppen von Kernpunkten. Die KI erstellt passende Fragen und Rückfragen dynamisch. Entscheidend ist das gezeigte Verständnis, nicht eine feste Fragenzahl.",
+            en="For lecturers: the concept count determines the number of learning units; the core points define the knowledge scope of each concept. All three levels concern the same learning unit, not three separate groups of core points. The AI creates suitable questions and follow-ups dynamically. Progress depends on demonstrated understanding, not a fixed question count.",
+        )
+
+    @rx.var
+    def beta_ai_review_concepts_help(self) -> str:
+        return self.translate(
+            de="Prüfe jedes Konzept auf fachliche Richtigkeit und passenden Umfang. Ein Konzept ist ein Lerninhalt; seine Kernpunkte sind die einzelnen Aussagen, die Studierende erklären können sollen. Formuliere diese klar und ergänze typische Fehlvorstellungen als Hinweise für die KI. Du kannst Konzepte und Kernpunkte hinzufügen, bearbeiten oder entfernen. Jedes Konzept benötigt einen Namen und mindestens einen ausgefüllten Kernpunkt.",
+            en="Check each concept for accuracy and appropriate scope. A concept is a learning topic; its core points are the individual statements students should be able to explain. Write these clearly and add common misconceptions as guidance for the AI. You can add, edit or remove concepts and core points. Each concept needs a name and at least one filled core point.",
+        )
+
+    @rx.var
+    def beta_ai_exercise_settings_help(self) -> str:
+        return self.translate(
+            de="Lege fest, ob die Übung zunächst verborgen bleiben soll, und wähle bei Bedarf eine Abgabefrist und Tags. Speichere anschließend die Übung.",
+            en="Decide whether the exercise should initially stay hidden, and optionally set a deadline and tags. Then save the exercise.",
+        )
+
+    @rx.var
+    def beta_ai_estimated_duration(self) -> str:
+        return self.translate(
+            de="Geschätzte Bearbeitungszeit", en="Estimated completion time"
+        )
+
+    @rx.var
+    def beta_ai_estimated_duration_prefix(self) -> str:
+        return self.translate(
+            de="Geschätzte Bearbeitungszeit: ca. ",
+            en="Estimated completion time: about ",
+        )
+
+    @rx.var
+    def beta_ai_estimated_duration_suffix(self) -> str:
+        return self.translate(de=" Minuten", en=" minutes")
+
     @rx.var
     def classic_ai(self) -> str:
         """Student-facing name for the original exercise chat."""
@@ -1934,6 +2054,7 @@ Please test the chat for functionality after changing the model.
         )
 
     # Lecture Strings -----------------------------------------------------------------------------
+
     @rx.var
     def lecture_name(self) -> str:
         """Lecture name string."""
@@ -1992,6 +2113,7 @@ Please test the chat for functionality after changing the model.
         )
 
     # My Lectures Strings -------------------------------------------------------------------------
+
     @rx.var
     def my_lectures(self) -> str:
         """The string for the 'My Lectures' tab/page."""
@@ -2105,6 +2227,7 @@ Please test the chat for functionality after changing the model.
         )
 
     # All Lectures Strings ------------------------------------------------------------------------
+
     @rx.var
     def all_lectures(self) -> str:
         """The string for the 'All Lectures' tab/page."""
@@ -2163,6 +2286,7 @@ Please test the chat for functionality after changing the model.
         )
 
     # Member Strings --------------------------------------------------------------------------------
+
     @rx.var
     def kick_member_description(self) -> str:
         """Kick member confirmation description."""
@@ -2186,6 +2310,7 @@ Please test the chat for functionality after changing the model.
         )
 
     # Lecture_overview Strings --------------------------------------------------------------------------------
+
     @rx.var
     def overview(self) -> str:
         """Overview label."""

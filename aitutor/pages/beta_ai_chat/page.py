@@ -15,15 +15,10 @@ from aitutor.pages.beta_ai_chat.components import (
 )
 from aitutor.pages.beta_ai_chat.state import BetaAIChatState
 from aitutor.pages.navbar import with_navbar
-from aitutor.pages.navbar_specific_lecture import with_specific_lecture_navbar
 
 
 @page_require_lecture_role(LectureRole.STUDENT)
 @with_navbar(routes.LECTURES)
-@with_specific_lecture_navbar(
-    "exercises",
-    BetaAIChatState.current_lecture_id,
-)
 def beta_ai_chat_page() -> rx.Component:
     """Render the Beta AI chat page with the student chat layout."""
     return rx.container(

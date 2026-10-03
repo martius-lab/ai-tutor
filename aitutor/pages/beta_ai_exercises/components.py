@@ -15,6 +15,7 @@ def source_material_card() -> rx.Component:
     return rx.card(
         rx.vstack(
             rx.heading(LS.beta_ai_source_material, size="4"),
+            rx.text(LS.beta_ai_source_material_help, size="2", color_scheme="gray"),
             rx.upload(
                 rx.vstack(
                     rx.button(
@@ -74,11 +75,105 @@ def source_material_card() -> rx.Component:
     )
 
 
+def metadata_info_dialog() -> rx.Component:
+    """Show the authoring guide in a centered, scrollable modal."""
+    return rx.dialog.root(
+        rx.dialog.trigger(
+            rx.button(
+                rx.icon("info", size=16),
+                type="button",
+                aria_label=LS.beta_ai_builder_info_title,
+                on_click=BetaAIExercisesState.open_metadata_info_dialog,
+                cursor="pointer",
+                background="transparent",
+                border="none",
+                box_shadow="none",
+                padding="0",
+                width="20px",
+                height="20px",
+                min_width="20px",
+                color=rx.color("gray", 11),
+                _hover={"color": rx.color("indigo", 11), "background": "transparent"},
+            ),
+        ),
+        rx.dialog.content(
+            rx.vstack(
+                rx.hstack(
+                    rx.dialog.title(LS.beta_ai_builder_info_title, margin_bottom="0"),
+                    rx.spacer(),
+                    rx.dialog.close(
+                        rx.icon_button(
+                            rx.icon("x", size=18),
+                            aria_label=LS.close,
+                            variant="ghost",
+                            size="2",
+                            type="button",
+                            on_click=BetaAIExercisesState.close_metadata_info_dialog,
+                            cursor="pointer",
+                        ),
+                    ),
+                    align="center",
+                    width="100%",
+                ),
+                rx.card(rx.markdown(LS.beta_ai_builder_concept_info), width="100%"),
+                rx.icon("arrow-down", size=18, align_self="center"),
+                rx.grid(
+                    rx.card(
+                        rx.markdown(LS.beta_ai_builder_core_points_info),
+                        background_color=rx.color("indigo", 2),
+                    ),
+                    rx.card(
+                        rx.markdown(LS.beta_ai_builder_misconceptions_info),
+                        background_color=rx.color("orange", 2),
+                    ),
+                    columns=rx.breakpoints(initial="1", sm="2"),
+                    spacing="3",
+                    width="100%",
+                ),
+                rx.separator(),
+                rx.text(LS.beta_ai_builder_levels_title, weight="bold"),
+                rx.card(rx.markdown(LS.beta_ai_builder_basic_info), width="100%"),
+                rx.icon("arrow-down", size=18, align_self="center"),
+                rx.card(rx.markdown(LS.beta_ai_builder_explain_info), width="100%"),
+                rx.icon("arrow-down", size=18, align_self="center"),
+                rx.card(rx.markdown(LS.beta_ai_builder_apply_info), width="100%"),
+                rx.text(LS.beta_ai_builder_flow_info, size="2", color_scheme="gray"),
+                rx.dialog.close(
+                    rx.button(
+                        LS.close,
+                        variant="soft",
+                        type="button",
+                        cursor="pointer",
+                        on_click=BetaAIExercisesState.close_metadata_info_dialog,
+                    ),
+                    align_self="end",
+                ),
+                align="start",
+                spacing="3",
+                width="100%",
+            ),
+            width="38em",
+            max_width="90vw",
+            max_height="85dvh",
+            overflow_y="auto",
+            padding="5",
+        ),
+        open=BetaAIExercisesState.metadata_info_dialog_is_open,
+        on_open_change=BetaAIExercisesState.set_metadata_info_dialog_is_open,
+    )
+
+
 def metadata_card() -> rx.Component:
     """Render title, description, and generate button."""
     return rx.card(
         rx.vstack(
-            rx.heading(LS.beta_ai_exercise_metadata, size="4"),
+            rx.hstack(
+                rx.heading(LS.beta_ai_exercise_metadata, size="4"),
+                metadata_info_dialog(),
+                align="center",
+                spacing="2",
+            ),
+            rx.text(LS.beta_ai_exercise_metadata_help, size="2", color_scheme="gray"),
             rx.cond(
                 BetaAIExercisesState.exercise_has_started,
                 rx.callout(
@@ -429,6 +524,7 @@ def concepts_card() -> rx.Component:
                 ),
                 width="100%",
             ),
+            rx.text(LS.beta_ai_review_concepts_help, size="2", color_scheme="gray"),
             rx.cond(
                 BetaAIExercisesState.generated_concepts.length() == 0,  # type: ignore
                 rx.callout(
@@ -442,6 +538,7 @@ def concepts_card() -> rx.Component:
                 spacing="3",
                 width="100%",
             ),
+            estimated_duration_summary(),
             spacing="4",
             align="start",
             width="100%",
@@ -557,11 +654,32 @@ def tag_selection() -> rx.Component:
     )
 
 
+def estimated_duration_summary() -> rx.Component:
+    """Render only a short reactive time estimate once core points exist."""
+    return rx.cond(
+        BetaAIExercisesState.estimated_question_count > 0,
+        rx.hstack(
+            rx.icon("clock", size=18),
+            rx.text(
+                LS.beta_ai_estimated_duration_prefix,
+                BetaAIExercisesState.estimated_duration_minutes,
+                LS.beta_ai_estimated_duration_suffix,
+                size="2",
+                weight="medium",
+            ),
+            align="center",
+            spacing="2",
+            width="100%",
+        ),
+    )
+
+
 def exercise_settings_card() -> rx.Component:
     """Render visibility, deadline, and save controls."""
     return rx.card(
         rx.vstack(
             rx.heading(LS.beta_ai_exercise_settings, size="4"),
+            rx.text(LS.beta_ai_exercise_settings_help, size="2", color_scheme="gray"),
             rx.hstack(
                 rx.text(LS.hide_exercise, size="3", weight="medium"),
                 rx.checkbox(
