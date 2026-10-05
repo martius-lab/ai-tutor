@@ -7,7 +7,9 @@ from sqlmodel import select
 from aitutor.auth.protection import state_require_role_or_permission
 from aitutor.auth.state import SessionState
 from aitutor.language_state import BackendTranslations as BT
-from aitutor.models import Exercise, GlobalPermission, Lecture, Prompt, UserRole
+from aitutor.models import Exercise, GlobalPermission, Lecture, Prompt
+
+_REQUIRED_PERMISSIONS = [GlobalPermission.MAINTAINER]
 
 
 class ManagePromptsState(SessionState):
@@ -22,6 +24,7 @@ class ManagePromptsState(SessionState):
     add_prompt_dialog_open: bool = False
 
     @rx.event
+    @state_require_role_or_permission(allowed_permissions=_REQUIRED_PERMISSIONS)
     def set_prompt_name(self, prompt_id: int | None, name: str):
         """Sets the name of a prompt."""
         if prompt_id in self.prompts:
@@ -29,6 +32,7 @@ class ManagePromptsState(SessionState):
             self.unsaved_changes = True
 
     @rx.event
+    @state_require_role_or_permission(allowed_permissions=_REQUIRED_PERMISSIONS)
     def set_prompt_template(self, prompt_id: int | None, template: str):
         """Sets the template of a prompt."""
         if prompt_id in self.prompts:
@@ -36,31 +40,37 @@ class ManagePromptsState(SessionState):
             self.unsaved_changes = True
 
     @rx.event
+    @state_require_role_or_permission(allowed_permissions=_REQUIRED_PERMISSIONS)
     def set_replacement_prompt_name(self, prompt_name: str):
         """Sets the replacement prompt."""
         self.replacement_prompt_name = prompt_name
 
     @rx.event
+    @state_require_role_or_permission(allowed_permissions=_REQUIRED_PERMISSIONS)
     def set_prompt_to_delete(self, prompt_name: str):
         """Sets the prompt to delete."""
         self.prompt_to_delete = prompt_name
 
     @rx.event
+    @state_require_role_or_permission(allowed_permissions=_REQUIRED_PERMISSIONS)
     def set_new_prompt_name(self, name: str):
         """Sets the name for the new prompt."""
         self.new_prompt_name = name
 
     @rx.event
+    @state_require_role_or_permission(allowed_permissions=_REQUIRED_PERMISSIONS)
     def set_new_prompt(self, prompt: str):
         """Sets the template for the new prompt."""
         self.new_prompt_template = prompt
 
     @rx.event
+    @state_require_role_or_permission(allowed_permissions=_REQUIRED_PERMISSIONS)
     def set_add_prompt_dialog_open(self, is_open: bool):
         """Sets whether the add prompt dialog is open."""
         self.add_prompt_dialog_open = is_open
 
     @rx.event
+    @state_require_role_or_permission(allowed_permissions=_REQUIRED_PERMISSIONS)
     def set_default_prompt(self, prompt_id: int | None):
         """Set the is_default_prompt flag for a prompt."""
         if prompt_id is None:
@@ -75,10 +85,8 @@ class ManagePromptsState(SessionState):
         self.unsaved_changes = True
 
     @rx.event
-    @state_require_role_or_permission(
-        required_role=UserRole.TUTOR,
-        allowed_permissions=[GlobalPermission.MAINTAINER],
-    )
+    @state_require_role_or_permission(allowed_permissions=_REQUIRED_PERMISSIONS)
+    @state_require_role_or_permission(allowed_permissions=_REQUIRED_PERMISSIONS)
     def on_load(self):
         """Initialization for the page."""
         self.global_load()
@@ -93,7 +101,7 @@ class ManagePromptsState(SessionState):
             if prompt.name != self.prompt_to_delete and prompt.name != ""
         ]
 
-    def names_are_unique(self, names: list[str]) -> bool:
+    def _names_are_unique(self, names: list[str]) -> bool:
         """Check if all names in the list are unique."""
         return len(names) == len(set(names))
 
@@ -111,10 +119,11 @@ class ManagePromptsState(SessionState):
         )
 
     @rx.event
+    @state_require_role_or_permission(allowed_permissions=_REQUIRED_PERMISSIONS)
     def save_prompts_to_db(self):
         """Saves the current prompts to the database."""
         prompts = self.prompts
-        if not self.names_are_unique([prompt.name for prompt in prompts.values()]):
+        if not self._names_are_unique([prompt.name for prompt in prompts.values()]):
             yield rx.toast.error(
                 description=BT.prompt_names_unique_error(self.language),
                 duration=5000,
@@ -163,6 +172,7 @@ class ManagePromptsState(SessionState):
         )
 
     @rx.event
+    @state_require_role_or_permission(allowed_permissions=_REQUIRED_PERMISSIONS)
     def delete_prompt(self, prompt_id: int | None):
         """Deletes a prompt from the database."""
         if prompt_id is None:
@@ -258,9 +268,10 @@ class ManagePromptsState(SessionState):
         self.load_prompts_from_db()
 
     @rx.event
+    @state_require_role_or_permission(allowed_permissions=_REQUIRED_PERMISSIONS)
     def add_prompt(self):
         """Adds a new prompt to the state"""
-        if not self.names_are_unique(
+        if not self._names_are_unique(
             [prompt.name for prompt in self.prompts.values()] + [self.new_prompt_name]
         ):
             yield rx.toast.error(
@@ -326,6 +337,7 @@ class ManagePromptsState(SessionState):
         )
 
     @rx.event
+    @state_require_role_or_permission(allowed_permissions=_REQUIRED_PERMISSIONS)
     def load_prompts_from_db(self):
         """Loads prompts from the database."""
         with rx.session() as session:
