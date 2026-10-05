@@ -1,6 +1,7 @@
 """State for the all lectures page."""
 
 from collections.abc import Sequence
+from dataclasses import dataclass
 
 import reflex as rx
 from sqlmodel import and_, select
@@ -12,23 +13,33 @@ from aitutor.auth.state import SessionState
 from aitutor.language_state import BackendTranslations as BT
 from aitutor.models import Lecture, LectureRole, LinkUserLecture, UserRole
 
-LectureWithRole = tuple[Lecture, int | None]
-
 ALL_LECTURES_FIELD_MAX_LENGTHS: dict[str, int] = {
     "search_text": gv.SEARCH_TEXT_MAX_LEN,
     "registration_code": gv.REGISTRATION_CODE_MAX_LEN,
 }
 
 
+@dataclass
+class LectureDataForFrontend:
+    """Lecture data that is sent to the frontend."""
+
+    id: int
+    lecture_name: str
+    lecturer_name: str
+    lecture_information_text: str
+    requires_registration_code: bool
+    member_role: int | None
+
+
 class AllLecturesState(SessionState):
     """State for browsing all lectures."""
 
-    lectures: list[LectureWithRole] = []
+    lectures: list[LectureDataForFrontend] = []
     search_text: str = ""
     join_dialog_is_open: bool = False
     selected_lecture_id: int | None = None
     selected_lecture_name: str = ""
-    selected_lecture_registration_code: str = ""
+    selected_lecture_requires_code: bool = False
     selected_lecture_lecturer_name: str = ""
     entered_registration_code: str = ""
     details_dialog_is_open: bool = False
@@ -53,16 +64,15 @@ class AllLecturesState(SessionState):
     @rx.event
     def open_details_dialog(self, lecture_id: int):
         """Open the details dialog for a specific lecture."""
-        lecture_with_role = self._find_loaded_lecture(lecture_id)
-        if lecture_with_role is None:
+        lecture = self._find_loaded_lecture(lecture_id)
+        if lecture is None:
             return
 
-        lecture, role = lecture_with_role
         self.detail_lecture_id = lecture_id
         self.detail_lecture_name = lecture.lecture_name
         self.detail_lecturer_name = lecture.lecturer_name
         self.detail_lecture_info = lecture.lecture_information_text
-        self.detail_lecture_role = role
+        self.detail_lecture_role = lecture.member_role
         self.details_dialog_is_open = True
 
     @rx.event
@@ -82,8 +92,8 @@ class AllLecturesState(SessionState):
     def open_join_dialog(self, lecture_id: int):
         """Prepare and open the join dialog for a loaded lecture."""
         self.close_details_dialog()
-        lecture_with_role = self._find_loaded_lecture(lecture_id)
-        if lecture_with_role is None:
+        lecture = self._find_loaded_lecture(lecture_id)
+        if lecture is None:
             return rx.toast.error(
                 description=BT.lecture_not_found(self.language),
                 duration=5000,
@@ -91,11 +101,9 @@ class AllLecturesState(SessionState):
                 invert=True,
             )
 
-        lecture = lecture_with_role[0]
-
         self.selected_lecture_id = lecture_id
         self.selected_lecture_name = lecture.lecture_name
-        self.selected_lecture_registration_code = lecture.registration_code
+        self.selected_lecture_requires_code = lecture.requires_registration_code
         self.selected_lecture_lecturer_name = lecture.lecturer_name
         self.entered_registration_code = ""
         self.join_dialog_is_open = True
@@ -209,22 +217,17 @@ class AllLecturesState(SessionState):
         return self.open_join_dialog(lecture_id)
 
     @rx.var(initial_value=[])
-    def filtered_lectures(self) -> list[LectureWithRole]:
+    def filtered_lectures(self) -> list[LectureDataForFrontend]:
         """Return loaded lectures filtered locally by the search text."""
         search_text = self.search_text.strip().lower()
         if not search_text:
             return self.lectures
 
         return [
-            (lecture, role)
-            for lecture, role in self.lectures
+            lecture
+            for lecture in self.lectures
             if search_text in lecture.lecture_name.lower()
         ]
-
-    @rx.var(initial_value=False)
-    def selected_lecture_requires_code(self) -> bool:
-        """Whether the currently selected lecture requires a registration code."""
-        return bool(self.selected_lecture_registration_code)
 
     @rx.var(initial_value=False)
     def can_join_selected_lecture(self) -> bool:
@@ -246,32 +249,33 @@ class AllLecturesState(SessionState):
         self.join_dialog_is_open = False
         self.selected_lecture_id = None
         self.selected_lecture_name = ""
-        self.selected_lecture_registration_code = ""
+        self.selected_lecture_requires_code = False
         self.selected_lecture_lecturer_name = ""
         self.entered_registration_code = ""
 
-    def _find_loaded_lecture(self, lecture_id: int) -> LectureWithRole | None:
+    def _find_loaded_lecture(self, lecture_id: int) -> LectureDataForFrontend | None:
         """Find a lecture in the already loaded list without querying the database."""
         return next(
-            (
-                lecture_with_role
-                for lecture_with_role in self.lectures
-                if lecture_with_role[0].id == lecture_id
-            ),
+            (lecture for lecture in self.lectures if lecture.id == lecture_id),
             None,
         )
 
     def _serialize_lectures(
         self,
         lectures: Sequence[tuple[Lecture, int | None]],
-    ) -> list[LectureWithRole]:
-        """Convert raw query results to state-friendly tuples."""
+    ) -> list[LectureDataForFrontend]:
+        """Convert raw query results to the data needed by the frontend."""
         return [
-            (
-                lecture,
-                int(role) if role is not None else None,
+            LectureDataForFrontend(
+                id=lecture.id,
+                lecture_name=lecture.lecture_name,
+                lecturer_name=lecture.lecturer_name,
+                lecture_information_text=lecture.lecture_information_text,
+                requires_registration_code=bool(lecture.registration_code),
+                member_role=int(role) if role is not None else None,
             )
             for lecture, role in lectures
+            if lecture.id is not None
         ]
 
     def load_lectures(self):
