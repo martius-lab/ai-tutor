@@ -19,8 +19,7 @@ class SessionState(reflex_local_auth.LocalAuthState):
 
     language: Language = Language.EN
 
-    @rx.event
-    def global_load(self):
+    def _global_load(self):
         """
         Load the relevant session information.
         This method should be called in all pages' on_load methods.

@@ -113,7 +113,7 @@ class LectureTokenAnalyzerState(SessionState):
     @state_require_lecture_role(LectureRole.TUTOR)
     def on_load(self):
         """Gets executed when the page loads."""
-        self.global_load()
+        self._global_load()
         self.current_lecture_id = None
         self._clear_token_analyzer_state()
 

@@ -89,7 +89,7 @@ class ManagePromptsState(SessionState):
     @state_require_role_or_permission(allowed_permissions=_REQUIRED_PERMISSIONS)
     def on_load(self):
         """Initialization for the page."""
-        self.global_load()
+        self._global_load()
         self.load_prompts_from_db()
 
     @rx.var

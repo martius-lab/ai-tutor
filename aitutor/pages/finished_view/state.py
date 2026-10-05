@@ -26,7 +26,7 @@ class FinishedViewState(SessionState):
     def on_load(self):
         """Loads the finished exercise and conversation."""
 
-        self.global_load()
+        self._global_load()
         self.current_lecture_id = None
         userinfo = self.authenticated_user_info
         if userinfo:

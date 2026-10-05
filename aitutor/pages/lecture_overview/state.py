@@ -27,7 +27,7 @@ class LectureOverviewState(SessionState):
     @state_require_lecture_role(LectureRole.STUDENT)
     def on_load(self):
         """Initialize the lecture overview state when the page loads."""
-        self.global_load()
+        self._global_load()
         self._reset_lecture_state()
 
         try:

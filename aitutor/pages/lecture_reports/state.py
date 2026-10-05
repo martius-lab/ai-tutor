@@ -54,7 +54,7 @@ class LectureReportsState(FilterMixin, SessionState):
     @state_require_lecture_role(LectureRole.TUTOR)
     def on_load(self):
         """Load all reports for the current lecture when page opens."""
-        self.global_load()
+        self._global_load()
         self.current_lecture_id = None
         self.table_rows = []
 

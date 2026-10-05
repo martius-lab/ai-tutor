@@ -25,7 +25,7 @@ class FinishedViewTutorState(SessionState):
     @state_require_role_or_permission(required_role=UserRole.STUDENT)
     def on_load(self):
         """Loads the finished exercise and user info."""
-        self.global_load()
+        self._global_load()
 
         exercise_id = self.get_route_param_or_error("exercise_id", dtype=int)
         url_user_id = self.get_route_param_or_error("url_user_id", dtype=int)

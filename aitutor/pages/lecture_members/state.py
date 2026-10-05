@@ -70,7 +70,7 @@ class LectureMembersState(SessionState):
     @state_require_lecture_role(LectureRole.STUDENT)
     def on_load(self):
         """Initialize the members page."""
-        self.global_load()
+        self._global_load()
         self._reset_page_state()
 
         try:

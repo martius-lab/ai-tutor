@@ -69,7 +69,7 @@ class HomeState(SessionState):
     @state_require_role_or_permission(required_role=UserRole.STUDENT)
     def on_load(self):
         """Load exercises when the home page is loaded."""
-        self.global_load()
+        self._global_load()
 
         assert self.authenticated_user_info is not None
         assert self.authenticated_user is not None

@@ -56,7 +56,7 @@ class LectureSubmissionsState(FilterMixin, SessionState):
     @state_require_lecture_role(LectureRole.TUTOR)
     def on_load(self):
         """Gets executed when the page loads."""
-        self.global_load()
+        self._global_load()
         self.current_lecture_id = None
         self.table_rows = []
 
