@@ -811,18 +811,12 @@ class LanguageState(SessionState):
         return self.translate(de="Zeitzone: ", en="Timezone: ")
 
     @rx.var
-    def add_task(self) -> str:
-        """Add task string"""
-        return self.translate(de="Aufgabe hinzufügen", en="Add exercise")
-
-    @rx.var
     def add(self) -> str:
         return self.translate(de="Hinzufügen", en="Add")
 
     @rx.var
-    def update_task(self) -> str:
-        """Update task string"""
-        return self.translate(de="Änderungen speichern", en="Update exercise")
+    def save_changes(self) -> str:
+        return self.translate(de="Änderungen speichern", en="Save changes")
 
     @rx.var
     def delete_selected_info(self) -> str:
