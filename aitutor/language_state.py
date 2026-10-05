@@ -527,14 +527,6 @@ class LanguageState(SessionState):
         return self.translate(de="Tags", en="Tags")
 
     @rx.var
-    def no_submission(self) -> str:
-        """No submission string"""
-        return self.translate(
-            de="Keine Abgabe",
-            en="No submission",
-        )
-
-    @rx.var
     def submission(self) -> str:
         """Submission string"""
         return self.translate(de="Abgabe", en="Submission")
@@ -897,10 +889,6 @@ class LanguageState(SessionState):
     @rx.var
     def edit_user(self) -> str:
         return self.translate(de="Benutzer bearbeiten", en="Edit User")
-
-    @rx.var
-    def id(self) -> str:
-        return self.translate(de="ID", en="ID")
 
     @rx.var
     def role(self) -> str:
