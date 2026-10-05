@@ -66,12 +66,6 @@ class ManageConfigState(SessionState):
 
     @rx.event
     @state_require_role_or_permission(allowed_permissions=_REQUIRED_PERMISSIONS)
-    def set_unsaved_changes(self, unsaved: bool):
-        """Sets the unsaved changes flag."""
-        self.unsaved_changes = unsaved
-
-    @rx.event
-    @state_require_role_or_permission(allowed_permissions=_REQUIRED_PERMISSIONS)
     def set_config_value(self, name: str, value: str):
         """Sets a configuration value in the current config."""
         # set max length for input fields coming from UI
