@@ -39,7 +39,7 @@ class ManageUsersState(SessionState):
     @state_require_role_or_permission(allowed_permissions=_REQUIRED_PERMISSIONS)
     def on_load(self):
         """Initialize the state"""
-        self.global_load()
+        self._global_load()
         self._load_users()
 
     def _load_users(self):

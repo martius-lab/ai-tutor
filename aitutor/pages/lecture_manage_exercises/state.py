@@ -158,7 +158,7 @@ class LectureManageExercisesState(FilterMixin, SessionState):
     @state_require_lecture_role(LectureRole.OWNER)
     def on_load(self):
         """Initialize the state"""
-        self.global_load()
+        self._global_load()
         self.current_lecture_id = None
 
         try:

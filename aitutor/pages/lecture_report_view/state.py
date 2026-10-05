@@ -28,7 +28,7 @@ class LectureReportViewState(SessionState):
     @state_require_lecture_role(LectureRole.TUTOR)
     def on_load(self):
         """Load report details when page opens."""
-        self.global_load()
+        self._global_load()
         self.current_lecture_id = None
         self.reports_route = routes.MY_LECTURES
         self._clear_report_data()

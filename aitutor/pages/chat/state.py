@@ -211,7 +211,7 @@ class ChatState(SessionState):
         And sets all button loading states to False.
         """
 
-        self.global_load()
+        self._global_load()
         self.waiting_for_response = False
         self.current_lecture_id = None
 

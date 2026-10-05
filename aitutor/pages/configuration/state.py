@@ -115,7 +115,7 @@ class ManageConfigState(SessionState):
             if _config is None:
                 raise ValueError("Configuration not found in the database.")
             self.current_config = _config
-        self.global_load()
+        self._global_load()
         self.unsaved_changes = False
 
     @rx.event
@@ -181,7 +181,7 @@ class LecturerRegistrationTokenState(SessionState):
     @state_require_role_or_permission(allowed_permissions=_REQUIRED_PERMISSIONS)
     def on_load(self):
         """Initialize the state"""
-        self.global_load()
+        self._global_load()
 
         self.link_base = f"{self.router.url.origin}/register?lrt="
         self.default_expires_at = (

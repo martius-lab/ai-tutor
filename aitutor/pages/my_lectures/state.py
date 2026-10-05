@@ -101,7 +101,7 @@ class MyLecturesState(SessionState):
     @state_require_role_or_permission(required_role=UserRole.STUDENT)
     def on_load(self):
         """Initialize the page state."""
-        self.global_load()
+        self._global_load()
         self._reset_filters()
         self.load_joined_lectures()
 

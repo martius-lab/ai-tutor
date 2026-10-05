@@ -59,7 +59,7 @@ class LectureExercisesState(FilterMixin, SessionState):
         """
         Fetch exercises from database for the lecture in the route.
         """
-        self.global_load()
+        self._global_load()
         assert self.authenticated_user_info is not None
         self._clear_exercises()
 
