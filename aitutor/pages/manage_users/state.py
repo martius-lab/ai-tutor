@@ -24,6 +24,9 @@ MANAGE_USERS_FIELD_MAX_LENGTHS: dict[str, int] = {
 }
 
 
+_REQUIRED_PERMISSIONS = [GlobalPermission.MAINTAINER]
+
+
 class ManageUsersState(SessionState):
     """State for managing user accounts."""
 
@@ -33,16 +36,13 @@ class ManageUsersState(SessionState):
     edit_dialog_is_open: bool = False
 
     @rx.event
-    @state_require_role_or_permission(
-        required_role=UserRole.ADMIN,
-        allowed_permissions=[GlobalPermission.MAINTAINER],
-    )
+    @state_require_role_or_permission(allowed_permissions=_REQUIRED_PERMISSIONS)
     def on_load(self):
         """Initialize the state"""
         self.global_load()
-        self.load_users()
+        self._load_users()
 
-    def load_users(self):
+    def _load_users(self):
         """Load the users from the database."""
         # Define role order for sorting (based on definition order in the database enum,
         # which hopefully always matches that of UserRole).
@@ -84,6 +84,7 @@ class ManageUsersState(SessionState):
         self.edited_user_permissions = []
 
     @rx.event
+    @state_require_role_or_permission(allowed_permissions=_REQUIRED_PERMISSIONS)
     def open_edit_dialog(self, user_id: int):
         """Open the edit dialog for a user."""
 
@@ -113,6 +114,7 @@ class ManageUsersState(SessionState):
         self.edit_dialog_is_open = True
 
     @rx.event
+    @state_require_role_or_permission(allowed_permissions=_REQUIRED_PERMISSIONS)
     def update_user(self, form_data):
         """Save changes to a user from the edit form."""
         assert self.edited_user is not None
@@ -186,10 +188,11 @@ class ManageUsersState(SessionState):
             session.commit()
 
         # reload users to update the table
-        self.load_users()
+        self._load_users()
         self.close_edit_dialog()
 
     @rx.event
+    @state_require_role_or_permission(allowed_permissions=_REQUIRED_PERMISSIONS)
     def delete_user(self, user_id: int):
         """Delete a user from the database."""
         with rx.session() as session:
@@ -259,7 +262,7 @@ class ManageUsersState(SessionState):
                 )
 
         # reload the table
-        self.load_users()
+        self._load_users()
 
         return rx.toast.success(
             BT.deleted_user(self.language, local_user.username),
