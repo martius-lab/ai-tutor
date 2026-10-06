@@ -290,7 +290,7 @@ class EditLectureState(SessionState):
 
     def _user_may_create_lecture(self) -> bool:
         """Check whether the current user may create a new lecture."""
-        return self.has_permission(GlobalPermission.LECTURER)
+        return self._has_permission(GlobalPermission.LECTURER)
 
     def _user_may_edit_existing_lecture(self, lecture_id: int) -> bool:
         """Check whether the current user may edit an existing lecture."""

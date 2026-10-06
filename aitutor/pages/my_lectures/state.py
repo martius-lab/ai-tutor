@@ -127,7 +127,7 @@ class MyLecturesState(SessionState):
     @rx.var(initial_value=False)
     def can_create_lectures(self) -> bool:
         """Whether the current user may create new lectures."""
-        return self.has_permission(GlobalPermission.LECTURER)
+        return self._has_permission(GlobalPermission.LECTURER)
 
     def _reset_filters(self) -> None:
         """Reset the local filters and loaded lectures."""
