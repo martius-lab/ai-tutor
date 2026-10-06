@@ -1,9 +1,12 @@
 """all global variables"""
 
+from datetime import timedelta
+
 import reflex as rx
 
 TIME_FORMAT = "%d.%m.%Y %H:%M:%S MEZ"
 MOMENT_DEADLINE_FORMAT = "DD.MM.YYYY, HH:mm"
+MOMENT_DATETIME_FORMAT = "YYYY-MM-DD HH:mm"
 TIME_ZONE = "Europe/Berlin"
 SEARCH_USER_KEY = "user"
 SEARCH_EXERCISE_KEY = "exercise"
@@ -35,3 +38,9 @@ SEARCH_TEXT_MAX_LEN = 150
 # Chat
 CHAT_MESSAGE_MAX_LEN = 15_000
 REPORT_MAX_LEN = 2_000
+
+
+# --- account verification ---
+
+#: How long a verification token stays valid after it has been issued.
+VERIFICATION_TOKEN_VALIDITY = timedelta(hours=48)

@@ -109,11 +109,7 @@ def register_success() -> rx.Component:
                 width="100%",
             ),
             rx.callout(
-                rx.cond(
-                    MyRegisterState.welcome_email_sent,
-                    LanguageState.successful_registration_with_email,
-                    LanguageState.successful_registration,
-                ),
+                LanguageState.successful_registration_with_email,
                 icon="check",
                 color_scheme="green",
                 role="alert",
