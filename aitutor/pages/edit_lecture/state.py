@@ -70,7 +70,7 @@ class EditLectureState(SessionState):
         """Initialize the page state."""
         self._global_load()
 
-        self.lecture_id_param = self.get_route_param_or_default(
+        self.lecture_id_param = self._get_route_param_or_default(
             "lecture_id", default=MAGIC_ID_NEW
         )
 

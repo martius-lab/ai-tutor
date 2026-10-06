@@ -59,7 +59,7 @@ class LectureReportsState(FilterMixin, SessionState):
         self.table_rows = []
 
         try:
-            lecture_id = self.get_route_param_or_error("lecture_id", dtype=int)
+            lecture_id = self._get_route_param_or_error("lecture_id", dtype=int)
         except Exception:
             return rx.redirect(routes.NOT_FOUND)
 

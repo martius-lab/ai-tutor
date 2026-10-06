@@ -39,7 +39,7 @@ class LectureAccessState(SessionState):
             return True
 
         try:
-            lecture_id = int(self.get_route_param_or_default("lecture_id", default=""))
+            lecture_id = int(self._get_route_param_or_default("lecture_id", default=""))
         except ValueError:
             return False
 
@@ -224,7 +224,7 @@ def state_require_lecture_role(required_role: LectureRole):
 
             try:
                 lecture_id = int(
-                    self.get_route_param_or_default("lecture_id", default="")
+                    self._get_route_param_or_default("lecture_id", default="")
                 )
             except ValueError:
                 return

@@ -64,7 +64,7 @@ class LectureExercisesState(FilterMixin, SessionState):
         self._clear_exercises()
 
         try:
-            self._lecture_id = self.get_route_param_or_error("lecture_id", dtype=int)
+            self._lecture_id = self._get_route_param_or_error("lecture_id", dtype=int)
         except Exception:
             return rx.redirect(routes.NOT_FOUND)
 

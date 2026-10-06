@@ -203,7 +203,7 @@ class AllLecturesState(SessionState):
         self._reset_page_state()
         self.load_lectures()
 
-        lecture_id_str = self.get_route_param_or_default("lecture_id", default="")
+        lecture_id_str = self._get_route_param_or_default("lecture_id", default="")
         if not lecture_id_str:
             # this is the normal case where no lecture is specified, so we just show the
             # list of lectures

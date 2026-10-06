@@ -221,7 +221,7 @@ class ChatState(SessionState):
         self._userinfo_id = userinfo.id
 
         try:
-            self._exercise_id = self.get_route_param_or_error("exercise_id", dtype=int)
+            self._exercise_id = self._get_route_param_or_error("exercise_id", dtype=int)
         except ValueError:
             yield rx.redirect(routes.NOT_FOUND)
             return

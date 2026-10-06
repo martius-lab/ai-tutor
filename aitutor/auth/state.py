@@ -140,7 +140,7 @@ class SessionState(reflex_local_auth.LocalAuthState):
         # does not (yet?) provide access to the route parameters.
         return self.router.page.params
 
-    def get_route_param_or_default[T](
+    def _get_route_param_or_default[T](
         self, param_name: str, default: T, dtype: Callable[..., T] = str
     ) -> T:
         """Get a route parameter or return a default value if not present.
@@ -155,7 +155,7 @@ class SessionState(reflex_local_auth.LocalAuthState):
         else:
             return default
 
-    def get_route_param_or_error[T](
+    def _get_route_param_or_error[T](
         self, param_name: str, dtype: Callable[..., T] = str
     ) -> T:
         """Get a route parameter or raise an error if not present.

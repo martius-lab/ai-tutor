@@ -31,7 +31,7 @@ class FinishedViewState(SessionState):
         userinfo = self._authenticated_user_info
         if userinfo:
             try:
-                self._exercise_id = self.get_route_param_or_error(
+                self._exercise_id = self._get_route_param_or_error(
                     "exercise_id", dtype=int
                 )
             except ValueError:
