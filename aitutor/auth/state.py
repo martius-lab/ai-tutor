@@ -49,8 +49,11 @@ class SessionState(reflex_local_auth.LocalAuthState):
                 session.add(user_info)
                 session.commit()
 
+    # This "var" is only used in backend functions, therefore we make it private to not
+    # unnecessarily expose it to the frontend.  It is still marked as rx.var, though, so
+    # we can benefit from the caching.
     @rx.var(cache=True, initial_value=None)
-    def authenticated_user_info(self) -> UserInfo | None:
+    def _authenticated_user_info(self) -> UserInfo | None:
         """
         Retrieves information about the currently authenticated user.
 
@@ -92,9 +95,9 @@ class SessionState(reflex_local_auth.LocalAuthState):
         Returns:
             UserRole: The role of the authenticated user.
         """
-        if self.authenticated_user_info is None:
+        if self._authenticated_user_info is None:
             return None
-        return self.authenticated_user_info.role
+        return self._authenticated_user_info.role
 
     @rx.var(cache=True, initial_value=False)
     def is_global_admin(self) -> bool:

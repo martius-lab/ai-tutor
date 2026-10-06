@@ -215,7 +215,7 @@ class ChatState(SessionState):
         self.waiting_for_response = False
         self.current_lecture_id = None
 
-        userinfo = self.authenticated_user_info
+        userinfo = self._authenticated_user_info
         # should be guaranteed by the decorator but assert for type checkers
         assert userinfo is not None and userinfo.id is not None
         self._userinfo_id = userinfo.id

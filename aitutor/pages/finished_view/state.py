@@ -28,7 +28,7 @@ class FinishedViewState(SessionState):
 
         self._global_load()
         self.current_lecture_id = None
-        userinfo = self.authenticated_user_info
+        userinfo = self._authenticated_user_info
         if userinfo:
             try:
                 self._exercise_id = self.get_route_param_or_error(
@@ -85,7 +85,7 @@ class FinishedViewState(SessionState):
     @rx.event
     def delete_submisssion(self):
         """Deletes the submission for the current exercise."""
-        userinfo = self.authenticated_user_info
+        userinfo = self._authenticated_user_info
         if self.current_exercise and userinfo:
             with rx.session() as session:
                 exercise_result = session.exec(
