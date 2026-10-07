@@ -7,7 +7,7 @@ from aitutor.language_state import LanguageState as LS
 from aitutor.pages.all_lectures.state import (
     ALL_LECTURES_FIELD_MAX_LENGTHS,
     AllLecturesState,
-    LectureWithRole,
+    LectureDataForFrontend,
 )
 
 
@@ -247,10 +247,8 @@ def lecture_details_dialog() -> rx.Component:
     )
 
 
-def lecture_card(lecture_with_role: LectureWithRole) -> rx.Component:
+def lecture_card(lecture: LectureDataForFrontend) -> rx.Component:
     """Render a single lecture card with consistent layout across all screen sizes."""
-    lecture = lecture_with_role[0]
-    role = lecture_with_role[1]
     lecture_id = lecture.id
 
     return rx.card(
@@ -262,7 +260,7 @@ def lecture_card(lecture_with_role: LectureWithRole) -> rx.Component:
                     size="5",
                     weight="bold",
                 ),
-                join_action_button(role, lecture_id),
+                join_action_button(lecture.member_role, lecture_id),
                 justify="between",
                 align="start",
                 width="100%",
