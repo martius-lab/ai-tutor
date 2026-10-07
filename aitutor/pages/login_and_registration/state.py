@@ -2,29 +2,35 @@
 
 import asyncio
 import email.utils
+import enum
 import logging
 import re
-from datetime import datetime
+from datetime import datetime, timedelta
+from typing import Any
 from zoneinfo import ZoneInfo
 
 import reflex as rx
 import reflex_local_auth
 from reflex_local_auth.user import LocalUser
-from sqlmodel import func, select
+from sqlmodel import Session, func, select
 
 import aitutor.global_vars as gv
-from aitutor.account_emails import send_signup_welcome_email
+from aitutor.account_emails import (
+    send_email_verification_email,
+    send_signup_welcome_email,
+)
 from aitutor.config import get_config
 from aitutor.language_state import BackendTranslations as BT
 from aitutor.language_state import language_from_value
 from aitutor.models import (
     GlobalPermission,
+    Language,
     LecturerRegistrationToken,
     Permission,
     UserInfo,
     UserRole,
 )
-from aitutor.verification import issue_token
+from aitutor.verification import issue_token, resend_cooldown_remaining
 
 # check for the password max length in terms of bytes
 # alongside basic matching check against the DB
@@ -43,15 +49,268 @@ AUTH_FIELD_MAX_LENGTHS: dict[str, int] = {
 }
 
 
+class LoginCheckOutcome(enum.Enum):
+    """Possible outcomes of a login check.
+
+    Login is only allowed if the outcome is `SUCCESS`.  All other outcomes mean that
+    login must be denied.
+    """
+
+    SUCCESS = enum.auto()
+    INVALID_CREDENTIALS = enum.auto()
+    ACCOUNT_DISABLED = enum.auto()
+    ACCOUNT_NOT_VERIFIED = enum.auto()
+    INTERNAL_ERROR = enum.auto()
+
+
+def check_login(
+    session: Session, username: str, password: str
+) -> tuple[LoginCheckOutcome, UserInfo | None]:
+    """Check the login credentials and status of the account.
+
+    Checks whether the given username and password match with an existing account and
+    whether that account is allowed to log in (e.g. not disabled or unverified).
+
+    Args:
+        session: The database session to use for the query.
+        username: The username to check.
+        password: The password to check.
+
+    Returns:
+        A tuple containing the outcome of the check and (if applicable) the UserInfo of
+        the account.  The UserInfo is only returned if outcome is SUCCESS or
+        ACCOUNT_NOT_VERIFIED.  In all other cases, it is None.
+    """
+    local_user = session.exec(
+        select(LocalUser).where(LocalUser.username == username)
+    ).one_or_none()
+
+    # Check the credentials before anything else.  Everything below reveals
+    # something about the account, and the password is what earns the right to
+    # learn it.
+    if (
+        local_user is None
+        or local_user.id is None
+        or not password
+        or not local_user.verify(password)
+    ):
+        return (LoginCheckOutcome.INVALID_CREDENTIALS, None)
+
+    if not local_user.enabled:
+        return (LoginCheckOutcome.ACCOUNT_DISABLED, None)
+
+    user_info = session.exec(
+        select(UserInfo).where(UserInfo.user_id == local_user.id)
+    ).one_or_none()
+
+    if user_info is None:
+        # this should never happen -> corrupted database
+        logger.error(
+            "ERROR: No UserInfo found for user_id=%s ('%s'). The database is"
+            " inconsistent",
+            local_user.id,
+            local_user.username,
+        )
+        return (LoginCheckOutcome.INTERNAL_ERROR, None)
+
+    if not user_info.verified:
+        return (LoginCheckOutcome.ACCOUNT_NOT_VERIFIED, user_info)
+
+    return (LoginCheckOutcome.SUCCESS, user_info)
+
+
 class MyLoginState(reflex_local_auth.LoginState):
     """
     A custom login state class that handles user login.
     """
 
+    #: Whether the last login attempt failed *only* because the email address of the
+    #: account has not been confirmed yet.  Controls the resend offer on the login page.
+    email_not_verified: bool = False
+    resend_in_progress: bool = False
+
+    #: ID of the account of the last login attempt that failed due to a missing email
+    #: confirmation.
+    _unverified_user_id: int = -1
+    #: Language of the login form, used for the toasts of the resend action.  This state
+    #: is not a substate of SessionState, so it has no `language` of its own.
+    _language: Language = Language.EN
+
     @rx.event
     def on_load(self):
         """function that gets called when the login page loads"""
         self.error_message = ""
+        self._reset_verification_state()
+
+    def _reset_verification_state(self):
+        """Forget about a previous login attempt with an unconfirmed address."""
+        self.email_not_verified = False
+        self.resend_in_progress = False
+        self._unverified_user_id = -1
+
+    @rx.event
+    def on_submit(self, form_data: dict[str, Any]):
+        """
+        Handle the login form submission.
+
+        This replaces the handler of the base class, which does not know about the
+        email confirmation.  A user may only log in if the account is enabled *and*
+        the email address has been confirmed.
+
+        Args:
+            form_data: A dict of the form fields and their values.
+        """
+        self.error_message = ""
+        self._reset_verification_state()
+        self._language = language_from_value(form_data.get("language"))
+
+        username = form_data["username"]
+        password = form_data["password"]
+
+        with rx.session() as session:
+            outcome, user_info = check_login(session, username, password)
+            match outcome:
+                case LoginCheckOutcome.SUCCESS:
+                    pass  # continue below
+                case LoginCheckOutcome.INVALID_CREDENTIALS:
+                    self.error_message = BT.login_failed(self._language)
+                    return rx.set_value("password", "")
+                case LoginCheckOutcome.ACCOUNT_DISABLED:
+                    self.error_message = BT.account_disabled(self._language)
+                    return rx.set_value("password", "")
+                case LoginCheckOutcome.ACCOUNT_NOT_VERIFIED:
+                    assert user_info is not None
+                    self.email_not_verified = True
+                    self._unverified_user_id = user_info.user_id
+                    return rx.set_value("password", "")
+                case LoginCheckOutcome.INTERNAL_ERROR:
+                    self.error_message = BT.error_account_data_inconsistent(
+                        self._language
+                    )
+                    return rx.set_value("password", "")
+
+            # All non-success cases should already be covered by the match above but
+            # double-check here in case of some bug above (really only allow login for
+            # SUCCESS).
+            if outcome != LoginCheckOutcome.SUCCESS:
+                logger.error(
+                    "Unexpected LoginCheckOutcome: %s. This is a bug in the code.",
+                    outcome,
+                )
+                self.error_message = BT.error_account_data_inconsistent(self._language)
+                return rx.set_value("password", "")
+
+            assert user_info is not None
+            user_info.last_login_at = datetime.now(ZoneInfo(gv.TIME_ZONE))
+            session.add(user_info)
+            session.commit()
+
+            user_id = user_info.user_id
+
+        # mark the user as logged in
+        self._login(user_id)
+        self.error_message = ""
+        # Use the handler of the base class here: `redirect_to` is set on it by
+        # `reflex_local_auth.require_login`.
+        return reflex_local_auth.LoginState.redir()  # type: ignore
+
+    @rx.event
+    async def resend_verification_email(self):
+        """
+        Send a new confirmation mail to the account of the last login attempt.
+
+        Only available directly after a login attempt that failed because the address
+        was not confirmed, i.e. only to someone who knows the password.
+        """
+        if self._unverified_user_id < 0:
+            return
+
+        self.resend_in_progress = True
+        yield
+
+        try:
+            with rx.session() as session:
+                row = session.exec(
+                    select(LocalUser, UserInfo)
+                    .join(UserInfo)
+                    .where(LocalUser.id == self._unverified_user_id)
+                ).one_or_none()
+
+                if row is None:
+                    self._reset_verification_state()
+                    yield rx.toast.error(
+                        BT.error_user_not_found(self._language),
+                        duration=7_000,
+                        position="bottom-center",
+                        invert=True,
+                    )
+                    return
+
+                local_user, user_info = row
+                assert local_user.id is not None
+
+                if user_info.verified:
+                    # Confirmed in the meantime, e.g. in another browser tab.
+                    self._reset_verification_state()
+                    yield rx.toast.info(
+                        BT.email_already_verified(self._language),
+                        duration=7_000,
+                        position="bottom-center",
+                        invert=True,
+                    )
+                    return
+
+                remaining = resend_cooldown_remaining(session, user_id=local_user.id)
+                if remaining > timedelta(0):
+                    yield rx.toast.warning(
+                        BT.verification_email_resend_cooldown(
+                            self._language, seconds=int(remaining.total_seconds())
+                        ),
+                        duration=7_000,
+                        position="bottom-center",
+                        invert=True,
+                    )
+                    return
+
+                username = local_user.username
+                to_email = user_info.email
+                user_language = user_info.language
+
+                token = issue_token(session, user_id=local_user.id, email=to_email)
+                # Commit before sending: this starts the cooldown, so a mail server that
+                # is slow or broken cannot be used to send a burst of mails.  The price
+                # is that a failed send makes the user wait for the next attempt.
+                session.commit()
+
+            try:
+                await asyncio.to_thread(
+                    send_email_verification_email,
+                    to_email=to_email,
+                    username=username,
+                    language=user_language,
+                    verification_token=token,
+                )
+            except Exception:
+                logger.exception(
+                    "Failed to resend verification email for user_id=%s.",
+                    self._unverified_user_id,
+                )
+                yield rx.toast.error(
+                    BT.verification_email_resend_failed(self._language),
+                    duration=7_000,
+                    position="bottom-center",
+                    invert=True,
+                )
+                return
+
+            yield rx.toast.success(
+                BT.verification_email_resent(self._language),
+                duration=7_000,
+                position="bottom-center",
+                invert=True,
+            )
+        finally:
+            self.resend_in_progress = False
 
 
 class MyRegisterState(reflex_local_auth.RegistrationState):

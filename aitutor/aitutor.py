@@ -60,6 +60,8 @@ from aitutor.pages.not_found.page import not_found_page
 from aitutor.pages.prompts.page import prompts_page
 from aitutor.pages.prompts.state import ManagePromptsState
 from aitutor.pages.user_settings.page import user_settings_page
+from aitutor.pages.verify_email.page import verify_email_page
+from aitutor.pages.verify_email.state import VerifyEmailState
 from aitutor.utilities.cprint import cprint
 from aitutor.utilities.first_setup import first_time_setup
 
@@ -171,6 +173,11 @@ app.add_page(
 app.add_page(
     user_settings_page,
     route=routes.USER_SETTINGS,
+)
+app.add_page(
+    verify_email_page,
+    route=routes.VERIFY_EMAIL,
+    on_load=VerifyEmailState.on_load,
 )
 
 # reflex_local_auth pages
