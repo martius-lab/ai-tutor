@@ -273,7 +273,7 @@ class LectureTokenAnalyzerState(SessionState):
                 .join(Exercise)
                 .where(Exercise.lecture_id == self.current_lecture_id)
                 .distinct()
-                .order_by(func.lower(LocalUser.username))
+                .order_by(LocalUser.username)
             ).all()
             self.user_options = [ALL_USERS_OPTION, *users]
 
