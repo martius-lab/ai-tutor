@@ -88,7 +88,8 @@ app.add_page(
 )
 app.add_page(
     beta_ai_finished_view_tutor_page,
-    route=routes.BETA_AI_FINISHED_VIEW_TUTOR + "/[lecture_id]/[beta_exercise_id]/[url_user_id]",
+    route=routes.BETA_AI_FINISHED_VIEW_TUTOR
+    + "/[lecture_id]/[beta_exercise_id]/[url_user_id]",
     on_load=BetaAIFinishedViewTutorState.on_load,
 )
 app.add_page(

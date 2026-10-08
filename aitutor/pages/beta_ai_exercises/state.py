@@ -68,13 +68,6 @@ class BetaAIExercisesState(SessionState):
     new_tag_name: str = ""
     add_tag_dialog_is_open: bool = False
 
-    def _matches_lecture_route(self, lecture_id: int | None) -> bool:
-        """Keep builder operations scoped to the authorized route lecture."""
-        try:
-            route_lecture_id = self._get_route_param_or_error("lecture_id", dtype=int)
-        except KeyError, ValueError, TypeError:
-            return False
-        return lecture_id is not None and lecture_id == route_lecture_id
     @rx.event
     def set_metadata_info_dialog_is_open(self, value: bool):
         """Synchronize dismissal by Escape or the dialog overlay."""
@@ -279,7 +272,7 @@ class BetaAIExercisesState(SessionState):
     def _matches_lecture_route(self, lecture_id: int | None) -> bool:
         """Keep builder operations scoped to the authorized route lecture."""
         try:
-            route_lecture_id = self.get_route_param_or_error("lecture_id", dtype=int)
+            route_lecture_id = self._get_route_param_or_error("lecture_id", dtype=int)
         except KeyError, ValueError, TypeError:
             return False
         return lecture_id is not None and lecture_id == route_lecture_id
