@@ -29,9 +29,9 @@ class LectureOverviewState(SessionState):
     lecture_name: str = ""
     lecturer_name: str = ""
     lecture_information_text: str = ""
-    exercises_with_result: list[tuple[Exercise, Optional[ExerciseResult]]] = []
+    exercises_with_result: list[tuple[Exercise, ExerciseResult | None]] = []
     beta_exercises_with_result: list[
-        tuple[BetaExercise, Optional[BetaExerciseResult]]
+        tuple[BetaExercise, BetaExerciseResult | None]
     ] = []
 
     @rx.event
