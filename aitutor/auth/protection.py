@@ -77,9 +77,26 @@ def has_permission(
 def page_require_permission(
     allowed_permissions: GlobalPermission | list[GlobalPermission],
 ):
-    """
-    Protects a page. Allows access if the user has the required UserRole
-    OR at least one of the allowed GlobalPermissions (ADMIN is always allowed).
+    """Protect a page that may only be accessed with certain permissions.
+
+    Use as decorator on a page function.  It checks if the user is logged in and has at
+    least one of the listed permissions (ADMIN is implicitly always included).
+    If not logged in, the page is replaced with a redirect to the login page.
+    If logged in but lacking the required permissions, the page is replaced with an
+    "access denied" message.
+
+    This decorator should be applied above other decorators to avoid flickering of the
+    page content before redirecting.
+
+    Important: This is only handling the redirect on the UI level.  State methods need
+    to be protected separately with :ref:`state_require_role_or_permission` to prevent
+    unauthorized access to the backend.
+
+    Args:
+        allowed_permissions: A single permission or a list of permissions that are
+            allowed to access the page.  The ADMIN permission is always allowed
+            implicitly but may still be added explicitly (e.g. for a page that may only
+            be accessed by admins).
     """
     # copy the list to avoid modifying the original and ensure ADMIN is always included
     perms_to_check = list(allowed_permissions) if allowed_permissions else []
