@@ -24,12 +24,12 @@ class BetaAIFinishedViewTutorState(SessionState):
     @state_require_role_or_permission(required_role=UserRole.TUTOR)
     def on_load(self):
         """Load the submitted Beta AI conversation and student info."""
-        self.global_load()
+        self._global_load()
         try:
-            beta_exercise_id = self.get_route_param_or_error(
+            beta_exercise_id = self._get_route_param_or_error(
                 "beta_exercise_id", dtype=int
             )
-            url_user_id = self.get_route_param_or_error("url_user_id", dtype=int)
+            url_user_id = self._get_route_param_or_error("url_user_id", dtype=int)
         except KeyError, ValueError:
             yield rx.redirect(routes.NOT_FOUND)
             return

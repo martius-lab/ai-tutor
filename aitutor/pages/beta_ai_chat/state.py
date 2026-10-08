@@ -110,9 +110,9 @@ class BetaAIChatState(SessionState):
     @state_require_role_or_permission(required_role=UserRole.STUDENT)
     async def on_load(self):
         """Load the selected visible Beta AI exercise from the route parameter."""
-        self.global_load()
+        self._global_load()
         self.reset_chat()
-        userinfo = self.authenticated_user_info
+        userinfo = self._authenticated_user_info
         if userinfo is None or userinfo.id is None:
             yield rx.redirect(routes.LOGIN)
             return

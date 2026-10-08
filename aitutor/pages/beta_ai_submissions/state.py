@@ -33,7 +33,7 @@ class BetaAISubmissionsState(SessionState):
     @state_require_role_or_permission(required_role=UserRole.TUTOR)
     def on_load(self):
         """Load submitted Beta AI exercise results."""
-        self.global_load()
+        self._global_load()
         self.load_submissions()
 
     def on_logout(self):

@@ -20,14 +20,14 @@ class BetaAIFinishedViewState(SessionState):
     @state_require_role_or_permission(required_role=UserRole.STUDENT)
     def on_load(self):
         """Load the submitted Beta AI conversation for the current student."""
-        self.global_load()
-        userinfo = self.authenticated_user_info
+        self._global_load()
+        userinfo = self._authenticated_user_info
         if userinfo is None or userinfo.id is None:
             yield rx.redirect(routes.LOGIN)
             return
 
         try:
-            self._beta_exercise_id = self.get_route_param_or_error(
+            self._beta_exercise_id = self._get_route_param_or_error(
                 "beta_exercise_id", dtype=int
             )
         except KeyError, ValueError:

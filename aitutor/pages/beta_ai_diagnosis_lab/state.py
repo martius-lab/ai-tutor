@@ -52,7 +52,7 @@ class BetaAIDiagnosisLabState(SessionState):
     @state_require_role_or_permission(required_role=UserRole.TUTOR)
     def on_load(self):
         """Initialize the diagnosis lab."""
-        self.global_load()
+        self._global_load()
         self.reset_selection()
         self.load_beta_exercises()
 

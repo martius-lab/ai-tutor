@@ -17,7 +17,7 @@ class BetaAIStudentExercisesState(SessionState):
     @state_require_role_or_permission(required_role=UserRole.STUDENT)
     def on_load(self):
         """Initialize the page and load visible Beta AI exercises."""
-        self.global_load()
+        self._global_load()
         self.load_beta_exercises()
 
     def on_logout(self):

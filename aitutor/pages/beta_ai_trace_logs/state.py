@@ -90,7 +90,7 @@ class BetaAITraceLogsState(SessionState):
     @state_require_role_or_permission(required_role=UserRole.TUTOR)
     def on_load(self):
         """Initialize the trace log inspector."""
-        self.global_load()
+        self._global_load()
         self.clear_selection()
         self.load_trace_logs()
 
