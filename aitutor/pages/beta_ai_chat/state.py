@@ -141,7 +141,7 @@ class BetaAIChatState(SessionState):
     @state_require_role_or_permission(required_role=UserRole.STUDENT)
     def set_analysis_allowed(self, value: bool):
         """Save this student's analysis preference for the current exercise."""
-        userinfo = self.authenticated_user_info
+        userinfo = self._authenticated_user_info
         if (
             userinfo is None
             or userinfo.id is None
