@@ -49,8 +49,11 @@ class SessionState(reflex_local_auth.LocalAuthState):
                 session.add(user_info)
                 session.commit()
 
+    # This "var" is only used in backend functions, therefore we make it private to not
+    # unnecessarily expose it to the frontend.  It is still marked as rx.var, though, so
+    # we can benefit from the caching.
     @rx.var(cache=True, initial_value=None)
-    def authenticated_user_info(self) -> UserInfo | None:
+    def _authenticated_user_info(self) -> UserInfo | None:
         """
         Retrieves information about the currently authenticated user.
 
@@ -92,9 +95,9 @@ class SessionState(reflex_local_auth.LocalAuthState):
         Returns:
             UserRole: The role of the authenticated user.
         """
-        if self.authenticated_user_info is None:
+        if self._authenticated_user_info is None:
             return None
-        return self.authenticated_user_info.role
+        return self._authenticated_user_info.role
 
     @rx.var(cache=True, initial_value=False)
     def is_global_admin(self) -> bool:
@@ -120,7 +123,7 @@ class SessionState(reflex_local_auth.LocalAuthState):
             ).all()
             return permissions  # type: ignore
 
-    def has_permission(self, permission: GlobalPermission) -> bool:
+    def _has_permission(self, permission: GlobalPermission) -> bool:
         """Return whether the current user has a global permission.
 
         Global ADMIN permission grants all global permissions.
@@ -137,29 +140,29 @@ class SessionState(reflex_local_auth.LocalAuthState):
         # does not (yet?) provide access to the route parameters.
         return self.router.page.params
 
-    def get_route_param_or_default[T](
+    def _get_route_param_or_default[T](
         self, param_name: str, default: T, dtype: Callable[..., T] = str
     ) -> T:
         """Get a route parameter or return a default value if not present.
 
         Args:
             param_name: The name of the route parameter to retrieve.
-            default_value: The value to return if the parameter is not present.
-            output_type: The type to which the parameter value should be cast.
+            default: The value to return if the parameter is not present.
+            dtype: The type to which the parameter value should be cast.
         """
         if param_name in self._get_router_params():
             return dtype(self._get_router_params()[param_name])
         else:
             return default
 
-    def get_route_param_or_error[T](
+    def _get_route_param_or_error[T](
         self, param_name: str, dtype: Callable[..., T] = str
     ) -> T:
         """Get a route parameter or raise an error if not present.
 
         Args:
             param_name: The name of the route parameter to retrieve.
-            output_type: The type to which the parameter value should be cast.
+            dtype: The type to which the parameter value should be cast.
 
         Raises:
             KeyError: If the parameter is not provided in the route.

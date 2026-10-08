@@ -60,11 +60,11 @@ class LectureExercisesState(FilterMixin, SessionState):
         Fetch exercises from database for the lecture in the route.
         """
         self._global_load()
-        assert self.authenticated_user_info is not None
+        assert self._authenticated_user_info is not None
         self._clear_exercises()
 
         try:
-            self._lecture_id = self.get_route_param_or_error("lecture_id", dtype=int)
+            self._lecture_id = self._get_route_param_or_error("lecture_id", dtype=int)
         except Exception:
             return rx.redirect(routes.NOT_FOUND)
 
@@ -161,7 +161,7 @@ class LectureExercisesState(FilterMixin, SessionState):
                     ExerciseResult,
                     and_(
                         Exercise.id == ExerciseResult.exercise_id,
-                        ExerciseResult.userinfo_id == self.authenticated_user_info.id,  # type: ignore
+                        ExerciseResult.userinfo_id == self._authenticated_user_info.id,  # type: ignore
                     ),
                     isouter=True,
                 )

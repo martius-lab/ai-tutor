@@ -215,13 +215,13 @@ class ChatState(SessionState):
         self.waiting_for_response = False
         self.current_lecture_id = None
 
-        userinfo = self.authenticated_user_info
+        userinfo = self._authenticated_user_info
         # should be guaranteed by the decorator but assert for type checkers
         assert userinfo is not None and userinfo.id is not None
         self._userinfo_id = userinfo.id
 
         try:
-            self._exercise_id = self.get_route_param_or_error("exercise_id", dtype=int)
+            self._exercise_id = self._get_route_param_or_error("exercise_id", dtype=int)
         except ValueError:
             yield rx.redirect(routes.NOT_FOUND)
             return
