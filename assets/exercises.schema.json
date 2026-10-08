@@ -43,7 +43,6 @@
                     },
                     "prompt_name": {
                         "type": "string",
-                        "minLength": 1,
                         "maxLength": 100
                     },
                     "is_hidden": {
@@ -74,7 +73,6 @@
                     "title",
                     "description",
                     "lesson_context",
-                    "prompt_name",
                     "is_hidden",
                     "deadline",
                     "days_to_complete"
