@@ -30,6 +30,7 @@ dev = [
 ]
 lsp = [
     { name = "pylsp-rope" },
+    { name = "python-lsp-pyright" },
     { name = "python-lsp-ruff" },
     { name = "python-lsp-server" },
 ]
@@ -59,6 +60,7 @@ dev = [
 ]
 lsp = [
     { name = "pylsp-rope", specifier = ">=0.1.17" },
+    { name = "python-lsp-pyright", git = "https://github.com/luator/python-lsp-pyright.git" },
     { name = "python-lsp-ruff", specifier = ">=2.2.2" },
     { name = "python-lsp-server", specifier = ">=1.12.2" },
 ]
@@ -1414,6 +1416,14 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/48/b6/fd92e2ea4635d88966bb42c20198df1a981340f07843b5e3c6694ba3557b/python-lsp-jsonrpc-1.1.2.tar.gz", hash = "sha256:4688e453eef55cd952bff762c705cedefa12055c0aec17a06f595bcc002cc912", size = 15298, upload-time = "2023-09-23T17:48:30.451Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/cb/d9/656659d5b5d5f402b2b174cd0ba9bc827e07ce3c0bf88da65424baf64af8/python_lsp_jsonrpc-1.1.2-py3-none-any.whl", hash = "sha256:7339c2e9630ae98903fdaea1ace8c47fba0484983794d6aafd0bd8989be2b03c", size = 8805, upload-time = "2023-09-23T17:48:28.804Z" },
+]
+
+[[package]]
+name = "python-lsp-pyright"
+version = "0.1.0"
+source = { git = "https://github.com/luator/python-lsp-pyright.git#8423f1c094c73acafae42b170156e1cac124f0a9" }
+dependencies = [
+    { name = "python-lsp-server" },
 ]
 
 [[package]]
