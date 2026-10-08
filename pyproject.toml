@@ -36,6 +36,7 @@ dev = [
 ]
 lsp = [
     "pylsp-rope>=0.1.17",
+    "python-lsp-pyright",
     "python-lsp-ruff>=2.2.2",
     "python-lsp-server>=1.12.2",
 ]
@@ -68,3 +69,6 @@ extend-exclude = ["alembic"]
 # first three entries are the default excludes that get overwritten when using that
 # setting.
 exclude = ["**/node_modules", "**/__pycache__", "**/.*", "build", "alembic"]
+
+[tool.uv.sources]
+python-lsp-pyright = { git = "https://github.com/luator/python-lsp-pyright.git" }
