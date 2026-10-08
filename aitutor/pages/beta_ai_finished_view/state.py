@@ -90,7 +90,7 @@ class BetaAIFinishedViewState(SessionState):
     @state_require_role_or_permission(required_role=UserRole.STUDENT)
     def delete_submission(self):
         """Withdraw the current student's submission without deleting learning state."""
-        userinfo = self.authenticated_user_info
+        userinfo = self._authenticated_user_info
         if userinfo is None or userinfo.id is None:
             return rx.redirect(routes.LOGIN)
 
