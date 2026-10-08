@@ -147,8 +147,8 @@ class SessionState(reflex_local_auth.LocalAuthState):
 
         Args:
             param_name: The name of the route parameter to retrieve.
-            default_value: The value to return if the parameter is not present.
-            output_type: The type to which the parameter value should be cast.
+            default: The value to return if the parameter is not present.
+            dtype: The type to which the parameter value should be cast.
         """
         if param_name in self._get_router_params():
             return dtype(self._get_router_params()[param_name])
@@ -162,7 +162,7 @@ class SessionState(reflex_local_auth.LocalAuthState):
 
         Args:
             param_name: The name of the route parameter to retrieve.
-            output_type: The type to which the parameter value should be cast.
+            dtype: The type to which the parameter value should be cast.
 
         Raises:
             KeyError: If the parameter is not provided in the route.
