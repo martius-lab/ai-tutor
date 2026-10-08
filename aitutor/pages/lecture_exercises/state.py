@@ -261,7 +261,7 @@ class LectureExercisesState(FilterMixin, SessionState):
                 BetaExerciseResult,
                 and_(
                     BetaExercise.id == BetaExerciseResult.beta_exercise_id,
-                    BetaExerciseResult.userinfo_id == self.authenticated_user_info.id,  # type: ignore
+                    BetaExerciseResult.userinfo_id == self._authenticated_user_info.id,  # type: ignore
                 ),
                 isouter=True,
             )

@@ -240,7 +240,7 @@ class BetaAIExercisesState(SessionState):
         self.load_tags()
         self.load_beta_exercises()
 
-        beta_exercise_id = self.get_route_param_or_default(
+        beta_exercise_id = self._get_route_param_or_default(
             "beta_exercise_id", default=""
         )
         if beta_exercise_id:

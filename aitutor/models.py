@@ -198,7 +198,7 @@ class Tag(SQLModel, table=True):
     exercises: list[Exercise] = Relationship(
         back_populates="tags", link_model=ExerciseTagLink
     )
-    beta_exercises: List["BetaExercise"] = Relationship(
+    beta_exercises: list["BetaExercise"] = Relationship(
         back_populates="tags", link_model=BetaExerciseTagLink
     )
     lecture: Optional[Lecture] = Relationship(back_populates="tags")
@@ -345,7 +345,7 @@ class BetaExercise(SQLModel, table=True):
     concepts: list[BetaConcept] = Relationship(
         back_populates="beta_exercise", sa_relationship_kwargs={"passive_deletes": True}
     )
-    tags: List[Tag] = Relationship(
+    tags: list[Tag] = Relationship(
         back_populates="beta_exercises", link_model=BetaExerciseTagLink
     )
     lecture: Optional[Lecture] = Relationship(back_populates="beta_exercises")

@@ -796,7 +796,7 @@ def exercise_settings_card() -> rx.Component:
                     rx.icon("save"),
                     rx.cond(
                         BetaAIExercisesState.is_editing,
-                        LS.update_task,
+                        LS.edit_exercise,
                         LS.beta_ai_save_exercise,
                     ),
                     color_scheme="green",
