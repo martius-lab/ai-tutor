@@ -74,14 +74,29 @@ def has_permission(
     return okay
 
 
-def page_require_role_or_permission(
-    *,
-    required_role: UserRole | None = None,
-    allowed_permissions: list[GlobalPermission] | None = None,
+def page_require_permission(
+    allowed_permissions: GlobalPermission | list[GlobalPermission],
 ):
-    """
-    Protects a page. Allows access if the user has the required UserRole
-    OR at least one of the allowed GlobalPermissions (ADMIN is always allowed).
+    """Protect a page that may only be accessed with certain permissions.
+
+    Use as decorator on a page function.  It checks if the user is logged in and has at
+    least one of the listed permissions (ADMIN is implicitly always included).
+    If not logged in, the page is replaced with a redirect to the login page.
+    If logged in but lacking the required permissions, the page is replaced with an
+    "access denied" message.
+
+    This decorator should be applied above other decorators to avoid flickering of the
+    page content before redirecting.
+
+    Important: This is only handling the redirect on the UI level.  State methods need
+    to be protected separately with :ref:`state_require_role_or_permission` to prevent
+    unauthorized access to the backend.
+
+    Args:
+        allowed_permissions: A single permission or a list of permissions that are
+            allowed to access the page.  The ADMIN permission is always allowed
+            implicitly but may still be added explicitly (e.g. for a page that may only
+            be accessed by admins).
     """
     # copy the list to avoid modifying the original and ensure ADMIN is always included
     perms_to_check = list(allowed_permissions) if allowed_permissions else []
@@ -90,34 +105,16 @@ def page_require_role_or_permission(
 
     def decorator(page: rx.app.ComponentCallable) -> rx.app.ComponentCallable:
         def protected_page():
-            # Lecture role condition
-            if required_role is not None:
-                role_cond = rx.cond(
-                    SessionState.user_role,
-                    SessionState.user_role >= required_role,  # type: ignore
-                    False,
-                )
-            else:
-                role_cond = False
-
             # Global permissions condition
-            if perms_to_check:
-                perm_cond = SessionState.global_permissions.contains(perms_to_check[0])
-                for perm in perms_to_check[1:]:
-                    perm_cond = perm_cond | SessionState.global_permissions.contains(
-                        perm
-                    )
-            else:
-                perm_cond = False
-
-            # grant access if the user has a required lecture role or global permission
-            final_access_cond = role_cond | perm_cond
+            perm_cond = SessionState.global_permissions.contains(perms_to_check[0])
+            for perm in perms_to_check[1:]:
+                perm_cond = perm_cond | SessionState.global_permissions.contains(perm)
 
             return rx.fragment(
                 rx.cond(
                     LoginState.is_hydrated & LoginState.is_authenticated,
                     rx.cond(
-                        final_access_cond,
+                        perm_cond,
                         page(),
                         rx.center(
                             rx.text(

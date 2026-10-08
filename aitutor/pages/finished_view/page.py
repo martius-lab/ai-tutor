@@ -1,19 +1,18 @@
 """Displays the submitted chat messages"""
 
 import reflex as rx
+import reflex_local_auth
 
 import aitutor.global_vars as gv
 from aitutor import routes
-from aitutor.auth.protection import page_require_role_or_permission
 from aitutor.language_state import LanguageState
-from aitutor.models import UserRole
 from aitutor.pages.chat.components import message_box
 from aitutor.pages.finished_view.components import delete_submission_button
 from aitutor.pages.finished_view.state import FinishedViewState
 from aitutor.pages.navbar import with_navbar
 
 
-@page_require_role_or_permission(required_role=UserRole.STUDENT)
+@reflex_local_auth.require_login
 @with_navbar(routes.MY_LECTURES)
 def finished_view_page() -> rx.Component:
     """Renders the web page."""

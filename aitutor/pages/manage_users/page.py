@@ -3,17 +3,14 @@
 import reflex as rx
 
 from aitutor import routes
-from aitutor.auth.protection import page_require_role_or_permission
-from aitutor.models import GlobalPermission, UserRole
+from aitutor.auth.protection import page_require_permission
+from aitutor.models import GlobalPermission
 from aitutor.pages.manage_users.components import edit_user_dialog, users_table
 from aitutor.pages.navbar import with_navbar
 from aitutor.pages.navbar_admin import with_admin_navbar
 
 
-@page_require_role_or_permission(
-    required_role=UserRole.ADMIN,
-    allowed_permissions=[GlobalPermission.MAINTAINER],
-)
+@page_require_permission(allowed_permissions=[GlobalPermission.MAINTAINER])
 @with_navbar(routes.ADMIN_SETTINGS)
 @with_admin_navbar(routes.MANAGE_USERS)
 def manage_users_page() -> rx.Component:

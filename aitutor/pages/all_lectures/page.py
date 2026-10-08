@@ -1,15 +1,14 @@
 """All lectures page."""
 
 import reflex as rx
+import reflex_local_auth
 
 from aitutor import routes
-from aitutor.auth.protection import page_require_role_or_permission
-from aitutor.models import UserRole
 from aitutor.pages.all_lectures.components import all_lectures_content
 from aitutor.pages.navbar import with_navbar
 
 
-@page_require_role_or_permission(required_role=UserRole.STUDENT)
+@reflex_local_auth.require_login
 @with_navbar(routes.LECTURES)
 def all_lectures_page() -> rx.Component:
     """Show the page scaffold for all available lectures."""

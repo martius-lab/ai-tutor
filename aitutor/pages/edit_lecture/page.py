@@ -1,17 +1,16 @@
 """Lecture edit/create page."""
 
 import reflex as rx
+import reflex_local_auth
 
 from aitutor import routes
-from aitutor.auth.protection import page_require_role_or_permission
-from aitutor.models import UserRole
 from aitutor.pages.edit_lecture.components import edit_lecture_content
 from aitutor.pages.edit_lecture.state import EditLectureState
 from aitutor.pages.navbar import with_navbar
 from aitutor.pages.navbar_specific_lecture import with_specific_lecture_navbar
 
 
-@page_require_role_or_permission(required_role=UserRole.STUDENT)
+@reflex_local_auth.require_login
 @with_navbar(routes.LECTURES)
 def edit_lecture_page() -> rx.Component:
     """Lecture edit/create page."""

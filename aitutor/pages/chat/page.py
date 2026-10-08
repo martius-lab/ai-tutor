@@ -1,11 +1,10 @@
 """This module contains the chat component."""
 
 import reflex as rx
+import reflex_local_auth
 
 from aitutor import routes
-from aitutor.auth.protection import page_require_role_or_permission
 from aitutor.language_state import LanguageState
-from aitutor.models import UserRole
 from aitutor.pages.chat.components import (
     chat_form,
     report_conversation_button,
@@ -16,7 +15,7 @@ from aitutor.pages.chat.state import ChatState
 from aitutor.pages.navbar import with_navbar
 
 
-@page_require_role_or_permission(required_role=UserRole.STUDENT)
+@reflex_local_auth.require_login
 @with_navbar(routes.MY_LECTURES)
 def chat_page() -> rx.Component:
     """Renders the web page."""
