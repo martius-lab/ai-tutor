@@ -198,7 +198,7 @@ class Tag(SQLModel, table=True):
     exercises: list[Exercise] = Relationship(
         back_populates="tags", link_model=ExerciseTagLink
     )
-    beta_exercises: list["BetaExercise"] = Relationship(
+    beta_exercises: list[BetaExercise] = Relationship(
         back_populates="tags", link_model=BetaExerciseTagLink
     )
     lecture: Optional[Lecture] = Relationship(back_populates="tags")
