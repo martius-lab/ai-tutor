@@ -29,7 +29,10 @@ from aitutor.pages.beta_ai_student_exercises.page import beta_ai_student_exercis
 from aitutor.pages.beta_ai_student_exercises.state import BetaAIStudentExercisesState
 from aitutor.pages.beta_ai_submissions.page import beta_ai_submissions_page
 from aitutor.pages.beta_ai_submissions.state import BetaAISubmissionsState
-from aitutor.pages.beta_ai_trace_logs.page import beta_ai_trace_logs_page
+from aitutor.pages.beta_ai_trace_logs.page import (
+    beta_ai_global_trace_logs_page,
+    beta_ai_trace_logs_page,
+)
 from aitutor.pages.beta_ai_trace_logs.state import BetaAITraceLogsState
 from aitutor.pages.chat.page import chat_page
 from aitutor.pages.chat.state import ChatState
@@ -243,6 +246,12 @@ app.add_page(
     beta_ai_exercises_page,
     route=routes.BETA_AI_EXERCISES + "/[lecture_id]/[beta_exercise_id]",
     on_load=BetaAIExercisesState.on_load,
+)
+
+app.add_page(
+    beta_ai_global_trace_logs_page,
+    route=routes.BETA_AI_TRACE_LOGS,
+    on_load=BetaAITraceLogsState.on_load,
 )
 
 # reflex_local_auth pages
