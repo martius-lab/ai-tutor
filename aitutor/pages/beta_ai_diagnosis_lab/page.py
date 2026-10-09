@@ -10,13 +10,13 @@ from aitutor.pages.beta_ai_diagnosis_lab.components import (
 )
 from aitutor.pages.beta_ai_diagnosis_lab.state import BetaAIDiagnosisLabState
 from aitutor.pages.navbar import with_navbar
-from aitutor.pages.navbar_beta_ai import with_beta_ai_navbar
+from aitutor.pages.navbar_specific_lecture import with_specific_lecture_navbar
 
 
 @page_require_lecture_role(LectureRole.TUTOR)
 @with_navbar(routes.LECTURES)
-@with_beta_ai_navbar(
-    routes.BETA_AI_DIAGNOSIS_LAB,
+@with_specific_lecture_navbar(
+    "manage_exercises",
     BetaAIDiagnosisLabState.current_lecture_id,
 )
 def beta_ai_diagnosis_lab_page() -> rx.Component:

@@ -126,25 +126,6 @@ class BetaAIChatState(SessionState):
     token_limit: int = 0
     report_text: str = ""
 
-    @rx.var
-    def token_limit_reached(self) -> bool:
-        """Check whether the exercise token limit has been reached."""
-        return self.current_tokens >= self.token_limit
-
-    @rx.var
-    def token_warning_threshold_reached(self) -> bool:
-        """Check whether the token warning threshold has been reached."""
-        return self.current_tokens >= (
-            self.token_limit * gv.CHAT_TOKEN_WARNING_THRESHOLD
-        )
-
-    @rx.var
-    def token_usage_percentage(self) -> int:
-        """Return the current token usage as a percentage."""
-        if self.token_limit == 0:
-            return 0
-        return int((self.current_tokens / self.token_limit) * 100)
-
     @rx.event
     def set_student_message(self, value: str):
         """Set the current student draft message."""
@@ -154,16 +135,6 @@ class BetaAIChatState(SessionState):
     def set_report_text(self, value: str):
         """Set the report text and enforce the configured maximum length."""
         self.report_text = value[: gv.REPORT_MAX_LEN]
-
-    @rx.var
-    def report_char_count(self) -> int:
-        """Return the current report character count."""
-        return len(self.report_text)
-
-    @rx.var
-    def report_is_valid(self) -> bool:
-        """Return whether the report contains valid text."""
-        return 0 < len(self.report_text.strip()) <= gv.REPORT_MAX_LEN
 
     @rx.event
     @state_require_role_or_permission(required_role=UserRole.STUDENT)
@@ -375,20 +346,34 @@ class BetaAIChatState(SessionState):
             self.use_initial_tutor_fallback()
             self.save_conversation_to_db()
 
-    def on_logout(self):
-        """Clear state on logout."""
-        self.reset_chat()
+    @rx.var
+    def token_limit_reached(self) -> bool:
+        """Check whether the exercise token limit has been reached."""
+        return self.current_tokens >= self.token_limit
 
-    def load_beta_result_state(self, beta_result: BetaExerciseResult) -> None:
-        """Restore persisted conversation metadata from a Beta AI result."""
-        self.current_tokens = beta_result.tokens_used
-        self.completion_unlocked = beta_result.completion_unlocked
-        self.conversation_is_submitted = bool(beta_result.submit_time_stamp)
-        self.submit_time_stamp = (
-            beta_result.submit_time_stamp.strftime(TIME_FORMAT)
-            if beta_result.submit_time_stamp
-            else ""
+    @rx.var
+    def token_warning_threshold_reached(self) -> bool:
+        """Check whether the token warning threshold has been reached."""
+        return self.current_tokens >= (
+            self.token_limit * gv.CHAT_TOKEN_WARNING_THRESHOLD
         )
+
+    @rx.var
+    def token_usage_percentage(self) -> int:
+        """Return the current token usage as a percentage."""
+        if self.token_limit == 0:
+            return 0
+        return int((self.current_tokens / self.token_limit) * 100)
+
+    @rx.var
+    def report_char_count(self) -> int:
+        """Return the current report character count."""
+        return len(self.report_text)
+
+    @rx.var
+    def report_is_valid(self) -> bool:
+        """Return whether the report contains valid text."""
+        return 0 < len(self.report_text.strip()) <= gv.REPORT_MAX_LEN
 
     @rx.var
     def can_send_message(self) -> bool:
@@ -533,6 +518,40 @@ class BetaAIChatState(SessionState):
             return routes.MY_LECTURES
         return f"{routes.LECTURE_EXERCISES}/{self.current_lecture_id}"
 
+    @rx.var
+    def initial_tutor_message(self) -> str:
+        """Return the initial tutor message based on concept availability."""
+        if self.selected_concept_id is None:
+            return BT.beta_ai_no_concept_registry(self.language)
+        return BT.beta_ai_initial_message(
+            self.language,
+            self.concept_progress_label,
+            self.selected_concept_label,
+            self.initial_tutor_question,
+        )
+
+    @rx.var
+    def initial_tutor_question(self) -> str:
+        """Return a non-leaking first question for the selected concept."""
+        if self.selected_concept_id is None:
+            return ""
+        return BT.beta_ai_initial_question(self.language, self.selected_concept_label)
+
+    def on_logout(self):
+        """Clear state on logout."""
+        self.reset_chat()
+
+    def load_beta_result_state(self, beta_result: BetaExerciseResult) -> None:
+        """Restore persisted conversation metadata from a Beta AI result."""
+        self.current_tokens = beta_result.tokens_used
+        self.completion_unlocked = beta_result.completion_unlocked
+        self.conversation_is_submitted = bool(beta_result.submit_time_stamp)
+        self.submit_time_stamp = (
+            beta_result.submit_time_stamp.strftime(TIME_FORMAT)
+            if beta_result.submit_time_stamp
+            else ""
+        )
+
     @rx.event
     @state_require_role_or_permission(required_role=UserRole.STUDENT)
     def submit_report(self):
@@ -579,25 +598,6 @@ class BetaAIChatState(SessionState):
             position="bottom-center",
             invert=True,
         )
-
-    @rx.var
-    def initial_tutor_message(self) -> str:
-        """Return the initial tutor message based on concept availability."""
-        if self.selected_concept_id is None:
-            return BT.beta_ai_no_concept_registry(self.language)
-        return BT.beta_ai_initial_message(
-            self.language,
-            self.concept_progress_label,
-            self.selected_concept_label,
-            self.initial_tutor_question,
-        )
-
-    @rx.var
-    def initial_tutor_question(self) -> str:
-        """Return a non-leaking first question for the selected concept."""
-        if self.selected_concept_id is None:
-            return ""
-        return BT.beta_ai_initial_question(self.language, self.selected_concept_label)
 
     @rx.event
     def reset_chat(self):
@@ -725,14 +725,12 @@ class BetaAIChatState(SessionState):
             return
 
         status = normalized_level_status(self.level_status)
-        if status["basic_understanding"] == "passed":
-            fallback_level = (
-                "apply_or_compare"
-                if status["explain_reasoning"] == "passed"
-                else "explain_reasoning"
-            )
-        else:
+        if status["basic_understanding"] != "passed":
             fallback_level = "basic_understanding"
+        elif status["explain_reasoning"] != "passed":
+            fallback_level = "explain_reasoning"
+        else:
+            fallback_level = "apply_or_compare"
 
         self.current_question_level = fallback_level
         self.current_question = self.fallback_question_for_level(fallback_level)
@@ -975,13 +973,10 @@ class BetaAIChatState(SessionState):
             }
         return {"advanced": False, "completed_all": False, "reason": "no_next_concept"}
 
-    @rx.event
-    def go_to_previous_concept(self):
-        """Manual previous-concept navigation for development/testing."""
-        if not self.can_go_previous_concept:
-            return
+    def _navigate_to_concept(self, offset: int) -> None:
+        """Navigate manually and persist the transition when loading succeeds."""
         previous_label = self.selected_concept_label
-        if self.load_concept_context(self.current_concept_index - 1):
+        if self.load_concept_context(self.current_concept_index + offset):
             self.append_concept_transition_message(
                 previous_label=previous_label,
                 automatic=False,
@@ -989,17 +984,18 @@ class BetaAIChatState(SessionState):
             self.save_conversation_to_db()
 
     @rx.event
+    def go_to_previous_concept(self):
+        """Manual previous-concept navigation for development/testing."""
+        if not self.can_go_previous_concept:
+            return
+        self._navigate_to_concept(-1)
+
+    @rx.event
     def go_to_next_concept(self):
         """Manual next-concept navigation for development/testing."""
         if not self.can_go_next_concept:
             return
-        previous_label = self.selected_concept_label
-        if self.load_concept_context(self.current_concept_index + 1):
-            self.append_concept_transition_message(
-                previous_label=previous_label,
-                automatic=False,
-            )
-            self.save_conversation_to_db()
+        self._navigate_to_concept(1)
 
     def save_conversation_to_db(self, tokens_to_add: int = 0) -> int | None:
         """Persist the Beta AI conversation and accumulate newly consumed tokens."""
@@ -1139,6 +1135,17 @@ class BetaAIChatState(SessionState):
             session.commit()
             return trace_log.id, next_turn_index
 
+    def _save_conversation_and_trace(self, trace_entry: dict) -> None:
+        """Save the chat and append its trace only when the chat has a result id."""
+        beta_exercise_result_id = self.save_conversation_to_db()
+        if beta_exercise_result_id is not None:
+            trace_log_id, trace_history_count = self.append_trace_to_db(
+                beta_exercise_result_id=beta_exercise_result_id,
+                trace_entry=trace_entry,
+            )
+            self.last_trace_log_id = trace_log_id
+            self.trace_history_count = trace_history_count
+
     def build_cumulative_diagnosis(
         self, *, latest_diagnosis: DiagnosisResponse, student_answer: str
     ) -> DiagnosisResponse:
@@ -1231,6 +1238,16 @@ class BetaAIChatState(SessionState):
             student_state.updated_at = now
             session.commit()
 
+    def _finish_with_processing_error(self) -> None:
+        """Stop processing and show the generic failure message in the chat."""
+        self.running_diagnosis = False
+        self.messages.append(
+            {
+                "role": "tutor",
+                "content": BT.beta_ai_generic_processing_error(self.language),
+            }
+        )
+
     @rx.event(background=True)
     async def send_message(self):
         """Diagnose a student message and append a policy-based tutor response."""
@@ -1299,13 +1316,7 @@ class BetaAIChatState(SessionState):
                 self.save_conversation_to_db(
                     tokens_to_add=self.tokens_used_from_exception(exc)
                 )
-                self.running_diagnosis = False
-                self.messages.append(
-                    {
-                        "role": "tutor",
-                        "content": BT.beta_ai_generic_processing_error(self.language),
-                    }
-                )
+                self._finish_with_processing_error()
             yield rx.toast.error(
                 description=BT.beta_ai_processing_failed(
                     self.language, "diagnosis", exc
@@ -1324,13 +1335,7 @@ class BetaAIChatState(SessionState):
                 )
         except Exception as exc:
             async with self:
-                self.running_diagnosis = False
-                self.messages.append(
-                    {
-                        "role": "tutor",
-                        "content": BT.beta_ai_generic_processing_error(self.language),
-                    }
-                )
+                self._finish_with_processing_error()
             yield rx.toast.error(
                 description=BT.beta_ai_processing_failed(
                     self.language, "student_state", exc
@@ -1351,13 +1356,7 @@ class BetaAIChatState(SessionState):
             )
         except Exception as exc:
             async with self:
-                self.running_diagnosis = False
-                self.messages.append(
-                    {
-                        "role": "tutor",
-                        "content": BT.beta_ai_generic_processing_error(self.language),
-                    }
-                )
+                self._finish_with_processing_error()
             yield rx.toast.error(
                 description=BT.beta_ai_processing_failed(self.language, "policy", exc),
                 duration=5000,
@@ -1461,27 +1460,12 @@ class BetaAIChatState(SessionState):
                     self.last_policy_action = completion_policy_preview.action
                     self.last_policy_rule_id = completion_policy_preview.rule_id
                     self.last_trace_json = trace_log_json(trace_entry)
-                    beta_exercise_result_id = self.save_conversation_to_db()
-                    if beta_exercise_result_id is not None:
-                        trace_log_id, trace_history_count = self.append_trace_to_db(
-                            beta_exercise_result_id=beta_exercise_result_id,
-                            trace_entry=trace_entry,
-                        )
-                        self.last_trace_log_id = trace_log_id
-                        self.trace_history_count = trace_history_count
+                    self._save_conversation_and_trace(trace_entry)
                     self.running_diagnosis = False
                 return
             except Exception as exc:
                 async with self:
-                    self.running_diagnosis = False
-                    self.messages.append(
-                        {
-                            "role": "tutor",
-                            "content": BT.beta_ai_generic_processing_error(
-                                self.language
-                            ),
-                        }
-                    )
+                    self._finish_with_processing_error()
                 yield rx.toast.error(
                     description=BT.beta_ai_processing_failed(
                         self.language, "completion", exc
@@ -1526,13 +1510,7 @@ class BetaAIChatState(SessionState):
             )
         except Exception as exc:
             async with self:
-                self.running_diagnosis = False
-                self.messages.append(
-                    {
-                        "role": "tutor",
-                        "content": BT.beta_ai_generic_processing_error(self.language),
-                    }
-                )
+                self._finish_with_processing_error()
             yield rx.toast.error(
                 description=BT.beta_ai_processing_failed(
                     self.language, "question_level", exc
@@ -1667,24 +1645,11 @@ class BetaAIChatState(SessionState):
                 self.current_question = tutor_turn.next_question
                 self.current_question_level = tutor_turn.question_level
                 self.current_focus_core_point_id = tutor_turn.focus_core_point_id
-                beta_exercise_result_id = self.save_conversation_to_db()
-                if beta_exercise_result_id is not None:
-                    trace_log_id, trace_history_count = self.append_trace_to_db(
-                        beta_exercise_result_id=beta_exercise_result_id,
-                        trace_entry=trace_entry,
-                    )
-                    self.last_trace_log_id = trace_log_id
-                    self.trace_history_count = trace_history_count
+                self._save_conversation_and_trace(trace_entry)
                 self.running_diagnosis = False
         except Exception as exc:
             async with self:
-                self.running_diagnosis = False
-                self.messages.append(
-                    {
-                        "role": "tutor",
-                        "content": BT.beta_ai_generic_processing_error(self.language),
-                    }
-                )
+                self._finish_with_processing_error()
             yield rx.toast.error(
                 description=BT.beta_ai_processing_failed(
                     self.language, "tutor_response", exc
