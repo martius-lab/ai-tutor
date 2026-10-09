@@ -310,7 +310,7 @@ def test_incomplete_answer_keeps_achieved_concept_state():
             core_points=core_points(),
             student_answer="Binary search assumes sorted input.",
             trace_reference=1,
-            now=datetime.now(timezone.utc),
+            now=datetime.now(UTC),
         )
 
         assert cumulative.diagnosis_pattern == "correct_but_incomplete"

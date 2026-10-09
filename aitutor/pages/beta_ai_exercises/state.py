@@ -1,8 +1,8 @@
 """State for the Better AI builder in lecture exercise management."""
 
 import io
+from collections.abc import Mapping
 from datetime import datetime
-from typing import Mapping
 
 import pdfplumber
 import reflex as rx
