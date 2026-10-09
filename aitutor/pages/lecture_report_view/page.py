@@ -67,6 +67,10 @@ def lecture_report_view_page() -> rx.Component:
                         rx.text(LanguageState.deleted_report_title, color="red"),
                         rx.text(LectureReportViewState.exercise_title),
                     ),
+                    rx.cond(
+                        LectureReportViewState.exercise_type == "beta",
+                        rx.badge("Beta", color_scheme="purple"),
+                    ),
                     align="center",
                 ),
                 rx.hstack(

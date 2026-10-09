@@ -51,6 +51,7 @@ from aitutor.models import (
     BetaExerciseTraceLog,
     BetaMisconception,
     BetaStudentConceptState,
+    Report,
     UserRole,
 )
 from aitutor.utilities.lecture_permissions import user_may_view_lecture
@@ -59,8 +60,8 @@ from aitutor.utilities.lecture_permissions import user_may_view_lecture
 class BetaAIChatState(SessionState):
     """State for the independent Beta AI chat with first-concept diagnosis.
 
-    This state intentionally does not reuse the regular ChatState, ExerciseResult,
-    persistent audit log, or student concept state yet.
+    This state intentionally does not reuse the regular ChatState or ExerciseResult.
+    Better AI keeps its own conversation, diagnosis traces, and student concept state.
     """
 
     exercise_title: str = ""
@@ -104,6 +105,7 @@ class BetaAIChatState(SessionState):
     submit_time_stamp: str = ""
     current_tokens: int = 0
     token_limit: int = 0
+    report_text: str = ""
 
     @rx.var
     def token_limit_reached(self) -> bool:
@@ -128,6 +130,21 @@ class BetaAIChatState(SessionState):
     def set_student_message(self, value: str):
         """Set the current student draft message."""
         self.student_message = value
+
+    @rx.event
+    def set_report_text(self, value: str):
+        """Set the report text and enforce the configured maximum length."""
+        self.report_text = value[: gv.REPORT_MAX_LEN]
+
+    @rx.var
+    def report_char_count(self) -> int:
+        """Return the current report character count."""
+        return len(self.report_text)
+
+    @rx.var
+    def report_is_valid(self) -> bool:
+        """Return whether the report contains valid text."""
+        return 0 < len(self.report_text.strip()) <= gv.REPORT_MAX_LEN
 
     @rx.event
     @state_require_role_or_permission(required_role=UserRole.STUDENT)
@@ -489,6 +506,53 @@ class BetaAIChatState(SessionState):
             return routes.MY_LECTURES
         return f"{routes.LECTURE_EXERCISES}/{self.current_lecture_id}"
 
+    @rx.event
+    @state_require_role_or_permission(required_role=UserRole.STUDENT)
+    def submit_report(self):
+        """Save a Better AI conversation report with an immutable chat snapshot."""
+        if (
+            self.current_beta_exercise_id is None
+            or self.current_lecture_id is None
+            or self.current_userinfo_id is None
+            or not self.report_text.strip()
+        ):
+            return rx.toast.error(
+                title=BT.no_report_message_title(self.language),
+                description=BT.no_report_message_description(self.language),
+                position="bottom-center",
+                invert=True,
+            )
+
+        with rx.session() as session:
+            exercise = session.get(BetaExercise, self.current_beta_exercise_id)
+            if exercise is None or exercise.lecture_id != self.current_lecture_id:
+                return rx.toast.error(
+                    title=BT.no_report_message_title(self.language),
+                    description=BT.no_report_message_description(self.language),
+                    position="bottom-center",
+                    invert=True,
+                )
+
+            report = Report(
+                beta_exercise_id=exercise.id,
+                exercise_type="beta",
+                lecture_id=exercise.lecture_id,
+                userinfo_id=self.current_userinfo_id,
+                report_text=self.report_text.strip(),
+                looked_at=False,
+                conversation_snapshot=[message.copy() for message in self.messages],
+            )
+            session.add(report)
+            session.commit()
+
+        self.report_text = ""
+        return rx.toast.success(
+            title=BT.successful_report_title(self.language),
+            description=BT.successful_report_description(self.language),
+            position="bottom-center",
+            invert=True,
+        )
+
     @rx.var
     def initial_tutor_message(self) -> str:
         """Return the initial tutor message based on concept availability."""
@@ -552,6 +616,7 @@ class BetaAIChatState(SessionState):
         self.submit_time_stamp = ""
         self.current_tokens = 0
         self.token_limit = 0
+        self.report_text = ""
 
     def fallback_question_for_level(self, question_level: str) -> str:
         """Return a deterministic non-leaking fallback question for a level."""
