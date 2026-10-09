@@ -7,6 +7,7 @@ from aitutor import routes
 from aitutor.beta_ai.legacy_page_protection import (
     legacy_beta_page_require_role_or_permission,
 )
+from aitutor.language_state import LanguageState as LS
 from aitutor.models import UserRole
 from aitutor.pages.beta_ai_chat.components import chat_message
 from aitutor.pages.beta_ai_finished_view.state import BetaAIFinishedViewState
@@ -29,7 +30,7 @@ def beta_ai_finished_view_page() -> rx.Component:
                         _hover={"cursor": "pointer"},
                     ),
                     rx.icon("circle-check", color=gv.GREEN_CHECK_COLOR),
-                    rx.heading("Submitted Beta AI Chat", size="5"),
+                    rx.heading(LS.beta_ai_submitted_chat, size="5"),
                     rx.tablet_and_desktop(
                         rx.text(
                             BetaAIFinishedViewState.exercise_title,
