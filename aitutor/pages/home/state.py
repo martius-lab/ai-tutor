@@ -149,7 +149,7 @@ class HomeState(SessionState):
             rows = session.exec(stmt).all()
 
             beta_stmt = build_home_beta_exercises_statement(
-                userinfo_id=self.authenticated_user_info.id,  # type: ignore[arg-type]
+                userinfo_id=self._authenticated_user_info.id,  # type: ignore[arg-type]
                 user_id=self.authenticated_user.id,
                 is_global_admin=self.is_global_admin,
                 now=now,
