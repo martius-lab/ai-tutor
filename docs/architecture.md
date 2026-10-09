@@ -46,6 +46,34 @@ We support multiple languages in the application. To do that, every string that 
 ## Database Models
 The database models are located in `aitutor/models.py`. Here, every class represents a table in the database. The attributes of the classes represent the columns of the tables.
 
+## Tutor modes: Classic AI and Level AI
+
+**Classic AI** uses an exercise prompt and chat history to generate tutor replies;
+a separate LLM checks the conversation on request. The flow is implemented in
+`aitutor/pages/chat/state.py`.
+
+**Level AI** separates language processing from learning control. Its flow is:
+LLM diagnosis → rule-based validation → saved student model → teaching policy →
+LLM-generated feedback and question. The student model stores accepted evidence,
+misconceptions, and passed levels per concept. Application rules, not the tutor's wording, determine progression.
+
+The UI name is Level AI, but the code still uses `beta_ai` / `Beta*`:
+
+- `aitutor/pages/beta_ai_exercises/`: PDF-based exercise creation and concept review,
+  integrated into Manage Exercises.
+- `aitutor/pages/beta_ai_chat/state.py`: Runs the dialogue, saves it, and handles
+  concept transitions and submission.
+- `aitutor/beta_ai/`: `concept_generation.py` proposes learning goals;
+  `diagnosis.py` analyses and validates answers; `student_state.py` updates the saved
+  learning state; `policy.py` selects the teaching action; `tutor_turn.py` generates
+  the next reply.
+
+Both modes use the shared API credentials. Classic AI uses `response_ai_model`
+and `check_ai_model`; Level AI uses `level_ai_model`. Their exercise and result
+models in `aitutor/models.py` are separate. Level AI additionally stores per-turn
+traces so diagnosis, validation, and policy decisions can be inspected with the
+tools in `aitutor/pages/beta_ai_diagnosis_lab/` and `aitutor/pages/beta_ai_trace_logs/`.
+
 ## Privacy Notice
 The privacy notice used on the website can be found in `aitutor/pages/legal_infos/datenschutz.md`. If you need to change it, you can edit this file.
 A short version of this privacy notice is displayed on the register page. It can be modified in `aitutor/pages/legal_infos/datenschutz_short.md`

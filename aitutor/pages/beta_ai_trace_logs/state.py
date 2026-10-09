@@ -8,7 +8,6 @@ from zoneinfo import ZoneInfo
 
 import reflex as rx
 from pydantic import BaseModel
-from reflex_local_auth.user import LocalUser
 from sqlalchemy import func
 from sqlmodel import Session, col, select
 
@@ -22,10 +21,9 @@ from aitutor.models import (
     BetaExerciseTraceLog,
     GlobalPermission,
     Lecture,
-    LectureRole,
-    LinkUserLecture,
     UserInfo,
 )
+from aitutor.utilities.lecture_permissions import user_may_view_lecture_submissions
 
 
 class TraceLogRow(BaseModel):
@@ -69,11 +67,11 @@ def _safe_filename_part(value: str | None, fallback: str = "unknown") -> str:
     return (slug or fallback)[:60]
 
 
-def _username_for_userinfo(session, userinfo: UserInfo | None, language) -> str:
+def _username_for_userinfo(userinfo: UserInfo | None, language) -> str:
     """Return the linked LocalUser username for display/export."""
     if userinfo is None:
         return BT.beta_ai_unknown_user(language)
-    local_user = session.get(LocalUser, userinfo.user_id)
+    local_user = userinfo.local_user
     return local_user.username if local_user else BT.beta_ai_unknown_user(language)
 
 
@@ -138,12 +136,6 @@ class BetaAITraceLogsState(SessionState):
         """Whether a trace log is selected for inspection."""
         return self.selected_beta_exercise_result_id is not None
 
-    def on_logout(self):
-        """Clear page-specific state on logout."""
-        self.trace_rows = []
-        self.current_lecture_id = None
-        self.clear_selection()
-
     def _route_lecture_id(self) -> int | None:
         """None represents the global (no lecture ID) route."""
         value = self._get_route_param_or_default("lecture_id", default=None)
@@ -166,26 +158,23 @@ class BetaAITraceLogsState(SessionState):
         if lecture_id is None:
             return False
         with rx.session() as session:
-            link = session.exec(
-                select(LinkUserLecture).where(
-                    LinkUserLecture.lecture_id == lecture_id,
-                    LinkUserLecture.user_id == self.authenticated_user.id,
-                )
-            ).one_or_none()
-            return link is not None and link.role >= LectureRole.TUTOR
+            return user_may_view_lecture_submissions(
+                session,
+                user_id=self.authenticated_user.id,
+                global_permissions=self.global_permissions,
+                lecture_id=lecture_id,
+            )
 
-    def _exercise_for_result(self, session, beta_result: BetaExerciseResult):
-        """Return the linked exercise only if it belongs to the URL's lecture."""
-        exercise = session.get(BetaExercise, beta_result.beta_exercise_id)
+    def _result_belongs_to_route(self, beta_result: BetaExerciseResult) -> bool:
+        """Check the related exercise against the URL's lecture context."""
+        exercise = beta_result.beta_exercise
         lecture_id = self._route_lecture_id()
-        if exercise is None or (
-            lecture_id is not None and exercise.lecture_id != lecture_id
-        ):
-            return None
-        return exercise
+        return exercise is not None and (
+            lecture_id is None or exercise.lecture_id == lecture_id
+        )
 
     def _trace_logs_for_result(
-        self, session, beta_exercise_result_id: int
+        self, session: Session, beta_exercise_result_id: int
     ) -> list[BetaExerciseTraceLog]:
         """Load a result's trace history in turn order."""
         return list(
@@ -195,7 +184,7 @@ class BetaAITraceLogsState(SessionState):
                     BetaExerciseTraceLog.beta_exercise_result_id
                     == beta_exercise_result_id
                 )
-                .order_by(BetaExerciseTraceLog.turn_index)  # type: ignore
+                .order_by(col(BetaExerciseTraceLog.turn_index))
             ).all()
         )
 
@@ -222,19 +211,19 @@ class BetaAITraceLogsState(SessionState):
         beta_result = session.get(BetaExerciseResult, beta_result_id)
         if beta_result is None or not beta_result.analysis_allowed:
             return None
-        exercise = self._exercise_for_result(session, beta_result)
+        if not self._result_belongs_to_route(beta_result):
+            return None
+        exercise = beta_result.beta_exercise
         if exercise is None:
             return None
-        lecture = session.get(Lecture, exercise.lecture_id)
+        lecture = exercise.lecture
         userinfo = session.get(UserInfo, beta_result.userinfo_id)
         latest_trace_log = trace_logs[-1]
         return TraceLogRow(
             beta_exercise_result_id=beta_result_id,
             lecture_name=lecture.lecture_name if lecture else "",
-            exercise_title=exercise.title
-            if exercise
-            else BT.beta_ai_deleted_exercise(self.language),
-            user_label=_username_for_userinfo(session, userinfo, self.language),
+            exercise_title=exercise.title,
+            user_label=_username_for_userinfo(userinfo, self.language),
             trace_count=len(trace_logs),
             updated_at=_format_datetime(latest_trace_log.created_at),
         )
@@ -300,7 +289,7 @@ class BetaAITraceLogsState(SessionState):
             if (
                 beta_result is None
                 or not beta_result.analysis_allowed
-                or self._exercise_for_result(session, beta_result) is None
+                or not self._result_belongs_to_route(beta_result)
             ):
                 self.clear_selection()
                 return rx.toast.error(
@@ -320,13 +309,13 @@ class BetaAITraceLogsState(SessionState):
     def _build_trace_export_for_result(
         self,
         *,
-        session,
+        session: Session,
         beta_result: BetaExerciseResult,
         trace_logs: list[BetaExerciseTraceLog],
     ) -> dict:
         """Build a copy/export payload for one Beta AI exercise result."""
-        exercise = self._exercise_for_result(session, beta_result)
-        lecture = session.get(Lecture, exercise.lecture_id) if exercise else None
+        exercise = beta_result.beta_exercise
+        lecture = exercise.lecture if exercise else None
         userinfo = session.get(UserInfo, beta_result.userinfo_id)
         trace_history = [trace_log.trace_entry for trace_log in trace_logs]
         latest_trace = trace_history[-1] if trace_history else {}
@@ -338,7 +327,7 @@ class BetaAITraceLogsState(SessionState):
             "exercise_title": exercise.title
             if exercise
             else BT.beta_ai_deleted_exercise(self.language),
-            "user": _username_for_userinfo(session, userinfo, self.language),
+            "user": _username_for_userinfo(userinfo, self.language),
             "conversation": beta_result.conversation_text,
             "trace_count": len(trace_logs),
             "latest_trace": latest_trace,
@@ -356,7 +345,7 @@ class BetaAITraceLogsState(SessionState):
                 beta_result is None
                 or not beta_result.analysis_allowed
                 or not trace_logs
-                or self._exercise_for_result(session, beta_result) is None
+                or not self._result_belongs_to_route(beta_result)
             ):
                 return None
             return self._build_trace_export_for_result(

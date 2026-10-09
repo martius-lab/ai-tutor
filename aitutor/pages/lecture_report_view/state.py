@@ -42,7 +42,7 @@ class LectureReportViewState(SessionState):
         try:
             lecture_id = self._get_route_param_or_error("lecture_id", dtype=int)
             self._report_id = self._get_route_param_or_error("report_id", dtype=int)
-        except Exception:
+        except KeyError, ValueError, TypeError:
             return rx.redirect(routes.NOT_FOUND)
 
         if not self._user_may_view_report(lecture_id):

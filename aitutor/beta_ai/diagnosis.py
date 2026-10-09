@@ -94,8 +94,7 @@ def _format_core_points(core_points: list[BetaCorePoint]) -> str:
     """Format persisted core points for the diagnosis prompt."""
     formatted_points = []
     for core_point in core_points:
-        if core_point.id is None:
-            continue
+        assert core_point.id is not None, "Persisted Beta AI core point has no ID."
         formatted_points.append(f"- {core_point.id}: {core_point.text}")
     return "\n".join(formatted_points) or "No core points provided."
 
@@ -290,7 +289,7 @@ def validate_and_normalize_diagnosis(
         conversation_context=conversation_context,
     )
     student_intent = detected_intent or diagnosis.student_intent
-    evidence_origin = (
+    evidence_origin: EvidenceOrigin = (
         "copied_from_tutor" if copied_from_tutor else diagnosis.evidence_origin
     )
     integrity_risk: IntegrityRisk = diagnosis.integrity_risk
@@ -362,7 +361,7 @@ def validate_and_normalize_diagnosis(
     normalized = DiagnosisResponse(
         student_intent=student_intent,
         is_answer_attempt=is_answer_attempt,
-        evidence_origin=evidence_origin,  # type: ignore[arg-type]
+        evidence_origin=evidence_origin,
         is_student_owned_evidence=is_student_owned_evidence,
         task_relevance=_clamp_score(diagnosis.task_relevance),
         correctness=_clamp_score(diagnosis.correctness),
@@ -378,6 +377,7 @@ def validate_and_normalize_diagnosis(
         requires_integrity_reset=requires_integrity_reset,
         integrity_rationale=integrity_rationale,
     )
+    normalized.tokens_used = diagnosis.tokens_used
 
     if normalized.requires_integrity_reset:
         warnings.append(

@@ -22,7 +22,7 @@ DEFAULT_LEVEL_STATUS = {
 
 BASIC_EVIDENCE_RELEVANCE_THRESHOLD = 0.5
 BASIC_EVIDENCE_CORRECTNESS_THRESHOLD = 0.7
-BASIC_EVIDENCE_COMPLETENESS_THRESHOLD = 0.5
+BASIC_EVIDENCE_COMPLETENESS_THRESHOLD = 0.3
 HIGHER_LEVEL_RELEVANCE_THRESHOLD = 0.7
 HIGHER_LEVEL_CORRECTNESS_THRESHOLD = 0.7
 HIGHER_LEVEL_COMPLETENESS_THRESHOLD = 0.6
@@ -31,7 +31,7 @@ UNCLEAR_CORRECTNESS_THRESHOLD = 0.85
 UNCLEAR_COMPLETENESS_THRESHOLD = 0.7
 MISCONCEPTION_RESOLUTION_RELEVANCE_THRESHOLD = 0.7
 MISCONCEPTION_RESOLUTION_CORRECTNESS_THRESHOLD = 0.8
-MISCONCEPTION_RESOLUTION_COMPLETENESS_THRESHOLD = 0.6
+MISCONCEPTION_RESOLUTION_COMPLETENESS_THRESHOLD = 0.3
 
 
 def normalized_level_status(level_status: dict[str, Any] | None) -> dict[str, str]:
@@ -70,11 +70,13 @@ def build_cumulative_evidence_summary(
         if core_point_id in core_points_by_id
     ]
 
+    covered_summary = "\n".join(covered_lines) or "- None yet."
+    missing_summary = "\n".join(missing_lines) or "- None."
     return (
         "Covered core points so far:\n"
-        f"{chr(10).join(covered_lines) if covered_lines else '- None yet.'}\n\n"
+        f"{covered_summary}\n\n"
         "Still missing core points:\n"
-        f"{chr(10).join(missing_lines) if missing_lines else '- None.'}"
+        f"{missing_summary}"
     )
 
 
@@ -478,28 +480,21 @@ def update_student_concept_state_from_diagnosis(
         # concept coverage collected in earlier student-owned turns.
         policy_pattern = latest_diagnosis.diagnosis_pattern
 
-    return DiagnosisResponse(
-        student_intent=latest_diagnosis.student_intent,
-        is_answer_attempt=latest_diagnosis.is_answer_attempt,
-        evidence_origin=latest_diagnosis.evidence_origin,
-        is_student_owned_evidence=latest_diagnosis.is_student_owned_evidence,
-        task_relevance=latest_diagnosis.task_relevance,
-        correctness=latest_diagnosis.correctness,
-        completeness=latest_diagnosis.completeness,
-        misconception_flag=latest_diagnosis.misconception_flag,
-        misconception_label=latest_diagnosis.misconception_label,
-        diagnosis_pattern=policy_pattern,
-        covered_core_point_ids=cumulative_covered_ids,
-        missing_core_point_ids=cumulative_missing_ids,
-        evidence_snippets=latest_diagnosis.evidence_snippets,
-        explanation=(
-            latest_diagnosis.explanation
-            + "\n\nCumulative view: policy is based on all core points covered "
-            "across this concept's chat turns."
-            + (
-                " Active misconceptions were resolved by this answer."
-                if resolved_this_turn
-                else ""
-            )
-        ),
+    return latest_diagnosis.model_copy(
+        deep=True,
+        update={
+            "diagnosis_pattern": policy_pattern,
+            "covered_core_point_ids": cumulative_covered_ids,
+            "missing_core_point_ids": cumulative_missing_ids,
+            "explanation": (
+                latest_diagnosis.explanation
+                + "\n\nCumulative view: policy is based on all core points covered "
+                "across this concept's chat turns."
+                + (
+                    " Active misconceptions were resolved by this answer."
+                    if resolved_this_turn
+                    else ""
+                )
+            ),
+        },
     )

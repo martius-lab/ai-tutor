@@ -7,13 +7,13 @@ from zoneinfo import ZoneInfo
 
 import reflex as rx
 from sqlalchemy.orm import selectinload
-from sqlmodel import and_, func, or_, select
+from sqlmodel import Session, and_, func, or_, select
 
 import aitutor.global_vars as gv
 from aitutor import routes
 from aitutor.auth.protection import state_require_lecture_role
 from aitutor.auth.state import SessionState
-from aitutor.global_vars import TIME_FORMAT, TIME_ZONE
+from aitutor.global_vars import TIME_ZONE
 from aitutor.models import (
     BetaExercise,
     BetaExerciseResult,
@@ -22,15 +22,18 @@ from aitutor.models import (
     Lecture,
     LectureRole,
     Tag,
-    UserRole,
 )
 from aitutor.utilities.filtering_components import FilterMixin
-from aitutor.utilities.lecture_permissions import user_may_view_lecture
+from aitutor.utilities.helper_functions import deadline_sort_key
+from aitutor.utilities.lecture_permissions import (
+    user_may_view_lecture,
+    user_may_view_lecture_submissions,
+)
 
 
 @dataclass
 class ExerciseCard:
-    """Common card data for Alpha Tutor and Better AI exercises."""
+    """Common card data for Alpha Tutor and Beta AI exercises."""
 
     id: int
     title: str
@@ -90,7 +93,7 @@ class LectureExercisesState(FilterMixin, SessionState):
 
         try:
             self._lecture_id = self._get_route_param_or_error("lecture_id", dtype=int)
-        except Exception:
+        except KeyError, ValueError, TypeError:
             return rx.redirect(routes.NOT_FOUND)
 
         if not self._user_may_view_lecture(self._lecture_id):
@@ -159,75 +162,89 @@ class LectureExercisesState(FilterMixin, SessionState):
         """
         Get exercises from db based on the current search values and the user role.
         """
-        if self._lecture_id is None:
+        user = self.authenticated_user
+        if self._lecture_id is None or user is None or user.id is None:
             self._clear_exercises()
             return
 
         with rx.session() as session:
-            stmt = (
-                select(Exercise, ExerciseResult)
-                .options(
-                    selectinload(Exercise.tags),  # type: ignore
-                )
-                .join(
-                    ExerciseResult,
-                    and_(
-                        Exercise.id == ExerciseResult.exercise_id,
-                        ExerciseResult.userinfo_id == self._authenticated_user_info.id,  # type: ignore
-                    ),
-                    isouter=True,
-                )
-                .where(Exercise.lecture_id == self._lecture_id)
-            )
-
-            # Don't load hidden exercises for students
-            assert self.user_role is not None, "User role not set.  This is a bug."
-            if self.user_role < UserRole.TUTOR:
-                stmt = stmt.where(Exercise.is_hidden == False)  # noqa: E712
-
-            # filtering logic
-            if self.search_values:
-                search_conditions = []
-                for key, value in self.search_values:
-                    match key:
-                        case gv.SEARCH_EXERCISE_TITLE_KEY:
-                            search_conditions.append(
-                                Exercise.title.ilike(f"%{value}%")  # type: ignore
-                            )
-                        case gv.SEARCH_EXERCISE_DESCRIPTION_KEY:
-                            search_conditions.append(
-                                Exercise.description.ilike(f"%{value}%")  # type: ignore
-                            )
-                        case gv.SEARCH_TAG_KEY:
-                            search_conditions.append(
-                                Exercise.tags.any(Tag.name.ilike(f"%{value}%"))  # type: ignore
-                            )
-                        case _:
-                            # Default search across title, description and tags
-                            search_conditions.append(
-                                or_(
-                                    Exercise.title.ilike(f"%{value}%"),  # type: ignore
-                                    Exercise.description.ilike(f"%{value}%"),  # type: ignore
-                                    Exercise.tags.any(Tag.name.ilike(f"%{value}%")),  # type: ignore
-                                )
-                            )
-                # Apply all conditions with AND
-                stmt = stmt.where(and_(*search_conditions))
-
-            # Load Alpha Tutor exercises.
-            exercises_with_result = session.exec(
-                stmt.order_by(func.lower(Exercise.title))
-            ).all()
-            cards = [
-                self._alpha_exercise_card(exercise, result)
-                for exercise, result in exercises_with_result
-                if self.user_role >= UserRole.TUTOR or exercise.is_started
-            ]
-            cards.extend(self._load_beta_exercise_cards(session))
+            cards = self._load_alpha_exercise_cards(
+                session
+            ) + self._load_beta_exercise_cards(session)
 
         self.exercise_cards = cards
         self._fill_exercise_groups()
         self.update_time_left_strings()
+
+    def _load_alpha_exercise_cards(self, session: Session) -> list[ExerciseCard]:
+        """Load Alpha Tutor exercises as common card data."""
+        user = self.authenticated_user
+        if self._lecture_id is None or user is None or user.id is None:
+            return []
+        stmt = (
+            select(Exercise, ExerciseResult)
+            .options(
+                selectinload(Exercise.tags),  # type: ignore
+            )
+            .join(
+                ExerciseResult,
+                and_(
+                    Exercise.id == ExerciseResult.exercise_id,
+                    ExerciseResult.userinfo_id == self._authenticated_user_info.id,  # type: ignore
+                ),
+                isouter=True,
+            )
+            .where(Exercise.lecture_id == self._lecture_id)
+        )
+
+        # Don't load hidden exercises for students
+        can_preview = user_may_view_lecture_submissions(
+            session,
+            user_id=user.id,
+            global_permissions=self.global_permissions,
+            lecture_id=self._lecture_id,
+        )
+        if not can_preview:
+            stmt = stmt.where(Exercise.is_hidden == False)  # noqa: E712
+
+        # filtering logic
+        if self.search_values:
+            search_conditions = []
+            for key, value in self.search_values:
+                match key:
+                    case gv.SEARCH_EXERCISE_TITLE_KEY:
+                        search_conditions.append(
+                            Exercise.title.ilike(f"%{value}%")  # type: ignore
+                        )
+                    case gv.SEARCH_EXERCISE_DESCRIPTION_KEY:
+                        search_conditions.append(
+                            Exercise.description.ilike(f"%{value}%")  # type: ignore
+                        )
+                    case gv.SEARCH_TAG_KEY:
+                        search_conditions.append(
+                            Exercise.tags.any(Tag.name.ilike(f"%{value}%"))  # type: ignore
+                        )
+                    case _:
+                        # Default search across title, description and tags
+                        search_conditions.append(
+                            or_(
+                                Exercise.title.ilike(f"%{value}%"),  # type: ignore
+                                Exercise.description.ilike(f"%{value}%"),  # type: ignore
+                                Exercise.tags.any(Tag.name.ilike(f"%{value}%")),  # type: ignore
+                            )
+                        )
+            # Apply all conditions with AND
+            stmt = stmt.where(and_(*search_conditions))
+
+        # Load Alpha Tutor exercises.
+        exercises_with_result = session.exec(
+            stmt.order_by(func.lower(Exercise.title))
+        ).all()
+        return [
+            self._alpha_exercise_card(exercise, result)
+            for exercise, result in exercises_with_result
+            if can_preview or exercise.is_started
+        ]
 
     def _alpha_exercise_card(
         self, exercise: Exercise, result: ExerciseResult | None
@@ -244,7 +261,7 @@ class LectureExercisesState(FilterMixin, SessionState):
             is_beta=False,
             is_submitted=bool(result and result.finished_conversation),
             submit_time_stamp=(
-                result.submit_time_stamp.strftime(TIME_FORMAT)
+                result.submit_time_stamp.isoformat()
                 if result is not None and result.submit_time_stamp is not None
                 else ""
             ),
@@ -252,8 +269,11 @@ class LectureExercisesState(FilterMixin, SessionState):
             chat_route=f"{routes.CHAT}/{exercise.id}",
         )
 
-    def _load_beta_exercise_cards(self, session) -> list[ExerciseCard]:
-        """Load Better AI exercises as common card data."""
+    def _load_beta_exercise_cards(self, session: Session) -> list[ExerciseCard]:
+        """Load Beta AI exercises as common card data."""
+        user = self.authenticated_user
+        if self._lecture_id is None or user is None or user.id is None:
+            return []
         stmt = (
             select(BetaExercise, BetaExerciseResult)
             .options(selectinload(BetaExercise.tags))  # type: ignore
@@ -268,8 +288,13 @@ class LectureExercisesState(FilterMixin, SessionState):
             .where(BetaExercise.lecture_id == self._lecture_id)
         )
 
-        assert self.user_role is not None, "User role not set.  This is a bug."
-        if self.user_role < UserRole.TUTOR:
+        can_preview = user_may_view_lecture_submissions(
+            session,
+            user_id=user.id,
+            global_permissions=self.global_permissions,
+            lecture_id=self._lecture_id,
+        )
+        if not can_preview:
             stmt = stmt.where(BetaExercise.is_hidden == False)  # noqa: E712
 
         for key, value in self.search_values:
@@ -293,9 +318,8 @@ class LectureExercisesState(FilterMixin, SessionState):
 
         cards = []
         for exercise, result in session.exec(stmt).all():
-            if exercise.id is None:
-                continue
-            if self.user_role < UserRole.TUTOR and not exercise.is_started:
+            assert exercise.id is not None, "Persisted Beta AI exercise has no ID."
+            if not can_preview and not exercise.is_started:
                 continue
             cards.append(
                 ExerciseCard(
@@ -308,12 +332,12 @@ class LectureExercisesState(FilterMixin, SessionState):
                     is_beta=True,
                     is_submitted=bool(result and result.finished_conversation),
                     submit_time_stamp=(
-                        result.submit_time_stamp.strftime(TIME_FORMAT)
+                        result.submit_time_stamp.isoformat()
                         if result is not None and result.submit_time_stamp is not None
                         else ""
                     ),
                     tags=[tag.name for tag in exercise.tags],
-                    chat_route=f"{routes.BETA_AI_CHAT}/{exercise.id}",
+                    chat_route=f"{routes.BETA_AI_CHAT}/{exercise.lecture_id}/{exercise.id}",
                 )
             )
         return cards
@@ -338,14 +362,10 @@ class LectureExercisesState(FilterMixin, SessionState):
                 self.open_deadline_exercises.append(exercise)
 
         self.open_deadline_exercises.sort(
-            key=lambda exercise: (
-                exercise.deadline or datetime.max.replace(tzinfo=ZoneInfo(TIME_ZONE))
-            )
+            key=lambda exercise: deadline_sort_key(exercise.deadline)
         )
         self.closed_deadline_exercises.sort(
-            key=lambda exercise: (
-                exercise.deadline or datetime.min.replace(tzinfo=ZoneInfo(TIME_ZONE))
-            ),
+            key=lambda exercise: deadline_sort_key(exercise.deadline),
             reverse=True,
         )
         self.no_deadline_exercises.sort(

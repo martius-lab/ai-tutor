@@ -203,7 +203,9 @@ def tutor_turn_reveals_answer(
     tutor_turn: TutorTurnResponse, *, core_points: list[BetaCorePoint]
 ) -> bool:
     """Heuristically detect direct core-point text leakage in generated questions."""
-    combined_text = f"{tutor_turn.feedback_brief} {tutor_turn.next_question}".lower()
+    combined_text = " ".join(
+        f"{tutor_turn.feedback_brief} {tutor_turn.next_question}".lower().split()
+    )
     for core_point in core_points:
         core_text = " ".join(core_point.text.lower().split())
         if len(core_text) >= 24 and core_text in combined_text:
@@ -218,12 +220,10 @@ def tutor_turn_reveals_answer(
 
 
 def _format_core_points(core_points: list[BetaCorePoint]) -> str:
+    for core_point in core_points:
+        assert core_point.id is not None, "Persisted Beta AI core point has no ID."
     return (
-        "\n".join(
-            f"- {core_point.id}: {core_point.text}"
-            for core_point in core_points
-            if core_point.id
-        )
+        "\n".join(f"- {core_point.id}: {core_point.text}" for core_point in core_points)
         or "No core points provided."
     )
 
@@ -352,13 +352,18 @@ async def run_level_transition_question_generation(
     if next_question_level == "explain_reasoning":
         level_task = (
             "Generate an Explain/Reasoning question. Ask for one concept-level "
-            "self-explanation that requires a new reasoning move: an epistemic "
-            "consequence, boundary of interpretation, missing evidence, or how to "
-            "distinguish between explanations. Do not ask the student to restate "
-            "how an already covered basic mechanism works, why it matters, how it "
-            "helps, what effect it has, or why an already-covered solution avoids "
-            "an already-covered problem. Do not make transfer to a new case or "
-            "comparison the main task."
+            "self-explanation that requires a new reasoning move: a conceptual "
+            "reason, consequence, limitation, trade-off, relation, or why a naive "
+            "interpretation is insufficient. The question may address a misconception "
+            "or boundary, but it must not merely turn one listed core point into a "
+            "direct why-question. A good Explain question should connect at least "
+            "two concept aspects, expose a trade-off or boundary condition, or show "
+            "why a plausible shortcut fails. Do not ask the student to design an "
+            "empirical test, list additional data or evidence, choose between "
+            "concrete cases, make a practical decision, or compare new scenarios; "
+            "those belong to Apply/Compare. Use simple tutor German and avoid "
+            "academic meta-phrases such as 'epistemische Herausforderungen' unless "
+            "the course material itself uses them."
         )
     else:
         level_task = (
@@ -386,7 +391,14 @@ async def run_level_transition_question_generation(
                     "the student has completed the previous level. "
                     "Prefer German for student-facing text unless the exercise or "
                     "concept is clearly in another language. Do not switch languages "
-                    "unnecessarily. Use at most one or two short feedback sentences "
+                    "unnecessarily. In German, address the student consistently with "
+                    "'du', not 'Sie'. Use direct, student-friendly wording and "
+                    "avoid overloaded academic phrasing unless the course wording "
+                    "requires it. "
+                    "Keep the question concise: one sentence if possible, maximum two. "
+                    "Avoid multi-part questions connected by 'und', 'and', or requests "
+                    "for additional evidence unless that is the only requested task. "
+                    "Use at most one or two short feedback sentences "
                     "and exactly one question. Use the provided concept label, "
                     "concept description, and core points only as the scope of the "
                     "concept and as already demonstrated basic evidence. Treat every "
@@ -405,11 +417,12 @@ async def run_level_transition_question_generation(
                     "should explain. "
                     "Respect the requested level: Explain/Reasoning should elicit "
                     "causal, functional, relational, or modeling understanding beyond "
-                    "basic restatement; Apply/Compare "
-                    "should elicit transfer to a new case or comparison with a related "
-                    "case. Do not blur these levels. Keep the question to one "
-                    "cognitive operation only. Do not ask a question semantically "
-                    "similar to the previous tutor question. "
+                    "basic restatement, without asking for empirical test design or "
+                    "additional data, and without simply asking why one core point is "
+                    "true. Apply/Compare should elicit transfer to a new case or "
+                    "comparison with a related case. Do not blur these levels. "
+                    "Keep the question to one cognitive operation only. Do not ask a "
+                    "question semantically similar to the previous tutor question. "
                     "Set focus_core_point_id=null."
                 ),
             },
@@ -440,7 +453,9 @@ async def run_level_transition_question_generation(
                     "question. Keep the question open: do not turn the covered "
                     "core-point list into a set of hints inside the question, and "
                     "do not recycle covered Basic evidence as a higher-level "
-                    "why/how/apply question."
+                    "why/how/apply question. For Explain/Reasoning, do not ask for "
+                    "additional data, evidence, empirical checks, a concrete case "
+                    "decision, or a direct why-question about one core point."
                 ),
             },
         ],
@@ -579,8 +594,12 @@ async def run_tutor_turn_generation(
             "For this turn, ask a concept-level reasoning question. Do not ask the "
             "student to add one missing core point or restate an already covered "
             "mechanism, condition, or effect. The goal is to check a conceptual "
-            "consequence, modeling implication, relation between ideas, or why a "
-            "naive alternative is incomplete. Set focus_core_point_id=null."
+            "reason, consequence, limitation, trade-off, modeling implication, "
+            "relation between ideas, or why a naive alternative is incomplete. The "
+            "question may address a misconception or boundary, but keep it at "
+            "explanation level: do not ask for empirical test design, additional "
+            "data or evidence, a concrete case decision, or comparison between new "
+            "scenarios. Use simple tutor German and set focus_core_point_id=null."
         )
     elif question_level == "apply_or_compare":
         higher_level_instruction = (
@@ -601,7 +620,10 @@ async def run_tutor_turn_generation(
                     "Use the diagnosis and policy as truth; do not re-grade. "
                     "Prefer German for student-facing text unless the student's "
                     "latest answer or the exercise is clearly in another language. "
-                    "Do not switch languages unnecessarily. Give concise, "
+                    "Do not switch languages unnecessarily. In German, address the "
+                    "student consistently with 'du', not 'Sie'. Use direct, "
+                    "student-friendly wording and avoid overloaded academic phrasing "
+                    "unless the course wording requires it. Give concise, "
                     "formative feedback and "
                     "ask exactly one "
                     "next question. Do not reveal the expected core-point "
@@ -622,7 +644,10 @@ async def run_tutor_turn_generation(
                     "misconception. Instead, acknowledge one specific usable part "
                     "and name the kind of thinking needed next. Keep feedback to "
                     "one or two short sentences. "
-                    "Keep the next question to one cognitive operation only. "
+                    "Keep the next question concise and to one cognitive operation "
+                    "only. Avoid multi-part questions connected by 'und', 'and', or "
+                    "additional evidence requests unless that is the only requested "
+                    "task. "
                     "Do not answer the current tutor question for the student. "
                     "Do not provide a complete solution, full definition, full "
                     "worked example, or the missing core point verbatim. End by "
@@ -642,7 +667,9 @@ async def run_tutor_turn_generation(
                     "to test their assumption with a contrasting case or consequence; "
                     "do not simply state the correct view. "
                     "For higher-level questions, keep the question focused on the "
-                    "whole concept rather than a single hidden core point."
+                    "whole concept rather than a single hidden core point. For "
+                    "Explain/Reasoning, avoid empirical test design, additional-data "
+                    "requests, and concrete case decisions."
                 ),
             },
             {

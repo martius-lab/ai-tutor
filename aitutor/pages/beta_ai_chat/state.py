@@ -4,11 +4,11 @@ from datetime import datetime
 from zoneinfo import ZoneInfo
 
 import reflex as rx
-from sqlmodel import select
+from sqlmodel import col, select
 
 import aitutor.global_vars as gv
 from aitutor import routes
-from aitutor.auth.protection import state_require_role_or_permission
+from aitutor.auth.protection import state_has_lecture_role, state_require_lecture_role
 from aitutor.auth.state import SessionState
 from aitutor.beta_ai.audit import build_diagnosis_trace
 from aitutor.beta_ai.diagnosis import (
@@ -32,6 +32,7 @@ from aitutor.beta_ai.student_state import (
     update_student_concept_state_from_diagnosis,
 )
 from aitutor.beta_ai.tutor_turn import (
+    TutorTurnResponse,
     choose_question_level,
     repair_leaky_tutor_turn,
     run_concept_intro_turn_generation,
@@ -41,7 +42,7 @@ from aitutor.beta_ai.tutor_turn import (
     tutor_turn_reveals_answer,
 )
 from aitutor.config import get_config
-from aitutor.global_vars import TIME_FORMAT, TIME_ZONE
+from aitutor.global_vars import TIME_ZONE
 from aitutor.language_state import BackendTranslations as BT
 from aitutor.models import (
     BetaConcept,
@@ -54,7 +55,6 @@ from aitutor.models import (
     GlobalPermission,
     LectureRole,
     Report,
-    UserRole,
 )
 from aitutor.utilities.lecture_permissions import (
     get_user_lecture_role,
@@ -79,7 +79,7 @@ class BetaAIChatState(SessionState):
     """State for the independent Beta AI chat with first-concept diagnosis.
 
     This state intentionally does not reuse the regular ChatState or ExerciseResult.
-    Better AI keeps its own conversation, diagnosis traces, and student concept state.
+    Beta AI keeps its own conversation, diagnosis traces, and student concept state.
     """
 
     exercise_title: str = ""
@@ -128,19 +128,23 @@ class BetaAIChatState(SessionState):
     report_text: str = ""
 
     @rx.event
+    @state_require_lecture_role(LectureRole.STUDENT)
     def set_student_message(self, value: str):
         """Set the current student draft message."""
         self.student_message = value
 
     @rx.event
+    @state_require_lecture_role(LectureRole.STUDENT)
     def set_report_text(self, value: str):
         """Set the report text and enforce the configured maximum length."""
         self.report_text = value[: gv.REPORT_MAX_LEN]
 
     @rx.event
-    @state_require_role_or_permission(required_role=UserRole.STUDENT)
+    @state_require_lecture_role(LectureRole.STUDENT)
     def set_analysis_allowed(self, value: bool):
         """Save this student's analysis preference for the current exercise."""
+        if not self._has_current_chat_access():
+            return
         userinfo = self._authenticated_user_info
         if (
             userinfo is None
@@ -173,7 +177,7 @@ class BetaAIChatState(SessionState):
         self.analysis_allowed = value
 
     @rx.event
-    @state_require_role_or_permission(required_role=UserRole.STUDENT)
+    @state_require_lecture_role(LectureRole.STUDENT)
     async def on_load(self):
         """Load the selected visible Beta AI exercise from the route parameter."""
         self._global_load()
@@ -184,17 +188,18 @@ class BetaAIChatState(SessionState):
             return
 
         try:
+            lecture_id = self._get_route_param_or_error("lecture_id", dtype=int)
             beta_exercise_id = self._get_route_param_or_error(
                 "beta_exercise_id", dtype=int
             )
-        except Exception:
+        except KeyError, ValueError, TypeError:
             yield rx.redirect(routes.NOT_FOUND)
             return
 
         with rx.session() as session:
             self.token_limit = max(1, get_config().exercise_token_limit)
             exercise = session.get(BetaExercise, beta_exercise_id)
-            if exercise is None or exercise.lecture_id is None:
+            if exercise is None or exercise.lecture_id != lecture_id:
                 yield rx.redirect(routes.NOT_FOUND)
                 return
 
@@ -205,7 +210,7 @@ class BetaAIChatState(SessionState):
                     session,
                     user_id=self.authenticated_user.id,
                     global_permissions=self.global_permissions,
-                    lecture_id=exercise.lecture_id,
+                    lecture_id=lecture_id,
                 )
             ):
                 yield rx.redirect(routes.MY_LECTURES)
@@ -216,7 +221,7 @@ class BetaAIChatState(SessionState):
                 get_user_lecture_role(
                     session,
                     user_id=self.authenticated_user.id,
-                    lecture_id=exercise.lecture_id,
+                    lecture_id=lecture_id,
                 ),
                 self.global_permissions,
             ):
@@ -227,7 +232,7 @@ class BetaAIChatState(SessionState):
                 session.exec(
                     select(BetaConcept)
                     .where(BetaConcept.beta_exercise_id == beta_exercise_id)
-                    .order_by(BetaConcept.order_index)  # type: ignore
+                    .order_by(col(BetaConcept.order_index))
                 ).all()
             )
             concept_states = {
@@ -270,14 +275,14 @@ class BetaAIChatState(SessionState):
                     session.exec(
                         select(BetaCorePoint)
                         .where(BetaCorePoint.beta_concept_id == concept.id)
-                        .order_by(BetaCorePoint.order_index)  # type: ignore
+                        .order_by(col(BetaCorePoint.order_index))
                     ).all()
                 )
                 misconceptions = list(
                     session.exec(
                         select(BetaMisconception)
                         .where(BetaMisconception.beta_concept_id == concept.id)
-                        .order_by(BetaMisconception.order_index)  # type: ignore
+                        .order_by(col(BetaMisconception.order_index))
                     ).all()
                 )
 
@@ -298,7 +303,7 @@ class BetaAIChatState(SessionState):
                                 BetaExerciseTraceLog.beta_exercise_result_id
                                 == beta_result.id
                             )
-                            .order_by(BetaExerciseTraceLog.turn_index)  # type: ignore
+                            .order_by(col(BetaExerciseTraceLog.turn_index))
                         ).all()
                     )
                     if trace_logs:
@@ -419,6 +424,15 @@ class BetaAIChatState(SessionState):
             and self.selected_concept_id is not None
             and not self.running_diagnosis
             and not self.token_limit_reached
+        )
+
+    @rx.var
+    def can_submit_conversation(self) -> bool:
+        """Whether the completed conversation is ready for submission."""
+        return (
+            self.completion_unlocked
+            and not self.running_diagnosis
+            and not self.is_overdue
         )
 
     @rx.var
@@ -545,7 +559,10 @@ class BetaAIChatState(SessionState):
         """Return the student's Beta AI finished-view URL for this exercise."""
         if self.current_beta_exercise_id is None or self.current_lecture_id is None:
             return routes.MY_LECTURES
-        return f"{routes.BETA_AI_FINISHED_VIEW}/{self.current_beta_exercise_id}"
+        return (
+            f"{routes.BETA_AI_FINISHED_VIEW}/{self.current_lecture_id}"
+            f"/{self.current_beta_exercise_id}"
+        )
 
     @rx.var
     def exercises_url(self) -> str:
@@ -573,10 +590,6 @@ class BetaAIChatState(SessionState):
             return ""
         return BT.beta_ai_initial_question(self.language, self.selected_concept_label)
 
-    def on_logout(self):
-        """Clear state on logout."""
-        self.reset_chat()
-
     def load_beta_result_state(self, beta_result: BetaExerciseResult) -> None:
         """Restore persisted conversation metadata from a Beta AI result."""
         self.current_tokens = beta_result.tokens_used
@@ -584,15 +597,17 @@ class BetaAIChatState(SessionState):
         self.completion_unlocked = beta_result.completion_unlocked
         self.conversation_is_submitted = bool(beta_result.submit_time_stamp)
         self.submit_time_stamp = (
-            beta_result.submit_time_stamp.strftime(TIME_FORMAT)
+            beta_result.submit_time_stamp.isoformat()
             if beta_result.submit_time_stamp
             else ""
         )
 
     @rx.event
-    @state_require_role_or_permission(required_role=UserRole.STUDENT)
+    @state_require_lecture_role(LectureRole.STUDENT)
     def submit_report(self):
-        """Save a Better AI conversation report with an immutable chat snapshot."""
+        """Save a Beta AI conversation report with an immutable chat snapshot."""
+        if not self._has_current_chat_access():
+            return
         if (
             self.current_beta_exercise_id is None
             or self.current_lecture_id is None
@@ -733,7 +748,7 @@ class BetaAIChatState(SessionState):
             )
         return intro_turn
 
-    def append_tutor_turn_message(self, tutor_turn) -> None:
+    def append_tutor_turn_message(self, tutor_turn: TutorTurnResponse) -> None:
         """Append a generated tutor turn and update current-question state."""
         tutor_response = (
             f"{tutor_turn.feedback_brief}\n\n"
@@ -785,8 +800,7 @@ class BetaAIChatState(SessionState):
     ) -> int:
         """Return the first concept whose student state is not secure."""
         for index, concept in enumerate(concepts):
-            if concept.id is None:
-                continue
+            assert concept.id is not None, "Persisted Beta AI concept has no ID."
             student_state = concept_states.get(concept.id)
             if student_state is None or student_state.state != "secure":
                 return index
@@ -804,8 +818,7 @@ class BetaAIChatState(SessionState):
             return False
 
         concept = self.concepts[concept_index]
-        if concept.id is None:
-            return False
+        assert concept.id is not None, "Persisted Beta AI concept has no ID."
 
         with rx.session() as session:
             persisted_concept = session.get(BetaConcept, concept.id)
@@ -815,14 +828,14 @@ class BetaAIChatState(SessionState):
                 session.exec(
                     select(BetaCorePoint)
                     .where(BetaCorePoint.beta_concept_id == persisted_concept.id)
-                    .order_by(BetaCorePoint.order_index)  # type: ignore
+                    .order_by(col(BetaCorePoint.order_index))
                 ).all()
             )
             misconceptions = list(
                 session.exec(
                     select(BetaMisconception)
                     .where(BetaMisconception.beta_concept_id == persisted_concept.id)
-                    .order_by(BetaMisconception.order_index)  # type: ignore
+                    .order_by(col(BetaMisconception.order_index))
                 ).all()
             )
             student_concept_state = session.exec(
@@ -974,8 +987,7 @@ class BetaAIChatState(SessionState):
         previous_label = self.selected_concept_label
         for next_index in range(self.current_concept_index + 1, len(self.concepts)):
             concept = self.concepts[next_index]
-            if concept.id is None:
-                continue
+            assert concept.id is not None, "Persisted Beta AI concept has no ID."
             with rx.session() as session:
                 student_state = session.exec(
                     select(BetaStudentConceptState).where(
@@ -1022,18 +1034,61 @@ class BetaAIChatState(SessionState):
             self.save_conversation_to_db()
 
     @rx.event
+    @state_require_lecture_role(LectureRole.STUDENT)
     def go_to_previous_concept(self):
         """Manual previous-concept navigation for development/testing."""
+        if not self._has_current_chat_access():
+            return
         if not self.can_go_previous_concept:
             return
         self._navigate_to_concept(-1)
 
     @rx.event
+    @state_require_lecture_role(LectureRole.STUDENT)
     def go_to_next_concept(self):
         """Manual next-concept navigation for development/testing."""
+        if not self._has_current_chat_access():
+            return
         if not self.can_go_next_concept:
             return
         self._navigate_to_concept(1)
+
+    def _has_current_chat_access(self) -> bool:
+        """Reject stale chat state and recheck lecture and exercise visibility."""
+        if not state_has_lecture_role(self, LectureRole.STUDENT):
+            return False
+        user = self.authenticated_user
+        if user is None or user.id is None:
+            return False
+        try:
+            lecture_id = self._get_route_param_or_error("lecture_id", dtype=int)
+            exercise_id = self._get_route_param_or_error("beta_exercise_id", dtype=int)
+        except KeyError, ValueError, TypeError:
+            return False
+        userinfo = self._authenticated_user_info
+        if (
+            userinfo is None
+            or userinfo.id is None
+            or self.current_userinfo_id != userinfo.id
+            or self.current_lecture_id != lecture_id
+            or self.current_beta_exercise_id != exercise_id
+        ):
+            return False
+        with rx.session() as session:
+            exercise = session.get(BetaExercise, exercise_id)
+            return (
+                exercise is not None
+                and exercise.lecture_id == lecture_id
+                and beta_exercise_is_accessible(
+                    exercise,
+                    get_user_lecture_role(
+                        session,
+                        user_id=user.id,
+                        lecture_id=lecture_id,
+                    ),
+                    self.global_permissions,
+                )
+            )
 
     def save_conversation_to_db(self, tokens_to_add: int = 0) -> int | None:
         """Persist the Beta AI conversation and accumulate newly consumed tokens."""
@@ -1077,8 +1132,11 @@ class BetaAIChatState(SessionState):
             return beta_result.id
 
     @rx.event
+    @state_require_lecture_role(LectureRole.STUDENT)
     def submit_beta_conversation(self):
         """Submit the completed Beta AI conversation for tutor review."""
+        if self.running_diagnosis or not self._has_current_chat_access():
+            return
         if (
             not self.completion_unlocked
             or self.current_beta_exercise_id is None
@@ -1093,6 +1151,12 @@ class BetaAIChatState(SessionState):
 
         now = datetime.now(ZoneInfo(TIME_ZONE))
         with rx.session() as session:
+            exercise = session.get(BetaExercise, self.current_beta_exercise_id)
+            if exercise is None:
+                return
+            self.is_overdue = exercise.deadline_exceeded
+            if self.is_overdue:
+                return
             beta_result = session.exec(
                 select(BetaExerciseResult).where(
                     BetaExerciseResult.beta_exercise_id
@@ -1119,7 +1183,7 @@ class BetaAIChatState(SessionState):
             session.commit()
 
         self.conversation_is_submitted = True
-        self.submit_time_stamp = now.strftime(TIME_FORMAT)
+        self.submit_time_stamp = now.isoformat()
         return rx.toast.success(
             description=BT.beta_ai_submitted(self.language),
             duration=5000,
@@ -1128,7 +1192,11 @@ class BetaAIChatState(SessionState):
         )
 
     def append_trace_to_db(
-        self, *, beta_exercise_result_id: int, trace_entry: dict
+        self,
+        *,
+        beta_exercise_result_id: int,
+        beta_concept_id: int | None,
+        trace_entry: dict,
     ) -> tuple[int | None, int]:
         """Append one per-turn diagnosis trace row."""
         if self.current_beta_exercise_id is None or self.current_userinfo_id is None:
@@ -1143,7 +1211,7 @@ class BetaAIChatState(SessionState):
                         BetaExerciseTraceLog.beta_exercise_result_id
                         == beta_exercise_result_id
                     )
-                    .order_by(BetaExerciseTraceLog.turn_index)  # type: ignore
+                    .order_by(col(BetaExerciseTraceLog.turn_index))
                 ).all()
             )
             next_turn_index = (
@@ -1156,7 +1224,7 @@ class BetaAIChatState(SessionState):
                 beta_exercise_result_id=beta_exercise_result_id,
                 beta_exercise_id=self.current_beta_exercise_id,
                 userinfo_id=self.current_userinfo_id,
-                beta_concept_id=self.selected_concept_id,
+                beta_concept_id=beta_concept_id,
                 turn_index=next_turn_index,
                 concept_label=str(trace_entry.get("concept_label", "")),
                 student_answer=str(trace_entry.get("student_answer", "")),
@@ -1173,12 +1241,15 @@ class BetaAIChatState(SessionState):
             session.commit()
             return trace_log.id, next_turn_index
 
-    def _save_conversation_and_trace(self, trace_entry: dict) -> None:
+    def _save_conversation_and_trace(
+        self, trace_entry: dict, *, beta_concept_id: int | None
+    ) -> None:
         """Save the chat and append its trace only when the chat has a result id."""
         beta_exercise_result_id = self.save_conversation_to_db()
         if beta_exercise_result_id is not None:
             trace_log_id, trace_history_count = self.append_trace_to_db(
                 beta_exercise_result_id=beta_exercise_result_id,
+                beta_concept_id=beta_concept_id,
                 trace_entry=trace_entry,
             )
             self.last_trace_log_id = trace_log_id
@@ -1290,6 +1361,8 @@ class BetaAIChatState(SessionState):
     async def send_message(self):
         """Diagnose a student message and append a policy-based tutor response."""
         async with self:
+            if not self._has_current_chat_access():
+                return
             message = self.student_message.strip()
             if not message:
                 return
@@ -1312,6 +1385,7 @@ class BetaAIChatState(SessionState):
 
             exercise_title = self.exercise_title
             concept_label = self.selected_concept_label
+            concept_id = self.selected_concept_id
             concept_description = self.selected_concept_description
             core_points = self.core_points
             misconceptions = self.misconceptions
@@ -1406,6 +1480,8 @@ class BetaAIChatState(SessionState):
             async with self:
                 completed_level_status = dict(self.level_status)
                 completed_concept_state = self.concept_state
+                completed_active_misconceptions = list(self.active_misconceptions)
+                completed_resolved_misconceptions = list(self.resolved_misconceptions)
                 completion_policy_preview = PolicyPreview(
                     rule_id="R-CONCEPT-SECURE-01",
                     action="advance_to_next_concept",
@@ -1487,9 +1563,11 @@ class BetaAIChatState(SessionState):
                     )
                     trace_entry["concept_transition"] = concept_transition
                     trace_entry["level_status"] = completed_level_status
-                    trace_entry["active_misconceptions"] = self.active_misconceptions
+                    trace_entry["active_misconceptions"] = (
+                        completed_active_misconceptions
+                    )
                     trace_entry["resolved_misconceptions"] = (
-                        self.resolved_misconceptions
+                        completed_resolved_misconceptions
                     )
                     trace_entry["completed_concept_state"] = completed_concept_state
                     trace_entry["next_concept_level_status"] = self.level_status
@@ -1498,7 +1576,9 @@ class BetaAIChatState(SessionState):
                     self.last_policy_action = completion_policy_preview.action
                     self.last_policy_rule_id = completion_policy_preview.rule_id
                     self.last_trace_json = trace_log_json(trace_entry)
-                    self._save_conversation_and_trace(trace_entry)
+                    self._save_conversation_and_trace(
+                        trace_entry, beta_concept_id=concept_id
+                    )
                     self.running_diagnosis = False
                 return
             except Exception as exc:
@@ -1669,21 +1749,15 @@ class BetaAIChatState(SessionState):
             trace_entry["active_misconceptions"] = self.active_misconceptions
             trace_entry["resolved_misconceptions"] = self.resolved_misconceptions
 
-            tutor_response = (
-                f"{tutor_turn.feedback_brief}\n\n"
-                f"{BT.beta_ai_question_prefix(self.language)}{tutor_turn.next_question}"
-            )
-
             async with self:
-                self.messages.append({"role": "tutor", "content": tutor_response})
+                self.append_tutor_turn_message(tutor_turn)
                 self.last_diagnosis_pattern = cumulative_diagnosis.diagnosis_pattern
                 self.last_policy_action = policy_preview.action
                 self.last_policy_rule_id = policy_preview.rule_id
                 self.last_trace_json = trace_log_json(trace_entry)
-                self.current_question = tutor_turn.next_question
-                self.current_question_level = tutor_turn.question_level
-                self.current_focus_core_point_id = tutor_turn.focus_core_point_id
-                self._save_conversation_and_trace(trace_entry)
+                self._save_conversation_and_trace(
+                    trace_entry, beta_concept_id=concept_id
+                )
                 self.running_diagnosis = False
         except Exception as exc:
             async with self:
