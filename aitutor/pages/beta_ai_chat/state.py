@@ -51,10 +51,28 @@ from aitutor.models import (
     BetaExerciseTraceLog,
     BetaMisconception,
     BetaStudentConceptState,
+    GlobalPermission,
+    LectureRole,
     Report,
     UserRole,
 )
-from aitutor.utilities.lecture_permissions import user_may_view_lecture
+from aitutor.utilities.lecture_permissions import (
+    get_user_lecture_role,
+    user_may_view_lecture,
+)
+
+
+def beta_exercise_is_accessible(
+    exercise: BetaExercise,
+    lecture_role: LectureRole | None,
+    global_permissions: list[GlobalPermission],
+) -> bool:
+    """Keep hidden and future exercises inaccessible to students."""
+    return (
+        GlobalPermission.ADMIN in global_permissions
+        or (lecture_role is not None and lecture_role >= LectureRole.TUTOR)
+        or (not exercise.is_hidden and exercise.is_started)
+    )
 
 
 class BetaAIChatState(SessionState):
@@ -103,6 +121,7 @@ class BetaAIChatState(SessionState):
     completion_unlocked: bool = False
     conversation_is_submitted: bool = False
     submit_time_stamp: str = ""
+    is_overdue: bool = False
     current_tokens: int = 0
     token_limit: int = 0
     report_text: str = ""
@@ -168,12 +187,7 @@ class BetaAIChatState(SessionState):
         with rx.session() as session:
             self.token_limit = max(1, get_config().exercise_token_limit)
             exercise = session.get(BetaExercise, beta_exercise_id)
-            if (
-                exercise is None
-                or exercise.lecture_id is None
-                or exercise.is_hidden
-                or not exercise.is_started
-            ):
+            if exercise is None or exercise.lecture_id is None:
                 yield rx.redirect(routes.NOT_FOUND)
                 return
 
@@ -188,6 +202,18 @@ class BetaAIChatState(SessionState):
                 )
             ):
                 yield rx.redirect(routes.MY_LECTURES)
+                return
+
+            if not beta_exercise_is_accessible(
+                exercise,
+                get_user_lecture_role(
+                    session,
+                    user_id=self.authenticated_user.id,
+                    lecture_id=exercise.lecture_id,
+                ),
+                self.global_permissions,
+            ):
+                yield rx.redirect(routes.NOT_FOUND)
                 return
 
             concepts = list(
@@ -303,6 +329,7 @@ class BetaAIChatState(SessionState):
         self.exercise_title = exercise.title
         self.exercise_description = exercise.description
         self.source_material_filename = exercise.source_material_filename
+        self.is_overdue = exercise.deadline_exceeded
         self.current_beta_exercise_id = beta_exercise_id
         self.current_lecture_id = exercise.lecture_id
         self.current_userinfo_id = userinfo.id
@@ -614,6 +641,7 @@ class BetaAIChatState(SessionState):
         self.completion_unlocked = False
         self.conversation_is_submitted = False
         self.submit_time_stamp = ""
+        self.is_overdue = False
         self.current_tokens = 0
         self.token_limit = 0
         self.report_text = ""

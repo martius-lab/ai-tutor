@@ -60,6 +60,24 @@ def beta_ai_chat_page() -> rx.Component:
                         align="center",
                     )
                 ),
+                rx.cond(
+                    BetaAIChatState.is_overdue,
+                    rx.callout(
+                        rx.box(
+                            rx.tablet_and_desktop(
+                                LanguageState.cannot_submit_anymore_info,
+                            ),
+                            rx.mobile_only(
+                                LanguageState.cannot_submit_anymore_info_mobile,
+                            ),
+                        ),
+                        icon="info",
+                        width="100%",
+                        color_scheme="orange",
+                        size="1",
+                        variant="surface",
+                    ),
+                ),
                 rx.tablet_and_desktop(
                     rx.cond(
                         BetaAIChatState.token_warning_threshold_reached

@@ -29,6 +29,9 @@ from aitutor.models import (
     LectureRole,
     Tag,
 )
+from aitutor.pages.lecture_manage_exercises.state import (
+    LECTURE_MANAGE_EXERCISES_FIELD_MAX_LENGTHS,
+)
 
 
 class BetaAIExercisesState(SessionState):
@@ -145,12 +148,14 @@ class BetaAIExercisesState(SessionState):
     @rx.event
     def set_title(self, value: str):
         """Set beta exercise title."""
-        self.title = value
+        self.title = value[: LECTURE_MANAGE_EXERCISES_FIELD_MAX_LENGTHS["title"]]
 
     @rx.event
     def set_description(self, value: str):
         """Set beta exercise description."""
-        self.description = value
+        self.description = value[
+            : LECTURE_MANAGE_EXERCISES_FIELD_MAX_LENGTHS["description"]
+        ]
 
     @rx.event
     def set_is_hidden(self, value: bool):
@@ -165,7 +170,9 @@ class BetaAIExercisesState(SessionState):
     @rx.event
     def set_days_to_complete(self, value: str):
         """Set the number of days available for the exercise."""
-        self.days_to_complete = value[:4]
+        self.days_to_complete = value[
+            : LECTURE_MANAGE_EXERCISES_FIELD_MAX_LENGTHS["days_to_complete"]
+        ]
 
     @rx.event
     def set_use_deadline(self, value: bool):
