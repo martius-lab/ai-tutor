@@ -128,7 +128,7 @@ class LectureOverviewState(SessionState):
                 )
                 .where(
                     or_(
-                        BetaExercise.deadline == None,  # noqa: E711
+                        BetaExercise.deadline == None,
                         BetaExercise.deadline > datetime.now(ZoneInfo(TIME_ZONE)),  # type: ignore
                     )
                 )

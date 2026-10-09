@@ -12,7 +12,7 @@ from reflex_local_auth.user import LocalUser
 from sqlalchemy import func
 from sqlmodel import select
 
-import aitutor.routes as routes
+from aitutor import routes
 from aitutor.auth.protection import state_require_lecture_role
 from aitutor.auth.state import SessionState
 from aitutor.global_vars import TIME_ZONE

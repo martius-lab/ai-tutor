@@ -335,10 +335,14 @@ class LectureExercisesState(FilterMixin, SessionState):
                 self.open_deadline_exercises.append(exercise)
 
         self.open_deadline_exercises.sort(
-            key=lambda exercise: exercise.deadline or datetime.max.replace(tzinfo=ZoneInfo(TIME_ZONE))
+            key=lambda exercise: (
+                exercise.deadline or datetime.max.replace(tzinfo=ZoneInfo(TIME_ZONE))
+            )
         )
         self.closed_deadline_exercises.sort(
-            key=lambda exercise: exercise.deadline or datetime.min.replace(tzinfo=ZoneInfo(TIME_ZONE)),
+            key=lambda exercise: (
+                exercise.deadline or datetime.min.replace(tzinfo=ZoneInfo(TIME_ZONE))
+            ),
             reverse=True,
         )
         self.no_deadline_exercises.sort(

@@ -117,7 +117,7 @@ class BetaAIChatState(SessionState):
             return
 
         try:
-            beta_exercise_id = self.get_route_param_or_error(
+            beta_exercise_id = self._get_route_param_or_error(
                 "beta_exercise_id", dtype=int
             )
         except Exception:

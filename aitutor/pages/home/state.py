@@ -8,7 +8,7 @@ from zoneinfo import ZoneInfo
 import reflex as rx
 from sqlmodel import and_, func, or_, select
 
-import aitutor.routes as routes
+from aitutor import routes
 from aitutor.auth.protection import state_require_role_or_permission
 from aitutor.auth.state import SessionState
 from aitutor.global_vars import TIME_ZONE
@@ -187,7 +187,7 @@ class HomeState(SessionState):
             started_rows.sort(
                 key=lambda row: (
                     row[1].lecture_name.lower(),
-                    row[0].deadline or datetime.max,
+                    row[0].deadline or datetime.max.replace(tzinfo=ZoneInfo(TIME_ZONE)),
                 )
             )
             self.exercise_cards = [exercise for exercise, _ in started_rows]
