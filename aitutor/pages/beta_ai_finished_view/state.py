@@ -115,7 +115,7 @@ class BetaAIFinishedViewState(SessionState):
                 select(BetaExerciseResult).where(
                     BetaExerciseResult.beta_exercise_id == self._beta_exercise_id,
                     BetaExerciseResult.userinfo_id == userinfo.id,
-                    BetaExerciseResult.submit_time_stamp != None,  # noqa: E711
+                    BetaExerciseResult.submit_time_stamp != None,
                 )
             ).one_or_none()
             if beta_result is None:
