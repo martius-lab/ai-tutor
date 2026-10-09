@@ -15,9 +15,12 @@ from aitutor.pages.navbar import with_navbar
 from aitutor.pages.navbar_beta_ai import with_beta_ai_navbar
 
 
-@with_navbar(routes.BETA_AI)
-@with_beta_ai_navbar(routes.BETA_AI_STUDENT_EXERCISES)
 @legacy_beta_page_require_role_or_permission(required_role=UserRole.STUDENT)
+@with_navbar(routes.LECTURES)
+@with_beta_ai_navbar(
+    routes.BETA_AI_STUDENT_EXERCISES,
+    BetaAIFinishedViewState.current_lecture_id,
+)
 def beta_ai_finished_view_page() -> rx.Component:
     """Render the student Beta AI finished view."""
     return rx.container(
