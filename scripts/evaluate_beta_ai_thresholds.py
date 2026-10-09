@@ -464,45 +464,59 @@ def recommendation_for_threshold(
     if name == "misconception_repair_loop":
         return (
             "behalten",
-            "Misconceptions werden geloggt und mit ask_contrast_question "
-            "repariert, während normale Progression pausiert bleibt.",
+            (
+                "Misconceptions werden geloggt und mit ask_contrast_question "
+                "repariert, während normale Progression pausiert bleibt."
+            ),
         )
     if name == "higher_level_unclear_pass":
         if unclear_events:
             return (
                 "kritisch prüfen",
-                "Unclear-Fälle treten auf; ein automatischer Pass über hohe "
-                "Scores ist schwer didaktisch zu begründen.",
+                (
+                    "Unclear-Fälle treten auf; ein automatischer Pass über hohe "
+                    "Scores ist schwer didaktisch zu begründen."
+                ),
             )
         return (
             "derzeit wenig Evidenz",
-            "Keine oder kaum unclear-Fälle in den Traces; gezielte "
-            "Simulationen nötig, bevor 0.85 begründbar ist.",
+            (
+                "Keine oder kaum unclear-Fälle in den Traces; gezielte "
+                "Simulationen nötig, bevor 0.85 begründbar ist."
+            ),
         )
     if name == "higher_level_normal_pass":
         if risky_count > 0:
             return (
                 "prüfen",
-                "Es gibt Risikoereignisse; 0.7 könnte zu lax sein oder "
-                "wird durch andere Regeln umgangen.",
+                (
+                    "Es gibt Risikoereignisse; 0.7 könnte zu lax sein oder "
+                    "wird durch andere Regeln umgangen."
+                ),
             )
         if friction_count > 0:
             return (
                 "prüfen",
-                "Hohe Scores führen teils nicht zu Fortschritt; 0.7 ist "
-                "nicht das einzige Bottleneck.",
+                (
+                    "Hohe Scores führen teils nicht zu Fortschritt; 0.7 ist "
+                    "nicht das einzige Bottleneck."
+                ),
             )
         return (
             "vorläufig behalten",
-            "Keine auffälligen Risikoereignisse in vorhandenen Traces; "
-            "weitere Persona-Runs nötig.",
+            (
+                "Keine auffälligen Risikoereignisse in vorhandenen Traces; "
+                "weitere Persona-Runs nötig."
+            ),
         )
     if name == "off_task_relevance_boundary":
         if near_count == 0 and total_turns:
             return (
                 "gezielt testen",
-                "Vorhandene Simulationen enthalten kaum Grenzfälle um 0.3; "
-                "off_topic/lazy Runs nötig.",
+                (
+                    "Vorhandene Simulationen enthalten kaum Grenzfälle um 0.3; "
+                    "off_topic/lazy Runs nötig."
+                ),
             )
         return (
             "prüfen",
@@ -511,13 +525,17 @@ def recommendation_for_threshold(
     if name == "completion_relevance_guard":
         return (
             "vorläufig behalten als Sicherheitsgurt",
-            "Completion hängt primär an allen required Core Points; 0.5 "
-            "ist sekundär und sollte nur off-topic Voll-Coverage verhindern.",
+            (
+                "Completion hängt primär an allen required Core Points; 0.5 "
+                "ist sekundär und sollte nur off-topic Voll-Coverage verhindern."
+            ),
         )
     return (
         "dokumentieren",
-        "Heuristik ist testbar; Empfehlung hängt von Boundary-Tests "
-        "und Spezial-Personas ab.",
+        (
+            "Heuristik ist testbar; Empfehlung hängt von Boundary-Tests "
+            "und Spezial-Personas ab."
+        ),
     )
 
 
@@ -537,8 +555,10 @@ def render_threshold_sensitivity(metrics: list[PersonaMetrics]) -> list[str]:
 
     if not aggregate:
         return [
-            "- No higher-level candidate events found. Run more "
-            "Explain/Apply simulations."
+            (
+                "- No higher-level candidate events found. Run more "
+                "Explain/Apply simulations."
+            )
         ]
 
     lines = [
@@ -592,8 +612,10 @@ def render_basic_fairness(metrics: list[PersonaMetrics]) -> list[str]:
     lines = [
         summary,
         "",
-        "**Potential over-hardness signals** "
-        "(high relevance/correctness but Basic not passed):",
+        (
+            "**Potential over-hardness signals** "
+            "(high relevance/correctness but Basic not passed):"
+        ),
         "",
     ]
     lines.extend([f"- {event}" for event in overhard[:20]] or ["- none detected"])
@@ -602,8 +624,10 @@ def render_basic_fairness(metrics: list[PersonaMetrics]) -> list[str]:
     lines.extend(
         [
             "",
-            "**Potential over-softness signals** "
-            "(Basic passed despite problematic or low-score current turn):",
+            (
+                "**Potential over-softness signals** "
+                "(Basic passed despite problematic or low-score current turn):"
+            ),
             "",
         ]
     )
@@ -613,11 +637,13 @@ def render_basic_fairness(metrics: list[PersonaMetrics]) -> list[str]:
     lines.extend(
         [
             "",
-            "Interpretation: Basic completion is based on cumulative required "
-            "core-point coverage, not an arbitrary 80% score. This is "
-            "defensible, but high-score over-hardness cases should be manually "
-            "reviewed to see whether the LLM failed to mark core-point coverage "
-            "or whether the answer was genuinely incomplete.",
+            (
+                "Interpretation: Basic completion is based on cumulative required "
+                "core-point coverage, not an arbitrary 80% score. This is "
+                "defensible, but high-score over-hardness cases should be manually "
+                "reviewed to see whether the LLM failed to mark core-point coverage "
+                "or whether the answer was genuinely incomplete."
+            ),
         ]
     )
     return lines
@@ -662,21 +688,27 @@ def render_report(metrics: list[PersonaMetrics], output_json: Path) -> str:
     lines = [
         "# Beta AI Threshold Evaluation",
         "",
-        "This report evaluates numeric and state-transition heuristics from "
-        "the Beta AI Tutor control layer using simulation traces.",
+        (
+            "This report evaluates numeric and state-transition heuristics from "
+            "the Beta AI Tutor control layer using simulation traces."
+        ),
         "",
         "## Data basis",
         "",
         f"- Simulation files analyzed: **{len(metrics)}**",
         f"- Total simulated turns: **{total_turns}**",
-        "- Simulations with all concepts completed: "
-        f"**{completed_all_count}/{len(metrics)}**",
+        (
+            "- Simulations with all concepts completed: "
+            f"**{completed_all_count}/{len(metrics)}**"
+        ),
         f"- Machine-readable companion: `{output_json}`",
         "",
         "### Per-simulation overview",
         "",
-        "| Persona/file | Turns | Completed all | Completed concepts | "
-        "Final concept states |",
+        (
+            "| Persona/file | Turns | Completed all | Completed concepts | "
+            "Final concept states |"
+        ),
         "|---|---:|---:|---:|---|",
     ]
     for metric in metrics:
@@ -780,8 +812,10 @@ def render_report(metrics: list[PersonaMetrics], output_json: Path) -> str:
     lines.extend(
         [f"- {event}" for event in all_misconception_repairs[:30]]
         or [
-            "- none in analyzed traces; run `misconception` or "
-            "`multi_misconception` persona"
+            (
+                "- none in analyzed traces; run `misconception` or "
+                "`multi_misconception` persona"
+            )
         ]
     )
     if len(all_misconception_repairs) > 30:
@@ -800,17 +834,21 @@ def render_report(metrics: list[PersonaMetrics], output_json: Path) -> str:
             "",
             "## Interpretation for the Bachelorarbeit",
             "",
-            "The current evidence should be framed as engineering calibration, "
-            "not as a literature-derived universal threshold proof. Stronger "
-            "claims require multiple persona traces, boundary tests, and "
-            "inspection of representative turns.",
+            (
+                "The current evidence should be framed as engineering calibration, "
+                "not as a literature-derived universal threshold proof. Stronger "
+                "claims require multiple persona traces, boundary tests, and "
+                "inspection of representative turns."
+            ),
             "",
-            "Preliminary architectural conclusion: required-core-point completion "
-            "is more defensible than an arbitrary 80% threshold. Misconception "
-            "handling should remain an automatic repair loop that pauses normal "
-            "progression until the misconception is resolved. The `unclear` "
-            "high-score pass rule requires targeted evidence before it can be "
-            "justified.",
+            (
+                "Preliminary architectural conclusion: required-core-point completion "
+                "is more defensible than an arbitrary 80% threshold. Misconception "
+                "handling should remain an automatic repair loop that pauses normal "
+                "progression until the misconception is resolved. The `unclear` "
+                "high-score pass rule requires targeted evidence before it can be "
+                "justified."
+            ),
             "",
         ]
     )

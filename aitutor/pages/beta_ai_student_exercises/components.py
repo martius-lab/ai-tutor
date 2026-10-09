@@ -2,7 +2,7 @@
 
 import reflex as rx
 
-import aitutor.routes as routes
+from aitutor import routes
 from aitutor.models import BetaExercise
 from aitutor.pages.beta_ai_student_exercises.state import BetaAIStudentExercisesState
 

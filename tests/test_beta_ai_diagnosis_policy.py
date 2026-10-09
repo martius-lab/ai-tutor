@@ -1,6 +1,6 @@
 """Deterministic tests for the Beta AI diagnosis control layer."""
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from aitutor.beta_ai.diagnosis import (
     DiagnosisResponse,
@@ -157,9 +157,11 @@ def test_sufficient_for_completion_is_only_potential_completion():
             diagnosis_pattern="sufficient_for_completion",
             covered_core_point_ids=[14, 15, 16],
             evidence_snippets=[
-                "Binary search assumes sorted input, uses sorted order to "
-                "discard half, "
-                "and would be unreliable without sorted input."
+                (
+                    "Binary search assumes sorted input, uses sorted order to "
+                    "discard half, "
+                    "and would be unreliable without sorted input."
+                )
             ],
         )
     )
@@ -214,7 +216,7 @@ def test_cumulative_evidence_accumulates_core_points_across_turns():
         core_points=core_points(),
         student_answer="Binary search assumes sorted input.",
         trace_reference=1,
-        now=datetime.now(timezone.utc),
+        now=datetime.now(UTC),
     )
 
     assert first_cumulative.covered_core_point_ids == [14]
@@ -236,7 +238,7 @@ def test_cumulative_evidence_accumulates_core_points_across_turns():
         core_points=core_points(),
         student_answer="Sorted order allows discarding half the interval.",
         trace_reference=2,
-        now=datetime.now(timezone.utc),
+        now=datetime.now(UTC),
     )
     policy_preview = preview_policy_action(
         second_cumulative,
@@ -322,7 +324,7 @@ def test_basic_level_passes_only_after_all_required_core_points_are_covered():
         core_points=core_points(),
         student_answer="Binary search needs sorted input and can discard half.",
         trace_reference=1,
-        now=datetime.now(timezone.utc),
+        now=datetime.now(UTC),
         question_level="basic_understanding",
     )
 
@@ -345,7 +347,7 @@ def test_basic_level_passes_only_after_all_required_core_points_are_covered():
         core_points=core_points(),
         student_answer="Without sorted input, middle comparison is unreliable.",
         trace_reference=2,
-        now=datetime.now(timezone.utc),
+        now=datetime.now(UTC),
         question_level="basic_understanding",
     )
 
@@ -382,7 +384,7 @@ def test_basic_evidence_requires_minimum_completeness():
         core_points=core_points(),
         student_answer="I think it needs sorted input, but I am not sure.",
         trace_reference=1,
-        now=datetime.now(timezone.utc),
+        now=datetime.now(UTC),
         question_level="basic_understanding",
     )
 
@@ -416,7 +418,7 @@ def test_basic_evidence_accepts_fair_partial_completeness_boundary():
         core_points=core_points(),
         student_answer="Binary search needs sorted input.",
         trace_reference=1,
-        now=datetime.now(timezone.utc),
+        now=datetime.now(UTC),
         question_level="basic_understanding",
     )
 
@@ -446,7 +448,7 @@ def test_cumulative_completeness_keeps_latest_answer_score_not_coverage_ratio():
         core_points=core_points(),
         student_answer="Binary search needs sorted input.",
         trace_reference=1,
-        now=datetime.now(timezone.utc),
+        now=datetime.now(UTC),
         question_level="basic_understanding",
     )
 
@@ -484,7 +486,7 @@ def test_explain_and_apply_levels_drive_satisfactory_and_secure_state():
         core_points=core_points(),
         student_answer="It matters because sorted order makes halving safe.",
         trace_reference=3,
-        now=datetime.now(timezone.utc),
+        now=datetime.now(UTC),
         question_level="explain_reasoning",
     )
 
@@ -515,7 +517,7 @@ def test_explain_and_apply_levels_drive_satisfactory_and_secure_state():
             "may contain the target."
         ),
         trace_reference=4,
-        now=datetime.now(timezone.utc),
+        now=datetime.now(UTC),
         question_level="apply_or_compare",
     )
 
@@ -627,7 +629,7 @@ def test_answer_request_does_not_pass_apply_level_even_if_llm_claims_success():
         core_points=core_points(),
         student_answer="give me the answer",
         trace_reference=5,
-        now=datetime.now(timezone.utc),
+        now=datetime.now(UTC),
         question_level="apply_or_compare",
     )
 
@@ -669,7 +671,7 @@ def test_example_request_keeps_existing_coverage_but_adds_no_new_evidence():
         core_points=core_points(),
         student_answer="give me an example",
         trace_reference=6,
-        now=datetime.now(timezone.utc),
+        now=datetime.now(UTC),
         question_level="basic_understanding",
     )
 
@@ -844,7 +846,7 @@ def test_tutor_derived_answer_does_not_update_student_state_or_pass_level():
         core_points=core_points(),
         student_answer="Sorted order allows discarding half the interval.",
         trace_reference=7,
-        now=datetime.now(timezone.utc),
+        now=datetime.now(UTC),
         question_level="basic_understanding",
     )
 
@@ -898,7 +900,7 @@ def test_apply_level_blocks_low_correctness_with_cumulative_basic_coverage():
             "I would represent the cities as vertices and the connection as an edge."
         ),
         trace_reference=8,
-        now=datetime.now(timezone.utc),
+        now=datetime.now(UTC),
         question_level="apply_or_compare",
     )
     policy_preview = preview_policy_action(
@@ -955,7 +957,7 @@ def test_good_apply_answer_can_pass_even_if_snippet_normalization_left_unclear()
             "does not imply Bob follows Alice back."
         ),
         trace_reference=9,
-        now=datetime.now(timezone.utc),
+        now=datetime.now(UTC),
         question_level="apply_or_compare",
     )
 
@@ -1542,7 +1544,7 @@ def test_repeated_misconception_stays_in_automatic_repair_loop():
         core_points=core_points(),
         student_answer="Binary search also works on unsorted lists.",
         trace_reference=10,
-        now=datetime.now(timezone.utc),
+        now=datetime.now(UTC),
     )
     second = update_student_concept_state_from_diagnosis(
         student_state=student_state,
@@ -1550,7 +1552,7 @@ def test_repeated_misconception_stays_in_automatic_repair_loop():
         core_points=core_points(),
         student_answer="Binary search also works on unsorted lists.",
         trace_reference=11,
-        now=datetime.now(timezone.utc),
+        now=datetime.now(UTC),
     )
 
     assert first.diagnosis_pattern == "misconception_present"
@@ -1590,7 +1592,7 @@ def test_misconception_memory_upserts_repeated_label_without_duplicates():
         core_points=core_points(),
         student_answer="I think it works on unsorted lists.",
         trace_reference=12,
-        now=datetime.now(timezone.utc),
+        now=datetime.now(UTC),
     )
     update_student_concept_state_from_diagnosis(
         student_state=student_state,
@@ -1598,7 +1600,7 @@ def test_misconception_memory_upserts_repeated_label_without_duplicates():
         core_points=core_points(),
         student_answer="It also works if the array is unsorted.",
         trace_reference=13,
-        now=datetime.now(timezone.utc),
+        now=datetime.now(UTC),
     )
 
     assert len(student_state.active_misconceptions) == 1
@@ -1635,7 +1637,7 @@ def test_new_misconception_during_repair_is_added_as_second_active_item():
             core_points=core_points(),
             student_answer=label,
             trace_reference=turn_index,
-            now=datetime.now(timezone.utc),
+            now=datetime.now(UTC),
         )
 
     assert len(student_state.active_misconceptions) == 2
@@ -1683,7 +1685,7 @@ def test_good_answer_resolves_active_misconceptions_and_can_progress_same_turn()
             "discarding half; on unsorted input the middle comparison is unreliable."
         ),
         trace_reference=16,
-        now=datetime.now(timezone.utc),
+        now=datetime.now(UTC),
         question_level="basic_understanding",
     )
 
@@ -1729,7 +1731,7 @@ def test_misconception_repair_requires_stronger_correctness_and_completeness():
         core_points=core_points(),
         student_answer="Binary search needs sorted input.",
         trace_reference=18,
-        now=datetime.now(timezone.utc),
+        now=datetime.now(UTC),
         question_level="basic_understanding",
     )
 
@@ -1750,7 +1752,7 @@ def test_misconception_repair_requires_stronger_correctness_and_completeness():
         core_points=core_points(),
         student_answer="Binary search needs sorted input.",
         trace_reference=19,
-        now=datetime.now(timezone.utc),
+        now=datetime.now(UTC),
         question_level="basic_understanding",
     )
 

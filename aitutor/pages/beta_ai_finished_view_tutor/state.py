@@ -7,7 +7,7 @@ from reflex_local_auth import LocalUser
 from sqlalchemy.sql.elements import ColumnElement
 from sqlmodel import select
 
-import aitutor.routes as routes
+from aitutor import routes
 from aitutor.auth.protection import state_require_role_or_permission
 from aitutor.auth.state import SessionState
 from aitutor.models import BetaExercise, BetaExerciseResult, UserInfo, UserRole
@@ -63,7 +63,7 @@ class BetaAIFinishedViewTutorState(SessionState):
                 .where(
                     BetaExercise.id == beta_exercise_id,
                     LocalUser.id == url_user_id,
-                    BetaExerciseResult.submit_time_stamp != None,  # noqa: E711
+                    BetaExerciseResult.submit_time_stamp != None,
                 )
             ).one_or_none()
             if result is None:

@@ -65,7 +65,7 @@ class BetaAISubmissionsState(SessionState):
                     LocalUser,
                     cast(ColumnElement[bool], LocalUser.id == UserInfo.user_id),
                 )
-                .where(BetaExerciseResult.submit_time_stamp != None)  # noqa: E711
+                .where(BetaExerciseResult.submit_time_stamp != None)
                 .order_by(BetaExercise.title, LocalUser.username)
             )
             self.table_rows = [

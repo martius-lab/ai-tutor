@@ -2,7 +2,7 @@
 
 import reflex as rx
 
-import aitutor.routes as routes
+from aitutor import routes
 
 beta_ai_links = [
     ("Student Exercises", routes.BETA_AI_STUDENT_EXERCISES, "graduation-cap"),
