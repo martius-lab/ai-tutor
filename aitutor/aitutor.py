@@ -13,6 +13,24 @@ from aitutor.config import get_config
 from aitutor.env_settings import get_env_settings
 from aitutor.pages.all_lectures.page import all_lectures_page
 from aitutor.pages.all_lectures.state import AllLecturesState
+from aitutor.pages.beta_ai_chat.page import beta_ai_chat_page
+from aitutor.pages.beta_ai_chat.state import BetaAIChatState
+from aitutor.pages.beta_ai_diagnosis_lab.page import beta_ai_diagnosis_lab_page
+from aitutor.pages.beta_ai_diagnosis_lab.state import BetaAIDiagnosisLabState
+from aitutor.pages.beta_ai_exercises.page import beta_ai_exercises_page
+from aitutor.pages.beta_ai_exercises.state import BetaAIExercisesState
+from aitutor.pages.beta_ai_finished_view.page import beta_ai_finished_view_page
+from aitutor.pages.beta_ai_finished_view.state import BetaAIFinishedViewState
+from aitutor.pages.beta_ai_finished_view_tutor.page import (
+    beta_ai_finished_view_tutor_page,
+)
+from aitutor.pages.beta_ai_finished_view_tutor.state import BetaAIFinishedViewTutorState
+from aitutor.pages.beta_ai_student_exercises.page import beta_ai_student_exercises_page
+from aitutor.pages.beta_ai_student_exercises.state import BetaAIStudentExercisesState
+from aitutor.pages.beta_ai_submissions.page import beta_ai_submissions_page
+from aitutor.pages.beta_ai_submissions.state import BetaAISubmissionsState
+from aitutor.pages.beta_ai_trace_logs.page import beta_ai_trace_logs_page
+from aitutor.pages.beta_ai_trace_logs.state import BetaAITraceLogsState
 from aitutor.pages.chat.page import chat_page
 from aitutor.pages.chat.state import ChatState
 from aitutor.pages.configuration.page import configuration_page
@@ -66,6 +84,21 @@ from aitutor.utilities.cprint import cprint
 from aitutor.utilities.first_setup import first_time_setup
 
 app = rx.App()
+app.add_page(
+    beta_ai_chat_page,
+    route=routes.BETA_AI_CHAT + "/[beta_exercise_id]",
+    on_load=BetaAIChatState.on_load,
+)
+app.add_page(
+    beta_ai_finished_view_tutor_page,
+    route=routes.BETA_AI_FINISHED_VIEW_TUTOR + "/[beta_exercise_id]/[url_user_id]",
+    on_load=BetaAIFinishedViewTutorState.on_load,
+)
+app.add_page(
+    beta_ai_finished_view_page,
+    route=routes.BETA_AI_FINISHED_VIEW + "/[beta_exercise_id]",
+    on_load=BetaAIFinishedViewState.on_load,
+)
 # info: add dynamic routes first
 app.add_page(
     finished_view_tutor_page,
@@ -178,6 +211,32 @@ app.add_page(
     verify_email_page,
     route=routes.VERIFY_EMAIL,
     on_load=VerifyEmailState.on_load,
+)
+
+app.add_page(
+    beta_ai_exercises_page,
+    route=routes.BETA_AI_EXERCISES,
+    on_load=BetaAIExercisesState.on_load,
+)
+app.add_page(
+    beta_ai_diagnosis_lab_page,
+    route=routes.BETA_AI_DIAGNOSIS_LAB,
+    on_load=BetaAIDiagnosisLabState.on_load,
+)
+app.add_page(
+    beta_ai_student_exercises_page,
+    route=routes.BETA_AI_STUDENT_EXERCISES,
+    on_load=BetaAIStudentExercisesState.on_load,
+)
+app.add_page(
+    beta_ai_submissions_page,
+    route=routes.BETA_AI_SUBMISSIONS,
+    on_load=BetaAISubmissionsState.on_load,
+)
+app.add_page(
+    beta_ai_trace_logs_page,
+    route=routes.BETA_AI_TRACE_LOGS,
+    on_load=BetaAITraceLogsState.on_load,
 )
 
 # reflex_local_auth pages
