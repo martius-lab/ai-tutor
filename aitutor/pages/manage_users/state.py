@@ -3,6 +3,7 @@
 import asyncio
 import email.utils
 import logging
+from typing import override
 
 import reflex as rx
 from reflex_local_auth.auth_session import LocalAuthSession
@@ -23,6 +24,7 @@ from aitutor.models import (
     UserInfo,
     UserRole,
 )
+from aitutor.utilities.filtering_components import FilterMixin
 from aitutor.verification import (
     cancel_pending_email_change,
     get_pending_email_changes,
@@ -40,7 +42,7 @@ MANAGE_USERS_FIELD_MAX_LENGTHS: dict[str, int] = {
 _REQUIRED_PERMISSIONS = [GlobalPermission.MAINTAINER]
 
 
-class ManageUsersState(SessionState):
+class ManageUsersState(FilterMixin, SessionState):
     """State for managing user accounts."""
 
     #: Users with the address of a pending email change ("" if there is none).
@@ -52,6 +54,8 @@ class ManageUsersState(SessionState):
     edit_dialog_is_open: bool = False
     save_in_progress: bool = False
     resend_in_progress: bool = False
+    #: Search keys for the search bar
+    search_keys: list[str] = [gv.SEARCH_USER_KEY]
 
     @rx.event
     @state_require_role_or_permission(allowed_permissions=_REQUIRED_PERMISSIONS)
@@ -60,8 +64,15 @@ class ManageUsersState(SessionState):
         self._global_load()
         self._load_users()
 
+    @override
+    @rx.event
+    @state_require_role_or_permission(allowed_permissions=_REQUIRED_PERMISSIONS)
+    def load_filtered_data(self):
+        """Reload the users after the search values changed."""
+        self._load_users()
+
     def _load_users(self):
-        """Load the users from the database."""
+        """Load the users from the database, filtered by the current search values."""
         # Define role order for sorting (based on definition order in the database enum,
         # which hopefully always matches that of UserRole).
         # Based on https://stackoverflow.com/a/23618085/2095383
@@ -72,11 +83,20 @@ class ManageUsersState(SessionState):
         role_sort_logic = case(role_order_whens, value=UserInfo.role)
 
         with rx.session() as session:
+            # filter results by search values (all of them have to match)
             query = (
                 select(LocalUser, UserInfo)
                 .join(UserInfo)
+                # filter by search values (all of them have to match)
+                .where(
+                    *(
+                        LocalUser.username.ilike(f"%{value}%")  # type: ignore
+                        for _, value in self.search_values
+                    )
+                )
                 .order_by(role_sort_logic.desc(), LocalUser.username)
             )
+
             pending_emails = get_pending_email_changes(session)
             self.users = [
                 (lu, ui, pending_emails.get(lu.id, ""))  # type: ignore
