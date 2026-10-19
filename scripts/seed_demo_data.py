@@ -52,6 +52,7 @@ class SeedUser(TypedDict):
     username: str
     email: str
     role: UserRoleName
+    verified: bool
     permissions: NotRequired[list[GlobalPermissionName]]
 
 
@@ -133,45 +134,59 @@ USERS: list[SeedUser] = [
         "username": "admin.demo",
         "email": "admin.demo@example.com",
         "role": "ADMIN",
+        "verified": True,
         "permissions": ["ADMIN"],
     },
     {
         "username": "mia.maintainer",
         "email": "mia.maintainer@example.com",
         "role": "STUDENT",
+        "verified": True,
         "permissions": ["MAINTAINER"],
     },
     {
         "username": "leo.lecturer",
         "email": "leo.lecturer@example.com",
         "role": "STUDENT",
+        "verified": True,
         "permissions": ["LECTURER"],
     },
     {
         "username": "nora.lecturer",
         "email": "nora.lecturer@example.com",
         "role": "STUDENT",
+        "verified": True,
         "permissions": ["LECTURER"],
     },
     {
         "username": "tina.tutor",
         "email": "tina.tutor@example.com",
         "role": "STUDENT",
+        "verified": True,
     },
     {
         "username": "alex.student",
         "email": "alex.student@example.com",
         "role": "STUDENT",
+        "verified": True,
     },
     {
         "username": "sam.student",
         "email": "sam.student@example.com",
         "role": "STUDENT",
+        "verified": True,
     },
     {
         "username": "jamie.student",
         "email": "jamie.student@example.com",
         "role": "STUDENT",
+        "verified": True,
+    },
+    {
+        "username": "unverified.student",
+        "email": "unverified.student@example.com",
+        "role": "STUDENT",
+        "verified": False,
     },
 ]
 
@@ -436,6 +451,7 @@ def seed_user(session: Session, user: SeedUser) -> tuple[int, int]:
             UserInfo(
                 email=user["email"],
                 role=UserRole[user["role"]],
+                verified=user["verified"],
                 user_id=local_user.id,
             )
         )
