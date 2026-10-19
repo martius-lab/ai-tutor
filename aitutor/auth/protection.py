@@ -284,3 +284,19 @@ def state_require_role_or_permission(
         return wrapper
 
     return decorator
+
+
+def state_require_login():
+    """Protect a state event. Allows execution only if the user is logged in."""
+
+    def decorator(func):
+        @functools.wraps(func)
+        def wrapper(self: SessionState, *args, **kwargs):
+            if self.is_authenticated:
+                return func(self, *args, **kwargs)
+
+            return None
+
+        return wrapper
+
+    return decorator
