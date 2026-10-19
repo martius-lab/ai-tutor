@@ -4,7 +4,8 @@
 Creates a handful of users covering the different permission levels, two lectures
 (one of them with a custom prompt set as its default), a few exercises, some
 example conversations/submissions and reports, plus a spare lecturer
-registration token.
+registration token.  The data is defined in ``USERS``, ``LECTURES`` and
+``LECTURER_TOKENS`` at the top of this script.
 
 Meant to be run once against a fresh database, e.g. right after
 ``uv run reflex db migrate``.  It is idempotent: existing rows are recognized by
@@ -27,12 +28,330 @@ import argparse
 import os
 import sys
 from datetime import datetime, timedelta
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Literal, NotRequired, TypedDict
 
 if TYPE_CHECKING:
-    from sqlmodel import Session
+    from sqlmodel import Session, SQLModel
 
 DEMO_PASSWORD = "1234"
+
+
+# -- Data types -------------------------------------------------------------------
+# Enum values are given by their member name (e.g. "OWNER" for LectureRole.OWNER),
+# so aitutor.models doesn't need to be imported at module level.
+
+type UserRoleName = Literal["STUDENT", "TUTOR", "ADMIN"]
+type GlobalPermissionName = Literal["LECTURER", "MAINTAINER", "ADMIN"]
+type LectureRoleName = Literal["STUDENT", "TUTOR", "OWNER"]
+type Message = dict[str, Any]
+
+
+class SeedUser(TypedDict):
+    """A demo user."""
+
+    username: str
+    email: str
+    role: UserRoleName
+    permissions: NotRequired[list[GlobalPermissionName]]
+
+
+class SeedPrompt(TypedDict):
+    """A lecture-specific prompt."""
+
+    name: str
+    prompt_template: str
+
+
+class SeedExerciseResult(TypedDict):
+    """A user's conversation for an exercise, possibly submitted."""
+
+    username: str
+    submitted: bool
+    check_passed: bool
+    days_ago: int
+    tokens_used: int
+    # Defaults to the template from make_conversation().
+    conversation: NotRequired[list[Message]]
+    # Only use the first n messages of the conversation.
+    conversation_length: NotRequired[int]
+
+
+class SeedReport(TypedDict):
+    """A report a user filed for an exercise."""
+
+    username: str
+    report_text: str
+    looked_at: bool
+    # Defaults to the template from make_conversation().
+    conversation: NotRequired[list[Message]]
+    # Only use the first n messages of the conversation.
+    conversation_length: NotRequired[int]
+
+
+class SeedExercise(TypedDict):
+    """An exercise of a lecture, including results and reports for it."""
+
+    title: str
+    description: str
+    lesson_context: str
+    tags: NotRequired[list[str]]
+    is_hidden: NotRequired[bool]
+    # Relative to the time the script is run.
+    deadline: NotRequired[timedelta]
+    days_to_complete: NotRequired[int]
+    results: NotRequired[list[SeedExerciseResult]]
+    reports: NotRequired[list[SeedReport]]
+
+
+class SeedLecture(TypedDict):
+    """A lecture with its members and exercises."""
+
+    lecture_name: str
+    lecturer_name: str
+    registration_code: str
+    lecture_information_text: str
+    check_conversation_prompt: str
+    members: dict[str, LectureRoleName]
+    # Used for all exercises of the lecture.  If not set, the global default prompt
+    # is used.
+    default_prompt: NotRequired[SeedPrompt]
+    exercises: list[SeedExercise]
+
+
+class SeedLecturerToken(TypedDict):
+    """A lecturer registration token."""
+
+    token: str
+    created_by: str
+    valid_for: timedelta
+
+
+# -- Data ---------------------------------------------------------------------------
+
+USERS: list[SeedUser] = [
+    {
+        "username": "admin.demo",
+        "email": "admin.demo@example.com",
+        "role": "ADMIN",
+        "permissions": ["ADMIN"],
+    },
+    {
+        "username": "mia.maintainer",
+        "email": "mia.maintainer@example.com",
+        "role": "STUDENT",
+        "permissions": ["MAINTAINER"],
+    },
+    {
+        "username": "leo.lecturer",
+        "email": "leo.lecturer@example.com",
+        "role": "STUDENT",
+        "permissions": ["LECTURER"],
+    },
+    {
+        "username": "nora.lecturer",
+        "email": "nora.lecturer@example.com",
+        "role": "STUDENT",
+        "permissions": ["LECTURER"],
+    },
+    {
+        "username": "tina.tutor",
+        "email": "tina.tutor@example.com",
+        "role": "STUDENT",
+    },
+    {
+        "username": "alex.student",
+        "email": "alex.student@example.com",
+        "role": "STUDENT",
+    },
+    {
+        "username": "sam.student",
+        "email": "sam.student@example.com",
+        "role": "STUDENT",
+    },
+    {
+        "username": "jamie.student",
+        "email": "jamie.student@example.com",
+        "role": "STUDENT",
+    },
+]
+
+CHECK_CONVERSATION_PROMPT = (
+    "Check whether the student correctly explained the given task based on"
+    " the conversation so far. Answer with PASS or FAIL and a short"
+    " explanation."
+)
+
+LECTURES: list[SeedLecture] = [
+    {
+        "lecture_name": "Introduction to Programming",
+        "lecturer_name": "Dr. Leo Lecturer",
+        "registration_code": "intro2026",
+        "lecture_information_text": (
+            "Welcome to Introduction to Programming! This lecture covers the basics"
+            " of programming: variables, control flow, functions and simple"
+            " algorithms."
+        ),
+        "check_conversation_prompt": CHECK_CONVERSATION_PROMPT,
+        "members": {
+            "leo.lecturer": "OWNER",
+            "tina.tutor": "TUTOR",
+            "alex.student": "STUDENT",
+            "sam.student": "STUDENT",
+        },
+        "default_prompt": {
+            "name": "Friendly Beginner Tutor",
+            "prompt_template": """
+You will act as a friendly learning assistant for absolute beginners.
+Using the inverted teaching methods, a student is given the task to explain
+"{title}" with description "{description}"
+Lesson context provided by the teacher:
+--------------------------
+{lesson_context}
+--------------------------
+Pretend to be a learner trying to understand {description}. Keep your tone
+encouraging and simple, avoid jargon, and give small hints instead of the
+answer if the student struggles.
+""",
+        },
+        "exercises": [
+            {
+                "title": "Variables and Data Types",
+                "description": "What a variable is and how data types differ.",
+                "lesson_context": (
+                    "A variable is a named location in memory used to store a"
+                    " value. Python has several built-in data types: int, float,"
+                    " str, bool, ..."
+                ),
+                "tags": ["basics", "mandatory"],
+                "results": [
+                    {
+                        "username": "alex.student",
+                        "submitted": True,
+                        "check_passed": True,
+                        "days_ago": 5,
+                        "tokens_used": 1_240,
+                    },
+                    {
+                        "username": "sam.student",
+                        "submitted": True,
+                        "check_passed": False,
+                        "days_ago": 3,
+                        "tokens_used": 980,
+                    },
+                ],
+                "reports": [
+                    {
+                        "username": "sam.student",
+                        "report_text": (
+                            "The exercise description seems to have a typo in the"
+                            " second sentence."
+                        ),
+                        "looked_at": True,
+                    },
+                ],
+            },
+            {
+                "title": "For Loops",
+                "description": (
+                    "How a for loop repeats code for each element of a sequence."
+                ),
+                "lesson_context": (
+                    "A for loop iterates over the elements of an iterable, ..."
+                ),
+                "tags": ["mandatory"],
+                "deadline": timedelta(days=10),
+                "days_to_complete": 14,
+                "results": [
+                    {
+                        "username": "alex.student",
+                        "submitted": False,
+                        "check_passed": False,
+                        "days_ago": 0,
+                        "tokens_used": 410,
+                        "conversation_length": 3,
+                    },
+                ],
+                "reports": [
+                    {
+                        "username": "alex.student",
+                        "report_text": (
+                            "The AI tutor keeps insisting my answer is wrong even"
+                            " though I'm pretty sure it's correct. Could a tutor"
+                            " take a look?"
+                        ),
+                        "looked_at": False,
+                    },
+                ],
+            },
+            {
+                "title": "Recursion (bonus)",
+                "description": (
+                    "How a function can call itself to solve smaller subproblems."
+                ),
+                "lesson_context": (
+                    "Recursion consists of a base case and a recursive case, ..."
+                ),
+                "tags": ["optional"],
+                "is_hidden": True,
+            },
+        ],
+    },
+    {
+        "lecture_name": "Data Structures & Algorithms",
+        "lecturer_name": "Prof. Nora Lecturer",
+        "registration_code": "dsa2026",
+        "lecture_information_text": (
+            "This lecture builds on Introduction to Programming and covers common"
+            " data structures (lists, stacks, trees, graphs) and algorithms"
+            " (sorting, searching)."
+        ),
+        "check_conversation_prompt": CHECK_CONVERSATION_PROMPT,
+        "members": {
+            "nora.lecturer": "OWNER",
+            "tina.tutor": "TUTOR",
+            "jamie.student": "STUDENT",
+        },
+        "exercises": [
+            {
+                "title": "Sorting Algorithms",
+                "description": (
+                    "How bubble sort and selection sort work and how they compare."
+                ),
+                "lesson_context": (
+                    "Sorting algorithms rearrange elements into a defined order, ..."
+                ),
+                "tags": ["sorting"],
+                "results": [
+                    {
+                        "username": "jamie.student",
+                        "submitted": True,
+                        "check_passed": True,
+                        "days_ago": 1,
+                        "tokens_used": 1_560,
+                    },
+                ],
+            },
+            {
+                "title": "Stacks and Queues",
+                "description": "The difference between LIFO and FIFO data structures.",
+                "lesson_context": (
+                    "A stack supports push/pop at one end (LIFO), a queue ..."
+                ),
+            },
+        ],
+    },
+]
+
+LECTURER_TOKENS: list[SeedLecturerToken] = [
+    {
+        "token": "demo-lecturer-token",
+        "created_by": "admin.demo",
+        "valid_for": timedelta(days=30),
+    },
+]
+
+
+# -- Implementation -----------------------------------------------------------------
 
 
 def parse_args() -> argparse.Namespace:
@@ -51,179 +370,95 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def get_or_create_user(
+def get_or_create[ModelT: SQLModel](
     session: Session,
-    *,
-    username: str,
-    email: str,
-    role,
-    permissions=(),
-) -> int:
-    """Return the id of a demo user, creating it (with UserInfo/Permission rows) if
-    needed.
+    model: type[ModelT],
+    key: dict[str, Any],
+    label: str | None = None,
+    **values: Any,
+) -> ModelT:
+    """Return the row of ``model`` matching ``key``, creating it if needed.
 
     Args:
         session: The database session to use.
-        username: Login name of the user.
-        email: Email address of the user.
-        role: Global ``UserRole`` to store on the user's ``UserInfo``.
-        permissions: Global permissions to grant the user.
+        model: The model class.
+        key: Column values identifying the row.
+        label: If set, print a message using this label when the row is created.
+        **values: Additional column values used when creating the row.
 
     Returns:
-        The id of the (possibly newly created) ``LocalUser``.
+        The existing or newly created row.
+    """
+    from sqlmodel import select
+
+    existing = session.exec(
+        select(model).where(*(getattr(model, k) == v for k, v in key.items()))
+    ).one_or_none()
+    if existing is not None:
+        return existing
+
+    row = model(**key, **values)
+    session.add(row)
+    session.commit()
+    session.refresh(row)
+    if label is not None:
+        print(f"Created {label}.")
+    return row
+
+
+def seed_user(session: Session, user: SeedUser) -> tuple[int, int]:
+    """Create a demo user (with UserInfo/Permission rows) if it doesn't exist yet.
+
+    Returns:
+        The ids of the user's ``LocalUser`` and ``UserInfo``.
     """
     from reflex_local_auth.user import LocalUser
     from sqlmodel import select
 
-    from aitutor.models import Permission, UserInfo
+    from aitutor.models import GlobalPermission, Permission, UserInfo, UserRole
 
-    existing = session.exec(
+    username = user["username"]
+    local_user = session.exec(
         select(LocalUser).where(LocalUser.username == username)
     ).one_or_none()
-    if existing is not None:
+    if local_user is None:
+        local_user = LocalUser(
+            username=username,
+            password_hash=LocalUser.hash_password(DEMO_PASSWORD),
+            enabled=True,
+        )
+        session.add(local_user)
+        session.commit()
+        session.refresh(local_user)
+        assert local_user.id is not None
+
+        session.add(
+            UserInfo(
+                email=user["email"],
+                role=UserRole[user["role"]],
+                user_id=local_user.id,
+            )
+        )
+        for permission in user.get("permissions", []):
+            session.add(
+                Permission(
+                    user_id=local_user.id, permission=GlobalPermission[permission]
+                )
+            )
+        session.commit()
+        print(f"Created user '{username}' (email={user['email']}).")
+    else:
         print(f"User '{username}' already exists, skipping.")
-        assert existing.id is not None
-        return existing.id
 
-    local_user = LocalUser(
-        username=username,
-        password_hash=LocalUser.hash_password(DEMO_PASSWORD),
-        enabled=True,
-    )
-    session.add(local_user)
-    session.commit()
-    session.refresh(local_user)
     assert local_user.id is not None
-
-    session.add(UserInfo(email=email, role=role, user_id=local_user.id))
-    for permission in permissions:
-        session.add(Permission(user_id=local_user.id, permission=permission))
-    session.commit()
-
-    print(f"Created user '{username}' (email={email}).")
-    return local_user.id
+    userinfo = session.exec(
+        select(UserInfo).where(UserInfo.user_id == local_user.id)
+    ).one()
+    assert userinfo.id is not None
+    return local_user.id, userinfo.id
 
 
-def get_or_create_lecture(session: Session, **fields) -> int:
-    """Return the id of a lecture, creating it if it doesn't exist yet.
-
-    Args:
-        session: The database session to use.
-        **fields: Values passed to the ``Lecture`` constructor.  Must include
-            ``lecture_name``.
-
-    Returns:
-        The id of the (possibly newly created) ``Lecture``.
-    """
-    from sqlmodel import select
-
-    from aitutor.models import Lecture
-
-    existing = session.exec(
-        select(Lecture).where(Lecture.lecture_name == fields["lecture_name"])
-    ).one_or_none()
-    if existing is not None:
-        print(f"Lecture '{fields['lecture_name']}' already exists, skipping.")
-        assert existing.id is not None
-        return existing.id
-
-    lecture = Lecture(**fields)
-    session.add(lecture)
-    session.commit()
-    session.refresh(lecture)
-    assert lecture.id is not None
-
-    print(f"Created lecture '{lecture.lecture_name}'.")
-    return lecture.id
-
-
-def ensure_membership(session: Session, *, lecture_id: int, user_id: int, role) -> None:
-    """Make sure a user is a member of a lecture with (at least) the given role."""
-    from sqlmodel import select
-
-    from aitutor.models import LinkUserLecture
-
-    existing = session.exec(
-        select(LinkUserLecture).where(
-            LinkUserLecture.lecture_id == lecture_id,
-            LinkUserLecture.user_id == user_id,
-        )
-    ).one_or_none()
-    if existing is not None:
-        return
-
-    session.add(LinkUserLecture(lecture_id=lecture_id, user_id=user_id, role=role))
-    session.commit()
-
-
-def get_or_create_prompt(session: Session, *, name: str, lecture_id, **fields) -> int:
-    """Return the id of a prompt (scoped to a lecture or global), creating it if
-    needed.
-    """
-    from sqlmodel import select
-
-    from aitutor.models import Prompt
-
-    existing = session.exec(
-        select(Prompt).where(Prompt.name == name, Prompt.lecture_id == lecture_id)
-    ).one_or_none()
-    if existing is not None:
-        assert existing.id is not None
-        return existing.id
-
-    prompt = Prompt(name=name, lecture_id=lecture_id, **fields)
-    session.add(prompt)
-    session.commit()
-    session.refresh(prompt)
-    assert prompt.id is not None
-
-    print(f"Created prompt '{name}'.")
-    return prompt.id
-
-
-def get_or_create_exercise(session: Session, *, title: str, lecture_id: int, **fields):
-    """Return an exercise for a lecture, creating it if it doesn't exist yet."""
-    from sqlmodel import select
-
-    from aitutor.models import Exercise
-
-    existing = session.exec(
-        select(Exercise).where(
-            Exercise.title == title, Exercise.lecture_id == lecture_id
-        )
-    ).one_or_none()
-    if existing is not None:
-        return existing
-
-    exercise = Exercise(title=title, lecture_id=lecture_id, **fields)
-    session.add(exercise)
-    session.commit()
-    session.refresh(exercise)
-
-    print(f"Created exercise '{title}'.")
-    return exercise
-
-
-def get_or_create_tag(session: Session, *, name: str, lecture_id: int):
-    """Return a tag for a lecture, creating it if it doesn't exist yet."""
-    from sqlmodel import select
-
-    from aitutor.models import Tag
-
-    existing = session.exec(
-        select(Tag).where(Tag.name == name, Tag.lecture_id == lecture_id)
-    ).one_or_none()
-    if existing is not None:
-        return existing
-
-    tag = Tag(name=name, lecture_id=lecture_id)
-    session.add(tag)
-    session.commit()
-    session.refresh(tag)
-    return tag
-
-
-def make_conversation(exercise_title: str, description: str) -> list[dict]:
+def make_conversation(exercise_title: str, description: str) -> list[Message]:
     """Build a small, realistic looking chat transcript for an exercise."""
     return [
         {
@@ -263,451 +498,203 @@ def make_conversation(exercise_title: str, description: str) -> list[dict]:
     ]
 
 
-def get_or_create_exercise_result(
+def get_conversation(
+    entry: SeedExerciseResult | SeedReport, exercise: SeedExercise
+) -> list[Message]:
+    """Return the conversation of a result/report, falling back to the template."""
+    conversation = entry.get("conversation") or make_conversation(
+        exercise["title"], exercise["description"]
+    )
+    return conversation[: entry.get("conversation_length")]
+
+
+def seed_exercise_result(
     session: Session,
     *,
     exercise_id: int,
     userinfo_id: int,
-    conversation: list[dict],
-    submitted: bool,
-    check_passed: bool,
-    days_ago: int,
-    tokens_used: int,
-):
-    """Return an exercise result for a user/exercise pair, creating it if needed."""
-    from zoneinfo import ZoneInfo
-
-    from sqlmodel import select
-
-    from aitutor.global_vars import TIME_ZONE
+    result: SeedExerciseResult,
+    conversation: list[Message],
+    now: datetime,
+) -> None:
+    """Create an exercise result for a user/exercise pair if it doesn't exist."""
     from aitutor.models import ExerciseResult
-
-    existing = session.exec(
-        select(ExerciseResult).where(
-            ExerciseResult.exercise_id == exercise_id,
-            ExerciseResult.userinfo_id == userinfo_id,
-        )
-    ).one_or_none()
-    if existing is not None:
-        return existing
 
     finished_conversation = []
     submit_time_stamp = None
-    if submitted:
+    if result["submitted"]:
         check_result_message = {
             "role": "check_result",
             "content": (
-                "Great, that's correct!" if check_passed else "Not quite, try again."
+                "Great, that's correct!"
+                if result["check_passed"]
+                else "Not quite, try again."
             ),
-            "check_passed": check_passed,
+            "check_passed": result["check_passed"],
         }
         finished_conversation = [*conversation, check_result_message]
-        submit_time_stamp = datetime.now(ZoneInfo(TIME_ZONE)) - timedelta(days=days_ago)
+        submit_time_stamp = now - timedelta(days=result["days_ago"])
 
-    result = ExerciseResult(
-        exercise_id=exercise_id,
-        userinfo_id=userinfo_id,
+    get_or_create(
+        session,
+        ExerciseResult,
+        {"exercise_id": exercise_id, "userinfo_id": userinfo_id},
         conversation_text=conversation,
         finished_conversation=finished_conversation,
-        check_passed=submitted and check_passed,
+        check_passed=result["submitted"] and result["check_passed"],
         submit_time_stamp=submit_time_stamp,
-        tokens_used=tokens_used,
+        tokens_used=result["tokens_used"],
     )
-    session.add(result)
-    session.commit()
-    session.refresh(result)
-    return result
 
 
-def get_or_create_report(
+def seed_lecture(
     session: Session,
+    lecture_data: SeedLecture,
     *,
-    exercise_id: int,
-    lecture_id: int,
-    userinfo_id: int,
-    report_text: str,
-    conversation_snapshot: list[dict],
-    looked_at: bool,
-):
-    """Return a report for a user/exercise pair, creating it if it doesn't exist yet."""
-    from sqlmodel import select
-
-    from aitutor.models import Report
-
-    existing = session.exec(
-        select(Report).where(
-            Report.exercise_id == exercise_id,
-            Report.userinfo_id == userinfo_id,
-        )
-    ).one_or_none()
-    if existing is not None:
-        return existing
-
-    report = Report(
-        exercise_id=exercise_id,
-        lecture_id=lecture_id,
-        userinfo_id=userinfo_id,
-        report_text=report_text,
-        conversation_snapshot=conversation_snapshot,
-        looked_at=looked_at,
+    user_ids: dict[str, tuple[int, int]],
+    global_prompt_id: int,
+    now: datetime,
+) -> None:
+    """Create a lecture with its members, prompt, exercises, results and reports."""
+    from aitutor.models import (
+        Exercise,
+        Lecture,
+        LectureRole,
+        LinkUserLecture,
+        Prompt,
+        Report,
+        Tag,
     )
-    session.add(report)
-    session.commit()
-    print(f"Created report for exercise id={exercise_id}.")
-    return report
+
+    name = lecture_data["lecture_name"]
+    lecture = get_or_create(
+        session,
+        Lecture,
+        {"lecture_name": name},
+        label=f"lecture '{name}'",
+        lecturer_name=lecture_data["lecturer_name"],
+        registration_code=lecture_data["registration_code"],
+        lecture_information_text=lecture_data["lecture_information_text"],
+        check_conversation_prompt=lecture_data["check_conversation_prompt"],
+    )
+    assert lecture.id is not None
+
+    for username, role in lecture_data["members"].items():
+        get_or_create(
+            session,
+            LinkUserLecture,
+            {"lecture_id": lecture.id, "user_id": user_ids[username][0]},
+            role=LectureRole[role],
+        )
+
+    prompt_id = global_prompt_id
+    if prompt_data := lecture_data.get("default_prompt"):
+        prompt = get_or_create(
+            session,
+            Prompt,
+            {"name": prompt_data["name"], "lecture_id": lecture.id},
+            label=f"prompt '{prompt_data['name']}'",
+            prompt_template=prompt_data["prompt_template"],
+        )
+        assert prompt.id is not None
+        prompt_id = prompt.id
+        if lecture.default_prompt_id is None:
+            lecture.default_prompt_id = prompt_id
+            session.add(lecture)
+            session.commit()
+            print(f"Set prompt '{prompt_data['name']}' as default for '{name}'.")
+
+    for exercise_data in lecture_data["exercises"]:
+        exercise = get_or_create(
+            session,
+            Exercise,
+            {"title": exercise_data["title"], "lecture_id": lecture.id},
+            label=f"exercise '{exercise_data['title']}'",
+            description=exercise_data["description"],
+            lesson_context=exercise_data["lesson_context"],
+            is_hidden=exercise_data.get("is_hidden", False),
+            deadline=(
+                now + deadline
+                if (deadline := exercise_data.get("deadline")) is not None
+                else None
+            ),
+            days_to_complete=exercise_data.get("days_to_complete"),
+            prompt_id=prompt_id,
+        )
+        assert exercise.id is not None
+
+        if not exercise.tags and (tag_names := exercise_data.get("tags")):
+            exercise.tags = [
+                get_or_create(session, Tag, {"name": tag, "lecture_id": lecture.id})
+                for tag in tag_names
+            ]
+            session.add(exercise)
+            session.commit()
+
+        for result in exercise_data.get("results", []):
+            seed_exercise_result(
+                session,
+                exercise_id=exercise.id,
+                userinfo_id=user_ids[result["username"]][1],
+                result=result,
+                conversation=get_conversation(result, exercise_data),
+                now=now,
+            )
+
+        for report in exercise_data.get("reports", []):
+            get_or_create(
+                session,
+                Report,
+                {
+                    "exercise_id": exercise.id,
+                    "userinfo_id": user_ids[report["username"]][1],
+                },
+                label=f"report for exercise '{exercise.title}'",
+                lecture_id=lecture.id,
+                report_text=report["report_text"],
+                conversation_snapshot=get_conversation(report, exercise_data),
+                looked_at=report["looked_at"],
+            )
 
 
 def seed(session: Session) -> None:
     """Create all demo users, lectures, exercises, submissions and reports."""
     from zoneinfo import ZoneInfo
 
-    from aitutor.global_vars import TIME_ZONE
-    from aitutor.models import GlobalPermission, LectureRole, UserRole
-
-    # -- Users, one per permission combination -----------------------------------
-    admin_id = get_or_create_user(
-        session,
-        username="admin.demo",
-        email="admin.demo@example.com",
-        role=UserRole.ADMIN,
-        permissions=[GlobalPermission.ADMIN],
-    )
-    maintainer_id = get_or_create_user(
-        session,
-        username="mia.maintainer",
-        email="mia.maintainer@example.com",
-        role=UserRole.STUDENT,
-        permissions=[GlobalPermission.MAINTAINER],
-    )
-    leo_id = get_or_create_user(
-        session,
-        username="leo.lecturer",
-        email="leo.lecturer@example.com",
-        role=UserRole.STUDENT,
-        permissions=[GlobalPermission.LECTURER],
-    )
-    nora_id = get_or_create_user(
-        session,
-        username="nora.lecturer",
-        email="nora.lecturer@example.com",
-        role=UserRole.STUDENT,
-        permissions=[GlobalPermission.LECTURER],
-    )
-    tina_id = get_or_create_user(
-        session,
-        username="tina.tutor",
-        email="tina.tutor@example.com",
-        role=UserRole.STUDENT,
-    )
-    alex_id = get_or_create_user(
-        session,
-        username="alex.student",
-        email="alex.student@example.com",
-        role=UserRole.STUDENT,
-    )
-    sam_id = get_or_create_user(
-        session,
-        username="sam.student",
-        email="sam.student@example.com",
-        role=UserRole.STUDENT,
-    )
-    jamie_id = get_or_create_user(
-        session,
-        username="jamie.student",
-        email="jamie.student@example.com",
-        role=UserRole.STUDENT,
-    )
-
-    # UserInfo ids differ from LocalUser ids; look them up for use as foreign keys
-    # on ExerciseResult/Report.
     from sqlmodel import select
 
-    from aitutor.models import UserInfo
-
-    userinfo_id_by_user_id: dict[int, int] = {}
-    for row in session.exec(
-        select(UserInfo).where(
-            UserInfo.user_id.in_(  # type: ignore[attr-defined]
-                [
-                    admin_id,
-                    maintainer_id,
-                    leo_id,
-                    nora_id,
-                    tina_id,
-                    alex_id,
-                    sam_id,
-                    jamie_id,
-                ]
-            )
-        )
-    ).all():
-        assert row.id is not None
-        userinfo_id_by_user_id[row.user_id] = row.id
-
-    # -- Lecture 1: "Introduction to Programming", with a custom default prompt --
-    intro_lecture_id = get_or_create_lecture(
-        session,
-        lecture_name="Introduction to Programming",
-        lecturer_name="Dr. Leo Lecturer",
-        registration_code="intro2026",
-        lecture_information_text=(
-            "Welcome to Introduction to Programming! This lecture covers the basics"
-            " of programming: variables, control flow, functions and simple"
-            " algorithms."
-        ),
-        check_conversation_prompt=(
-            "Check whether the student correctly explained the given task based on"
-            " the conversation so far. Answer with PASS or FAIL and a short"
-            " explanation."
-        ),
-    )
-    ensure_membership(
-        session, lecture_id=intro_lecture_id, user_id=leo_id, role=LectureRole.OWNER
-    )
-    ensure_membership(
-        session, lecture_id=intro_lecture_id, user_id=tina_id, role=LectureRole.TUTOR
-    )
-    ensure_membership(
-        session, lecture_id=intro_lecture_id, user_id=alex_id, role=LectureRole.STUDENT
-    )
-    ensure_membership(
-        session, lecture_id=intro_lecture_id, user_id=sam_id, role=LectureRole.STUDENT
-    )
-
-    custom_prompt_id = get_or_create_prompt(
-        session,
-        name="Friendly Beginner Tutor",
-        lecture_id=intro_lecture_id,
-        prompt_template="""
-You will act as a friendly learning assistant for absolute beginners.
-Using the inverted teaching methods, a student is given the task to explain
-"{title}" with description "{description}"
-Lesson context provided by the teacher:
---------------------------
-{lesson_context}
---------------------------
-Pretend to be a learner trying to understand {description}. Keep your tone
-encouraging and simple, avoid jargon, and give small hints instead of the
-answer if the student struggles.
-""",
-    )
-    with session.no_autoflush:
-        from aitutor.models import Lecture
-
-        lecture = session.get(Lecture, intro_lecture_id)
-        if lecture is not None and lecture.default_prompt_id is None:
-            lecture.default_prompt_id = custom_prompt_id
-            session.add(lecture)
-            session.commit()
-            print("Set custom prompt as default for 'Introduction to Programming'.")
-
-    basics_tag = get_or_create_tag(session, name="basics", lecture_id=intro_lecture_id)
-    mandatory_tag = get_or_create_tag(
-        session, name="mandatory", lecture_id=intro_lecture_id
-    )
-    optional_tag = get_or_create_tag(
-        session, name="optional", lecture_id=intro_lecture_id
-    )
+    from aitutor.global_vars import TIME_ZONE
+    from aitutor.models import LecturerRegistrationToken, Prompt
 
     now = datetime.now(ZoneInfo(TIME_ZONE))
 
-    ex_variables = get_or_create_exercise(
-        session,
-        title="Variables and Data Types",
-        lecture_id=intro_lecture_id,
-        description="What a variable is and how data types differ.",
-        lesson_context=(
-            "A variable is a named location in memory used to store a value."
-            " Python has several built-in data types: int, float, str, bool, ..."
-        ),
-        prompt_id=custom_prompt_id,
-    )
-    ex_variables.tags = [basics_tag, mandatory_tag]
-    session.add(ex_variables)
-
-    ex_loops = get_or_create_exercise(
-        session,
-        title="For Loops",
-        lecture_id=intro_lecture_id,
-        description="How a for loop repeats code for each element of a sequence.",
-        lesson_context="A for loop iterates over the elements of an iterable, ...",
-        deadline=now + timedelta(days=10),
-        days_to_complete=14,
-        prompt_id=custom_prompt_id,
-    )
-    ex_loops.tags = [mandatory_tag]
-    session.add(ex_loops)
-
-    ex_recursion = get_or_create_exercise(
-        session,
-        title="Recursion (bonus)",
-        lecture_id=intro_lecture_id,
-        description="How a function can call itself to solve smaller subproblems.",
-        lesson_context="Recursion consists of a base case and a recursive case, ...",
-        is_hidden=True,
-        prompt_id=custom_prompt_id,
-    )
-    ex_recursion.tags = [optional_tag]
-    session.add(ex_recursion)
-    session.commit()
-
-    # -- Lecture 2: "Data Structures & Algorithms", using the global default prompt --
-    dsa_lecture_id = get_or_create_lecture(
-        session,
-        lecture_name="Data Structures & Algorithms",
-        lecturer_name="Prof. Nora Lecturer",
-        registration_code="dsa2026",
-        lecture_information_text=(
-            "This lecture builds on Introduction to Programming and covers common"
-            " data structures (lists, stacks, trees, graphs) and algorithms"
-            " (sorting, searching)."
-        ),
-        check_conversation_prompt=(
-            "Check whether the student correctly explained the given task based on"
-            " the conversation so far. Answer with PASS or FAIL and a short"
-            " explanation."
-        ),
-    )
-    ensure_membership(
-        session, lecture_id=dsa_lecture_id, user_id=nora_id, role=LectureRole.OWNER
-    )
-    ensure_membership(
-        session, lecture_id=dsa_lecture_id, user_id=tina_id, role=LectureRole.TUTOR
-    )
-    ensure_membership(
-        session, lecture_id=dsa_lecture_id, user_id=jamie_id, role=LectureRole.STUDENT
-    )
-
-    dsa_tag = get_or_create_tag(session, name="sorting", lecture_id=dsa_lecture_id)
-
-    from aitutor.models import Prompt
+    # Maps username to the ids of the user's LocalUser and UserInfo.
+    user_ids = {user["username"]: seed_user(session, user) for user in USERS}
 
     global_prompt = session.exec(
         select(Prompt).where(Prompt.lecture_id == None)
     ).first()
     assert global_prompt is not None and global_prompt.id is not None
-    global_prompt_id = global_prompt.id
 
-    ex_sorting = get_or_create_exercise(
-        session,
-        title="Sorting Algorithms",
-        lecture_id=dsa_lecture_id,
-        description="How bubble sort and selection sort work and how they compare.",
-        lesson_context=(
-            "Sorting algorithms rearrange elements into a defined order, ..."
-        ),
-        prompt_id=global_prompt_id,
-    )
-    ex_sorting.tags = [dsa_tag]
-    session.add(ex_sorting)
-
-    ex_stacks = get_or_create_exercise(
-        session,
-        title="Stacks and Queues",
-        lecture_id=dsa_lecture_id,
-        description="The difference between LIFO and FIFO data structures.",
-        lesson_context="A stack supports push/pop at one end (LIFO), a queue ...",
-        prompt_id=global_prompt_id,
-    )
-    session.add(ex_stacks)
-    session.commit()
-
-    assert ex_variables.id is not None
-    assert ex_loops.id is not None
-    assert ex_recursion.id is not None
-    assert ex_sorting.id is not None
-    assert ex_stacks.id is not None
-
-    # -- Submissions / conversations ----------------------------------------------
-    get_or_create_exercise_result(
-        session,
-        exercise_id=ex_variables.id,
-        userinfo_id=userinfo_id_by_user_id[alex_id],
-        conversation=make_conversation(ex_variables.title, ex_variables.description),
-        submitted=True,
-        check_passed=True,
-        days_ago=5,
-        tokens_used=1_240,
-    )
-    get_or_create_exercise_result(
-        session,
-        exercise_id=ex_variables.id,
-        userinfo_id=userinfo_id_by_user_id[sam_id],
-        conversation=make_conversation(ex_variables.title, ex_variables.description),
-        submitted=True,
-        check_passed=False,
-        days_ago=3,
-        tokens_used=980,
-    )
-    get_or_create_exercise_result(
-        session,
-        exercise_id=ex_loops.id,
-        userinfo_id=userinfo_id_by_user_id[alex_id],
-        conversation=make_conversation(ex_loops.title, ex_loops.description)[:3],
-        submitted=False,
-        check_passed=False,
-        days_ago=0,
-        tokens_used=410,
-    )
-    get_or_create_exercise_result(
-        session,
-        exercise_id=ex_sorting.id,
-        userinfo_id=userinfo_id_by_user_id[jamie_id],
-        conversation=make_conversation(ex_sorting.title, ex_sorting.description),
-        submitted=True,
-        check_passed=True,
-        days_ago=1,
-        tokens_used=1_560,
-    )
-
-    # -- Reports --------------------------------------------------------------
-    get_or_create_report(
-        session,
-        exercise_id=ex_loops.id,
-        lecture_id=intro_lecture_id,
-        userinfo_id=userinfo_id_by_user_id[alex_id],
-        report_text=(
-            "The AI tutor keeps insisting my answer is wrong even though I'm"
-            " pretty sure it's correct. Could a tutor take a look?"
-        ),
-        conversation_snapshot=make_conversation(ex_loops.title, ex_loops.description),
-        looked_at=False,
-    )
-    get_or_create_report(
-        session,
-        exercise_id=ex_variables.id,
-        lecture_id=intro_lecture_id,
-        userinfo_id=userinfo_id_by_user_id[sam_id],
-        report_text=(
-            "The exercise description seems to have a typo in the second sentence."
-        ),
-        conversation_snapshot=make_conversation(
-            ex_variables.title, ex_variables.description
-        ),
-        looked_at=True,
-    )
-
-    # -- Spare lecturer registration token ------------------------------------
-    from sqlmodel import select as select_
-
-    from aitutor.models import LecturerRegistrationToken
-
-    existing_token = session.exec(
-        select_(LecturerRegistrationToken).where(
-            LecturerRegistrationToken.token == "demo-lecturer-token"
+    for lecture in LECTURES:
+        seed_lecture(
+            session,
+            lecture,
+            user_ids=user_ids,
+            global_prompt_id=global_prompt.id,
+            now=now,
         )
-    ).one_or_none()
-    if existing_token is None:
-        session.add(
-            LecturerRegistrationToken(
-                token="demo-lecturer-token",
-                created_by=admin_id,
-                created_at=now,
-                expires_at=now + timedelta(days=30),
-            )
+
+    for token in LECTURER_TOKENS:
+        get_or_create(
+            session,
+            LecturerRegistrationToken,
+            {"token": token["token"]},
+            label=f"lecturer registration token '{token['token']}'",
+            created_by=user_ids[token["created_by"]][0],
+            created_at=now,
+            expires_at=now + token["valid_for"],
         )
-        session.commit()
-        print("Created spare lecturer registration token 'demo-lecturer-token'.")
 
 
 def adjust_defaults(session: Session) -> None:
@@ -757,18 +744,9 @@ def main() -> int:
         adjust_defaults(session)
         seed(session)
 
-    print("\nDone. All demo users share the password '1234':")
-    for username in (
-        "admin.demo",
-        "mia.maintainer",
-        "leo.lecturer",
-        "nora.lecturer",
-        "tina.tutor",
-        "alex.student",
-        "sam.student",
-        "jamie.student",
-    ):
-        print(f"  - {username}")
+    print(f"\nDone. All demo users share the password '{DEMO_PASSWORD}':")
+    for user in USERS:
+        print(f"  - {user['username']}")
 
     return 0
 
