@@ -54,6 +54,8 @@ class SeedUser(TypedDict):
     role: UserRoleName
     verified: bool
     permissions: NotRequired[list[GlobalPermissionName]]
+    # Unconfirmed new email address.  Requires ``verified``.
+    pending_email: NotRequired[str]
 
 
 class SeedPrompt(TypedDict):
@@ -181,6 +183,7 @@ USERS: list[SeedUser] = [
         "email": "jamie.student@example.com",
         "role": "STUDENT",
         "verified": True,
+        "pending_email": "jamie.new@example.com",
     },
     {
         "username": "unverified.student",
@@ -431,6 +434,8 @@ def seed_user(session: Session, user: SeedUser) -> tuple[int, int]:
     from sqlmodel import select
 
     from aitutor.models import GlobalPermission, Permission, UserInfo, UserRole
+    from aitutor.routes import VERIFY_EMAIL
+    from aitutor.verification import issue_token
 
     username = user["username"]
     local_user = session.exec(
@@ -463,6 +468,15 @@ def seed_user(session: Session, user: SeedUser) -> tuple[int, int]:
             )
         session.commit()
         print(f"Created user '{username}' (email={user['email']}).")
+
+        if pending_email := user.get("pending_email"):
+            assert user["verified"], "Pending email changes require a verified user."
+            token = issue_token(session, user_id=local_user.id, email=pending_email)
+            session.commit()
+            print(
+                f"  Pending email change to {pending_email}:"
+                f" {VERIFY_EMAIL}?token={token}"
+            )
     else:
         print(f"User '{username}' already exists, skipping.")
 
