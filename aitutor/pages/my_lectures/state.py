@@ -6,7 +6,7 @@ import reflex as rx
 from sqlmodel import and_, select
 
 import aitutor.global_vars as GV
-from aitutor.auth.protection import state_require_role_or_permission
+from aitutor.auth.protection import state_require_login
 from aitutor.auth.state import SessionState
 from aitutor.language_state import BackendTranslations as BT
 from aitutor.models import (
@@ -14,7 +14,6 @@ from aitutor.models import (
     Lecture,
     LectureRole,
     LinkUserLecture,
-    UserRole,
 )
 from aitutor.utilities.lecture_permissions import (
     count_lecture_owners,
@@ -52,7 +51,7 @@ class MyLecturesState(SessionState):
         self.role_filter = value
 
     @rx.event
-    @state_require_role_or_permission(required_role=UserRole.STUDENT)
+    @state_require_login()
     def leave_lecture(self, lecture_id: int):
         """Leave a joined lecture while ensuring every lecture keeps an owner."""
         if self.authenticated_user is None or self.authenticated_user.id is None:
@@ -98,7 +97,7 @@ class MyLecturesState(SessionState):
         )
 
     @rx.event
-    @state_require_role_or_permission(required_role=UserRole.STUDENT)
+    @state_require_login()
     def on_load(self):
         """Initialize the page state."""
         self._global_load()
