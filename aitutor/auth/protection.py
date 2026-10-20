@@ -90,7 +90,7 @@ def page_require_permission(
     page content before redirecting.
 
     Important: This is only handling the redirect on the UI level.  State methods need
-    to be protected separately with :ref:`state_require_role_or_permission` to prevent
+    to be protected separately with :ref:`state_require_permission` to prevent
     unauthorized access to the backend.
 
     Args:
@@ -246,7 +246,7 @@ def state_require_lecture_role(required_role: LectureRole):
     return decorator
 
 
-def state_require_role_or_permission(
+def state_require_permission(
     allowed_permissions: GlobalPermission | Sequence[GlobalPermission],
 ):
     """Protect a state event based on user permissions.
