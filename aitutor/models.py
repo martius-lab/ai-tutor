@@ -26,6 +26,7 @@ from aitutor.global_vars import (
     TIME_ZONE,
     VERIFICATION_TOKEN_VALIDITY,
 )
+from aitutor.utilities.helper_functions import to_tz_aware
 
 # For alembic to properly work, we need to set explicit naming conventions for
 # constraints.  See https://alembic.sqlalchemy.org/en/latest/naming.html
@@ -369,7 +370,7 @@ class BetaExercise(SQLModel, table=True):
         period. If no deadline is set, it counts as started.
         """
         if self.deadline and self.days_to_complete:
-            end = self.deadline.replace(tzinfo=ZoneInfo(TIME_ZONE))
+            end = to_tz_aware(self.deadline)
             start = end - timedelta(days=self.days_to_complete)
             current_time = datetime.now(ZoneInfo(TIME_ZONE))
             return current_time > start
@@ -379,7 +380,7 @@ class BetaExercise(SQLModel, table=True):
     def deadline_exceeded(self) -> bool:
         """Flag whether the beta exercise deadline is over."""
         if self.deadline:
-            deadline = self.deadline.replace(tzinfo=ZoneInfo(TIME_ZONE))
+            deadline = to_tz_aware(self.deadline)
             return datetime.now(ZoneInfo(TIME_ZONE)) > deadline
         return False
 

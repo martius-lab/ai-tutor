@@ -13,6 +13,7 @@ from aitutor.global_vars import (
     VERIFICATION_TOKEN_VALIDITY,
 )
 from aitutor.models import UserInfo, VerificationPurpose, VerificationToken
+from aitutor.utilities.helper_functions import to_tz_aware
 
 logger = logging.getLogger(__name__)
 
@@ -33,19 +34,6 @@ class RedeemResult(StrEnum):
     #: The token is fine, but the account it belongs to is not (see
     #: :func:`redeem_email_token`).
     ERROR = "error"
-
-
-def _to_tz_aware(value: datetime) -> datetime:
-    """
-    Make a datetime read from the database timezone-aware.
-
-    Sqlite does not store the time zone and thus gives us a naive datetime, which is in
-    TIME_ZONE because that is what was written.  Postgres does store it and gives us an
-    aware datetime, which must be left alone.
-    """
-    if value.tzinfo is None:
-        return value.replace(tzinfo=ZoneInfo(TIME_ZONE))
-    return value
 
 
 def issue_token(
@@ -141,7 +129,7 @@ def resend_cooldown_remaining(
         return timedelta(0)
 
     remaining = (
-        _to_tz_aware(entry.last_sent_at)
+        to_tz_aware(entry.last_sent_at)
         + VERIFICATION_RESEND_COOLDOWN
         - datetime.now(ZoneInfo(TIME_ZONE))
     )
@@ -243,7 +231,7 @@ def redeem_email_token(session: Session, token: str) -> RedeemResult:
         return RedeemResult.UNKNOWN
 
     now = datetime.now(ZoneInfo(TIME_ZONE))
-    if now > _to_tz_aware(entry.expires_at):
+    if now > to_tz_aware(entry.expires_at):
         return RedeemResult.EXPIRED
 
     if entry.used_at is not None:
