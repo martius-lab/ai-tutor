@@ -217,7 +217,7 @@ class BetaAITraceLogsState(SessionState):
         if exercise is None:
             return None
         lecture = exercise.lecture
-        userinfo = session.get(UserInfo, beta_result.userinfo_id)
+        userinfo = beta_result.userinfo
         latest_trace_log = trace_logs[-1]
         return TraceLogRow(
             beta_exercise_result_id=beta_result_id,
@@ -300,7 +300,6 @@ class BetaAITraceLogsState(SessionState):
                 )
 
             export_data = self._build_trace_export_for_result(
-                session=session,
                 beta_result=beta_result,
                 trace_logs=trace_logs,
             )
@@ -309,14 +308,13 @@ class BetaAITraceLogsState(SessionState):
     def _build_trace_export_for_result(
         self,
         *,
-        session: Session,
         beta_result: BetaExerciseResult,
         trace_logs: list[BetaExerciseTraceLog],
     ) -> dict:
         """Build a copy/export payload for one Beta AI exercise result."""
         exercise = beta_result.beta_exercise
         lecture = exercise.lecture if exercise else None
-        userinfo = session.get(UserInfo, beta_result.userinfo_id)
+        userinfo = beta_result.userinfo
         trace_history = [trace_log.trace_entry for trace_log in trace_logs]
         latest_trace = trace_history[-1] if trace_history else {}
 
@@ -349,7 +347,6 @@ class BetaAITraceLogsState(SessionState):
             ):
                 return None
             return self._build_trace_export_for_result(
-                session=session,
                 beta_result=beta_result,
                 trace_logs=trace_logs,
             )
