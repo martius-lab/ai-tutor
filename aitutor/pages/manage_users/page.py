@@ -6,8 +6,10 @@ from aitutor import routes
 from aitutor.auth.protection import page_require_permission
 from aitutor.models import GlobalPermission
 from aitutor.pages.manage_users.components import edit_user_dialog, users_table
+from aitutor.pages.manage_users.state import ManageUsersState
 from aitutor.pages.navbar import with_navbar
 from aitutor.pages.navbar_admin import with_admin_navbar
+from aitutor.utilities.filtering_components import search_badges, search_bar
 
 
 @page_require_permission(allowed_permissions=[GlobalPermission.MAINTAINER])
@@ -17,6 +19,11 @@ def manage_users_page() -> rx.Component:
     """Manage users page."""
     return rx.center(
         rx.vstack(
+            search_bar(ManageUsersState),
+            rx.cond(
+                ManageUsersState.search_values.length() > 0,  # type: ignore
+                search_badges(ManageUsersState),
+            ),
             users_table(),
             edit_user_dialog(),
             spacing="3",
