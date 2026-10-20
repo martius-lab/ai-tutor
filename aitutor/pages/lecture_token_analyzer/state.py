@@ -8,7 +8,6 @@ import reflex as rx
 from sqlalchemy.sql.elements import ColumnElement
 from sqlmodel import func, select
 
-import aitutor.global_vars as gv
 from aitutor import routes
 from aitutor.auth.protection import state_require_lecture_role
 from aitutor.auth.state import SessionState
@@ -27,7 +26,9 @@ from aitutor.utilities.lecture_permissions import user_may_view_lecture_submissi
 
 ALL_EXERCISES_OPTION = "All"
 ALL_USERS_OPTION = "All"
-BETA_EXERCISE_SUFFIX = f" ({gv.LEVEL_AI_BADGE_LABEL})"
+# Also identifies Level AI entries in the selected option, so it must not depend on
+# the UI language.
+BETA_EXERCISE_SUFFIX = " (Level)"
 USER_ANALYSIS_VIEW = "user"
 EXERCISE_ANALYSIS_VIEW = "exercise"
 

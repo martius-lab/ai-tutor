@@ -1589,6 +1589,11 @@ Please test the chat for functionality after changing the model.
     # Beta AI Strings ------------------------------------------------------------------
 
     @rx.var
+    def level_ai_badge_label(self) -> str:
+        """Label of the badge that marks Level AI exercises."""
+        return self.translate(de="Level", en="Level")
+
+    @rx.var
     def beta_ai_source_material_help(self) -> str:
         return self.translate(
             de="Lade zuerst eine PDF mit dem relevanten Lehrmaterial hoch, zum Beispiel Vorlesungsfolien oder ein Skript. Prüfe anschließend die Textvorschau: Dieses Material dient der KI als Grundlage für die Konzepte und Fragen.",
