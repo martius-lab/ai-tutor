@@ -423,6 +423,7 @@ class BetaExerciseResult(SQLModel, table=True):
 
     # ORM relationships
     beta_exercise: Optional[BetaExercise] = Relationship()
+    userinfo: UserInfo = Relationship()
 
     def __repr__(self):
         return (
