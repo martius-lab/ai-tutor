@@ -4,8 +4,8 @@ from collections.abc import Sequence
 
 import reflex as rx
 
-import aitutor.global_vars as gv
 from aitutor.components.dialogs import destructive_confirm
+from aitutor.components.level_ai_badge import level_ai_badge
 from aitutor.global_vars import SEARCH_TAG_KEY, TIME_ZONE
 from aitutor.language_state import LanguageState
 from aitutor.models import BetaExercise, Exercise
@@ -330,7 +330,7 @@ def show_beta_exercise(exercise: BetaExercise):
         rx.table.cell(
             rx.hstack(
                 rx.text(exercise.title),
-                gv.level_ai_badge(),
+                level_ai_badge(),
                 align="center",
                 wrap="wrap",
             ),

@@ -3,6 +3,7 @@
 import reflex as rx
 
 import aitutor.global_vars as gv
+from aitutor.components.level_ai_badge import level_ai_badge
 from aitutor.language_state import LanguageState as LS
 from aitutor.pages.beta_ai_chat.state import BetaAIChatState
 
@@ -14,7 +15,7 @@ def beta_chat_header() -> rx.Component:
             rx.hstack(
                 rx.heading(BetaAIChatState.exercise_title, size="6"),
                 rx.spacer(),
-                gv.level_ai_badge(),
+                level_ai_badge(),
                 width="100%",
                 align="center",
             ),
