@@ -4,10 +4,10 @@ import reflex as rx
 from sqlmodel import select
 
 from aitutor import routes
-from aitutor.auth.protection import state_require_role_or_permission
+from aitutor.auth.protection import state_require_login
 from aitutor.auth.state import SessionState
 from aitutor.language_state import BackendTranslations as BT
-from aitutor.models import Exercise, ExerciseResult, UserRole
+from aitutor.models import Exercise, ExerciseResult
 from aitutor.pages.chat.state import ChatMessage, Role
 from aitutor.utilities.lecture_permissions import user_may_view_lecture
 
@@ -22,7 +22,7 @@ class FinishedViewState(SessionState):
     current_lecture_id: int | None = None
 
     @rx.event
-    @state_require_role_or_permission(required_role=UserRole.STUDENT)
+    @state_require_login()
     def on_load(self):
         """Loads the finished exercise and conversation."""
 
