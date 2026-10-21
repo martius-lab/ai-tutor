@@ -188,12 +188,15 @@ class AllLecturesState(SessionState):
         self.load_lectures()
         self.close_join_dialog()
         self.close_details_dialog()
-        return rx.toast.success(
-            description=BT.joined_lecture_successfully(self.language),
-            duration=5000,
-            position="bottom-center",
-            invert=True,
-        )
+        return [
+            rx.toast.success(
+                description=BT.joined_lecture_successfully(self.language),
+                duration=5000,
+                position="bottom-center",
+                invert=True,
+            ),
+            rx.redirect(f"{routes.LECTURE_OVERVIEW}/{lecture_id}"),
+        ]
 
     @rx.event
     @state_require_role_or_permission(required_role=UserRole.STUDENT)
