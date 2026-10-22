@@ -13,6 +13,7 @@ from aitutor.beta_ai.diagnosis import (
     validate_and_normalize_diagnosis,
 )
 from aitutor.beta_ai.policy import PolicyPreview, preview_policy_action
+from aitutor.language_state import BackendTranslations as BT
 from aitutor.models import (
     BetaConcept,
     BetaCorePoint,
@@ -230,7 +231,7 @@ class BetaAIDiagnosisLabState(SessionState):
             exercise = session.get(BetaExercise, exercise_id)
             if exercise is None:
                 return rx.toast.error(
-                    description="Beta AI exercise not found.",
+                    description=BT.beta_ai_exercise_not_found(self.language),
                     duration=5000,
                     position="bottom-center",
                     invert=True,
@@ -268,7 +269,7 @@ class BetaAIDiagnosisLabState(SessionState):
             concept = session.get(BetaConcept, concept_id)
             if concept is None:
                 return rx.toast.error(
-                    description="Beta AI concept not found.",
+                    description=BT.beta_ai_concept_not_found(self.language),
                     duration=5000,
                     position="bottom-center",
                     invert=True,
@@ -304,7 +305,7 @@ class BetaAIDiagnosisLabState(SessionState):
         """Run a deterministic mock diagnosis for UI/data-flow testing."""
         if self.selected_concept_id is None:
             return rx.toast.error(
-                description="Select a concept first.",
+                description=BT.beta_ai_select_concept_first(self.language),
                 duration=5000,
                 position="bottom-center",
                 invert=True,
@@ -348,7 +349,7 @@ class BetaAIDiagnosisLabState(SessionState):
         async with self:
             if self.selected_concept_id is None:
                 yield rx.toast.error(
-                    description="Select a concept first.",
+                    description=BT.beta_ai_select_concept_first(self.language),
                     duration=5000,
                     position="bottom-center",
                     invert=True,
@@ -356,7 +357,7 @@ class BetaAIDiagnosisLabState(SessionState):
                 return
             if not self.student_answer.strip():
                 yield rx.toast.error(
-                    description="Enter a student answer first.",
+                    description=BT.beta_ai_enter_answer_first(self.language),
                     duration=5000,
                     position="bottom-center",
                     invert=True,
@@ -392,7 +393,7 @@ class BetaAIDiagnosisLabState(SessionState):
             async with self:
                 self.running_llm_diagnosis = False
             yield rx.toast.error(
-                description=f"LLM diagnosis failed: {exc}",
+                description=BT.beta_ai_llm_diagnosis_failed(self.language, exc),
                 duration=5000,
                 position="bottom-center",
                 invert=True,
@@ -424,7 +425,7 @@ class BetaAIDiagnosisLabState(SessionState):
             )
             self.running_llm_diagnosis = False
         yield rx.toast.success(
-            description="LLM diagnosis completed.",
+            description=BT.beta_ai_llm_diagnosis_completed(self.language),
             duration=5000,
             position="bottom-center",
             invert=True,
