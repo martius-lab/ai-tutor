@@ -38,6 +38,8 @@ LECTURE_MANAGE_EXERCISES_FIELD_MAX_LENGTHS = {
     "tag_name": 100,
 }
 
+LESSON_CONTEXT_PDF_MAX_SIZE = 50 * 1024 * 1024  # 50 MB
+
 
 class DialogMode(Enum):
     """Enum for the mode of the add/edit function."""
@@ -509,13 +511,28 @@ class LectureManageExercisesState(FilterMixin, SessionState):
             # remove line breaks and double spaces
             text = " ".join(text.replace("\n", " ").split())
 
-            # save PDF text in lesson_context
-            self.lesson_context = (
+            # save PDF text in lesson_context (truncated to max length)
+            new_lesson_context = (
                 self.lesson_context
                 + "\n\n―――――――――――――――――――――――――――――――――\n"
                 + text
                 + "\n―――――――――――――――――――――――――――――――――\n\n"
             )
+            self.set_lesson_context(new_lesson_context)
+            if (
+                len(new_lesson_context)
+                > LECTURE_MANAGE_EXERCISES_FIELD_MAX_LENGTHS["lesson_context"]
+            ):
+                yield rx.toast.warning(
+                    BT.lesson_context_pdf_truncated_warning_message(
+                        self.language,
+                        LECTURE_MANAGE_EXERCISES_FIELD_MAX_LENGTHS["lesson_context"],
+                    ),
+                    duration=10000,
+                    position="bottom-center",
+                    invert=True,
+                )
+
             # save PDF name
             self.lesson_file_name = file.name or "<unnamed file>"
         self.extracting_lesson_material = False

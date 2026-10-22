@@ -2363,6 +2363,18 @@ class BackendTranslations:
             en=f"Added and renamed conflicting prompts: \n {prompt_list}",
         )
 
+    @staticmethod
+    def lesson_context_pdf_truncated_warning_message(
+        language: Language, max_length: int
+    ) -> str:
+        return translate(
+            language,
+            de=f"Der Aufgabenkontext wurde auf {max_length:,} Zeichen gekürzt.".replace(
+                ",", "."
+            ),
+            en=f"The lesson context was truncated to {max_length:,} characters.",
+        )
+
     # FinishedViewState ----------------------------------------------------------------
     @staticmethod
     def submission_deleted_title(language: Language) -> str:
