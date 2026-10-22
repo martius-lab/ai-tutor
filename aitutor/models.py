@@ -407,6 +407,7 @@ class BetaExerciseResult(SQLModel, table=True):
     submit_time_stamp: Optional[datetime] = Field(
         sa_column=Column(type_=DateTime(timezone=True)), default=None
     )
+    tokens_used: int = Field(default=0)
     started_at: Optional[datetime] = Field(
         sa_column=Column(type_=DateTime(timezone=True)), default=None
     )

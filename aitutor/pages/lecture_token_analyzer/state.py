@@ -2,8 +2,10 @@
 
 from dataclasses import dataclass
 from math import floor, log10
+from typing import cast
 
 import reflex as rx
+from sqlalchemy.sql.elements import ColumnElement
 from sqlmodel import func, select
 
 from aitutor import routes
@@ -11,6 +13,8 @@ from aitutor.auth.protection import state_require_lecture_role
 from aitutor.auth.state import SessionState
 from aitutor.language_state import BackendTranslations as BT
 from aitutor.models import (
+    BetaExercise,
+    BetaExerciseResult,
     Exercise,
     ExerciseResult,
     Lecture,
@@ -22,6 +26,7 @@ from aitutor.utilities.lecture_permissions import user_may_view_lecture_submissi
 
 ALL_EXERCISES_OPTION = "All"
 ALL_USERS_OPTION = "All"
+BETA_EXERCISE_SUFFIX = " (Beta)"
 USER_ANALYSIS_VIEW = "user"
 EXERCISE_ANALYSIS_VIEW = "exercise"
 
@@ -42,6 +47,7 @@ class ExerciseTableRow:
     rank: int
     exercise_title: str
     tokens_used: int
+    is_beta: bool = False
 
 
 class LectureTokenAnalyzerState(SessionState):
@@ -135,24 +141,6 @@ class LectureTokenAnalyzerState(SessionState):
         self.load_user_token_rows()
         self.load_exercise_token_rows()
 
-    def _clear_token_analyzer_state(self):
-        """Clear loaded token analyzer state."""
-        self.user_table_rows = []
-        self.user_chart_data = []
-        self.user_chart_ticks = []
-        self.active_analysis_view = USER_ANALYSIS_VIEW
-        self.exercise_options = []
-        self.selected_exercise_name = ALL_EXERCISES_OPTION
-        self.exercise_filter_query = ""
-        self.exercise_table_rows = []
-        self.exercise_chart_data = []
-        self.exercise_chart_ticks = []
-        self.exercise_bar_size = 3
-        self.user_options = []
-        self.selected_user_name = ALL_USERS_OPTION
-        self.user_filter_query = ""
-        self.user_bar_size = 3
-
     @rx.var(initial_value="All")
     def all_option_label(self) -> str:
         """Localized label for the 'all' select option."""
@@ -240,10 +228,28 @@ class LectureTokenAnalyzerState(SessionState):
         """Total tokens across all rows of the exercise analysis table."""
         return sum(row.tokens_used for row in self.exercise_table_rows)
 
+    def _clear_token_analyzer_state(self):
+        """Clear loaded token analyzer state."""
+        self.user_table_rows = []
+        self.user_chart_data = []
+        self.user_chart_ticks = []
+        self.active_analysis_view = USER_ANALYSIS_VIEW
+        self.exercise_options = []
+        self.selected_exercise_name = ALL_EXERCISES_OPTION
+        self.exercise_filter_query = ""
+        self.exercise_table_rows = []
+        self.exercise_chart_data = []
+        self.exercise_chart_ticks = []
+        self.exercise_bar_size = 3
+        self.user_options = []
+        self.selected_user_name = ALL_USERS_OPTION
+        self.user_filter_query = ""
+        self.user_bar_size = 3
+
     @rx.event
     @state_require_lecture_role(LectureRole.TUTOR)
     def load_exercise_options(self):
-        """Load selectable exercises for filtering."""
+        """Load selectable standard and Better AI exercises for filtering."""
         if self.current_lecture_id is None:
             self.exercise_options = []
             return
@@ -254,7 +260,16 @@ class LectureTokenAnalyzerState(SessionState):
                 .where(Exercise.lecture_id == self.current_lecture_id)
                 .order_by(func.lower(Exercise.title))
             ).all()
-            self.exercise_options = [ALL_EXERCISES_OPTION, *exercises]
+            beta_exercises = session.exec(
+                select(BetaExercise.title)
+                .where(BetaExercise.lecture_id == self.current_lecture_id)
+                .order_by(func.lower(BetaExercise.title))
+            ).all()
+            self.exercise_options = [
+                ALL_EXERCISES_OPTION,
+                *exercises,
+                *(f"{title}{BETA_EXERCISE_SUFFIX}" for title in beta_exercises),
+            ]
 
     @rx.event
     @state_require_lecture_role(LectureRole.TUTOR)
@@ -265,7 +280,7 @@ class LectureTokenAnalyzerState(SessionState):
             return
 
         with rx.session() as session:
-            users = session.exec(
+            standard_users = session.exec(
                 select(LocalUser.username)
                 .select_from(LocalUser)
                 .join(UserInfo)
@@ -275,6 +290,28 @@ class LectureTokenAnalyzerState(SessionState):
                 .distinct()
                 .order_by(LocalUser.username)
             ).all()
+            beta_users = session.exec(
+                select(LocalUser.username)
+                .select_from(LocalUser)
+                .join(UserInfo)
+                .join(
+                    BetaExerciseResult,
+                    cast(
+                        ColumnElement[bool],
+                        BetaExerciseResult.userinfo_id == UserInfo.id,
+                    ),
+                )
+                .join(
+                    BetaExercise,
+                    cast(
+                        ColumnElement[bool],
+                        BetaExercise.id == BetaExerciseResult.beta_exercise_id,
+                    ),
+                )
+                .where(BetaExercise.lecture_id == self.current_lecture_id)
+                .distinct()
+            ).all()
+            users = sorted(set(standard_users) | set(beta_users), key=str.lower)
             self.user_options = [ALL_USERS_OPTION, *users]
 
     @rx.event
@@ -293,24 +330,71 @@ class LectureTokenAnalyzerState(SessionState):
             return
 
         with rx.session() as session:
-            total_tokens = func.sum(ExerciseResult.tokens_used)
-
-            stmt = select(LocalUser.username, total_tokens).select_from(LocalUser)
-            stmt = stmt.join(UserInfo).join(ExerciseResult).join(Exercise)
-            stmt = stmt.where(Exercise.lecture_id == self.current_lecture_id)
-
-            if self.selected_exercise_name != ALL_EXERCISES_OPTION:
-                stmt = stmt.where(Exercise.title == self.selected_exercise_name)
-
-            stmt = stmt.group_by(LocalUser.username).order_by(
-                total_tokens.desc(), func.lower(LocalUser.username)
+            selected_is_beta = self.selected_exercise_name.endswith(
+                BETA_EXERCISE_SUFFIX
             )
+            selected_title = (
+                self.selected_exercise_name[: -len(BETA_EXERCISE_SUFFIX)]
+                if selected_is_beta
+                else self.selected_exercise_name
+            )
+            standard_rows: list[tuple[str, int | None]] = []
+            beta_rows: list[tuple[str, int | None]] = []
 
+            if (
+                self.selected_exercise_name == ALL_EXERCISES_OPTION
+                or not selected_is_beta
+            ):
+                standard_total = func.sum(ExerciseResult.tokens_used)
+                standard_stmt = (
+                    select(LocalUser.username, standard_total)
+                    .select_from(LocalUser)
+                    .join(UserInfo)
+                    .join(ExerciseResult)
+                    .join(Exercise)
+                    .where(Exercise.lecture_id == self.current_lecture_id)
+                    .group_by(LocalUser.username)
+                )
+                if self.selected_exercise_name != ALL_EXERCISES_OPTION:
+                    standard_stmt = standard_stmt.where(
+                        Exercise.title == selected_title
+                    )
+                standard_rows = list(session.exec(standard_stmt).all())
+
+            if self.selected_exercise_name == ALL_EXERCISES_OPTION or selected_is_beta:
+                beta_total = func.sum(BetaExerciseResult.tokens_used)
+                beta_stmt = (
+                    select(LocalUser.username, beta_total)
+                    .select_from(LocalUser)
+                    .join(UserInfo)
+                    .join(
+                        BetaExerciseResult,
+                        cast(
+                            ColumnElement[bool],
+                            BetaExerciseResult.userinfo_id == UserInfo.id,
+                        ),
+                    )
+                    .join(
+                        BetaExercise,
+                        cast(
+                            ColumnElement[bool],
+                            BetaExercise.id == BetaExerciseResult.beta_exercise_id,
+                        ),
+                    )
+                    .where(BetaExercise.lecture_id == self.current_lecture_id)
+                    .group_by(LocalUser.username)
+                )
+                if self.selected_exercise_name != ALL_EXERCISES_OPTION:
+                    beta_stmt = beta_stmt.where(BetaExercise.title == selected_title)
+                beta_rows = list(session.exec(beta_stmt).all())
+
+            sorted_totals = self._merge_user_token_totals(
+                standard_rows,
+                beta_rows,
+            )
             self.user_table_rows = [
                 TableRow(rank=index, username=username, tokens_used=tokens_used)
-                for index, (username, tokens_used) in enumerate(
-                    session.exec(stmt).all(), start=1
-                )
+                for index, (username, tokens_used) in enumerate(sorted_totals, start=1)
             ]
 
             self.user_chart_data = self._build_user_chart_data(self.user_table_rows)
@@ -333,29 +417,45 @@ class LectureTokenAnalyzerState(SessionState):
             return
 
         with rx.session() as session:
-            total_tokens = func.sum(ExerciseResult.tokens_used)
-
-            stmt = select(Exercise.title, total_tokens).select_from(Exercise)
-            stmt = stmt.join(ExerciseResult).join(UserInfo).join(LocalUser)
-            stmt = stmt.where(Exercise.lecture_id == self.current_lecture_id)
-
-            if self.selected_user_name != ALL_USERS_OPTION:
-                stmt = stmt.where(LocalUser.username == self.selected_user_name)
-
-            stmt = stmt.group_by(Exercise.title).order_by(
-                total_tokens.desc(), func.lower(Exercise.title)
+            standard_total = func.sum(ExerciseResult.tokens_used)
+            standard_stmt = (
+                select(Exercise.title, standard_total)
+                .select_from(Exercise)
+                .join(ExerciseResult)
+                .join(UserInfo)
+                .join(LocalUser)
+                .where(Exercise.lecture_id == self.current_lecture_id)
+                .group_by(Exercise.title)
+            )
+            beta_total = func.sum(BetaExerciseResult.tokens_used)
+            beta_stmt = (
+                select(BetaExercise.title, beta_total)
+                .select_from(BetaExercise)
+                .join(BetaExerciseResult)
+                .join(
+                    UserInfo,
+                    cast(
+                        ColumnElement[bool],
+                        UserInfo.id == BetaExerciseResult.userinfo_id,
+                    ),
+                )
+                .join(LocalUser)
+                .where(BetaExercise.lecture_id == self.current_lecture_id)
+                .group_by(BetaExercise.title)
             )
 
-            self.exercise_table_rows = [
-                ExerciseTableRow(
-                    rank=index,
-                    exercise_title=exercise_title,
-                    tokens_used=tokens_used,
+            if self.selected_user_name != ALL_USERS_OPTION:
+                standard_stmt = standard_stmt.where(
+                    LocalUser.username == self.selected_user_name
                 )
-                for index, (exercise_title, tokens_used) in enumerate(
-                    session.exec(stmt).all(), start=1
+                beta_stmt = beta_stmt.where(
+                    LocalUser.username == self.selected_user_name
                 )
-            ]
+
+            self.exercise_table_rows = self._rank_exercise_token_rows(
+                list(session.exec(standard_stmt).all()),
+                list(session.exec(beta_stmt).all()),
+            )
 
             self.exercise_chart_data = self._build_exercise_chart_data(
                 self.exercise_table_rows
@@ -366,6 +466,44 @@ class LectureTokenAnalyzerState(SessionState):
             self.exercise_bar_size = self._get_dynamic_bar_size(
                 len(self.exercise_table_rows)
             )
+
+    @staticmethod
+    def _merge_user_token_totals(
+        standard_rows: list[tuple[str, int | None]],
+        beta_rows: list[tuple[str, int | None]],
+    ) -> list[tuple[str, int]]:
+        """Combine standard and Better AI usage and return ranked source rows."""
+        totals_by_user: dict[str, int] = {}
+        for username, tokens_used in [*standard_rows, *beta_rows]:
+            totals_by_user[username] = totals_by_user.get(username, 0) + int(
+                tokens_used or 0
+            )
+        return sorted(
+            totals_by_user.items(), key=lambda item: (-item[1], item[0].lower())
+        )
+
+    @staticmethod
+    def _rank_exercise_token_rows(
+        standard_rows: list[tuple[str, int | None]],
+        beta_rows: list[tuple[str, int | None]],
+    ) -> list[ExerciseTableRow]:
+        """Combine exercise usage while retaining the Better AI row marker."""
+        combined_rows = [
+            (title, int(tokens_used or 0), False)
+            for title, tokens_used in standard_rows
+        ] + [(title, int(tokens_used or 0), True) for title, tokens_used in beta_rows]
+        combined_rows.sort(key=lambda row: (-row[1], row[0].lower(), row[2]))
+        return [
+            ExerciseTableRow(
+                rank=index,
+                exercise_title=exercise_title,
+                tokens_used=tokens_used,
+                is_beta=is_beta,
+            )
+            for index, (exercise_title, tokens_used, is_beta) in enumerate(
+                combined_rows, start=1
+            )
+        ]
 
     @staticmethod
     def _filter_options_by_query(

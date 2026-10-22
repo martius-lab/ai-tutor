@@ -4,8 +4,9 @@ from difflib import SequenceMatcher
 from typing import Literal
 
 from openai import AsyncOpenAI
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, PrivateAttr
 
+from aitutor.beta_ai.schemas import OpenAIUsageError
 from aitutor.config import get_config
 from aitutor.env_settings import get_env_settings
 from aitutor.models import BetaCorePoint, BetaMisconception
@@ -68,6 +69,16 @@ class DiagnosisResponse(BaseModel):
     integrity_risk: IntegrityRisk = "none"
     requires_integrity_reset: bool = False
     integrity_rationale: str = ""
+    _tokens_used: int = PrivateAttr(default=0)
+
+    @property
+    def tokens_used(self) -> int:
+        """Return API usage metadata that is excluded from structured output."""
+        return self._tokens_used
+
+    @tokens_used.setter
+    def tokens_used(self, value: int) -> None:
+        self._tokens_used = value
 
 
 class DiagnosisValidationResult(BaseModel):
@@ -593,7 +604,11 @@ async def run_llm_diagnosis(
 
     parsed = completion.choices[0].message.parsed
     if parsed is None:
-        raise ValueError("The model did not return a valid diagnosis.")
+        raise OpenAIUsageError(
+            "The model did not return a valid diagnosis.",
+            tokens_used=completion.usage.total_tokens if completion.usage else 0,
+        )
+    parsed.tokens_used = completion.usage.total_tokens if completion.usage else 0
     return parsed
 
 

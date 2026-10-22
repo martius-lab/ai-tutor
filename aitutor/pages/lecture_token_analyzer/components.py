@@ -294,7 +294,17 @@ def show_exercise_table_row(table_row: ExerciseTableRow) -> rx.Component:
     """Show token usage in an exercise table row."""
     return rx.table.row(
         rx.table.cell(table_row.rank),
-        rx.table.cell(table_row.exercise_title),
+        rx.table.cell(
+            rx.hstack(
+                rx.text(table_row.exercise_title),
+                rx.cond(
+                    table_row.is_beta,
+                    rx.badge("Beta", color_scheme="purple"),
+                ),
+                align="center",
+                spacing="2",
+            )
+        ),
         rx.table.cell(table_row.tokens_used),
         style={"_hover": {"bg": rx.color("gray", 3)}},
         align="center",
