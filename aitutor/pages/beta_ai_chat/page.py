@@ -9,6 +9,7 @@ from aitutor.beta_ai.legacy_page_protection import (
 from aitutor.language_state import LanguageState
 from aitutor.models import UserRole
 from aitutor.pages.beta_ai_chat.components import (
+    analysis_preference,
     beta_submission_status,
     message_input,
     messages_panel,
@@ -120,6 +121,7 @@ def beta_ai_chat_page() -> rx.Component:
                     rx.box(rx.spinner()),
                 ),
                 message_input(),
+                analysis_preference(),
                 spacing="3",
                 justify="start",
                 width="100%",

@@ -401,6 +401,7 @@ class BetaExerciseResult(SQLModel, table=True):
         sa_column=Column(JSON), default=[]
     )
     completion_unlocked: bool = Field(default=False)
+    analysis_allowed: bool = Field(default=True)
     completed_at: Optional[datetime] = Field(
         sa_column=Column(type_=DateTime(timezone=True)), default=None
     )
@@ -539,7 +540,6 @@ class BetaCorePoint(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     beta_concept_id: int = Field(foreign_key="betaconcept.id", ondelete="CASCADE")
     text: str = Field(nullable=False, default="")
-    required: bool = Field(default=True)
     order_index: int = Field(default=0)
 
     # ORM relationships

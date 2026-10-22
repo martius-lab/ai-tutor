@@ -93,6 +93,7 @@ def trace_result_ids_statement(lecture_id: int | None):
     )
     if lecture_id is not None:
         statement = statement.where(BetaExercise.lecture_id == lecture_id)
+    statement = statement.where(BetaExerciseResult.analysis_allowed == True)  # noqa: E712
     return statement.group_by(
         col(BetaExerciseTraceLog.beta_exercise_result_id)
     ).order_by(func.max(BetaExerciseTraceLog.created_at).desc())
@@ -219,7 +220,7 @@ class BetaAITraceLogsState(SessionState):
         if not trace_logs:
             return None
         beta_result = session.get(BetaExerciseResult, beta_result_id)
-        if beta_result is None:
+        if beta_result is None or not beta_result.analysis_allowed:
             return None
         exercise = self._exercise_for_result(session, beta_result)
         if exercise is None:
@@ -298,8 +299,10 @@ class BetaAITraceLogsState(SessionState):
             beta_result = session.get(BetaExerciseResult, beta_exercise_result_id)
             if (
                 beta_result is None
+                or not beta_result.analysis_allowed
                 or self._exercise_for_result(session, beta_result) is None
             ):
+                self.clear_selection()
                 return rx.toast.error(
                     description=BT.beta_ai_result_not_found(self.language),
                     duration=5000,
@@ -351,6 +354,7 @@ class BetaAITraceLogsState(SessionState):
             beta_result = session.get(BetaExerciseResult, beta_exercise_result_id)
             if (
                 beta_result is None
+                or not beta_result.analysis_allowed
                 or not trace_logs
                 or self._exercise_for_result(session, beta_result) is None
             ):

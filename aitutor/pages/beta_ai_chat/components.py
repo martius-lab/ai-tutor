@@ -148,6 +148,43 @@ def messages_panel() -> rx.Component:
     )
 
 
+def analysis_preference() -> rx.Component:
+    """Keep the per-exercise analysis option reachable below the chat controls."""
+    return rx.flex(
+        rx.checkbox(
+            LS.beta_ai_analysis_label,
+            checked=BetaAIChatState.analysis_allowed,
+            on_change=BetaAIChatState.set_analysis_allowed,
+            size="2",
+        ),
+        rx.dialog.root(
+            rx.dialog.trigger(
+                rx.button(
+                    LS.beta_ai_analysis_details,
+                    variant="ghost",
+                    size="1",
+                    type="button",
+                )
+            ),
+            rx.dialog.content(
+                rx.dialog.title(LS.beta_ai_analysis_details),
+                rx.markdown(LS.beta_ai_privacy_addendum),
+                rx.text(LS.beta_ai_analysis_explanation, size="2"),
+                rx.box(
+                    rx.dialog.close(rx.button("OK", variant="soft", type="button")),
+                    margin_top="1em",
+                ),
+                max_width="32em",
+            ),
+        ),
+        align="center",
+        justify="between",
+        wrap="wrap",
+        gap="2",
+        width="100%",
+    )
+
+
 def report_conversation_button() -> rx.Component:
     """Render the standard report dialog for the Better AI conversation."""
     return rx.alert_dialog.root(
