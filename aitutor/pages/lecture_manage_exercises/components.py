@@ -4,6 +4,7 @@ from collections.abc import Sequence
 
 import reflex as rx
 
+import aitutor.global_vars as gv
 from aitutor.components.dialogs import destructive_confirm
 from aitutor.global_vars import SEARCH_TAG_KEY, TIME_ZONE
 from aitutor.language_state import LanguageState
@@ -329,7 +330,7 @@ def show_beta_exercise(exercise: BetaExercise):
         rx.table.cell(
             rx.hstack(
                 rx.text(exercise.title),
-                rx.badge("Beta", color_scheme="purple"),
+                gv.level_ai_badge(),
                 align="center",
                 wrap="wrap",
             ),
@@ -495,7 +496,7 @@ def add_exercise_button() -> rx.Component:
             rx.vstack(
                 rx.dialog.close(
                     rx.button(
-                        "AI Tutor",
+                        LanguageState.classic_ai,
                         on_click=ManageExercisesState.open_add_dialog,
                         width="100%",
                         _hover={"cursor": "pointer"},

@@ -119,7 +119,7 @@ def render_exercise_card(exercise: ExerciseCard) -> rx.Component:
                 ),
                 rx.cond(
                     exercise.is_beta,
-                    rx.badge("Beta", color_scheme="purple"),
+                    gv.level_ai_badge(),
                 ),
                 align="center",
                 justify="between",

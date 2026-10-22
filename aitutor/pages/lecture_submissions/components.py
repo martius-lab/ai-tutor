@@ -2,6 +2,7 @@
 
 import reflex as rx
 
+import aitutor.global_vars as gv
 from aitutor import routes
 from aitutor.global_vars import (
     SEARCH_EXERCISE_KEY,
@@ -42,7 +43,7 @@ def show_table_row(table_row: LectureSubmissionTableRow) -> rx.Component:
                 rx.text(table_row.exercise_title),
                 rx.cond(
                     table_row.is_beta,
-                    rx.badge("Beta", color_scheme="purple"),
+                    gv.level_ai_badge(),
                 ),
                 align="center",
                 wrap="wrap",
