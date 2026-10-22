@@ -154,6 +154,15 @@ def _required_core_point_ids(core_points: list[BetaCorePoint]) -> set[int]:
     }
 
 
+def _clear_answer_coverage(
+    diagnosis: DiagnosisResponse, valid_core_point_ids: set[int]
+) -> None:
+    """Discard current-answer coverage when it cannot count as student evidence."""
+    diagnosis.covered_core_point_ids = []
+    diagnosis.missing_core_point_ids = sorted(valid_core_point_ids)
+    diagnosis.completeness = 0.0
+
+
 def detect_non_answer_intent(student_answer: str) -> StudentIntent | None:
     """Detect obvious non-answer requests before evidence is accepted.
 
@@ -391,27 +400,21 @@ def validate_and_normalize_diagnosis(
         )
         normalized.student_intent = "meta_chat"
         normalized.is_answer_attempt = False
-        normalized.covered_core_point_ids = []
-        normalized.missing_core_point_ids = sorted(valid_core_point_ids)
-        normalized.completeness = 0.0
+        _clear_answer_coverage(normalized, valid_core_point_ids)
 
     if not normalized.is_answer_attempt:
         warnings.append(
             f"Student intent '{normalized.student_intent}' is not answer "
             "evidence; coverage removed."
         )
-        normalized.covered_core_point_ids = []
-        normalized.missing_core_point_ids = sorted(valid_core_point_ids)
-        normalized.completeness = 0.0
+        _clear_answer_coverage(normalized, valid_core_point_ids)
 
     if not normalized.is_student_owned_evidence:
         warnings.append(
             f"Evidence origin '{normalized.evidence_origin}' is not "
             "student-owned; coverage removed."
         )
-        normalized.covered_core_point_ids = []
-        normalized.missing_core_point_ids = sorted(valid_core_point_ids)
-        normalized.completeness = 0.0
+        _clear_answer_coverage(normalized, valid_core_point_ids)
 
     if (
         normalized.is_answer_attempt
@@ -422,9 +425,7 @@ def validate_and_normalize_diagnosis(
             "Keyword-only or very short answer rejected as insufficient "
             "conceptual evidence."
         )
-        normalized.covered_core_point_ids = []
-        normalized.missing_core_point_ids = sorted(valid_core_point_ids)
-        normalized.completeness = 0.0
+        _clear_answer_coverage(normalized, valid_core_point_ids)
 
     if normalized.task_relevance != diagnosis.task_relevance:
         warnings.append("Task relevance score was clamped to the 0.0-1.0 range.")

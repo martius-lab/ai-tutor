@@ -1,7 +1,7 @@
 """State for the student Beta AI finished view."""
 
 import reflex as rx
-from sqlmodel import select
+from sqlmodel import Session, select
 
 from aitutor import routes
 from aitutor.auth.protection import state_require_role_or_permission
@@ -58,22 +58,17 @@ class BetaAIFinishedViewState(SessionState):
                 yield rx.redirect(routes.NOT_FOUND)
                 return
             exercise, finished_conversation = result
-            if (
-                exercise.lecture_id is None
-                or self.authenticated_user is None
-                or self.authenticated_user.id is None
-                or not user_may_view_lecture(
-                    session,
-                    user_id=self.authenticated_user.id,
-                    global_permissions=self.global_permissions,
-                    lecture_id=exercise.lecture_id,
-                )
-            ):
+            if not self._user_may_view_exercise(session, exercise):
                 yield rx.redirect(routes.MY_LECTURES)
                 return
             self.current_lecture_id = exercise.lecture_id
             self.exercise_title = exercise.title
             self.messages = list(finished_conversation)
+
+    @rx.var
+    def chat_url(self) -> str:
+        """Return the Beta AI chat URL."""
+        return f"{routes.BETA_AI_CHAT}/{self._beta_exercise_id}"
 
     def on_logout(self):
         """Clear state on logout."""
@@ -81,10 +76,19 @@ class BetaAIFinishedViewState(SessionState):
         self.exercise_title = ""
         self.current_lecture_id = None
 
-    @rx.var
-    def chat_url(self) -> str:
-        """Return the Beta AI chat URL."""
-        return f"{routes.BETA_AI_CHAT}/{self._beta_exercise_id}"
+    def _user_may_view_exercise(self, session: Session, exercise: BetaExercise) -> bool:
+        """Check the same lecture access for viewing and withdrawing a submission."""
+        return not (
+            exercise.lecture_id is None
+            or self.authenticated_user is None
+            or self.authenticated_user.id is None
+            or not user_may_view_lecture(
+                session,
+                user_id=self.authenticated_user.id,
+                global_permissions=self.global_permissions,
+                lecture_id=exercise.lecture_id,
+            )
+        )
 
     @rx.event
     @state_require_role_or_permission(required_role=UserRole.STUDENT)
@@ -99,16 +103,7 @@ class BetaAIFinishedViewState(SessionState):
             if exercise is None or exercise.lecture_id is None:
                 return rx.redirect(routes.NOT_FOUND)
 
-            if (
-                self.authenticated_user is None
-                or self.authenticated_user.id is None
-                or not user_may_view_lecture(
-                    session,
-                    user_id=self.authenticated_user.id,
-                    global_permissions=self.global_permissions,
-                    lecture_id=exercise.lecture_id,
-                )
-            ):
+            if not self._user_may_view_exercise(session, exercise):
                 return rx.redirect(routes.MY_LECTURES)
 
             beta_result = session.exec(

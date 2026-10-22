@@ -13,13 +13,13 @@ from aitutor.pages.beta_ai_chat.components import chat_message
 from aitutor.pages.beta_ai_finished_view.components import delete_submission_button
 from aitutor.pages.beta_ai_finished_view.state import BetaAIFinishedViewState
 from aitutor.pages.navbar import with_navbar
-from aitutor.pages.navbar_beta_ai import with_beta_ai_navbar
+from aitutor.pages.navbar_specific_lecture import with_specific_lecture_navbar
 
 
 @legacy_beta_page_require_role_or_permission(required_role=UserRole.STUDENT)
 @with_navbar(routes.LECTURES)
-@with_beta_ai_navbar(
-    routes.BETA_AI_STUDENT_EXERCISES,
+@with_specific_lecture_navbar(
+    "exercises",
     BetaAIFinishedViewState.current_lecture_id,
 )
 def beta_ai_finished_view_page() -> rx.Component:
