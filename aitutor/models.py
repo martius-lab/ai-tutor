@@ -166,6 +166,17 @@ class ExerciseTagLink(SQLModel, table=True):
     )
 
 
+class BetaExerciseTagLink(SQLModel, table=True):
+    """Link table between Better AI exercises and lecture tags."""
+
+    beta_exercise_id: Optional[int] = Field(
+        foreign_key="betaexercise.id", primary_key=True, ondelete="CASCADE"
+    )
+    tag_id: Optional[int] = Field(
+        foreign_key="tag.id", primary_key=True, ondelete="CASCADE"
+    )
+
+
 class Tag(SQLModel, table=True):
     """Tag model for storing allowed tags."""
 
@@ -186,6 +197,9 @@ class Tag(SQLModel, table=True):
     # ORM relationship
     exercises: list[Exercise] = Relationship(
         back_populates="tags", link_model=ExerciseTagLink
+    )
+    beta_exercises: list[BetaExercise] = Relationship(
+        back_populates="tags", link_model=BetaExerciseTagLink
     )
     lecture: Optional[Lecture] = Relationship(back_populates="tags")
 
@@ -330,6 +344,9 @@ class BetaExercise(SQLModel, table=True):
     # ORM relationships
     concepts: list[BetaConcept] = Relationship(
         back_populates="beta_exercise", sa_relationship_kwargs={"passive_deletes": True}
+    )
+    tags: list[Tag] = Relationship(
+        back_populates="beta_exercises", link_model=BetaExerciseTagLink
     )
     lecture: Optional[Lecture] = Relationship(back_populates="beta_exercises")
 

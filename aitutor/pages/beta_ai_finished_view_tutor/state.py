@@ -89,10 +89,10 @@ class BetaAIFinishedViewTutorState(SessionState):
 
     @rx.var
     def submissions_url(self) -> str:
-        """Return the current lecture's Beta AI submissions URL."""
+        """Return to the shared submissions page for the current lecture."""
         if self.current_lecture_id is None:
             return routes.MY_LECTURES
-        return f"{routes.BETA_AI_SUBMISSIONS}/{self.current_lecture_id}"
+        return f"{routes.LECTURE_SUBMISSIONS}/{self.current_lecture_id}"
 
     def _user_may_view_submission(self, exercise: BetaExercise) -> bool:
         """Return whether the current user may view this Better AI submission."""
