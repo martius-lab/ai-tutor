@@ -6,6 +6,9 @@ from aitutor import routes
 from aitutor.auth.protection import page_require_lecture_role
 from aitutor.language_state import LanguageState
 from aitutor.models import LectureRole
+from aitutor.pages.beta_ai_finished_view_tutor.evaluations import (
+    evaluated_chat_message,
+)
 from aitutor.pages.chat.components import message_box
 from aitutor.pages.lecture_report_view.state import LectureReportViewState
 from aitutor.pages.navbar import with_navbar
@@ -99,9 +102,13 @@ def lecture_report_view_page() -> rx.Component:
                     LanguageState.report_submitted_conversation, weight="bold", size="4"
                 ),
                 rx.box(
-                    rx.foreach(
-                        LectureReportViewState.messages,
-                        message_box,
+                    rx.cond(
+                        LectureReportViewState.exercise_type == "beta",
+                        rx.foreach(
+                            LectureReportViewState.beta_messages,
+                            evaluated_chat_message,
+                        ),
+                        rx.foreach(LectureReportViewState.messages, message_box),
                     ),
                     width="100%",
                     padding_bottom="2em",

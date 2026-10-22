@@ -7,7 +7,11 @@ from sqlmodel import select
 from aitutor import routes
 from aitutor.auth.protection import state_require_lecture_role
 from aitutor.auth.state import SessionState
-from aitutor.models import Lecture, LectureRole, Report, UserInfo
+from aitutor.models import BetaExerciseResult, Lecture, LectureRole, Report, UserInfo
+from aitutor.pages.beta_ai_finished_view_tutor.evaluations import (
+    EvaluationMessage,
+    evaluated_messages,
+)
 from aitutor.pages.chat.state import ChatMessage, Role
 from aitutor.utilities.lecture_permissions import user_may_view_lecture_submissions
 
@@ -24,6 +28,7 @@ class LectureReportViewState(SessionState):
     exercise_type: str = "alpha"
     username: str = ""
     messages: list[ChatMessage] = []
+    beta_messages: list[EvaluationMessage] = []
 
     @rx.event
     @state_require_lecture_role(LectureRole.TUTOR)
@@ -100,6 +105,18 @@ class LectureReportViewState(SessionState):
             # This ensures the conversation shown is exactly as it was when reported
             conversation_data = report.conversation_snapshot
 
+            self.beta_messages = []
+            if report.exercise_type == "beta" and report.beta_exercise_id is not None:
+                result = session.exec(
+                    select(BetaExerciseResult).where(
+                        BetaExerciseResult.beta_exercise_id == report.beta_exercise_id,
+                        BetaExerciseResult.userinfo_id == report.userinfo_id,
+                    )
+                ).one_or_none()
+                self.beta_messages = evaluated_messages(
+                    session, result, conversation_data
+                )
+
             self.messages = []
             for msg in conversation_data:
                 role_value = msg.get("role", "")
@@ -157,3 +174,4 @@ class LectureReportViewState(SessionState):
         self.exercise_type = "alpha"
         self.username = ""
         self.messages = []
+        self.beta_messages = []

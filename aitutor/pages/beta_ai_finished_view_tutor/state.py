@@ -11,13 +11,17 @@ from aitutor import routes
 from aitutor.auth.protection import state_require_role_or_permission
 from aitutor.auth.state import SessionState
 from aitutor.models import BetaExercise, BetaExerciseResult, UserInfo, UserRole
+from aitutor.pages.beta_ai_finished_view_tutor.evaluations import (
+    EvaluationMessage,
+    evaluated_messages,
+)
 from aitutor.utilities.lecture_permissions import user_may_view_lecture_submissions
 
 
 class BetaAIFinishedViewTutorState(SessionState):
     """Tutor-facing view of a submitted Beta AI conversation."""
 
-    messages: list[dict[str, str]] = []
+    messages: list[EvaluationMessage] = []
     exercise_title: str = ""
     username: str = ""
     current_lecture_id: int | None = None
@@ -42,6 +46,7 @@ class BetaAIFinishedViewTutorState(SessionState):
                     BetaExercise,
                     LocalUser.username,
                     BetaExerciseResult.finished_conversation,
+                    BetaExerciseResult.id,
                 )
                 .select_from(BetaExerciseResult)
                 .join(
@@ -71,14 +76,18 @@ class BetaAIFinishedViewTutorState(SessionState):
             if result is None:
                 yield rx.redirect(routes.NOT_FOUND)
                 return
-            exercise, username, finished_conversation = result
+            exercise, username, finished_conversation, result_id = result
             if not self._user_may_view_submission(exercise):
                 yield rx.redirect(routes.MY_LECTURES)
                 return
             self.exercise_title = exercise.title
             self.current_lecture_id = exercise.lecture_id
             self.username = username
-            self.messages = list(finished_conversation)
+            self.messages = evaluated_messages(
+                session,
+                session.get(BetaExerciseResult, result_id),
+                list(finished_conversation),
+            )
 
     def on_logout(self):
         """Clear state on logout."""
