@@ -96,7 +96,7 @@ def metadata_card() -> rx.Component:
                 width="100%",
             ),
             rx.text_area(
-                placeholder=LS.description_placeholder,
+                placeholder=LS.beta_ai_description_placeholder,
                 value=BetaAIExercisesState.description,
                 on_change=BetaAIExercisesState.set_description,
                 disabled=BetaAIExercisesState.exercise_has_started,

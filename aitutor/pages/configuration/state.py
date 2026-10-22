@@ -29,6 +29,7 @@ from aitutor.states.config_state import DisplayConfigState
 CONFIG_FIELD_MAX_LENGTHS: dict[str, int] = {
     "registration_code": gv.REGISTRATION_CODE_MAX_LEN,
     "response_ai_model": 100,
+    "level_ai_model": 100,
     "check_ai_model": 100,
     "how_to_use_text": 10_000,
     "general_information_text": 10_000,
@@ -38,6 +39,7 @@ CONFIG_FIELD_MAX_LENGTHS: dict[str, int] = {
 empty_config: Config = Config(
     id=None,
     response_ai_model="failed to load!",
+    level_ai_model="failed to load!",
     check_ai_model="failed to load!",
     how_to_use_text="failed to load!",
     general_information_text="failed to load!",
@@ -134,6 +136,7 @@ class ManageConfigState(SessionState):
             db_config = session.get(Config, 1)
             if db_config:
                 db_config.response_ai_model = self.current_config.response_ai_model
+                db_config.level_ai_model = self.current_config.level_ai_model
                 db_config.check_ai_model = self.current_config.check_ai_model
                 db_config.how_to_use_text = self.current_config.how_to_use_text
                 db_config.general_information_text = (

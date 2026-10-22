@@ -38,7 +38,7 @@ async def generate_concepts_from_material(
         base_url=settings.OPENAI_BASE_URL,
     )
     completion = await client.beta.chat.completions.parse(
-        model=get_config().response_ai_model,
+        model=get_config().level_ai_model,
         messages=[
             {
                 "role": "system",
