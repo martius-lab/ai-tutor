@@ -49,6 +49,7 @@ class BetaAIDiagnosisLabState(SessionState):
     running_llm_diagnosis: bool = False
 
     @rx.event
+    @state_require_lecture_role(LectureRole.TUTOR)
     def set_student_answer(self, value: str):
         """Set the example student answer for diagnosis."""
         self.student_answer = value
@@ -309,6 +310,7 @@ class BetaAIDiagnosisLabState(SessionState):
         )
 
     @rx.event
+    @state_require_lecture_role(LectureRole.TUTOR)
     def select_exercise(self, exercise_id: int | None):
         """Select a Beta AI exercise and load its concepts."""
         if exercise_id is None:
@@ -336,6 +338,7 @@ class BetaAIDiagnosisLabState(SessionState):
         self._clear_diagnosis_result()
 
     @rx.event
+    @state_require_lecture_role(LectureRole.TUTOR)
     def select_concept(self, concept_id: int | None):
         """Select a concept and load its core points and misconceptions."""
         if concept_id is None:
@@ -368,6 +371,7 @@ class BetaAIDiagnosisLabState(SessionState):
         self._clear_diagnosis_result()
 
     @rx.event
+    @state_require_lecture_role(LectureRole.TUTOR)
     def run_mock_diagnosis(self):
         """Run a deterministic mock diagnosis for UI/data-flow testing."""
         if self.selected_concept_id is None:
