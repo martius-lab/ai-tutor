@@ -313,12 +313,7 @@ def analyze_simulation(path: Path) -> PersonaMetrics:
         completed_concepts=concept_completion_count(trace),
     )
 
-    seen_concepts: dict[Any, str] = {}
     for entry in trace:
-        concept_id = entry.get("concept_id")
-        if concept_id is not None:
-            seen_concepts[concept_id] = str(entry.get("concept_label", concept_id))
-
         raw = entry.get("raw_diagnosis", {})
         validated = entry.get("validated_diagnosis", {})
         cumulative = entry.get("cumulative_diagnosis", {})

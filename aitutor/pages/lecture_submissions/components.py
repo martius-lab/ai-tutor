@@ -2,8 +2,8 @@
 
 import reflex as rx
 
-import aitutor.global_vars as gv
 from aitutor import routes
+from aitutor.components.level_ai_badge import level_ai_badge
 from aitutor.global_vars import (
     SEARCH_EXERCISE_KEY,
     SEARCH_TAG_KEY,
@@ -43,7 +43,7 @@ def show_table_row(table_row: LectureSubmissionTableRow) -> rx.Component:
                 rx.text(table_row.exercise_title),
                 rx.cond(
                     table_row.is_beta,
-                    gv.level_ai_badge(),
+                    level_ai_badge(),
                 ),
                 align="center",
                 wrap="wrap",
@@ -79,7 +79,7 @@ def show_table_row(table_row: LectureSubmissionTableRow) -> rx.Component:
                     on_click=rx.redirect(
                         rx.cond(
                             table_row.is_beta,
-                            f"{routes.BETA_AI_FINISHED_VIEW_TUTOR}/{table_row.exercise_id}/{table_row.user_id}",
+                            f"{routes.BETA_AI_FINISHED_VIEW_TUTOR}/{LectureSubmissionsState.current_lecture_id}/{table_row.exercise_id}/{table_row.user_id}",
                             f"{routes.FINISHED_VIEW_TUTOR}/{table_row.exercise_id}/{table_row.user_id}",
                         )
                     ),

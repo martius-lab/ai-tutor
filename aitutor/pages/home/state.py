@@ -21,11 +21,12 @@ from aitutor.models import (
     LinkUserLecture,
     UserRole,
 )
+from aitutor.utilities.helper_functions import deadline_sort_key
 
 
 @dataclass
 class HomeExerciseCard:
-    """Common home card data for Alpha Tutor and Better AI exercises."""
+    """Common home card data for Alpha Tutor and Beta AI exercises."""
 
     title: str
     deadline: datetime | None
@@ -87,7 +88,7 @@ def build_home_beta_exercises_statement(
     is_global_admin: bool,
     now: datetime,
 ):
-    """Build the query for Better AI exercises visible on the global home page."""
+    """Build the query for Beta AI exercises visible on the global home page."""
     stmt = (
         select(BetaExercise, BetaExerciseResult, Lecture)
         .join(Lecture, BetaExercise.lecture_id == Lecture.id)  # type: ignore[arg-type]
@@ -177,7 +178,7 @@ class HomeState(SessionState):
                         deadline=exercise.deadline,
                         is_beta=True,
                         is_submitted=bool(result and result.finished_conversation),
-                        chat_route=f"{routes.BETA_AI_CHAT}/{exercise.id}",
+                        chat_route=f"{routes.BETA_AI_CHAT}/{exercise.lecture_id}/{exercise.id}",
                     ),
                     lecture,
                 )
@@ -187,7 +188,7 @@ class HomeState(SessionState):
             started_rows.sort(
                 key=lambda row: (
                     row[1].lecture_name.lower(),
-                    row[0].deadline or datetime.max.replace(tzinfo=ZoneInfo(TIME_ZONE)),
+                    deadline_sort_key(row[0].deadline),
                 )
             )
             self.exercise_cards = [exercise for exercise, _ in started_rows]
@@ -198,7 +199,9 @@ class HomeState(SessionState):
     @rx.var
     def completed_exercises_num(self) -> int:
         """Number of completed exercises."""
-        return sum(1 for exercise in self.exercise_cards if exercise.is_submitted)
+        return len(
+            [exercise for exercise in self.exercise_cards if exercise.is_submitted]
+        )
 
     @rx.var
     def progress_value(self) -> int:

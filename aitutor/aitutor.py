@@ -83,17 +83,18 @@ from aitutor.utilities.first_setup import first_time_setup
 app = rx.App()
 app.add_page(
     beta_ai_chat_page,
-    route=routes.BETA_AI_CHAT + "/[beta_exercise_id]",
+    route=routes.BETA_AI_CHAT + "/[lecture_id]/[beta_exercise_id]",
     on_load=BetaAIChatState.on_load,
 )
 app.add_page(
     beta_ai_finished_view_tutor_page,
-    route=routes.BETA_AI_FINISHED_VIEW_TUTOR + "/[beta_exercise_id]/[url_user_id]",
+    route=routes.BETA_AI_FINISHED_VIEW_TUTOR
+    + "/[lecture_id]/[beta_exercise_id]/[url_user_id]",
     on_load=BetaAIFinishedViewTutorState.on_load,
 )
 app.add_page(
     beta_ai_finished_view_page,
-    route=routes.BETA_AI_FINISHED_VIEW + "/[beta_exercise_id]",
+    route=routes.BETA_AI_FINISHED_VIEW + "/[lecture_id]/[beta_exercise_id]",
     on_load=BetaAIFinishedViewState.on_load,
 )
 # info: add dynamic routes first

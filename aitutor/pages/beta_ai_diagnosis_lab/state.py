@@ -1,10 +1,10 @@
 """State for the Beta AI diagnosis lab skeleton."""
 
 import reflex as rx
-from sqlmodel import Session, select
+from sqlmodel import Session, col, select
 
 from aitutor import routes
-from aitutor.auth.protection import state_require_lecture_role
+from aitutor.auth.protection import state_has_lecture_role, state_require_lecture_role
 from aitutor.auth.state import SessionState
 from aitutor.beta_ai.audit import DiagnosisTrace, build_diagnosis_trace
 from aitutor.beta_ai.diagnosis import (
@@ -63,7 +63,7 @@ class BetaAIDiagnosisLabState(SessionState):
         self.reset_selection()
         try:
             lecture_id = self._get_route_param_or_error("lecture_id", dtype=int)
-        except Exception:
+        except KeyError, ValueError, TypeError:
             return rx.redirect(routes.NOT_FOUND)
 
         with rx.session() as session:
@@ -204,12 +204,6 @@ class BetaAIDiagnosisLabState(SessionState):
         """Return diagnosis explanation for display."""
         return self.diagnosis.explanation if self.diagnosis else ""
 
-    def on_logout(self):
-        """Clear page-specific state on logout."""
-        self.beta_exercises = []
-        self.current_lecture_id = None
-        self.reset_selection()
-
     def _set_diagnosis_result(
         self,
         validation_result: DiagnosisValidationResult,
@@ -278,7 +272,7 @@ class BetaAIDiagnosisLabState(SessionState):
                 session.exec(
                     select(BetaExercise)
                     .where(BetaExercise.lecture_id == self.current_lecture_id)
-                    .order_by(BetaExercise.id.desc())  # type: ignore
+                    .order_by(col(BetaExercise.id).desc())
                 ).all()
             )
 
@@ -288,7 +282,7 @@ class BetaAIDiagnosisLabState(SessionState):
             session.exec(
                 select(BetaConcept)
                 .where(BetaConcept.beta_exercise_id == exercise_id)
-                .order_by(BetaConcept.order_index)  # type: ignore
+                .order_by(col(BetaConcept.order_index))
             ).all()
         )
 
@@ -298,14 +292,14 @@ class BetaAIDiagnosisLabState(SessionState):
             session.exec(
                 select(BetaCorePoint)
                 .where(BetaCorePoint.beta_concept_id == concept_id)
-                .order_by(BetaCorePoint.order_index)  # type: ignore
+                .order_by(col(BetaCorePoint.order_index))
             ).all()
         )
         self.misconceptions = list(
             session.exec(
                 select(BetaMisconception)
                 .where(BetaMisconception.beta_concept_id == concept_id)
-                .order_by(BetaMisconception.order_index)  # type: ignore
+                .order_by(col(BetaMisconception.order_index))
             ).all()
         )
 
@@ -346,11 +340,7 @@ class BetaAIDiagnosisLabState(SessionState):
 
         with rx.session() as session:
             concept = session.get(BetaConcept, concept_id)
-            exercise = (
-                session.get(BetaExercise, concept.beta_exercise_id)
-                if concept is not None
-                else None
-            )
+            exercise = concept.beta_exercise if concept is not None else None
             if (
                 concept is None
                 or exercise is None
@@ -405,6 +395,12 @@ class BetaAIDiagnosisLabState(SessionState):
     async def run_llm_diagnosis(self):
         """Run a structured OpenAI diagnosis for the selected concept."""
         async with self:
+            if not state_has_lecture_role(self, LectureRole.TUTOR):
+                return
+            if self.current_lecture_id != self._get_route_param_or_error(
+                "lecture_id", dtype=int
+            ):
+                return
             if self.selected_concept_id is None:
                 yield rx.toast.error(
                     description=BT.beta_ai_select_concept_first(self.language),

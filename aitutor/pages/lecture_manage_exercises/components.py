@@ -4,8 +4,8 @@ from collections.abc import Sequence
 
 import reflex as rx
 
-import aitutor.global_vars as gv
 from aitutor.components.dialogs import destructive_confirm
+from aitutor.components.level_ai_badge import level_ai_badge
 from aitutor.global_vars import SEARCH_TAG_KEY, TIME_ZONE
 from aitutor.language_state import LanguageState
 from aitutor.models import BetaExercise, Exercise
@@ -306,7 +306,7 @@ def show_exercise(exercise: Exercise):
 
 
 def delete_beta_exercise_button(exercise: BetaExercise):
-    """Button for deleting a Better AI exercise."""
+    """Button for deleting a Beta AI exercise."""
     return destructive_confirm(
         title=LanguageState.delete_exercise,
         description=LanguageState.beta_ai_delete_exercise_description,
@@ -324,13 +324,13 @@ def delete_beta_exercise_button(exercise: BetaExercise):
 
 
 def show_beta_exercise(exercise: BetaExercise):
-    """Show a Better AI exercise in the shared exercise table."""
+    """Show a Beta AI exercise in the shared exercise table."""
     return rx.table.row(
         rx.table.cell(rx.checkbox(disabled=True)),
         rx.table.cell(
             rx.hstack(
                 rx.text(exercise.title),
-                gv.level_ai_badge(),
+                level_ai_badge(),
                 align="center",
                 wrap="wrap",
             ),
