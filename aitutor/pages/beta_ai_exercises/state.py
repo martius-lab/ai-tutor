@@ -815,7 +815,8 @@ class BetaAIExercisesState(SessionState):
     @state_require_lecture_role(LectureRole.OWNER)
     def save_beta_exercise(self):
         """Persist the exercise and reviewed concepts."""
-        if not self._matches_lecture_route(self.current_lecture_id):
+        lecture_id = self.current_lecture_id
+        if lecture_id is None or not self._matches_lecture_route(lecture_id):
             return rx.redirect(routes.MY_LECTURES)
         if not self.can_save_exercise:
             return rx.toast.error(
@@ -852,7 +853,7 @@ class BetaAIExercisesState(SessionState):
         try:
             with rx.session() as session:
                 if self.editing_exercise_id is None:
-                    exercise = BetaExercise(lecture_id=self.current_lecture_id)
+                    exercise = BetaExercise(lecture_id=lecture_id)
                 else:
                     exercise = session.get(BetaExercise, self.editing_exercise_id)
                     if (

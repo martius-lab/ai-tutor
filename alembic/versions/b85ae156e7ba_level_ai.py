@@ -1,8 +1,8 @@
-"""empty message
+"""level ai
 
-Revision ID: 66420570a9e3
-Revises: 0ce810c7ed80
-Create Date: 2026-10-01 00:23:05.969581
+Revision ID: b85ae156e7ba
+Revises: e4c7a1b90f32
+Create Date: 2026-10-25 15:23:13.884491
 
 """
 from typing import Sequence, Union
@@ -12,8 +12,8 @@ import sqlalchemy as sa
 import sqlmodel
 
 # revision identifiers, used by Alembic.
-revision: str = '66420570a9e3'
-down_revision: Union[str, None] = '0ce810c7ed80'
+revision: str = 'b85ae156e7ba'
+down_revision: Union[str, None] = 'e4c7a1b90f32'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
@@ -27,7 +27,7 @@ def upgrade() -> None:
     sa.Column('description', sqlmodel.sql.sqltypes.AutoString(), nullable=False),
     sa.Column('source_material_text', sqlmodel.sql.sqltypes.AutoString(), nullable=False),
     sa.Column('source_material_filename', sqlmodel.sql.sqltypes.AutoString(), nullable=False),
-    sa.Column('lecture_id', sa.Integer(), nullable=True),
+    sa.Column('lecture_id', sa.Integer(), nullable=False),
     sa.Column('is_hidden', sa.Boolean(), nullable=False),
     sa.Column('deadline', sa.DateTime(), nullable=True),
     sa.Column('days_to_complete', sa.Integer(), nullable=True),
@@ -144,11 +144,11 @@ def upgrade() -> None:
     sa.PrimaryKeyConstraint('id', name=op.f('pk_betastudentconceptstate'))
     )
     with op.batch_alter_table('config', schema=None) as batch_op:
-        batch_op.add_column(sa.Column('level_ai_model', sqlmodel.sql.sqltypes.AutoString(), nullable=False))
+        batch_op.add_column(sa.Column('level_ai_model', sqlmodel.sql.sqltypes.AutoString(), server_default='gpt-4.1', nullable=False))
 
     with op.batch_alter_table('report', schema=None) as batch_op:
         batch_op.add_column(sa.Column('beta_exercise_id', sa.Integer(), nullable=True))
-        batch_op.add_column(sa.Column('exercise_type', sqlmodel.sql.sqltypes.AutoString(), server_default=sa.text("'alpha'"), nullable=False))
+        batch_op.add_column(sa.Column('exercise_type', sqlmodel.sql.sqltypes.AutoString(), server_default='alpha', nullable=False))
         batch_op.create_foreign_key('fk_report_beta_exercise_id', 'betaexercise', ['beta_exercise_id'], ['id'], ondelete='SET NULL')
 
     # ### end Alembic commands ###
