@@ -98,13 +98,12 @@ class LectureManageExercisesState(FilterMixin, SessionState):
 
     # These dictionarys are needed because reflex does not accept propertys like
     # exercise.is_started or exercise.editing_period in the components.
-    # So this is a workaround.
+    # So this is a workaround.  Level AI exercises expose these values as computed
+    # fields instead.
     #: dictionary to store editing periods for exercises. Key is exercise id.
     editing_periods: dict[int, str] = {}
-    beta_editing_periods: dict[int, str] = {}
     #: dictionary to store which exercises are started. Key is exercise id.
     exercise_is_started: dict[int, bool] = {}
-    beta_exercise_is_started: dict[int, bool] = {}
     #: dictionary to store which exercises are selected. Key is exercise id.
     exercise_is_selected: dict[int, bool] = {}
 
@@ -661,9 +660,7 @@ class LectureManageExercisesState(FilterMixin, SessionState):
             self.exercises = []
             self.beta_exercises = []
             self.editing_periods = {}
-            self.beta_editing_periods = {}
             self.exercise_is_started = {}
-            self.beta_exercise_is_started = {}
             self.exercise_is_selected = {}
             return
 
@@ -737,14 +734,8 @@ class LectureManageExercisesState(FilterMixin, SessionState):
         self.editing_periods = {
             e.id: e.editing_period for e in self.exercises if e.id is not None
         }
-        self.beta_editing_periods = {
-            e.id: e.editing_period for e in self.beta_exercises if e.id is not None
-        }
         self.exercise_is_started = {
             e.id: e.is_started for e in self.exercises if e.id is not None
-        }
-        self.beta_exercise_is_started = {
-            e.id: e.is_started for e in self.beta_exercises if e.id is not None
         }
         self.exercise_is_selected = {
             e.id: False for e in self.exercises if e.id is not None
