@@ -46,8 +46,8 @@ class BetaAIExercisesState(SessionState):
     current_lecture_id: int | None = None
     title: str = ""
     description: str = ""
-    concept_target_count: int = 8
-    core_point_target_count: int = 4
+    concept_target_count: int = 3
+    core_point_target_count: int = 3
     misconception_target_count: int = 2
     source_material_text: str = ""
     source_material_filename: str = ""
