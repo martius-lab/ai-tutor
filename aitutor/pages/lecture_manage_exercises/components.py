@@ -1,12 +1,18 @@
 """The Components for the manage exercises page."""
 
 from collections.abc import Sequence
+from datetime import datetime
 
 import reflex as rx
 
 from aitutor.components.dialogs import destructive_confirm
 from aitutor.components.level_ai_badge import level_ai_badge
-from aitutor.global_vars import SEARCH_TAG_KEY, TIME_ZONE
+from aitutor.global_vars import (
+    MOMENT_DATE_FORMAT,
+    MOMENT_DEADLINE_FORMAT,
+    SEARCH_TAG_KEY,
+    TIME_ZONE,
+)
 from aitutor.language_state import LanguageState
 from aitutor.models import BetaExercise, Exercise
 from aitutor.pages.beta_ai_exercises.components import beta_ai_exercise_builder
@@ -358,7 +364,21 @@ def show_beta_exercise(exercise: BetaExercise):
             )
         ),
         rx.table.cell(
-            ManageExercisesState.beta_editing_periods[exercise.id]  # type: ignore
+            rx.cond(
+                exercise.editing_start,
+                rx.text(
+                    rx.moment(
+                        date=exercise.editing_start.to(datetime),  # type: ignore[union-attr]
+                        format=MOMENT_DATE_FORMAT,
+                    ),
+                    " - ",
+                    rx.moment(
+                        date=exercise.deadline.to(datetime),  # type: ignore[union-attr]
+                        format=MOMENT_DEADLINE_FORMAT,
+                    ),
+                ),
+                LanguageState.no_deadline,
+            )
         ),
         rx.table.cell(
             rx.hstack(
@@ -367,7 +387,7 @@ def show_beta_exercise(exercise: BetaExercise):
                         exercise.is_hidden,
                         rx.icon("eye-off", size=18),
                         rx.cond(
-                            ManageExercisesState.beta_exercise_is_started[exercise.id],  # type: ignore
+                            exercise.is_started,
                             rx.icon("eye", size=18),
                             rx.icon("view", size=18),
                         ),

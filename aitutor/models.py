@@ -349,31 +349,26 @@ class BetaExercise(SQLModel, table=True):
     )
     lecture: Lecture = Relationship(back_populates="beta_exercises")
 
+    @pydantic.computed_field
     @property
-    def editing_period(self) -> str:
-        """
-        Returns a string representing the editing period based on
-        the deadline and days to complete.
-        """
+    def editing_start(self) -> Optional[datetime]:
+        """Start of the editing period, or None without deadline and duration."""
         if self.deadline and self.days_to_complete:
-            start = self.deadline - timedelta(days=self.days_to_complete)
-            return f"{start.strftime('%d.%m.%Y')} -\
-                {self.deadline.strftime('%d.%m.%Y, %H:%M')}"
-        return "No deadline"
+            return self.deadline - timedelta(days=self.days_to_complete)
+        return None
 
+    @pydantic.computed_field
     @property
     def is_started(self) -> bool:
         """
         Flag whether the beta exercise is already visible according to its editing
         period. If no deadline is set, it counts as started.
         """
-        if self.deadline and self.days_to_complete:
-            end = to_tz_aware(self.deadline)
-            start = end - timedelta(days=self.days_to_complete)
-            current_time = datetime.now(ZoneInfo(TIME_ZONE))
-            return current_time > start
-        return True
+        if self.editing_start is None:
+            return True
+        return datetime.now(ZoneInfo(TIME_ZONE)) > to_tz_aware(self.editing_start)
 
+    @pydantic.computed_field
     @property
     def deadline_exceeded(self) -> bool:
         """Flag whether the beta exercise deadline is over."""
