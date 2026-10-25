@@ -5,6 +5,7 @@ from datetime import datetime
 
 import reflex as rx
 
+from aitutor.components import tag_components
 from aitutor.components.dialogs import destructive_confirm
 from aitutor.components.level_ai_badge import level_ai_badge
 from aitutor.global_vars import (
@@ -34,64 +35,13 @@ from aitutor.pages.lecture_manage_exercises.state import (
 from aitutor.utilities.helper_functions import truncate_text_reflex_var
 
 
-def new_tag_dialog():
+def new_tag_dialog() -> rx.Component:
     """Dialog for adding new tags."""
-    return rx.dialog.root(
-        rx.dialog.trigger(
-            rx.button(
-                rx.hstack(
-                    rx.icon("plus", size=20),
-                    rx.icon("tag", size=20),
-                    align="center",
-                    spacing="1",
-                ),
-                LanguageState.new_tag,
-                _hover={"cursor": "pointer"},
-            ),
-        ),
-        rx.dialog.content(
-            rx.vstack(
-                rx.heading(LanguageState.new_tag),
-                rx.input(
-                    placeholder=LanguageState.tagname,
-                    value=ManageTagsState.new_tag_name,
-                    on_change=ManageTagsState.set_new_tag_name,
-                    width="100%",
-                    on_key_down=lambda key: rx.cond(
-                        key == "Enter",
-                        ManageTagsState.add_new_tag,
-                        None,
-                    ),
-                    max_length=LECTURE_MANAGE_EXERCISES_FIELD_MAX_LENGTHS["tag_name"],
-                ),
-                rx.hstack(
-                    rx.dialog.close(
-                        rx.button(
-                            rx.text(LanguageState.cancel),
-                            variant="outline",
-                            _hover={"cursor": "pointer"},
-                        ),
-                    ),
-                    rx.button(
-                        LanguageState.add_tag,
-                        on_click=ManageTagsState.add_new_tag,
-                        _hover=rx.cond(
-                            ManageTagsState.new_tag_name == "",
-                            {"cursor": "not-allowed"},
-                            {"cursor": "pointer"},
-                        ),
-                        disabled=ManageTagsState.new_tag_name == "",
-                    ),
-                    padding_top="1em",
-                    spacing="2",
-                    justify="end",
-                    width="100%",
-                ),
-            ),
-            width="20em",
-            max_width="90vw",
-        ),
-        open=ManageTagsState.add_tag_dialog_is_open,
+    return tag_components.new_tag_dialog(
+        tag_name=ManageTagsState.new_tag_name,
+        on_tag_name_change=ManageTagsState.set_new_tag_name,
+        on_add=ManageTagsState.add_new_tag,
+        is_open=ManageTagsState.add_tag_dialog_is_open,
         on_open_change=ManageTagsState.set_add_tag_dialog_is_open,
     )
 
@@ -846,73 +796,12 @@ def select_prompt(mode: DialogMode) -> rx.Component:
 
 def tag_selection() -> rx.Component:
     """Tag selection component"""
-    return rx.vstack(
-        rx.text(
-            LanguageState.tags + ":",
-            size="3",
-            weight="medium",
-            text_align="left",
-            width="100%",
-            padding_top="1.5em",
-            padding_bottom="0.5em",
-        ),
-        rx.hstack(
-            rx.menu.root(
-                rx.menu.trigger(
-                    rx.button(
-                        rx.icon("list", size=18),
-                        LanguageState.select_tags,
-                        type="button",
-                        _hover={"cursor": "pointer"},
-                    ),
-                ),
-                rx.menu.content(
-                    rx.foreach(
-                        ManageExercisesState.selectable_tags,
-                        lambda tag_name: rx.menu.item(
-                            tag_name,
-                            on_click=ManageExercisesState.add_to_selected_tags(
-                                tag_name
-                            ),
-                        ),
-                    ),
-                    min_width="10em",
-                ),
-            ),
-            new_tag_dialog(),
-            align="center",
-            justify="between",
-            width="100%",
-        ),
-        rx.hstack(
-            rx.foreach(
-                ManageExercisesState.selected_tags,
-                lambda tag: rx.badge(
-                    rx.hstack(
-                        rx.text(tag),
-                        rx.icon(
-                            "circle-x",
-                            size=16,
-                        ),
-                        spacing="1",
-                        align_items="center",
-                    ),
-                    on_click=ManageExercisesState.remove_selected_tag(tag),  # type: ignore
-                    cursor="pointer",
-                    size="3",
-                    style={
-                        "_hover": {
-                            "background_color": "red",
-                            "color": "black",
-                        }
-                    },
-                ),
-            ),
-            margin_top="0.5em",
-            margin_bottom="0.5em",
-            wrap="wrap",
-        ),
-        spacing="1",
+    return tag_components.tag_selection(
+        selectable_tags=ManageExercisesState.selectable_tags,
+        selected_tags=ManageExercisesState.selected_tags,
+        on_select=ManageExercisesState.add_to_selected_tags,
+        on_remove=ManageExercisesState.remove_selected_tag,
+        add_tag_dialog=new_tag_dialog(),
     )
 
 

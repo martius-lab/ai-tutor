@@ -2,6 +2,7 @@
 
 import reflex as rx
 
+from aitutor.components import tag_components
 from aitutor.global_vars import TIME_ZONE
 from aitutor.language_state import LanguageState as LS
 from aitutor.pages.lecture_manage_exercises.level_ai_builder_state import (
@@ -551,108 +552,23 @@ def concepts_card() -> rx.Component:
 
 def new_tag_dialog() -> rx.Component:
     """Render the add-tag interaction for the Beta AI builder."""
-    return rx.dialog.root(
-        rx.dialog.trigger(
-            rx.button(
-                rx.hstack(
-                    rx.icon("plus", size=18),
-                    rx.icon("tag", size=18),
-                    align="center",
-                    spacing="1",
-                ),
-                LS.new_tag,
-                type="button",
-                _hover={"cursor": "pointer"},
-            )
-        ),
-        rx.dialog.content(
-            rx.vstack(
-                rx.heading(LS.new_tag),
-                rx.input(
-                    placeholder=LS.tagname,
-                    value=BetaAIExercisesState.new_tag_name,
-                    on_change=BetaAIExercisesState.set_new_tag_name,
-                    on_key_down=lambda key: rx.cond(
-                        key == "Enter", BetaAIExercisesState.add_new_tag, None
-                    ),
-                    max_length=LECTURE_MANAGE_EXERCISES_FIELD_MAX_LENGTHS["tag_name"],
-                    width="100%",
-                ),
-                rx.hstack(
-                    rx.dialog.close(
-                        rx.button(LS.cancel, variant="outline", type="button")
-                    ),
-                    rx.button(
-                        LS.add_tag,
-                        on_click=BetaAIExercisesState.add_new_tag,
-                        disabled=BetaAIExercisesState.new_tag_name == "",
-                    ),
-                    justify="end",
-                    width="100%",
-                ),
-                spacing="3",
-            ),
-            width="20em",
-            max_width="90vw",
-        ),
-        open=BetaAIExercisesState.add_tag_dialog_is_open,
+    return tag_components.new_tag_dialog(
+        tag_name=BetaAIExercisesState.new_tag_name,
+        on_tag_name_change=BetaAIExercisesState.set_new_tag_name,
+        on_add=BetaAIExercisesState.add_new_tag,
+        is_open=BetaAIExercisesState.add_tag_dialog_is_open,
         on_open_change=BetaAIExercisesState.set_add_tag_dialog_is_open,
     )
 
 
 def tag_selection() -> rx.Component:
     """Render lecture tag selection using the regular exercise interaction."""
-    return rx.vstack(
-        rx.text(LS.tags + ":", size="3", weight="medium"),
-        rx.hstack(
-            rx.menu.root(
-                rx.menu.trigger(
-                    rx.button(
-                        rx.icon("list", size=18),
-                        LS.select_tags,
-                        type="button",
-                        _hover={"cursor": "pointer"},
-                    )
-                ),
-                rx.menu.content(
-                    rx.foreach(
-                        BetaAIExercisesState.selectable_tags,
-                        lambda tag_name: rx.menu.item(
-                            tag_name,
-                            on_click=BetaAIExercisesState.add_to_selected_tags(
-                                tag_name
-                            ),
-                        ),
-                    ),
-                    min_width="10em",
-                ),
-            ),
-            new_tag_dialog(),
-            align="center",
-            justify="between",
-            width="100%",
-        ),
-        rx.hstack(
-            rx.foreach(
-                BetaAIExercisesState.selected_tags,
-                lambda tag: rx.badge(
-                    rx.hstack(
-                        rx.text(tag),
-                        rx.icon("circle-x", size=16),
-                        spacing="1",
-                        align_items="center",
-                    ),
-                    on_click=BetaAIExercisesState.remove_selected_tag(tag),
-                    cursor="pointer",
-                    size="3",
-                ),
-            ),
-            spacing="1",
-            wrap="wrap",
-        ),
-        align="start",
-        spacing="2",
-        width="100%",
+    return tag_components.tag_selection(
+        selectable_tags=BetaAIExercisesState.selectable_tags,
+        selected_tags=BetaAIExercisesState.selected_tags,
+        on_select=BetaAIExercisesState.add_to_selected_tags,
+        on_remove=BetaAIExercisesState.remove_selected_tag,
+        add_tag_dialog=new_tag_dialog(),
     )
 
 
