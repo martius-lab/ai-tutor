@@ -781,10 +781,8 @@ class LectureManageExercisesState(FilterMixin, SessionState):
 
     @rx.event
     @state_require_lecture_role(LectureRole.OWNER)
-    def toggle_beta_visibility(self, exercise_id: int | None):
+    def toggle_beta_visibility(self, exercise_id: int):
         """Toggle the visibility of a Beta AI exercise."""
-        if exercise_id is None:
-            return
         with rx.session() as session:
             exercise = session.get(BetaExercise, exercise_id)
             if exercise is None or exercise.lecture_id != self.current_lecture_id:
