@@ -34,7 +34,6 @@ from aitutor.pages.lecture_manage_exercises.state import (
 )
 
 SECONDS_PER_ESTIMATED_QUESTION = 90
-# Kept outside the state class so they are not sent to the frontend.
 MIN_GENERATION_TARGET = 1
 MAX_CONCEPT_TARGET = 30
 MAX_CORE_POINT_TARGET = 15
