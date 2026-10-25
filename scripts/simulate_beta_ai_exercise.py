@@ -79,6 +79,7 @@ from aitutor.models import (
     BetaExercise,
     BetaMisconception,
     BetaStudentConceptState,
+    ConceptState,
 )
 
 PERSONA_INSTRUCTIONS = {
@@ -252,7 +253,7 @@ def load_concept_bundles(session: Session, exercise_id: int) -> list[ConceptBund
                     userinfo_id=0,
                     beta_exercise_id=exercise_id,
                     beta_concept_id=concept.id,
-                    state="unseen",
+                    state=ConceptState.UNSEEN,
                     level_status=normalized_level_status(None),
                 ),
             )
@@ -579,7 +580,7 @@ async def simulate_turn(
         question_level=sim_state.current_question_level,
     )
 
-    if student_state.state == "secure":
+    if student_state.state == ConceptState.SECURE:
         tutor_turn = TutorTurnResponse(
             feedback_brief=(
                 f"Du hast '{concept.label}' auf den erforderlichen Ebenen sicher "
@@ -996,10 +997,10 @@ async def run_simulation(args: argparse.Namespace) -> None:
                 completed_all=False,
                 stop_reason="running",
             )
-            if bundle.student_state.state == "secure":
+            if bundle.student_state.state == ConceptState.SECURE:
                 previous_label = bundle.concept.label
                 break
-        if bundle.student_state.state != "secure":
+        if bundle.student_state.state != ConceptState.SECURE:
             sim_state.stop_reason = (
                 "max_total_turns"
                 if total_turns >= args.max_total_turns
@@ -1010,7 +1011,9 @@ async def run_simulation(args: argparse.Namespace) -> None:
             sim_state.stop_reason = "max_total_turns"
             break
 
-    completed_all = all(bundle.student_state.state == "secure" for bundle in bundles)
+    completed_all = all(
+        bundle.student_state.state == ConceptState.SECURE for bundle in bundles
+    )
     if completed_all:
         sim_state.stop_reason = "completed_selected_concepts"
     write_outputs(

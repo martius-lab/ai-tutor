@@ -106,6 +106,19 @@ class VerificationPurpose(StrEnum):
     PASSWORD_RESET = "password_reset"
 
 
+class ConceptState(StrEnum):
+    """Learning state of a student for one Level AI concept."""
+
+    #: The student has not worked on the concept yet.
+    UNSEEN = "unseen"
+    #: The student has started, but no question level is passed yet.
+    EMERGING = "emerging"
+    #: Basic understanding and reasoning are passed.
+    SATISFACTORY = "satisfactory"
+    #: Applying or comparing is passed as well.
+    SECURE = "secure"
+
+
 class Lecture(SQLModel, table=True):
     """Lecture model for storing lecture-specific settings."""
 
@@ -476,7 +489,7 @@ class BetaStudentConceptState(SQLModel, table=True):
     userinfo_id: int = Field(foreign_key="userinfo.id", ondelete="CASCADE")
     beta_exercise_id: int = Field(foreign_key="betaexercise.id", ondelete="CASCADE")
     beta_concept_id: int = Field(foreign_key="betaconcept.id", ondelete="CASCADE")
-    state: str = Field(nullable=False, default="unseen")
+    state: ConceptState = Field(default=ConceptState.UNSEEN)
     attempts_total: int = Field(default=0)
     successful_attempts: int = Field(default=0)
     misconception_hits: int = Field(default=0)
@@ -514,7 +527,6 @@ class BetaConcept(SQLModel, table=True):
 
     id: Optional[int] = Field(default=None, primary_key=True)
     beta_exercise_id: int = Field(foreign_key="betaexercise.id", ondelete="CASCADE")
-    concept_id: str = Field(nullable=False, default="", index=True)
     label: str = Field(nullable=False, default="")
     description: str = Field(nullable=False, default="")
     order_index: int = Field(default=0)
@@ -529,7 +541,7 @@ class BetaConcept(SQLModel, table=True):
     )
 
     def __repr__(self):
-        return f"<BetaConcept(id={self.id}, concept_id='{self.concept_id}')>"
+        return f"<BetaConcept(id={self.id}, label='{self.label}')>"
 
 
 class BetaCorePoint(SQLModel, table=True):

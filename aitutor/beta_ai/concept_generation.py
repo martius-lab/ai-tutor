@@ -10,7 +10,6 @@ from aitutor.env_settings import get_env_settings
 class GeneratedConcept(BaseModel):
     """One generated concept candidate."""
 
-    concept_id: str
     label: str
     description: str
     core_points: list[str] = Field(default_factory=list)
