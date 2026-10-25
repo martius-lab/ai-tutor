@@ -30,7 +30,12 @@ from aitutor.beta_ai.tutor_turn import (
     safe_fallback_tutor_turn,
     tutor_turn_reveals_answer,
 )
-from aitutor.models import BetaCorePoint, BetaMisconception, BetaStudentConceptState
+from aitutor.models import (
+    BetaCorePoint,
+    BetaMisconception,
+    BetaStudentConceptState,
+    ConceptState,
+)
 
 
 def test_normalization_preserves_token_usage():
@@ -276,7 +281,7 @@ def test_cumulative_evidence_accumulates_core_points_across_turns():
         userinfo_id=1,
         beta_exercise_id=1,
         beta_concept_id=1,
-        state="unseen",
+        state=ConceptState.UNSEEN,
     )
 
     first_turn = DiagnosisResponse(
@@ -338,10 +343,10 @@ def test_cumulative_evidence_accumulates_core_points_across_turns():
 def test_incomplete_answer_keeps_achieved_concept_state():
     """Partial evidence starts progress without lowering a higher concept state."""
     for initial_state, expected_state in [
-        ("unseen", "emerging"),
-        ("emerging", "emerging"),
-        ("satisfactory", "satisfactory"),
-        ("secure", "secure"),
+        (ConceptState.UNSEEN, ConceptState.EMERGING),
+        (ConceptState.EMERGING, ConceptState.EMERGING),
+        (ConceptState.SATISFACTORY, ConceptState.SATISFACTORY),
+        (ConceptState.SECURE, ConceptState.SECURE),
     ]:
         student_state = BetaStudentConceptState(
             userinfo_id=1,
@@ -432,7 +437,7 @@ def test_basic_level_passes_only_after_all_core_points_are_covered():
         userinfo_id=1,
         beta_exercise_id=1,
         beta_concept_id=1,
-        state="unseen",
+        state=ConceptState.UNSEEN,
     )
 
     partial = update_student_concept_state_from_diagnosis(
@@ -499,7 +504,7 @@ def test_basic_evidence_requires_minimum_completeness():
         userinfo_id=1,
         beta_exercise_id=1,
         beta_concept_id=1,
-        state="unseen",
+        state=ConceptState.UNSEEN,
     )
 
     cumulative = update_student_concept_state_from_diagnosis(
@@ -534,7 +539,7 @@ def test_basic_evidence_accepts_fair_partial_completeness_boundary(completeness)
         userinfo_id=1,
         beta_exercise_id=1,
         beta_concept_id=1,
-        state="unseen",
+        state=ConceptState.UNSEEN,
     )
 
     cumulative = update_student_concept_state_from_diagnosis(
@@ -564,7 +569,7 @@ def test_cumulative_completeness_keeps_latest_answer_score_not_coverage_ratio():
         userinfo_id=1,
         beta_exercise_id=1,
         beta_concept_id=1,
-        state="unseen",
+        state=ConceptState.UNSEEN,
     )
 
     cumulative = update_student_concept_state_from_diagnosis(
@@ -595,7 +600,7 @@ def test_explain_and_apply_levels_drive_satisfactory_and_secure_state():
         userinfo_id=1,
         beta_exercise_id=1,
         beta_concept_id=1,
-        state="emerging",
+        state=ConceptState.EMERGING,
         covered_core_point_ids=[14, 15, 16],
         level_status={
             "basic_understanding": "passed",
@@ -732,7 +737,7 @@ def test_answer_request_does_not_pass_apply_level_even_if_llm_claims_success():
         userinfo_id=1,
         beta_exercise_id=1,
         beta_concept_id=1,
-        state="satisfactory",
+        state=ConceptState.SATISFACTORY,
         covered_core_point_ids=[14, 15, 16],
         level_status={
             "basic_understanding": "passed",
@@ -779,7 +784,7 @@ def test_example_request_keeps_existing_coverage_but_adds_no_new_evidence():
         userinfo_id=1,
         beta_exercise_id=1,
         beta_concept_id=1,
-        state="emerging",
+        state=ConceptState.EMERGING,
         covered_core_point_ids=[14],
     )
     validation_result = validate_and_normalize_diagnosis(
@@ -980,7 +985,7 @@ def test_tutor_derived_answer_does_not_update_student_state_or_pass_level():
         userinfo_id=1,
         beta_exercise_id=1,
         beta_concept_id=1,
-        state="emerging",
+        state=ConceptState.EMERGING,
         covered_core_point_ids=[14],
         level_status={
             "basic_understanding": "in_progress",
@@ -1030,7 +1035,7 @@ def test_apply_level_blocks_low_correctness_with_cumulative_basic_coverage():
         userinfo_id=1,
         beta_exercise_id=1,
         beta_concept_id=1,
-        state="satisfactory",
+        state=ConceptState.SATISFACTORY,
         covered_core_point_ids=[14, 15, 16],
         level_status={
             "basic_understanding": "passed",
@@ -1090,7 +1095,7 @@ def test_good_apply_answer_can_pass_even_if_snippet_normalization_left_unclear()
         userinfo_id=1,
         beta_exercise_id=1,
         beta_concept_id=1,
-        state="satisfactory",
+        state=ConceptState.SATISFACTORY,
         covered_core_point_ids=[14, 15, 16],
         level_status={
             "basic_understanding": "passed",
@@ -1690,7 +1695,7 @@ def test_repeated_misconception_stays_in_automatic_repair_loop():
         userinfo_id=1,
         beta_exercise_id=1,
         beta_concept_id=1,
-        state="emerging",
+        state=ConceptState.EMERGING,
     )
     misconception_turn = DiagnosisResponse(
         task_relevance=0.95,
@@ -1730,7 +1735,7 @@ def test_misconception_memory_upserts_repeated_label_without_duplicates():
         userinfo_id=1,
         beta_exercise_id=1,
         beta_concept_id=1,
-        state="emerging",
+        state=ConceptState.EMERGING,
     )
     first_turn = DiagnosisResponse(
         task_relevance=0.95,
@@ -1777,7 +1782,7 @@ def test_new_misconception_during_repair_is_added_as_second_active_item():
         userinfo_id=1,
         beta_exercise_id=1,
         beta_concept_id=1,
-        state="emerging",
+        state=ConceptState.EMERGING,
     )
 
     for turn_index, label in enumerate(
@@ -1816,7 +1821,7 @@ def test_good_answer_resolves_active_misconceptions_and_can_progress_same_turn()
         userinfo_id=1,
         beta_exercise_id=1,
         beta_concept_id=1,
-        state="emerging",
+        state=ConceptState.EMERGING,
         active_misconceptions=[
             {
                 "key": "binary search works on unsorted arrays",
@@ -1868,7 +1873,7 @@ def test_misconception_repair_requires_stronger_correctness_and_completeness():
         userinfo_id=1,
         beta_exercise_id=1,
         beta_concept_id=1,
-        state="emerging",
+        state=ConceptState.EMERGING,
         active_misconceptions=[
             {
                 "key": "binary search works on unsorted arrays",

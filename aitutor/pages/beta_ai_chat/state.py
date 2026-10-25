@@ -52,6 +52,7 @@ from aitutor.models import (
     BetaExerciseTraceLog,
     BetaMisconception,
     BetaStudentConceptState,
+    ConceptState,
     GlobalPermission,
     LectureRole,
     Report,
@@ -106,7 +107,7 @@ class BetaAIChatState(SessionState):
     last_trace_json: str = ""
     last_trace_log_id: int | None = None
     trace_history_count: int = 0
-    concept_state: str = "unseen"
+    concept_state: str = ConceptState.UNSEEN
     concept_attempts_total: int = 0
     concept_successful_attempts: int = 0
     concept_misconception_hits: int = 0
@@ -249,7 +250,7 @@ class BetaAIChatState(SessionState):
             )
             all_concepts_completed = bool(concepts) and all(
                 concept.id in concept_states
-                and concept_states[concept.id].state == "secure"
+                and concept_states[concept.id].state == ConceptState.SECURE
                 for concept in concepts
                 if concept.id is not None
             )
@@ -261,7 +262,7 @@ class BetaAIChatState(SessionState):
             latest_trace: dict = {}
             trace_history_count = 0
             trace_log_id: int | None = None
-            concept_state = "unseen"
+            concept_state = ConceptState.UNSEEN
             concept_attempts_total = 0
             concept_successful_attempts = 0
             concept_misconception_hits = 0
@@ -678,7 +679,7 @@ class BetaAIChatState(SessionState):
         self.last_trace_json = ""
         self.last_trace_log_id = None
         self.trace_history_count = 0
-        self.concept_state = "unseen"
+        self.concept_state = ConceptState.UNSEEN
         self.concept_attempts_total = 0
         self.concept_successful_attempts = 0
         self.concept_misconception_hits = 0
@@ -802,7 +803,7 @@ class BetaAIChatState(SessionState):
         for index, concept in enumerate(concepts):
             assert concept.id is not None, "Persisted Beta AI concept has no ID."
             student_state = concept_states.get(concept.id)
-            if student_state is None or student_state.state != "secure":
+            if student_state is None or student_state.state != ConceptState.SECURE:
                 return index
         return max(len(concepts) - 1, 0)
 
@@ -859,7 +860,7 @@ class BetaAIChatState(SessionState):
         )
 
         if student_concept_state is None:
-            self.concept_state = "unseen"
+            self.concept_state = ConceptState.UNSEEN
             self.concept_attempts_total = 0
             self.concept_successful_attempts = 0
             self.concept_misconception_hits = 0
@@ -914,7 +915,7 @@ class BetaAIChatState(SessionState):
                         BetaStudentConceptState.beta_exercise_id
                         == self.current_beta_exercise_id,
                         BetaStudentConceptState.beta_concept_id.in_(concept_ids),  # type: ignore[attr-defined]
-                        BetaStudentConceptState.state == "secure",
+                        BetaStudentConceptState.state == ConceptState.SECURE,
                     )
                 ).all()
             )
@@ -997,9 +998,9 @@ class BetaAIChatState(SessionState):
                         BetaStudentConceptState.beta_concept_id == concept.id,
                     )
                 ).one_or_none()
-            if (student_state is None or student_state.state != "secure") and (
-                self.load_concept_context(next_index)
-            ):
+            if (
+                student_state is None or student_state.state != ConceptState.SECURE
+            ) and (self.load_concept_context(next_index)):
                 return {
                     "advanced": True,
                     "completed_all": False,
@@ -1282,7 +1283,7 @@ class BetaAIChatState(SessionState):
                     userinfo_id=self.current_userinfo_id,
                     beta_exercise_id=self.current_beta_exercise_id,
                     beta_concept_id=self.selected_concept_id,
-                    state="unseen",
+                    state=ConceptState.UNSEEN,
                 )
                 session.add(student_state)
                 session.flush()
@@ -1476,7 +1477,7 @@ class BetaAIChatState(SessionState):
                 invert=True,
             )
             return
-        if self.concept_state == "secure":
+        if self.concept_state == ConceptState.SECURE:
             async with self:
                 completed_level_status = dict(self.level_status)
                 completed_concept_state = self.concept_state

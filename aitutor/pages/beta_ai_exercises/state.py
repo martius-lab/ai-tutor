@@ -506,7 +506,6 @@ class BetaAIExercisesState(SessionState):
         )
         return EditableConcept(
             id=concept.id,
-            concept_id=concept.concept_id,
             label=concept.label,
             description=concept.description,
             core_points=[
@@ -652,7 +651,6 @@ class BetaAIExercisesState(SessionState):
                 return
             self.generated_concepts = [
                 EditableConcept(
-                    concept_id=concept.concept_id,
                     label=concept.label,
                     description=concept.description,
                     core_points=[
@@ -681,7 +679,6 @@ class BetaAIExercisesState(SessionState):
         """Add an empty concept manually."""
         self.generated_concepts.append(
             EditableConcept(
-                concept_id=f"manual.concept-{len(self.generated_concepts) + 1}",
                 label=BT.beta_ai_new_concept(self.language),
                 core_points=[EditableCorePoint()],
             )
@@ -746,7 +743,6 @@ class BetaAIExercisesState(SessionState):
             db_concept = existing_concepts.get(concept.id)
             if db_concept is None:
                 db_concept = BetaConcept(beta_exercise_id=exercise_id)
-            db_concept.concept_id = concept.concept_id.strip()
             db_concept.label = concept.label.strip()
             db_concept.description = concept.description.strip()
             db_concept.order_index = concept_index
