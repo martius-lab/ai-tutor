@@ -393,7 +393,9 @@ def show_beta_exercise(exercise: BetaExercise):
                         ),
                     ),
                     _hover={"cursor": "pointer"},
-                    on_click=ManageExercisesState.toggle_beta_visibility(exercise.id),
+                    on_click=ManageExercisesState.toggle_beta_visibility(
+                        exercise.id  # type: ignore
+                    ),
                 ),
                 rx.icon_button(
                     rx.icon("wrench", size=22),
@@ -550,7 +552,10 @@ def beta_ai_exercise_dialog() -> rx.Component:
             max_width="90vw",
             max_height="85vh",
             overflow_y="auto",
-            on_escape_key_down=BetaAIExercisesState.close_builder_dialog,
+            # Only the explicit buttons close the builder, so an accidental Escape
+            # or click outside does not discard unsaved (possibly generated) work.
+            on_escape_key_down=rx.prevent_default,
+            on_interact_outside=rx.prevent_default,
         ),
         open=BetaAIExercisesState.builder_dialog_is_open,
         on_open_change=BetaAIExercisesState.set_builder_dialog_is_open,

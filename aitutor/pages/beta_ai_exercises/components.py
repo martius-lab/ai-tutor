@@ -24,7 +24,7 @@ def source_material_card() -> rx.Component:
                         loading=BetaAIExercisesState.extracting_source_material,
                         disabled=(
                             BetaAIExercisesState.extracting_source_material
-                            | BetaAIExercisesState.exercise_has_started
+                            | BetaAIExercisesState.exercise_has_results
                         ),
                     ),
                     rx.text(LS.beta_ai_drop_pdfs),
@@ -39,7 +39,7 @@ def source_material_card() -> rx.Component:
                 on_drop=BetaAIExercisesState.extract_source_material(
                     rx.upload_files(upload_id="beta_ai_pdf_upload")  # type: ignore
                 ),
-                disabled=BetaAIExercisesState.exercise_has_started,
+                disabled=BetaAIExercisesState.exercise_has_results,
                 _hover={"cursor": "pointer"},
                 width="100%",
             ),
@@ -175,7 +175,7 @@ def metadata_card() -> rx.Component:
             ),
             rx.text(LS.beta_ai_exercise_metadata_help, size="2", color_scheme="gray"),
             rx.cond(
-                BetaAIExercisesState.exercise_has_started,
+                BetaAIExercisesState.exercise_has_results,
                 rx.callout(
                     LS.beta_ai_started_exercise_content_locked,
                     icon="lock",
@@ -194,7 +194,7 @@ def metadata_card() -> rx.Component:
                 placeholder=LS.beta_ai_description_placeholder,
                 value=BetaAIExercisesState.description,
                 on_change=BetaAIExercisesState.set_description,
-                disabled=BetaAIExercisesState.exercise_has_started,
+                disabled=BetaAIExercisesState.exercise_has_results,
                 max_length=LECTURE_MANAGE_EXERCISES_FIELD_MAX_LENGTHS["description"],
                 rows="4",
                 width="100%",
@@ -215,7 +215,7 @@ def metadata_card() -> rx.Component:
                             type="number",
                             min="1",
                             max="30",
-                            disabled=BetaAIExercisesState.exercise_has_started,
+                            disabled=BetaAIExercisesState.exercise_has_results,
                             width="100%",
                         ),
                         align="start",
@@ -230,7 +230,7 @@ def metadata_card() -> rx.Component:
                             type="number",
                             min="1",
                             max="15",
-                            disabled=BetaAIExercisesState.exercise_has_started,
+                            disabled=BetaAIExercisesState.exercise_has_results,
                             width="100%",
                         ),
                         align="start",
@@ -245,7 +245,7 @@ def metadata_card() -> rx.Component:
                             type="number",
                             min="1",
                             max="10",
-                            disabled=BetaAIExercisesState.exercise_has_started,
+                            disabled=BetaAIExercisesState.exercise_has_results,
                             width="100%",
                         ),
                         align="start",
@@ -296,7 +296,7 @@ def core_point_row(concept_index, core_point, core_point_index) -> rx.Component:
                 concept_index, core_point_index, value
             ),
             rows="2",
-            disabled=BetaAIExercisesState.exercise_has_started,
+            disabled=BetaAIExercisesState.exercise_has_results,
             width="100%",
         ),
         rx.icon_button(
@@ -306,7 +306,7 @@ def core_point_row(concept_index, core_point, core_point_index) -> rx.Component:
             on_click=BetaAIExercisesState.delete_core_point(
                 concept_index, core_point_index
             ),
-            disabled=BetaAIExercisesState.exercise_has_started,
+            disabled=BetaAIExercisesState.exercise_has_results,
             _hover={"cursor": "pointer"},
         ),
         align="center",
@@ -325,7 +325,7 @@ def misconception_row(
                 concept_index, misconception_index, value
             ),
             rows="2",
-            disabled=BetaAIExercisesState.exercise_has_started,
+            disabled=BetaAIExercisesState.exercise_has_results,
             width="100%",
         ),
         rx.icon_button(
@@ -335,7 +335,7 @@ def misconception_row(
             on_click=BetaAIExercisesState.delete_misconception(
                 concept_index, misconception_index
             ),
-            disabled=BetaAIExercisesState.exercise_has_started,
+            disabled=BetaAIExercisesState.exercise_has_results,
             _hover={"cursor": "pointer"},
         ),
         align="center",
@@ -362,7 +362,7 @@ def concept_card(concept, concept_index) -> rx.Component:
                     variant="ghost",
                     size="2",
                     on_click=BetaAIExercisesState.delete_concept(concept_index),
-                    disabled=BetaAIExercisesState.exercise_has_started,
+                    disabled=BetaAIExercisesState.exercise_has_results,
                     _hover={"cursor": "pointer"},
                 ),
                 width="100%",
@@ -383,7 +383,7 @@ def concept_card(concept, concept_index) -> rx.Component:
                     concept_index, value
                 ),
                 placeholder=LS.beta_ai_concepts,
-                disabled=BetaAIExercisesState.exercise_has_started,
+                disabled=BetaAIExercisesState.exercise_has_results,
                 width="100%",
             ),
             rx.text_area(
@@ -393,7 +393,7 @@ def concept_card(concept, concept_index) -> rx.Component:
                 ),
                 placeholder=LS.description,
                 rows="3",
-                disabled=BetaAIExercisesState.exercise_has_started,
+                disabled=BetaAIExercisesState.exercise_has_results,
                 width="100%",
             ),
             rx.vstack(
@@ -410,7 +410,7 @@ def concept_card(concept, concept_index) -> rx.Component:
                     size="2",
                     variant="soft",
                     on_click=BetaAIExercisesState.add_core_point(concept_index),
-                    disabled=BetaAIExercisesState.exercise_has_started,
+                    disabled=BetaAIExercisesState.exercise_has_results,
                     _hover={"cursor": "pointer"},
                 ),
                 align="start",
@@ -431,7 +431,7 @@ def concept_card(concept, concept_index) -> rx.Component:
                     size="2",
                     variant="soft",
                     on_click=BetaAIExercisesState.add_misconception(concept_index),
-                    disabled=BetaAIExercisesState.exercise_has_started,
+                    disabled=BetaAIExercisesState.exercise_has_results,
                     _hover={"cursor": "pointer"},
                 ),
                 align="start",
@@ -519,7 +519,7 @@ def concepts_card() -> rx.Component:
                     LS.beta_ai_add_concept,
                     variant="soft",
                     on_click=BetaAIExercisesState.add_concept,
-                    disabled=BetaAIExercisesState.exercise_has_started,
+                    disabled=BetaAIExercisesState.exercise_has_results,
                     _hover={"cursor": "pointer"},
                 ),
                 width="100%",
@@ -573,7 +573,7 @@ def new_tag_dialog() -> rx.Component:
                     on_key_down=lambda key: rx.cond(
                         key == "Enter", BetaAIExercisesState.add_new_tag, None
                     ),
-                    max_length=100,
+                    max_length=LECTURE_MANAGE_EXERCISES_FIELD_MAX_LENGTHS["tag_name"],
                     width="100%",
                 ),
                 rx.hstack(
