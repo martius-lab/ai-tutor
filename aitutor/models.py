@@ -333,9 +333,7 @@ class BetaExercise(SQLModel, table=True):
     description: str = Field(nullable=False, default="")
     source_material_text: str = Field(nullable=False, default="")
     source_material_filename: str = Field(nullable=False, default="")
-    lecture_id: Optional[int] = Field(
-        default=None, foreign_key="lecture.id", ondelete="CASCADE", index=True
-    )
+    lecture_id: int = Field(foreign_key="lecture.id", ondelete="CASCADE", index=True)
     is_hidden: bool = Field(default=False)
     deadline: Optional[datetime] = Field(
         sa_column=Column(DateTime, nullable=True), default=None
@@ -349,7 +347,7 @@ class BetaExercise(SQLModel, table=True):
     tags: list[Tag] = Relationship(
         back_populates="beta_exercises", link_model=BetaExerciseTagLink
     )
-    lecture: Optional[Lecture] = Relationship(back_populates="beta_exercises")
+    lecture: Lecture = Relationship(back_populates="beta_exercises")
 
     @property
     def editing_period(self) -> str:
@@ -632,7 +630,8 @@ class Config(SQLModel, table=True):
     response_ai_model: str
     #: Name of the AI model used by Level AI for concept generation, diagnosis,
     #: and tutor responses. Available models depend on the provider.
-    level_ai_model: str
+    #: The server default fills existing config rows when the column is added.
+    level_ai_model: str = Field(sa_column_kwargs={"server_default": "gpt-4.1"})
     #: Name of the AI model used for checking conversations.  Which models are available
     #: depends on the used provider.
     check_ai_model: str
@@ -722,7 +721,10 @@ class Report(SQLModel, table=True):
             nullable=True,
         ),
     )
-    exercise_type: str = Field(default="alpha", nullable=False)
+    # The server default fills existing reports when the column is added.
+    exercise_type: str = Field(
+        default="alpha", nullable=False, sa_column_kwargs={"server_default": "alpha"}
+    )
     lecture_id: Optional[int] = Field(
         default=None,
         sa_column=Column(
