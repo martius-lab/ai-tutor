@@ -59,8 +59,8 @@ misconceptions, and passed levels per concept. Application rules, not the tutor'
 
 The UI name is Level AI, but the code still uses `beta_ai` / `Beta*`:
 
-- `aitutor/pages/beta_ai_exercises/`: PDF-based exercise creation and concept review,
-  integrated into Manage Exercises.
+- `aitutor/pages/lecture_manage_exercises/level_ai_builder_*.py`: PDF-based exercise
+  creation and concept review, embedded in Manage Exercises.
 - `aitutor/pages/beta_ai_chat/state.py`: Runs the dialogue, saves it, and handles
   concept transitions and submission.
 - `aitutor/beta_ai/`: `concept_generation.py` proposes learning goals;
