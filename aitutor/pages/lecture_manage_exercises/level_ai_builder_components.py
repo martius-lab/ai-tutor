@@ -4,7 +4,9 @@ import reflex as rx
 
 from aitutor.global_vars import TIME_ZONE
 from aitutor.language_state import LanguageState as LS
-from aitutor.pages.beta_ai_exercises.state import BetaAIExercisesState
+from aitutor.pages.lecture_manage_exercises.level_ai_builder_state import (
+    BetaAIExercisesState,
+)
 from aitutor.pages.lecture_manage_exercises.state import (
     LECTURE_MANAGE_EXERCISES_FIELD_MAX_LENGTHS,
 )

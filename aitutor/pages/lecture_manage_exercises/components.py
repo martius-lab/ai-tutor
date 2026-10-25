@@ -15,8 +15,12 @@ from aitutor.global_vars import (
 )
 from aitutor.language_state import LanguageState
 from aitutor.models import BetaExercise, Exercise
-from aitutor.pages.beta_ai_exercises.components import beta_ai_exercise_builder
-from aitutor.pages.beta_ai_exercises.state import BetaAIExercisesState
+from aitutor.pages.lecture_manage_exercises.level_ai_builder_components import (
+    beta_ai_exercise_builder,
+)
+from aitutor.pages.lecture_manage_exercises.level_ai_builder_state import (
+    BetaAIExercisesState,
+)
 from aitutor.pages.lecture_manage_exercises.state import (
     LECTURE_MANAGE_EXERCISES_FIELD_MAX_LENGTHS,
     DialogMode,
