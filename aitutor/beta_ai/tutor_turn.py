@@ -7,10 +7,11 @@ natural, student-facing feedback and exactly one next question.
 from typing import Literal
 
 from openai import AsyncOpenAI
-from pydantic import BaseModel
+from pydantic import BaseModel, PrivateAttr
 
 from aitutor.beta_ai.diagnosis import DiagnosisResponse
 from aitutor.beta_ai.policy import PolicyPreview
+from aitutor.beta_ai.schemas import OpenAIUsageError
 from aitutor.config import get_config
 from aitutor.env_settings import get_env_settings
 from aitutor.models import BetaCorePoint, BetaMisconception
@@ -26,6 +27,16 @@ class TutorTurnResponse(BaseModel):
     question_level: QuestionLevel = "basic_understanding"
     focus_core_point_id: int | None = None
     reveals_answer: bool = False
+    _tokens_used: int = PrivateAttr(default=0)
+
+    @property
+    def tokens_used(self) -> int:
+        """Return API usage metadata that is excluded from structured output."""
+        return self._tokens_used
+
+    @tokens_used.setter
+    def tokens_used(self, value: int) -> None:
+        self._tokens_used = value
 
 
 def choose_question_level(
@@ -300,7 +311,11 @@ async def run_concept_intro_turn_generation(
     )
     parsed = completion.choices[0].message.parsed
     if parsed is None:
-        raise ValueError("The model did not return a valid concept intro turn.")
+        raise OpenAIUsageError(
+            "The model did not return a valid concept intro turn.",
+            tokens_used=completion.usage.total_tokens if completion.usage else 0,
+        )
+    parsed.tokens_used = completion.usage.total_tokens if completion.usage else 0
     parsed.question_level = "basic_understanding"
     parsed.reveals_answer = tutor_turn_reveals_answer(parsed, core_points=core_points)
     return parsed
@@ -425,7 +440,11 @@ async def run_level_transition_question_generation(
     )
     parsed = completion.choices[0].message.parsed
     if parsed is None:
-        raise ValueError("The model did not return a valid level-transition turn.")
+        raise OpenAIUsageError(
+            "The model did not return a valid level-transition turn.",
+            tokens_used=completion.usage.total_tokens if completion.usage else 0,
+        )
+    parsed.tokens_used = completion.usage.total_tokens if completion.usage else 0
     parsed.question_level = next_question_level
     parsed.focus_core_point_id = None
     parsed.reveals_answer = tutor_turn_reveals_answer(parsed, core_points=core_points)
@@ -518,7 +537,11 @@ async def repair_leaky_tutor_turn(
     )
     parsed = completion.choices[0].message.parsed
     if parsed is None:
-        raise ValueError("The model did not return a valid repaired tutor turn.")
+        raise OpenAIUsageError(
+            "The model did not return a valid repaired tutor turn.",
+            tokens_used=completion.usage.total_tokens if completion.usage else 0,
+        )
+    parsed.tokens_used = completion.usage.total_tokens if completion.usage else 0
     parsed.question_level = question_level
     if question_level in {"explain_reasoning", "apply_or_compare"}:
         parsed.focus_core_point_id = None
@@ -658,7 +681,11 @@ async def run_tutor_turn_generation(
 
     parsed = completion.choices[0].message.parsed
     if parsed is None:
-        raise ValueError("The model did not return a valid tutor turn.")
+        raise OpenAIUsageError(
+            "The model did not return a valid tutor turn.",
+            tokens_used=completion.usage.total_tokens if completion.usage else 0,
+        )
+    parsed.tokens_used = completion.usage.total_tokens if completion.usage else 0
     if question_level in {"explain_reasoning", "apply_or_compare"}:
         parsed.focus_core_point_id = None
     return parsed

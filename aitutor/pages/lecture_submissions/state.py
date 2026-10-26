@@ -43,6 +43,26 @@ class LectureSubmissionTableRow:
     is_beta: bool
 
 
+def beta_submission_table_row(
+    *,
+    user: LocalUser,
+    exercise: BetaExercise,
+    result: BetaExerciseResult,
+    token_limit: int,
+) -> LectureSubmissionTableRow:
+    """Map a persisted Beta AI result to the shared submissions table format."""
+    return LectureSubmissionTableRow(
+        username=user.username,
+        user_id=user.id,
+        has_submitted=result.submit_time_stamp is not None,
+        token_limit_reached=result.tokens_used >= token_limit,
+        exercise_id=exercise.id,
+        exercise_title=exercise.title,
+        exercise_tags=[tag.name for tag in exercise.tags],
+        is_beta=True,
+    )
+
+
 class LectureSubmissionsState(FilterMixin, SessionState):
     """State for the lecture-specific submissions page."""
 
@@ -197,7 +217,10 @@ class LectureSubmissionsState(FilterMixin, SessionState):
                 .options(selectinload(BetaExercise.tags))  # type: ignore
                 .where(
                     BetaExercise.lecture_id == self.current_lecture_id,
-                    BetaExerciseResult.submit_time_stamp != None,
+                    or_(
+                        BetaExerciseResult.submit_time_stamp != None,
+                        BetaExerciseResult.tokens_used >= token_limit,
+                    ),
                 )
             )
 
@@ -228,17 +251,13 @@ class LectureSubmissionsState(FilterMixin, SessionState):
                 beta_stmt = beta_stmt.where(and_(*beta_search_conditions))
 
             self.table_rows.extend(
-                LectureSubmissionTableRow(
-                    username=user.username,
-                    user_id=user.id,
-                    has_submitted=True,
-                    token_limit_reached=False,
-                    exercise_id=exercise.id,
-                    exercise_title=exercise.title,
-                    exercise_tags=[tag.name for tag in exercise.tags],
-                    is_beta=True,
+                beta_submission_table_row(
+                    user=user,
+                    exercise=exercise,
+                    result=result,
+                    token_limit=token_limit,
                 )
-                for user, exercise, _ in session.exec(beta_stmt).all()
+                for user, exercise, result in session.exec(beta_stmt).all()
             )
 
             self.table_rows.sort(
