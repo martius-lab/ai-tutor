@@ -274,7 +274,7 @@ async def run_concept_intro_turn_generation(
         base_url=settings.OPENAI_BASE_URL,
     )
     completion = await client.beta.chat.completions.parse(
-        model=get_config().response_ai_model,
+        model=get_config().level_ai_model,
         messages=[
             {
                 "role": "system",
@@ -377,7 +377,7 @@ async def run_level_transition_question_generation(
         base_url=settings.OPENAI_BASE_URL,
     )
     completion = await client.beta.chat.completions.parse(
-        model=get_config().response_ai_model,
+        model=get_config().level_ai_model,
         messages=[
             {
                 "role": "system",
@@ -495,7 +495,7 @@ async def repair_leaky_tutor_turn(
         base_url=settings.OPENAI_BASE_URL,
     )
     completion = await client.beta.chat.completions.parse(
-        model=get_config().response_ai_model,
+        model=get_config().level_ai_model,
         messages=[
             {
                 "role": "system",
@@ -592,7 +592,7 @@ async def run_tutor_turn_generation(
         )
 
     completion = await client.beta.chat.completions.parse(
-        model=get_config().response_ai_model,
+        model=get_config().level_ai_model,
         messages=[
             {
                 "role": "system",
