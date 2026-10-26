@@ -17,7 +17,7 @@ class BetaAIFinishedViewTutorState(SessionState):
     """Tutor-facing view of a submitted Beta AI conversation."""
 
     messages: list[dict[str, str]] = []
-    exercise_title: str = "No Beta AI exercise selected"
+    exercise_title: str = ""
     username: str = ""
 
     @rx.event
@@ -77,5 +77,5 @@ class BetaAIFinishedViewTutorState(SessionState):
     def on_logout(self):
         """Clear state on logout."""
         self.messages = []
-        self.exercise_title = "No Beta AI exercise selected"
+        self.exercise_title = ""
         self.username = ""
