@@ -87,18 +87,6 @@ class SessionState(reflex_local_auth.LocalAuthState):
 
         return rx.redirect(routes.HOME, replace=True)
 
-    @rx.var(cache=True, initial_value=None)
-    def user_role(self) -> UserRole | None:
-        """
-        Retrieves the role of the authenticated user.
-
-        Returns:
-            UserRole: The role of the authenticated user.
-        """
-        if self._authenticated_user_info is None:
-            return None
-        return self._authenticated_user_info.role
-
     @rx.var(cache=True, initial_value=False)
     def is_global_admin(self) -> bool:
         """Whether the current user has global ADMIN permission."""
