@@ -12,7 +12,7 @@ from aitutor.auth.protection import has_permission
 from aitutor.auth.state import SessionState
 from aitutor.components import announcement_banner
 from aitutor.language_state import LanguageState
-from aitutor.models import GlobalPermission, UserRole
+from aitutor.models import GlobalPermission
 
 
 @dataclass
@@ -138,22 +138,13 @@ def get_user_icon():
     Returns:
         rx.Component: A Reflex conditional component representing the user icon.
     """
-    userrole = SessionState.user_role
     return rx.cond(
         ~SessionState.is_authenticated,
         "user-round",
         rx.cond(
-            userrole == UserRole.STUDENT,
+            SessionState.is_global_admin,
+            "user-round-cog",
             "user-round-check",
-            rx.cond(
-                userrole == UserRole.ADMIN,
-                "user-round-cog",
-                rx.cond(
-                    userrole == UserRole.TUTOR,
-                    "user-round-search",
-                    "user-round",
-                ),
-            ),
         ),
     )
 
