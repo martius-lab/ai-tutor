@@ -38,7 +38,15 @@ def show_table_row(table_row: LectureSubmissionTableRow) -> rx.Component:
             _hover={"cursor": "pointer"},
         ),
         rx.table.cell(
-            table_row.exercise_title,
+            rx.hstack(
+                rx.text(table_row.exercise_title),
+                rx.cond(
+                    table_row.is_beta,
+                    rx.badge("Beta", color_scheme="purple"),
+                ),
+                align="center",
+                wrap="wrap",
+            ),
             on_click=LectureSubmissionsState.add_search_value(
                 {"search_value": f'{SEARCH_EXERCISE_KEY}:"{table_row.exercise_title}"'}
             ),
@@ -68,7 +76,11 @@ def show_table_row(table_row: LectureSubmissionTableRow) -> rx.Component:
                     "search",
                     size="2",
                     on_click=rx.redirect(
-                        f"{routes.FINISHED_VIEW_TUTOR}/{table_row.exercise_id}/{table_row.user_id}"
+                        rx.cond(
+                            table_row.is_beta,
+                            f"{routes.BETA_AI_FINISHED_VIEW_TUTOR}/{table_row.exercise_id}/{table_row.user_id}",
+                            f"{routes.FINISHED_VIEW_TUTOR}/{table_row.exercise_id}/{table_row.user_id}",
+                        )
                     ),
                     _hover={"cursor": "pointer"},
                 ),
