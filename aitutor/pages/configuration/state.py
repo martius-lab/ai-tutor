@@ -8,7 +8,7 @@ import reflex as rx
 from sqlmodel import select
 
 import aitutor.global_vars as gv
-from aitutor.auth.protection import state_require_role_or_permission
+from aitutor.auth.protection import state_require_permission
 from aitutor.auth.state import SessionState
 from aitutor.global_vars import TIME_ZONE
 from aitutor.language_state import BackendTranslations as BT
@@ -65,7 +65,7 @@ class ManageConfigState(SessionState):
         return str(self.current_config.exercise_token_limit)
 
     @rx.event
-    @state_require_role_or_permission(allowed_permissions=_REQUIRED_PERMISSIONS)
+    @state_require_permission(_REQUIRED_PERMISSIONS)
     def set_config_value(self, name: str, value: str):
         """Sets a configuration value in the current config."""
         # set max length for input fields coming from UI
@@ -75,21 +75,21 @@ class ManageConfigState(SessionState):
         self.unsaved_changes = True
 
     @rx.event
-    @state_require_role_or_permission(allowed_permissions=_REQUIRED_PERMISSIONS)
+    @state_require_permission(_REQUIRED_PERMISSIONS)
     def set_banner_is_open(self, value: bool):
         """Sets whether the banner is open in current config."""
         self.current_config.banner_is_open = value
         self.unsaved_changes = True
 
     @rx.event
-    @state_require_role_or_permission(allowed_permissions=_REQUIRED_PERMISSIONS)
+    @state_require_permission(_REQUIRED_PERMISSIONS)
     def set_banner_message_type(self, value: str):
         """Sets the banner message type in current config."""
         self.current_config.banner_message_type = BannerMessageType(value)
         self.unsaved_changes = True
 
     @rx.event
-    @state_require_role_or_permission(allowed_permissions=_REQUIRED_PERMISSIONS)
+    @state_require_permission(_REQUIRED_PERMISSIONS)
     def set_exercise_token_limit(self, value: str):
         """Sets exercise_token_limit while allowing transient invalid input states."""
         try:
@@ -107,7 +107,7 @@ class ManageConfigState(SessionState):
         )
 
     @rx.event
-    @state_require_role_or_permission(allowed_permissions=_REQUIRED_PERMISSIONS)
+    @state_require_permission(_REQUIRED_PERMISSIONS)
     def on_load(self):
         """Initialization for the page."""
         with rx.session() as session:
@@ -119,7 +119,7 @@ class ManageConfigState(SessionState):
         self.unsaved_changes = False
 
     @rx.event
-    @state_require_role_or_permission(allowed_permissions=_REQUIRED_PERMISSIONS)
+    @state_require_permission(_REQUIRED_PERMISSIONS)
     def save_config_to_db(self):
         """Saves the current configuration to the database."""
         if self.is_banner_message_invalid:
@@ -172,13 +172,13 @@ class LecturerRegistrationTokenState(SessionState):
     add_dialog_is_open: bool = False
 
     @rx.event
-    @state_require_role_or_permission(allowed_permissions=_REQUIRED_PERMISSIONS)
+    @state_require_permission(_REQUIRED_PERMISSIONS)
     def set_add_dialog_is_open(self, is_open: bool):
         """Sets the state of the add dialog."""
         self.add_dialog_is_open = is_open
 
     @rx.event
-    @state_require_role_or_permission(allowed_permissions=_REQUIRED_PERMISSIONS)
+    @state_require_permission(_REQUIRED_PERMISSIONS)
     def on_load(self):
         """Initialize the state"""
         self._global_load()
@@ -195,7 +195,7 @@ class LecturerRegistrationTokenState(SessionState):
             self.tokens = list(session.exec(stmt).all())
 
     @rx.event
-    @state_require_role_or_permission(allowed_permissions=_REQUIRED_PERMISSIONS)
+    @state_require_permission(_REQUIRED_PERMISSIONS)
     def generate_new_token(self, form_data: dict):
         """Generates a new lecturer registration token."""
         assert self.authenticated_user.id is not None
@@ -231,7 +231,7 @@ class LecturerRegistrationTokenState(SessionState):
         self.add_dialog_is_open = False
 
     @rx.event
-    @state_require_role_or_permission(allowed_permissions=_REQUIRED_PERMISSIONS)
+    @state_require_permission(_REQUIRED_PERMISSIONS)
     def delete_token(self, token_id: int):
         """Deletes a lecturer registration token."""
         with rx.session() as session:
