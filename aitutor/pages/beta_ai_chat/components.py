@@ -3,6 +3,7 @@
 import reflex as rx
 
 import aitutor.global_vars as gv
+from aitutor.components.level_ai_badge import level_ai_badge
 from aitutor.language_state import LanguageState as LS
 from aitutor.pages.beta_ai_chat.state import BetaAIChatState
 
@@ -14,7 +15,7 @@ def beta_chat_header() -> rx.Component:
             rx.hstack(
                 rx.heading(BetaAIChatState.exercise_title, size="6"),
                 rx.spacer(),
-                gv.level_ai_badge(),
+                level_ai_badge(),
                 width="100%",
                 align="center",
             ),
@@ -186,7 +187,7 @@ def analysis_preference() -> rx.Component:
 
 
 def report_conversation_button() -> rx.Component:
-    """Render the standard report dialog for the Better AI conversation."""
+    """Render the standard report dialog for the Beta AI conversation."""
     return rx.alert_dialog.root(
         rx.hover_card.root(
             rx.hover_card.trigger(
@@ -336,13 +337,9 @@ def beta_submit_button() -> rx.Component:
             color_scheme="green",
             type="button",
             on_click=BetaAIChatState.submit_beta_conversation,
-            disabled=rx.cond(
-                BetaAIChatState.completion_unlocked,
-                False,
-                True,
-            ),
+            disabled=~BetaAIChatState.can_submit_conversation,
             _hover=rx.cond(
-                BetaAIChatState.completion_unlocked,
+                BetaAIChatState.can_submit_conversation,
                 {"cursor": "pointer"},
                 {"cursor": "not-allowed"},
             ),
@@ -367,7 +364,14 @@ def beta_submission_status() -> rx.Component:
             ),
             rx.desktop_only(
                 rx.text(
-                    LS.beta_ai_last_submit + BetaAIChatState.submit_time_stamp,
+                    LS.beta_ai_last_submit,
+                    rx.cond(
+                        BetaAIChatState.submit_time_stamp,
+                        rx.moment(
+                            date=BetaAIChatState.submit_time_stamp,
+                            format=gv.MOMENT_DEADLINE_FORMAT,
+                        ),
+                    ),
                     color_scheme="green",
                 ),
             ),

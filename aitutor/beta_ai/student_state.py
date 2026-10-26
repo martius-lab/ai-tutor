@@ -9,9 +9,8 @@ from datetime import datetime
 from typing import Any, Literal
 
 from aitutor.beta_ai.diagnosis import DiagnosisPattern, DiagnosisResponse
-from aitutor.models import BetaCorePoint, BetaStudentConceptState
+from aitutor.models import BetaCorePoint, BetaStudentConceptState, ConceptState
 
-ConceptState = Literal["unseen", "emerging", "satisfactory", "secure"]
 QuestionLevel = Literal["basic_understanding", "explain_reasoning", "apply_or_compare"]
 
 DEFAULT_LEVEL_STATUS = {
@@ -22,7 +21,7 @@ DEFAULT_LEVEL_STATUS = {
 
 BASIC_EVIDENCE_RELEVANCE_THRESHOLD = 0.5
 BASIC_EVIDENCE_CORRECTNESS_THRESHOLD = 0.7
-BASIC_EVIDENCE_COMPLETENESS_THRESHOLD = 0.5
+BASIC_EVIDENCE_COMPLETENESS_THRESHOLD = 0.3
 HIGHER_LEVEL_RELEVANCE_THRESHOLD = 0.7
 HIGHER_LEVEL_CORRECTNESS_THRESHOLD = 0.7
 HIGHER_LEVEL_COMPLETENESS_THRESHOLD = 0.6
@@ -31,7 +30,7 @@ UNCLEAR_CORRECTNESS_THRESHOLD = 0.85
 UNCLEAR_COMPLETENESS_THRESHOLD = 0.7
 MISCONCEPTION_RESOLUTION_RELEVANCE_THRESHOLD = 0.7
 MISCONCEPTION_RESOLUTION_CORRECTNESS_THRESHOLD = 0.8
-MISCONCEPTION_RESOLUTION_COMPLETENESS_THRESHOLD = 0.6
+MISCONCEPTION_RESOLUTION_COMPLETENESS_THRESHOLD = 0.3
 
 
 def normalized_level_status(level_status: dict[str, Any] | None) -> dict[str, str]:
@@ -70,11 +69,13 @@ def build_cumulative_evidence_summary(
         if core_point_id in core_points_by_id
     ]
 
+    covered_summary = "\n".join(covered_lines) or "- None yet."
+    missing_summary = "\n".join(missing_lines) or "- None."
     return (
         "Covered core points so far:\n"
-        f"{chr(10).join(covered_lines) if covered_lines else '- None yet.'}\n\n"
+        f"{covered_summary}\n\n"
         "Still missing core points:\n"
-        f"{chr(10).join(missing_lines) if missing_lines else '- None.'}"
+        f"{missing_summary}"
     )
 
 
@@ -424,16 +425,16 @@ def update_student_concept_state_from_diagnosis(
     student_state.updated_at = now
 
     if level_status["apply_or_compare"] == "passed":
-        student_state.state = "secure"
+        student_state.state = ConceptState.SECURE
     elif (
         level_status["basic_understanding"] == "passed"
         and level_status["explain_reasoning"] == "passed"
     ):
-        student_state.state = "satisfactory"
+        student_state.state = ConceptState.SATISFACTORY
     elif cumulative_pattern == "sufficient_for_completion":
         student_state.successful_attempts += 1
-        if student_state.state == "unseen":
-            student_state.state = "emerging"
+        if student_state.state == ConceptState.UNSEEN:
+            student_state.state = ConceptState.EMERGING
     elif cumulative_pattern == "misconception_present":
         student_state.misconception_hits += 1
         # Misconceptions are handled by the tutor's automatic repair loop
@@ -442,11 +443,11 @@ def update_student_concept_state_from_diagnosis(
         # state: the Beta AI design goal is that the tutor pauses normal
         # progression and keeps repairing until the current answer no longer
         # contains the misconception.
-        if student_state.state not in {"satisfactory", "secure"}:
-            student_state.state = "emerging"
+        if student_state.state not in {ConceptState.SATISFACTORY, ConceptState.SECURE}:
+            student_state.state = ConceptState.EMERGING
     elif cumulative_pattern == "correct_but_incomplete":
-        if student_state.state not in {"satisfactory", "secure"}:
-            student_state.state = "emerging"
+        if student_state.state not in {ConceptState.SATISFACTORY, ConceptState.SECURE}:
+            student_state.state = ConceptState.EMERGING
     elif (
         cumulative_pattern
         in {
@@ -456,9 +457,9 @@ def update_student_concept_state_from_diagnosis(
             "shallow_keyword_only",
             "tutor_derived_answer",
         }
-        and student_state.state == "unseen"
+        and student_state.state == ConceptState.UNSEEN
     ):
-        student_state.state = "emerging"
+        student_state.state = ConceptState.EMERGING
 
     policy_pattern = cumulative_pattern
     if question_level in {
@@ -478,28 +479,21 @@ def update_student_concept_state_from_diagnosis(
         # concept coverage collected in earlier student-owned turns.
         policy_pattern = latest_diagnosis.diagnosis_pattern
 
-    return DiagnosisResponse(
-        student_intent=latest_diagnosis.student_intent,
-        is_answer_attempt=latest_diagnosis.is_answer_attempt,
-        evidence_origin=latest_diagnosis.evidence_origin,
-        is_student_owned_evidence=latest_diagnosis.is_student_owned_evidence,
-        task_relevance=latest_diagnosis.task_relevance,
-        correctness=latest_diagnosis.correctness,
-        completeness=latest_diagnosis.completeness,
-        misconception_flag=latest_diagnosis.misconception_flag,
-        misconception_label=latest_diagnosis.misconception_label,
-        diagnosis_pattern=policy_pattern,
-        covered_core_point_ids=cumulative_covered_ids,
-        missing_core_point_ids=cumulative_missing_ids,
-        evidence_snippets=latest_diagnosis.evidence_snippets,
-        explanation=(
-            latest_diagnosis.explanation
-            + "\n\nCumulative view: policy is based on all core points covered "
-            "across this concept's chat turns."
-            + (
-                " Active misconceptions were resolved by this answer."
-                if resolved_this_turn
-                else ""
-            )
-        ),
+    return latest_diagnosis.model_copy(
+        deep=True,
+        update={
+            "diagnosis_pattern": policy_pattern,
+            "covered_core_point_ids": cumulative_covered_ids,
+            "missing_core_point_ids": cumulative_missing_ids,
+            "explanation": (
+                latest_diagnosis.explanation
+                + "\n\nCumulative view: policy is based on all core points covered "
+                "across this concept's chat turns."
+                + (
+                    " Active misconceptions were resolved by this answer."
+                    if resolved_this_turn
+                    else ""
+                )
+            ),
+        },
     )

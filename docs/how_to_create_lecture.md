@@ -33,7 +33,7 @@ Fill out the form:
   about, etc.).  You can use Markdown for basic formatting.
 - **Check Conversation Prompt:** The prompt used for checking if exercises can be
   submitted.  If you just get started, do not worry about this, the default should be
-  good.  You can still modify this later, if you want.
+  good.  You can still modify this later, if you want. This field does not need to be changed for **Level AI** exercises.
 
 After submitting the form, you will directly enter the newly added lecture.  If you want
 to change any of the information you just entered into the form, you can do so on the
@@ -59,7 +59,7 @@ tutors or co-owners of the lecture).  This page also lists all the current membe
 You can change the role of each member.  The following roles exist.  They are
 hierarchical, so each role also contains the permissions of the roles above in the list.
 
-- STUDENT:  Default role for all uses who join a lecture.  Users with this role can work
+- STUDENT:  Default role for all users who join a lecture.  Users with this role can work
   on exercises and see other members but nothing else.
 - TUTOR:  Can see submissions and reports made by other members as well as the token
   analyzer.
@@ -85,40 +85,94 @@ There are two ways to remove a member from a lecture:
 To create new exercises, go to the "Manage Exercises" tab of your lecture and click the
 "Add Exercise" button.
 
-Title and description will be shown to the students when they work on the exercise.  The
-"Lesson context" is hidden from the student but provided to the LLM as additional
-context.  You can, for example, paste relevant excerpts of your lecture script here.
-Alternatively, you can upload a PDF with the context.
-**Please limit the context to what is actually relevant for the exercise as everything
-included here will add to the token usage when working on the exercise.**
+In **Classic AI**, the students explain the question from the exercise to the AI
+agent, which asks questions and provides hints. In **Level AI**, they practise selected topics step
+by step, moving from explaining an idea to giving reasons and applying it. Both
+types can be used in the same lecture. Title and description are shown to the
+students in both modes.
 
-**Prompt:** You can choose a custom prompt for the exercise.  If you are just getting
-started, we recommend, that you stick to the default, though.
+### Prepare a Classic AI exercise
+
+Title and description are shown to the students when they work on the exercise.
+The **Lesson context** is hidden from the student but provided to the AI as
+additional context. The lecturer can paste relevant excerpts of the lecture script
+here or upload a PDF with the context.
+
+The context should be limited to what is actually relevant for the exercise, as
+everything included here adds to the token usage when working on the exercise.
+
+**Prompt:** The lecturer can choose a custom prompt for the exercise. A prompt is
+an instruction for the AI. For the first exercise, the default is recommended.
+
+### Prepare a Level AI exercise
+
+1. The lecturer uploads one or more PDFs with the relevant lecture material and
+   checks the text preview to make sure the content has been read correctly.
+2. The lecturer enters a title and an optional description indicating what the
+   students should focus on.
+3. The lecturer clicks **Generate Concepts**. The AI proposes topics and what the
+   students should understand about each one, reducing manual preparation.
+4. The lecturer reviews and edits the suggestions before saving:
+   - **Concepts** are the topics students will work through.
+   - **Core points** are the key ideas their explanations should cover.
+   - **Misconceptions** are common misunderstandings the tutor should watch for.
+5. The lecturer sets any deadline and tags, then saves the exercise.
+
+For example, for a topic on *correlation and causation*, a key idea could be
+"a correlation alone does not show that one factor causes another". A common
+misunderstanding could be "if two things occur together, one must cause the other".
+The lecturer adapts the wording and examples to the course.
+
+**A small, focused exercise is a suitable starting point.** The lecturer checks
+that the suggestions are correct, removes topics outside the scope of the exercise,
+and adds anything important that is missing. The requested number of suggestions
+is a guide rather than an exact count.
+
+Level AI does not require a custom prompt. The lecturer's main preparation is
+reviewing the topics and key ideas that the students will practise.
+
+### Availability and organisation
 
 
-**Deadline:** If you set a deadline for the exercise, student will not be able to submit
-their conversations anymore after the deadline (they can still talk with the AI tutor,
+**Deadline (both modes):** If the lecturer sets a deadline, the students cannot submit
+their conversations after it (they can still talk with the AI tutor,
 though, e.g. to repeat exercises as exam preparation).
-When setting a deadline, you also have to set a period of days, the students have to
-work on the exercise.  The exercise will automatically be hidden until the specified
+The lecturer also sets the number of days available for working on the exercise.
+The exercise will automatically be hidden until the specified
 number of days before the deadline.
 
 
-**Tags:** Adding tags can help organizing exercises.  They may be used, for example, to
+**Tags (both modes):** Adding tags can help organize exercises. They may be used to
 link exercises to specific lectures or to distinguish optional from mandatory exercises.
-You can add arbitrary tags within your lecture, so it is up to you, how you use them.
+The lecturer can create tags within the lecture and choose how to use them.
+
+For Level AI, once someone has started a chat, the lecturer can no longer change the
+description, source material, or topics and their key ideas. This prevents changing
+what students are expected to learn partway through an exercise. The title,
+visibility, deadline, working period, and tags can still be changed.
+The lecturer reviews the content before the students begin. Trying the exercise
+as the lecturer also starts a chat and locks the learning content.
 
 
 ## Working on exercises and reviewing submissions
 
 All members of a lecture can see the exercises in the "Exercises" tab and work on them.
-When a user thinks, the question of the exercise is explained well enough, they can
-click the "Check conversation" button.  This will trigger a call to an LLM, checking the
-conversation.  If the check passes, the user can submit the conversation.  The submitted
-conversation will appear in the "Submissions" tab of the lecture (visible to owners and
-tutors), where it can be reviewed.
 
-The user may continue the conversation (or even resetting and starting over) but this
-will not affect the submitted snapshot.  The submitted conversation is only updated if
-the user explicitly submits again.  Unsubmitted conversations are not visible to other
-users, also not to tutors or owners.
+- **Classic AI:** When the student thinks the question of the exercise is explained
+  well enough, they can click **Check conversation**. A second AI agent checks the
+  conversation and gives feedback on whether the exercise was solved correctly or
+  not. If the check passes, the student can submit the conversation.
+- **Level AI:** Students work through each topic in three stages: **explain the
+  idea**, **give reasons**, and **apply or compare it**. If an explanation leaves
+  out an important idea or shows a misunderstanding, the tutor asks a follow-up
+  question. Students should answer in their own words; requesting a hint alone
+  does not complete a stage. Once all topics are completed, they can submit without
+  requesting a separate final check.
+
+In both modes, the student must explicitly submit the conversation. It then appears
+in the lecture's **Submissions** tab (visible to owners and tutors) for review.
+
+The submission is a copy of the conversation at the time the student submits it.
+Continuing the conversation or starting over does not change that copy. It is only
+updated if the student submits again. Unsubmitted conversations are not shown to
+lecture tutors or owners in the submission view.

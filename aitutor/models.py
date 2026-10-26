@@ -26,6 +26,7 @@ from aitutor.global_vars import (
     TIME_ZONE,
     VERIFICATION_TOKEN_VALIDITY,
 )
+from aitutor.utilities.helper_functions import to_tz_aware
 
 # For alembic to properly work, we need to set explicit naming conventions for
 # constraints.  See https://alembic.sqlalchemy.org/en/latest/naming.html
@@ -105,6 +106,19 @@ class VerificationPurpose(StrEnum):
     PASSWORD_RESET = "password_reset"
 
 
+class ConceptState(StrEnum):
+    """Learning state of a student for one Level AI concept."""
+
+    #: The student has not worked on the concept yet.
+    UNSEEN = "unseen"
+    #: The student has started, but no question level is passed yet.
+    EMERGING = "emerging"
+    #: Basic understanding and reasoning are passed.
+    SATISFACTORY = "satisfactory"
+    #: Applying or comparing is passed as well.
+    SECURE = "secure"
+
+
 class Lecture(SQLModel, table=True):
     """Lecture model for storing lecture-specific settings."""
 
@@ -167,7 +181,7 @@ class ExerciseTagLink(SQLModel, table=True):
 
 
 class BetaExerciseTagLink(SQLModel, table=True):
-    """Link table between Better AI exercises and lecture tags."""
+    """Link table between Beta AI exercises and lecture tags."""
 
     beta_exercise_id: Optional[int] = Field(
         foreign_key="betaexercise.id", primary_key=True, ondelete="CASCADE"
@@ -312,7 +326,7 @@ class ExerciseResult(SQLModel, table=True):
 
 class BetaExercise(SQLModel, table=True):
     """
-    Lecture-specific exercise model for the Beta AI Tutor workflow.
+    Exercise model for the Beta AI Tutor workflow.
 
     Beta exercises intentionally do not reuse the regular Exercise/ExerciseResult
     tables. They are the author-facing container for generated and manually curated
@@ -332,9 +346,7 @@ class BetaExercise(SQLModel, table=True):
     description: str = Field(nullable=False, default="")
     source_material_text: str = Field(nullable=False, default="")
     source_material_filename: str = Field(nullable=False, default="")
-    lecture_id: Optional[int] = Field(
-        default=None, foreign_key="lecture.id", ondelete="CASCADE", index=True
-    )
+    lecture_id: int = Field(foreign_key="lecture.id", ondelete="CASCADE", index=True)
     is_hidden: bool = Field(default=False)
     deadline: Optional[datetime] = Field(
         sa_column=Column(DateTime, nullable=True), default=None
@@ -348,38 +360,33 @@ class BetaExercise(SQLModel, table=True):
     tags: list[Tag] = Relationship(
         back_populates="beta_exercises", link_model=BetaExerciseTagLink
     )
-    lecture: Optional[Lecture] = Relationship(back_populates="beta_exercises")
+    lecture: Lecture = Relationship(back_populates="beta_exercises")
 
+    @pydantic.computed_field
     @property
-    def editing_period(self) -> str:
-        """
-        Returns a string representing the editing period based on
-        the deadline and days to complete.
-        """
+    def editing_start(self) -> Optional[datetime]:
+        """Start of the editing period, or None without deadline and duration."""
         if self.deadline and self.days_to_complete:
-            start = self.deadline - timedelta(days=self.days_to_complete)
-            return f"{start.strftime('%d.%m.%Y')} -\
-                {self.deadline.strftime('%d.%m.%Y, %H:%M')}"
-        return "No deadline"
+            return self.deadline - timedelta(days=self.days_to_complete)
+        return None
 
+    @pydantic.computed_field
     @property
     def is_started(self) -> bool:
         """
         Flag whether the beta exercise is already visible according to its editing
         period. If no deadline is set, it counts as started.
         """
-        if self.deadline and self.days_to_complete:
-            end = self.deadline.replace(tzinfo=ZoneInfo(TIME_ZONE))
-            start = end - timedelta(days=self.days_to_complete)
-            current_time = datetime.now(ZoneInfo(TIME_ZONE))
-            return current_time > start
-        return True
+        if self.editing_start is None:
+            return True
+        return datetime.now(ZoneInfo(TIME_ZONE)) > to_tz_aware(self.editing_start)
 
+    @pydantic.computed_field
     @property
     def deadline_exceeded(self) -> bool:
         """Flag whether the beta exercise deadline is over."""
         if self.deadline:
-            deadline = self.deadline.replace(tzinfo=ZoneInfo(TIME_ZONE))
+            deadline = to_tz_aware(self.deadline)
             return datetime.now(ZoneInfo(TIME_ZONE)) > deadline
         return False
 
@@ -419,6 +426,10 @@ class BetaExerciseResult(SQLModel, table=True):
     # database relationships
     beta_exercise_id: int = Field(foreign_key="betaexercise.id", ondelete="CASCADE")
     userinfo_id: int = Field(foreign_key="userinfo.id", ondelete="CASCADE")
+
+    # ORM relationships
+    beta_exercise: Optional[BetaExercise] = Relationship()
+    userinfo: UserInfo = Relationship()
 
     def __repr__(self):
         return (
@@ -478,7 +489,7 @@ class BetaStudentConceptState(SQLModel, table=True):
     userinfo_id: int = Field(foreign_key="userinfo.id", ondelete="CASCADE")
     beta_exercise_id: int = Field(foreign_key="betaexercise.id", ondelete="CASCADE")
     beta_concept_id: int = Field(foreign_key="betaconcept.id", ondelete="CASCADE")
-    state: str = Field(nullable=False, default="unseen")
+    state: ConceptState = Field(default=ConceptState.UNSEEN)
     attempts_total: int = Field(default=0)
     successful_attempts: int = Field(default=0)
     misconception_hits: int = Field(default=0)
@@ -516,7 +527,6 @@ class BetaConcept(SQLModel, table=True):
 
     id: Optional[int] = Field(default=None, primary_key=True)
     beta_exercise_id: int = Field(foreign_key="betaexercise.id", ondelete="CASCADE")
-    concept_id: str = Field(nullable=False, default="", index=True)
     label: str = Field(nullable=False, default="")
     description: str = Field(nullable=False, default="")
     order_index: int = Field(default=0)
@@ -531,7 +541,7 @@ class BetaConcept(SQLModel, table=True):
     )
 
     def __repr__(self):
-        return f"<BetaConcept(id={self.id}, concept_id='{self.concept_id}')>"
+        return f"<BetaConcept(id={self.id}, label='{self.label}')>"
 
 
 class BetaCorePoint(SQLModel, table=True):
@@ -627,7 +637,8 @@ class Config(SQLModel, table=True):
     response_ai_model: str
     #: Name of the AI model used by Level AI for concept generation, diagnosis,
     #: and tutor responses. Available models depend on the provider.
-    level_ai_model: str
+    #: The server default fills existing config rows when the column is added.
+    level_ai_model: str = Field(sa_column_kwargs={"server_default": "gpt-4.1"})
     #: Name of the AI model used for checking conversations.  Which models are available
     #: depends on the used provider.
     check_ai_model: str
@@ -677,8 +688,8 @@ class Report(SQLModel, table=True):
     Attributes:
         id: Primary key of the report.
         exercise_id: Foreign key referencing the associated Alpha Exercise
-        (nullable if exercise deleted or this is a Better AI report).
-        beta_exercise_id: Foreign key referencing the associated Better AI exercise
+        (nullable if exercise deleted or this is a Beta AI report).
+        beta_exercise_id: Foreign key referencing the associated Beta AI exercise
         (nullable if exercise deleted or this is an Alpha report).
         exercise_type: Stable source marker used even after an exercise is deleted.
         lecture_id: Foreign key referencing the lecture the report belongs to
@@ -688,7 +699,7 @@ class Report(SQLModel, table=True):
         looked_at: Flag indicating whether the report has been viewed by a tutor.
         conversation_snapshot: Snapshot of the conversation at report submission time.
         exercise: Relationship to the associated Alpha Exercise (may be None).
-        beta_exercise: Relationship to the associated Better AI exercise (may be None).
+        beta_exercise: Relationship to the associated Beta AI exercise (may be None).
         user: Relationship to the user who submitted the report.
     """
 
@@ -717,7 +728,10 @@ class Report(SQLModel, table=True):
             nullable=True,
         ),
     )
-    exercise_type: str = Field(default="alpha", nullable=False)
+    # The server default fills existing reports when the column is added.
+    exercise_type: str = Field(
+        default="alpha", nullable=False, sa_column_kwargs={"server_default": "alpha"}
+    )
     lecture_id: Optional[int] = Field(
         default=None,
         sa_column=Column(

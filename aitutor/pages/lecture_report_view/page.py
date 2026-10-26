@@ -2,9 +2,9 @@
 
 import reflex as rx
 
-import aitutor.global_vars as gv
 from aitutor import routes
 from aitutor.auth.protection import page_require_lecture_role
+from aitutor.components.level_ai_badge import level_ai_badge
 from aitutor.language_state import LanguageState
 from aitutor.models import LectureRole
 from aitutor.pages.beta_ai_finished_view_tutor.evaluations import (
@@ -73,7 +73,7 @@ def lecture_report_view_page() -> rx.Component:
                     ),
                     rx.cond(
                         LectureReportViewState.exercise_type == "beta",
-                        gv.level_ai_badge(),
+                        level_ai_badge(),
                     ),
                     align="center",
                 ),

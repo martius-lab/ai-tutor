@@ -48,6 +48,21 @@ IntegrityRisk = Literal[
     "off_task_meta",
 ]
 
+# Answers with fewer words count as keyword-only and cannot cover core points.
+MIN_EVIDENCE_ANSWER_WORDS = 4
+# Minimum task relevance (0.0-1.0) for an answer to count as on-topic.
+TASK_RELEVANCE_THRESHOLD = 0.3
+# Minimum task relevance for an answer that covers all core points to complete them.
+COMPLETION_RELEVANCE_THRESHOLD = 0.5
+# Requests with at most this many words count as short help requests.
+SHORT_REQUEST_MAX_WORDS = 8
+# Similarity above which an answer counts as copied from a recent tutor message.
+COPIED_FROM_TUTOR_SIMILARITY_THRESHOLD = 0.82
+# Texts shorter than this (normalized characters) are not checked for copying.
+COPY_CHECK_MIN_TEXT_LENGTH = 24
+# Number of most recent conversation messages searched for copied tutor text.
+COPY_CHECK_RECENT_MESSAGES = 8
+
 
 class DiagnosisResponse(BaseModel):
     """Structured diagnosis result for one student answer."""
@@ -69,6 +84,9 @@ class DiagnosisResponse(BaseModel):
     integrity_risk: IntegrityRisk = "none"
     requires_integrity_reset: bool = False
     integrity_rationale: str = ""
+    # The token count comes from the API response, not from the structured output.
+    # As a private attribute it is left out of the JSON schema sent to the model
+    # and out of model_dump() (used for traces); the property gives normal access.
     _tokens_used: int = PrivateAttr(default=0)
 
     @property
@@ -94,8 +112,7 @@ def _format_core_points(core_points: list[BetaCorePoint]) -> str:
     """Format persisted core points for the diagnosis prompt."""
     formatted_points = []
     for core_point in core_points:
-        if core_point.id is None:
-            continue
+        assert core_point.id is not None, "Persisted Beta AI core point has no ID."
         formatted_points.append(f"- {core_point.id}: {core_point.text}")
     return "\n".join(formatted_points) or "No core points provided."
 
@@ -156,12 +173,12 @@ def detect_non_answer_intent(student_answer: str) -> StudentIntent | None:
     or explicit request phrases, not ordinary explanatory sentences containing
     words like "what", "hint", or "example".
     """
-    normalized = " ".join(student_answer.lower().split())
+    normalized = _normalize_for_similarity(student_answer)
     if not normalized:
         return None
     normalized_stripped = normalized.strip(" .!?")
     word_count = len(normalized_stripped.split())
-    is_short_request = word_count <= 8
+    is_short_request = word_count <= SHORT_REQUEST_MAX_WORDS
 
     answer_request_phrases = [
         "give me the answer",
@@ -235,7 +252,7 @@ def detect_non_answer_intent(student_answer: str) -> StudentIntent | None:
 
 
 def _normalize_for_similarity(value: str) -> str:
-    """Normalize text for coarse copy/paste similarity checks."""
+    """Lower-case the text and collapse whitespace for coarse text comparisons."""
     return " ".join(value.lower().split())
 
 
@@ -243,18 +260,18 @@ def detect_copied_from_tutor(
     *,
     student_answer: str,
     conversation_context: list[dict[str, str]] | None,
-    similarity_threshold: float = 0.82,
+    similarity_threshold: float = COPIED_FROM_TUTOR_SIMILARITY_THRESHOLD,
 ) -> bool:
     """Detect whether the student answer is likely copied from recent tutor text."""
     normalized_answer = _normalize_for_similarity(student_answer)
-    if len(normalized_answer) < 24 or not conversation_context:
+    if len(normalized_answer) < COPY_CHECK_MIN_TEXT_LENGTH or not conversation_context:
         return False
 
-    for message in reversed(conversation_context[-8:]):
+    for message in reversed(conversation_context[-COPY_CHECK_RECENT_MESSAGES:]):
         if message.get("role") != "tutor":
             continue
         tutor_text = _normalize_for_similarity(message.get("content", ""))
-        if len(tutor_text) < 24:
+        if len(tutor_text) < COPY_CHECK_MIN_TEXT_LENGTH:
             continue
         if normalized_answer in tutor_text:
             return True
@@ -290,7 +307,7 @@ def validate_and_normalize_diagnosis(
         conversation_context=conversation_context,
     )
     student_intent = detected_intent or diagnosis.student_intent
-    evidence_origin = (
+    evidence_origin: EvidenceOrigin = (
         "copied_from_tutor" if copied_from_tutor else diagnosis.evidence_origin
     )
     integrity_risk: IntegrityRisk = diagnosis.integrity_risk
@@ -362,7 +379,7 @@ def validate_and_normalize_diagnosis(
     normalized = DiagnosisResponse(
         student_intent=student_intent,
         is_answer_attempt=is_answer_attempt,
-        evidence_origin=evidence_origin,  # type: ignore[arg-type]
+        evidence_origin=evidence_origin,
         is_student_owned_evidence=is_student_owned_evidence,
         task_relevance=_clamp_score(diagnosis.task_relevance),
         correctness=_clamp_score(diagnosis.correctness),
@@ -378,6 +395,7 @@ def validate_and_normalize_diagnosis(
         requires_integrity_reset=requires_integrity_reset,
         integrity_rationale=integrity_rationale,
     )
+    normalized.tokens_used = diagnosis.tokens_used
 
     if normalized.requires_integrity_reset:
         warnings.append(
@@ -403,7 +421,7 @@ def validate_and_normalize_diagnosis(
 
     if (
         normalized.is_answer_attempt
-        and answer_word_count < 4
+        and answer_word_count < MIN_EVIDENCE_ANSWER_WORDS
         and normalized.covered_core_point_ids
     ):
         warnings.append(
@@ -429,20 +447,23 @@ def validate_and_normalize_diagnosis(
     elif not normalized.is_student_owned_evidence:
         final_pattern = "tutor_derived_answer"
     elif (
-        answer_word_count < 4
-        and normalized.task_relevance >= 0.3
+        answer_word_count < MIN_EVIDENCE_ANSWER_WORDS
+        and normalized.task_relevance >= TASK_RELEVANCE_THRESHOLD
         and student_answer.strip()
     ):
         final_pattern: DiagnosisPattern = "shallow_keyword_only"
     elif not student_answer.strip() or (
-        normalized.task_relevance < 0.3 and covered_count == 0
+        normalized.task_relevance < TASK_RELEVANCE_THRESHOLD and covered_count == 0
     ):
         final_pattern = "off_task"
     elif normalized.misconception_flag:
         final_pattern = "misconception_present"
-    elif all_core_points_covered and normalized.task_relevance >= 0.5:
+    elif (
+        all_core_points_covered
+        and normalized.task_relevance >= COMPLETION_RELEVANCE_THRESHOLD
+    ):
         final_pattern = "sufficient_for_completion"
-    elif covered_count > 0 and normalized.task_relevance >= 0.3:
+    elif covered_count > 0 and normalized.task_relevance >= TASK_RELEVANCE_THRESHOLD:
         final_pattern = "correct_but_incomplete"
     else:
         final_pattern = "unclear"

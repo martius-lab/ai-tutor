@@ -263,13 +263,12 @@ class LectureManageExercisesState(FilterMixin, SessionState):
 
     # These dictionarys are needed because reflex does not accept propertys like
     # exercise.is_started or exercise.editing_period in the components.
-    # So this is a workaround.
+    # So this is a workaround.  Level AI exercises expose these values as computed
+    # fields instead.
     #: dictionary to store editing periods for exercises. Key is exercise id.
     editing_periods: dict[int, str] = {}
-    beta_editing_periods: dict[int, str] = {}
     #: dictionary to store which exercises are started. Key is exercise id.
     exercise_is_started: dict[int, bool] = {}
-    beta_exercise_is_started: dict[int, bool] = {}
     #: dictionary to store which exercises are selected. Key is exercise id.
     exercise_is_selected: dict[int, bool] = {}
 
@@ -686,9 +685,7 @@ class LectureManageExercisesState(FilterMixin, SessionState):
             self.exercises = []
             self.beta_exercises = []
             self.editing_periods = {}
-            self.beta_editing_periods = {}
             self.exercise_is_started = {}
-            self.beta_exercise_is_started = {}
             self.exercise_is_selected = {}
             return
 
@@ -762,14 +759,8 @@ class LectureManageExercisesState(FilterMixin, SessionState):
         self.editing_periods = {
             e.id: e.editing_period for e in self.exercises if e.id is not None
         }
-        self.beta_editing_periods = {
-            e.id: e.editing_period for e in self.beta_exercises if e.id is not None
-        }
         self.exercise_is_started = {
             e.id: e.is_started for e in self.exercises if e.id is not None
-        }
-        self.beta_exercise_is_started = {
-            e.id: e.is_started for e in self.beta_exercises if e.id is not None
         }
         self.exercise_is_selected = {
             e.id: False for e in self.exercises if e.id is not None
@@ -814,10 +805,9 @@ class LectureManageExercisesState(FilterMixin, SessionState):
                     break
 
     @rx.event
-    def toggle_beta_visibility(self, exercise_id: int | None):
-        """Toggle the visibility of a Better AI exercise."""
-        if exercise_id is None:
-            return
+    @state_require_lecture_role(LectureRole.OWNER)
+    def toggle_beta_visibility(self, exercise_id: int):
+        """Toggle the visibility of a Beta AI exercise."""
         with rx.session() as session:
             exercise = session.get(BetaExercise, exercise_id)
             if exercise is None or exercise.lecture_id != self.current_lecture_id:
@@ -917,8 +907,10 @@ class LectureManageExercisesState(FilterMixin, SessionState):
             invert=True,
         )
 
+    @rx.event
+    @state_require_lecture_role(LectureRole.OWNER)
     def delete_beta_exercise(self, exercise_id: int | None):
-        """Delete a Better AI exercise from the current lecture."""
+        """Delete a Beta AI exercise from the current lecture."""
         if exercise_id is None:
             return
         with rx.session() as session:
@@ -1051,7 +1043,7 @@ class LectureManageTagsState(LectureManageExercisesState):
         Format: {tag_id: number_of_exercises_with_tag}
         """
         self.exercises  # update when exercises change # noqa: B018
-        self.beta_exercises  # update when Better AI exercises change # noqa: B018
+        self.beta_exercises  # update when Beta AI exercises change # noqa: B018
         with rx.session() as session:
             stmt = (
                 select(ExerciseTagLink.tag_id, func.count())
