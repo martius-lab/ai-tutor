@@ -55,17 +55,6 @@ class LectureAccessState(SessionState):
         return link is not None and link.role >= required_role
 
 
-def lecture_has_role_at_least(role) -> rx.vars.Var[bool]:
-    """Check if the user has the specified role.
-
-    Result is also positive if the user doesn't have the specified role but the global
-    ADMIN permission.
-    """
-    return (
-        (SessionState.user_role != None) & (SessionState.user_role >= role)
-    ) | SessionState.global_permissions.contains(GlobalPermission.ADMIN)
-
-
 def has_permission(
     permission: GlobalPermission,
 ) -> rx.vars.Var[bool]:
