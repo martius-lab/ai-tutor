@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Removed
+- Remove remaining occurrences of the global `UserRole` (deprecated in v2.0.0b1) [#616].
+
 ## [2.0.0b2] - 2026-10-26
 
 ### Added
@@ -86,3 +89,4 @@ Initial release
 [#608]: https://github.com/martius-lab/ai-tutor/pull/608
 [#609]: https://github.com/martius-lab/ai-tutor/pull/609
 [#611]: https://github.com/martius-lab/ai-tutor/pull/611
+[#616]: https://github.com/martius-lab/ai-tutor/pull/616
