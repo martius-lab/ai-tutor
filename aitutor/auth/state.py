@@ -9,7 +9,7 @@ import reflex_local_auth
 from sqlmodel import select
 
 from aitutor import routes
-from aitutor.models import GlobalPermission, Language, Permission, UserInfo, UserRole
+from aitutor.models import GlobalPermission, Language, Permission, UserInfo
 
 
 class SessionState(reflex_local_auth.LocalAuthState):
