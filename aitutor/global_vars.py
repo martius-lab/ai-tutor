@@ -25,6 +25,10 @@ CHAT_TOKEN_WARNING_THRESHOLD = 0.8  # Show warning at x% of limit
 GREEN_CHECK_COLOR = rx.color("green", 9)
 LEVEL_AI_BADGE_COLOR_SCHEME = "purple"
 
+# ---- Level AI ----
+# Only this many characters of the teaching material are sent to concept generation.
+LEVEL_AI_MAX_SOURCE_MATERIAL_CHARS = 200_000
+
 
 # --- max length for UI input fields ---
 
