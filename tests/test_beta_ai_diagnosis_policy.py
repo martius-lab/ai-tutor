@@ -1927,3 +1927,21 @@ def test_misconception_repair_requires_stronger_correctness_and_completeness():
     assert student_state.active_misconceptions == []
     assert len(student_state.resolved_misconceptions) == 1
     assert strong_repair.covered_core_point_ids == [14]
+
+
+def test_feedback_brief_names_all_covered_core_points():
+    diagnosis = DiagnosisResponse(
+        diagnosis_pattern="sufficient_for_completion",
+        covered_core_point_ids=[14, 15, 16],
+    )
+
+    policy_preview = preview_policy_action(
+        diagnosis,
+        concept_label="Binary search",
+        concept_description="",
+        core_points=core_points(),
+        misconceptions=misconceptions(),
+    )
+
+    for core_point in core_points():
+        assert core_point.text in policy_preview.feedback_brief
