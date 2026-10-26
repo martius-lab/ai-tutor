@@ -1574,10 +1574,28 @@ Please test the chat for functionality after changing the model.
 
     @rx.var
     def beta_ai_privacy_addendum(self) -> str:
-        """Privacy addendum shown on the Beta AI student exercise page."""
+        """Level AI privacy addendum for analysis."""
         return self.translate(
-            de='**Ergänzung zur Datenschutzerklärung:** Eingereichte Konversationen aus Übungen in "Beta AI" können in anonymisierter Form über den in der Datenschutzerklärung angegebenen Zeitraum hinaus gespeichert und für Tests verwendet werden, um neue Funktionen zu entwickeln.',
-            en='**Addendum to the Privacy Policy:** Submitted conversations from "Beta AI" exercises may be stored in anonymized form beyond the period specified in the privacy policy and used for testing to develop new features.',
+            de="**Ergänzung zur Datenschutzerklärung:** Konversationen aus Level-AI-Übungen, auch nicht eingereichte, können in anonymisierter Form über den in der Datenschutzerklärung angegebenen Zeitraum hinaus gespeichert und für Tests bei der Entwicklung neuer Funktionen verwendet werden.",
+            en="**Addendum to the Privacy Policy:** Conversations from Level AI exercises, including unsubmitted conversations, may be stored in anonymized form beyond the period specified in the Privacy Policy and used for testing during the development of new features.",
+        )
+
+    @rx.var
+    def beta_ai_analysis_label(self) -> str:
+        return self.translate(
+            de="Analyse meiner Übungsdaten erlauben",
+            en="Allow analysis of my exercise data",
+        )
+
+    @rx.var
+    def beta_ai_analysis_details(self) -> str:
+        return self.translate(de="Datenschutzhinweis", en="Privacy details")
+
+    @rx.var
+    def beta_ai_analysis_explanation(self) -> str:
+        return self.translate(
+            de="Diese Einstellung gilt für die gesamte Level-AI-Übung, auch für nicht eingereichte und bereits bearbeitete Teile. Wenn du den Haken entfernst, werden deine Übungsdaten nicht für zusätzliche Tests und Analysen verwendet. Chat und Abgabe funktionieren weiterhin. Du kannst die Einstellung jederzeit hier ändern. Vielen Dank für deine Unterstützung!",
+            en="This setting applies to the entire Level AI exercise, including unsubmitted and previously completed parts. If you uncheck the box, your exercise data will not be used for additional testing and analysis. Chat and submission still work. You can change this setting here at any time. Thank you for your help!",
         )
 
     @rx.var
