@@ -124,6 +124,32 @@ class MyLecturesState(SessionState):
             if self._matches_role_filter(role)
         ]
 
+    @rx.var(initial_value=[])
+    def filtered_joined_lectures(self) -> list[LectureWithRole]:
+        "Return filtered lectures the current user is a member of."
+        return [
+            (lecture, role)
+            for lecture, role in self.filtered_lectures
+            if role is not None
+        ]
+
+    @rx.var(initial_value=[])
+    def filtered_other_lectures(self) -> list[LectureWithRole]:
+        """Return filtered lectures the current user is not a member of."""
+        return [
+            (lecture, role) for lecture, role in self.filtered_lectures if role is None
+        ]
+
+    @rx.var(initial_value=False)
+    def has_joined_lectures(self) -> bool:
+        """Whether the current user has joined any lectures."""
+        return any(role is not None for _, role in self.joined_lectures)
+
+    @rx.var(initial_value=False)
+    def has_other_lectures(self) -> bool:
+        """Whether there are any lectures the current user has not joined."""
+        return any(role is None for _, role in self.joined_lectures)
+
     @rx.var(initial_value=False)
     def can_create_lectures(self) -> bool:
         """Whether the current user may create new lectures."""
