@@ -120,7 +120,7 @@ def global_exercise_card(exercise: HomeExerciseCard) -> rx.Component:
                 rx.spacer(),
                 rx.cond(
                     exercise.is_beta,
-                    rx.badge("Beta", color_scheme="purple"),
+                    gv.level_ai_badge(),
                 ),
                 width="100%",
                 align="center",
