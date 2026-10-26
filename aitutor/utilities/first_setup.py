@@ -15,7 +15,6 @@ from aitutor.models import (
     Permission,
     Prompt,
     UserInfo,
-    UserRole,
 )
 
 
@@ -81,7 +80,6 @@ def create_default_admin_user():
         session.add(
             UserInfo(
                 email=user["email"],
-                role=UserRole.ADMIN,
                 user_id=new_user.id,
                 verified=True,
             )

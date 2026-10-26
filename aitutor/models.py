@@ -61,16 +61,6 @@ class Language(StrEnum):
     EN = "en"
 
 
-class UserRole(IntEnum):
-    """
-    Enum for user roles.
-    """
-
-    STUDENT = 1
-    TUTOR = 2
-    ADMIN = 3
-
-
 class GlobalPermission(StrEnum):
     """
     Enum for global roles that apply across all lectures.
@@ -301,7 +291,6 @@ class UserInfo(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     user_id: int = Field(foreign_key="localuser.id", ondelete="CASCADE")
     email: str
-    role: UserRole
     language: Language = Field(default=Language.EN)
     #: Whether the address in :attr:`email` has been confirmed by the user.
     #: Once true, it must never be set back to false for a user, otherwise the account
