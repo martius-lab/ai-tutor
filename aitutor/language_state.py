@@ -1620,6 +1620,16 @@ Please test the chat for functionality after changing the model.
         return self.translate(de="Meine Vorlesungen", en="My Lectures")
 
     @rx.var
+    def joined_lectures(self) -> str:
+        """Heading for lectures that the user is a member of."""
+        return self.translate(de="Beigetretene Vorlesungen", en="Joined Lectures")
+
+    @rx.var
+    def other_lectures(self) -> str:
+        """Heading for lectures that the user is not a member of (admin only)."""
+        return self.translate(de="Andere Vorlesungen", en="Other Lectures")
+
+    @rx.var
     def no_joined_lectures(self) -> str:
         """Message shown when the user has not joined any lectures yet."""
         return self.translate(

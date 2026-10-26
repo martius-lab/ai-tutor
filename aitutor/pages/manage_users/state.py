@@ -11,7 +11,7 @@ from sqlmodel import Session, case, cast, select
 
 import aitutor.global_vars as gv
 from aitutor.account_emails import send_email_verification_email
-from aitutor.auth.protection import state_require_role_or_permission
+from aitutor.auth.protection import state_require_permission
 from aitutor.auth.state import SessionState
 from aitutor.language_state import BackendTranslations as BT
 from aitutor.models import (
@@ -58,7 +58,7 @@ class ManageUsersState(FilterMixin, SessionState):
     search_keys: list[str] = [gv.SEARCH_USER_KEY]
 
     @rx.event
-    @state_require_role_or_permission(allowed_permissions=_REQUIRED_PERMISSIONS)
+    @state_require_permission(_REQUIRED_PERMISSIONS)
     def on_load(self):
         """Initialize the state"""
         self._global_load()
@@ -66,7 +66,7 @@ class ManageUsersState(FilterMixin, SessionState):
 
     @override
     @rx.event
-    @state_require_role_or_permission(allowed_permissions=_REQUIRED_PERMISSIONS)
+    @state_require_permission(_REQUIRED_PERMISSIONS)
     def load_filtered_data(self):
         """Reload the users after the search values changed."""
         self._load_users()
@@ -127,7 +127,7 @@ class ManageUsersState(FilterMixin, SessionState):
         self.edited_user_permissions = []
 
     @rx.event
-    @state_require_role_or_permission(allowed_permissions=_REQUIRED_PERMISSIONS)
+    @state_require_permission(_REQUIRED_PERMISSIONS)
     def open_edit_dialog(self, user_id: int):
         """Open the edit dialog for a user."""
 
@@ -297,7 +297,7 @@ class ManageUsersState(FilterMixin, SessionState):
         )
 
     @rx.event
-    @state_require_role_or_permission(allowed_permissions=_REQUIRED_PERMISSIONS)
+    @state_require_permission(_REQUIRED_PERMISSIONS)
     async def update_user(self, form_data):
         """
         Save changes to a user from the edit form.
@@ -428,7 +428,7 @@ class ManageUsersState(FilterMixin, SessionState):
             self.save_in_progress = False
 
     @rx.event
-    @state_require_role_or_permission(allowed_permissions=_REQUIRED_PERMISSIONS)
+    @state_require_permission(_REQUIRED_PERMISSIONS)
     async def resend_verification_email_to_edited_user(self):
         """
         Send a new confirmation link to the user that is currently edited.
@@ -495,7 +495,7 @@ class ManageUsersState(FilterMixin, SessionState):
             self.resend_in_progress = False
 
     @rx.event
-    @state_require_role_or_permission(allowed_permissions=_REQUIRED_PERMISSIONS)
+    @state_require_permission(_REQUIRED_PERMISSIONS)
     def delete_user(self, user_id: int):
         """Delete a user from the database."""
         with rx.session() as session:
