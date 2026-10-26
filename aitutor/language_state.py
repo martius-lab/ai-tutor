@@ -1092,25 +1092,6 @@ class LanguageState(SessionState):
         )
 
     @rx.var
-    def roles_description(self) -> str:
-        return self.translate(
-            de=textwrap.dedent(
-                """
-                - STUDENT: Kann Übungen ansehen und bearbeiten.
-                - TUTOR: Kann zusätzlich Abgaben aller Nutzer einsehen.
-                - ADMIN: Kann alles (Übungen anlegen, Benutzer verwalten...).
-            """
-            ),
-            en=textwrap.dedent(
-                """
-                - STUDENT: Can view and work on exercises.
-                - TUTOR: Can also view submissions by all users.
-                - ADMIN: Can do everything (create exercises, manage users...).
-            """
-            ),
-        )
-
-    @rx.var
     def permissions(self) -> str:
         return self.translate(de="Berechtigungen", en="Permissions")
 

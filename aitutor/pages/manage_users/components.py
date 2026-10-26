@@ -6,22 +6,11 @@ import aitutor.global_vars as gv
 from aitutor.components import password_input
 from aitutor.components.dialogs import destructive_confirm
 from aitutor.language_state import LanguageState as LS
-from aitutor.models import LocalUser, UserInfo, UserRole
+from aitutor.models import LocalUser, UserInfo
 from aitutor.pages.manage_users.state import (
     MANAGE_USERS_FIELD_MAX_LENGTHS,
     ManageUsersState,
 )
-
-
-def role_to_text(role: UserRole):
-    """Convert a UserRole to string in a way that works for reflex."""
-    return rx.match(
-        role,
-        (UserRole.ADMIN, UserRole.ADMIN.name),
-        (UserRole.TUTOR, UserRole.TUTOR.name),
-        (UserRole.STUDENT, UserRole.STUDENT.name),
-        "Unknown",
-    )
 
 
 def delete_user_button(user: LocalUser) -> rx.Component:
@@ -82,7 +71,6 @@ def user_table_row(user: tuple[LocalUser, UserInfo, str]) -> rx.Component:
     """
     return rx.table.row(
         rx.table.cell(user[0].username),
-        rx.table.cell(role_to_text(user[1].role)),
         rx.table.cell(
             rx.cond(
                 user[0].enabled,
@@ -229,26 +217,6 @@ def edit_user_dialog() -> rx.Component:
                             size="3",
                             width="100%",
                         ),
-                        form_label(LS.role),
-                        rx.hstack(
-                            rx.select(
-                                (
-                                    UserRole.ADMIN.name,
-                                    UserRole.TUTOR.name,
-                                    UserRole.STUDENT.name,
-                                ),
-                                default_value=role_to_text(user_info.role),  # type: ignore
-                                size="3",
-                                name="role",
-                            ),
-                            rx.dialog.root(
-                                rx.dialog.trigger(
-                                    rx.icon("info"), _hover={"cursor": "pointer"}
-                                ),
-                                rx.dialog.content(rx.markdown(LS.roles_description)),
-                            ),
-                            align="center",
-                        ),
                         form_label(LS.permissions),
                         rx.vstack(
                             rx.checkbox(
@@ -343,7 +311,6 @@ def users_table() -> rx.Component:
             rx.table.header(
                 rx.table.row(
                     rx.table.column_header_cell(LS.username),
-                    rx.table.column_header_cell(LS.role),
                     rx.table.column_header_cell(LS.enabled),
                     rx.table.column_header_cell(LS.email_verified),
                     rx.table.column_header_cell(LS.created_at),
