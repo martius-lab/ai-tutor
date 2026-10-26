@@ -19,6 +19,7 @@ from aitutor.beta_ai.schemas import (
     EditableCorePoint,
     EditableMisconception,
 )
+from aitutor.global_vars import LEVEL_AI_MAX_SOURCE_MATERIAL_CHARS
 from aitutor.language_state import BackendTranslations as BT
 from aitutor.models import (
     BetaConcept,
@@ -193,6 +194,11 @@ class BetaAIExercisesState(SessionState):
     def selectable_tags(self) -> list[str]:
         """Return lecture tags that are not selected yet."""
         return [tag for tag in self.tag_names if tag not in self.selected_tags]
+
+    @rx.var
+    def source_material_exceeds_limit(self) -> bool:
+        """Whether concept generation will only use the beginning of the material."""
+        return len(self.source_material_text) > LEVEL_AI_MAX_SOURCE_MATERIAL_CHARS
 
     @rx.var
     def source_material_preview(self) -> str:

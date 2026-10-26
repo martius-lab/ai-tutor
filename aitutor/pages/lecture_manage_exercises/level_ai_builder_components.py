@@ -56,6 +56,15 @@ def source_material_card() -> rx.Component:
                 ),
             ),
             rx.cond(
+                BetaAIExercisesState.source_material_exceeds_limit,
+                rx.callout(
+                    LS.beta_ai_source_material_truncated,
+                    icon="triangle-alert",
+                    color_scheme="orange",
+                    width="100%",
+                ),
+            ),
+            rx.cond(
                 BetaAIExercisesState.source_material_preview,
                 rx.box(
                     rx.text(LS.beta_ai_preview, weight="bold", size="2"),

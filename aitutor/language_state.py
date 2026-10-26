@@ -1861,6 +1861,20 @@ Please test the chat for functionality after changing the model.
         return self.translate(de="Vorschau", en="Preview")
 
     @rx.var
+    def beta_ai_source_material_truncated(self) -> str:
+        limit = gv.LEVEL_AI_MAX_SOURCE_MATERIAL_CHARS
+        return self.translate(
+            de=(
+                "Das Material ist sehr lang. Für die Konzept-Generierung werden nur "
+                f"die ersten {limit:,} Zeichen verwendet.".replace(",", ".")
+            ),
+            en=(
+                "The material is very long. Only the first "
+                f"{limit:,} characters are used to generate concepts."
+            ),
+        )
+
+    @rx.var
     def beta_ai_exercise_metadata(self) -> str:
         return self.translate(de="2. Übungsinformationen", en="2. Exercise metadata")
 
