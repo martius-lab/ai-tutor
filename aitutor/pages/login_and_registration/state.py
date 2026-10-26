@@ -28,7 +28,6 @@ from aitutor.models import (
     LecturerRegistrationToken,
     Permission,
     UserInfo,
-    UserRole,
 )
 from aitutor.verification import issue_token, resend_cooldown_remaining
 
@@ -455,7 +454,6 @@ class MyRegisterState(reflex_local_auth.RegistrationState):
             with rx.session() as session:
                 user_info = UserInfo(
                     email=form_data["email"],
-                    role=UserRole.STUDENT,
                     user_id=self.new_user_id,
                     language=language,
                 )

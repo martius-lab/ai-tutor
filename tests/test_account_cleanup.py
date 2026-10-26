@@ -18,7 +18,6 @@ from aitutor.models import (
     LectureRole,
     LinkUserLecture,
     UserInfo,
-    UserRole,
     VerificationPurpose,
     VerificationToken,
 )
@@ -55,7 +54,6 @@ def make_user(session, username, *, verified, created_at):
         UserInfo(
             user_id=local_user.id,
             email=f"{username}@example.com",
-            role=UserRole.STUDENT,
             verified=verified,
             created_at=created_at,
         )

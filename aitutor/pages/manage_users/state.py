@@ -7,7 +7,7 @@ from typing import override
 
 import reflex as rx
 from reflex_local_auth.auth_session import LocalAuthSession
-from sqlmodel import Session, case, cast, select
+from sqlmodel import Session, select
 
 import aitutor.global_vars as gv
 from aitutor.account_emails import send_email_verification_email
@@ -22,7 +22,6 @@ from aitutor.models import (
     LocalUser,
     Permission,
     UserInfo,
-    UserRole,
 )
 from aitutor.utilities.filtering_components import FilterMixin
 from aitutor.verification import (
@@ -73,15 +72,6 @@ class ManageUsersState(FilterMixin, SessionState):
 
     def _load_users(self):
         """Load the users from the database, filtered by the current search values."""
-        # Define role order for sorting (based on definition order in the database enum,
-        # which hopefully always matches that of UserRole).
-        # Based on https://stackoverflow.com/a/23618085/2095383
-        role_order_whens = {
-            cast(role.name, UserInfo.role.type): role.value  # type: ignore
-            for role in UserRole
-        }
-        role_sort_logic = case(role_order_whens, value=UserInfo.role)
-
         with rx.session() as session:
             # filter results by search values (all of them have to match)
             query = (
@@ -94,7 +84,7 @@ class ManageUsersState(FilterMixin, SessionState):
                         for _, value in self.search_values
                     )
                 )
-                .order_by(role_sort_logic.desc(), LocalUser.username)
+                .order_by(LocalUser.username)
             )
 
             pending_emails = get_pending_email_changes(session)
@@ -338,8 +328,6 @@ class ManageUsersState(FilterMixin, SessionState):
                 assert local_user.id is not None
 
                 local_user.username = form_data["username"]
-                user_info.role = UserRole[form_data["role"]]
-
                 verify_email, token, email_change_cancelled = self._apply_email_change(
                     session, user_info, new_email
                 )

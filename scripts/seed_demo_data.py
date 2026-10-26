@@ -40,7 +40,6 @@ DEMO_PASSWORD = "1234"
 # Enum values are given by their member name (e.g. "OWNER" for LectureRole.OWNER),
 # so aitutor.models doesn't need to be imported at module level.
 
-type UserRoleName = Literal["STUDENT", "TUTOR", "ADMIN"]
 type GlobalPermissionName = Literal["LECTURER", "MAINTAINER", "ADMIN"]
 type LectureRoleName = Literal["STUDENT", "TUTOR", "OWNER"]
 type Message = dict[str, Any]
@@ -51,7 +50,6 @@ class SeedUser(TypedDict):
 
     username: str
     email: str
-    role: UserRoleName
     verified: bool
     permissions: NotRequired[list[GlobalPermissionName]]
     # Unconfirmed new email address.  Requires ``verified``.
@@ -135,60 +133,51 @@ USERS: list[SeedUser] = [
     {
         "username": "admin.demo",
         "email": "admin.demo@example.com",
-        "role": "ADMIN",
         "verified": True,
         "permissions": ["ADMIN"],
     },
     {
         "username": "mia.maintainer",
         "email": "mia.maintainer@example.com",
-        "role": "STUDENT",
         "verified": True,
         "permissions": ["MAINTAINER"],
     },
     {
         "username": "leo.lecturer",
         "email": "leo.lecturer@example.com",
-        "role": "STUDENT",
         "verified": True,
         "permissions": ["LECTURER"],
     },
     {
         "username": "nora.lecturer",
         "email": "nora.lecturer@example.com",
-        "role": "STUDENT",
         "verified": True,
         "permissions": ["LECTURER"],
     },
     {
         "username": "tina.tutor",
         "email": "tina.tutor@example.com",
-        "role": "STUDENT",
         "verified": True,
     },
     {
         "username": "alex.student",
         "email": "alex.student@example.com",
-        "role": "STUDENT",
         "verified": True,
     },
     {
         "username": "sam.student",
         "email": "sam.student@example.com",
-        "role": "STUDENT",
         "verified": True,
     },
     {
         "username": "jamie.student",
         "email": "jamie.student@example.com",
-        "role": "STUDENT",
         "verified": True,
         "pending_email": "jamie.new@example.com",
     },
     {
         "username": "unverified.student",
         "email": "unverified.student@example.com",
-        "role": "STUDENT",
         "verified": False,
     },
 ]
@@ -433,7 +422,7 @@ def seed_user(session: Session, user: SeedUser) -> tuple[int, int]:
     from reflex_local_auth.user import LocalUser
     from sqlmodel import select
 
-    from aitutor.models import GlobalPermission, Permission, UserInfo, UserRole
+    from aitutor.models import GlobalPermission, Permission, UserInfo
     from aitutor.routes import VERIFY_EMAIL
     from aitutor.verification import issue_token
 
@@ -455,7 +444,6 @@ def seed_user(session: Session, user: SeedUser) -> tuple[int, int]:
         session.add(
             UserInfo(
                 email=user["email"],
-                role=UserRole[user["role"]],
                 verified=user["verified"],
                 user_id=local_user.id,
             )

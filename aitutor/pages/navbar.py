@@ -8,11 +8,11 @@ import reflex as rx
 
 from aitutor import routes
 from aitutor._version import version
-from aitutor.auth.protection import has_permission, lecture_has_role_at_least
+from aitutor.auth.protection import has_permission
 from aitutor.auth.state import SessionState
 from aitutor.components import announcement_banner
 from aitutor.language_state import LanguageState
-from aitutor.models import GlobalPermission, UserRole
+from aitutor.models import GlobalPermission
 
 
 @dataclass
@@ -43,8 +43,7 @@ def get_links():
         NavbarLink(LanguageState.home_link, routes.HOME, "house"),
         NavbarLink(LanguageState.lectures_link, routes.MY_LECTURES, "graduation-cap"),
         rx.cond(
-            lecture_has_role_at_least(UserRole.ADMIN)
-            | has_permission(GlobalPermission.MAINTAINER),
+            has_permission(GlobalPermission.MAINTAINER),
             NavbarLink(
                 LanguageState.admin_settings_link,
                 routes.MANAGE_USERS,
@@ -139,22 +138,13 @@ def get_user_icon():
     Returns:
         rx.Component: A Reflex conditional component representing the user icon.
     """
-    userrole = SessionState.user_role
     return rx.cond(
         ~SessionState.is_authenticated,
         "user-round",
         rx.cond(
-            userrole == UserRole.STUDENT,
+            SessionState.is_global_admin,
+            "user-round-cog",
             "user-round-check",
-            rx.cond(
-                userrole == UserRole.ADMIN,
-                "user-round-cog",
-                rx.cond(
-                    userrole == UserRole.TUTOR,
-                    "user-round-search",
-                    "user-round",
-                ),
-            ),
         ),
     )
 
