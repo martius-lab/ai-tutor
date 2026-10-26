@@ -26,6 +26,7 @@ def trace_logs_header() -> rx.Component:
 def trace_log_row(row: TraceLogRow) -> rx.Component:
     """Render one trace log overview row."""
     return rx.table.row(
+        rx.table.cell(row.lecture_name),
         rx.table.cell(row.exercise_title),
         rx.table.cell(row.user_label),
         rx.table.cell(row.trace_count),
@@ -78,6 +79,7 @@ def trace_logs_table() -> rx.Component:
                 rx.table.root(
                     rx.table.header(
                         rx.table.row(
+                            rx.table.column_header_cell(LS.lecture_name),
                             rx.table.column_header_cell(LS.exercise),
                             rx.table.column_header_cell(LS.user),
                             rx.table.column_header_cell(LS.beta_ai_trace_count),
