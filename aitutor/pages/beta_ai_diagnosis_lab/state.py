@@ -71,7 +71,7 @@ class BetaAIDiagnosisLabState(SessionState):
                 return rx.redirect(routes.NOT_FOUND)
 
         self.current_lecture_id = lecture_id
-        self.load_beta_exercises()
+        self._load_beta_exercises()
 
     @rx.var
     def has_selected_exercise(self) -> bool:
@@ -262,7 +262,7 @@ class BetaAIDiagnosisLabState(SessionState):
         self._clear_diagnosis_result()
         self.running_llm_diagnosis = False
 
-    def load_beta_exercises(self):
+    def _load_beta_exercises(self):
         """Load saved Beta AI exercises from the current lecture."""
         if self.current_lecture_id is None:
             self.beta_exercises = []
