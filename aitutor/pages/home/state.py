@@ -9,7 +9,7 @@ import reflex as rx
 from sqlmodel import and_, func, or_, select
 
 from aitutor import routes
-from aitutor.auth.protection import state_require_role_or_permission
+from aitutor.auth.protection import state_require_login
 from aitutor.auth.state import SessionState
 from aitutor.global_vars import TIME_ZONE
 from aitutor.models import (
@@ -19,7 +19,6 @@ from aitutor.models import (
     ExerciseResult,
     Lecture,
     LinkUserLecture,
-    UserRole,
 )
 from aitutor.utilities.helper_functions import deadline_sort_key
 
@@ -131,7 +130,7 @@ class HomeState(SessionState):
     lecture_exercise_groups: list[LectureExerciseGroup] = []
 
     @rx.event
-    @state_require_role_or_permission(required_role=UserRole.STUDENT)
+    @state_require_login()
     def on_load(self):
         """Load exercises when the home page is loaded."""
         self._global_load()
