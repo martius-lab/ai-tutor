@@ -51,10 +51,8 @@ USER reflex
 
 RUN mkdir -p data uploaded_files
 
-# Always apply migrations before starting the backend.
-CMD test -d alembic && reflex db migrate; \
-    exec reflex run --env prod --backend-only
-
 # Apply migrations before starting the backend; a failed migration stops the container.
+# Use one Granian worker per CPU core unless GRANIAN_WORKERS is set explicitly.
 CMD if [ -d alembic ]; then reflex db migrate; fi && \
+    export GRANIAN_WORKERS="${GRANIAN_WORKERS:-$(nproc)}" && \
     exec reflex run --env prod --backend-only
