@@ -26,6 +26,7 @@ from aitutor.global_vars import (
     TIME_ZONE,
     VERIFICATION_TOKEN_VALIDITY,
 )
+from aitutor.utilities.helper_functions import to_tz_aware
 
 # For alembic to properly work, we need to set explicit naming conventions for
 # constraints.  See https://alembic.sqlalchemy.org/en/latest/naming.html
@@ -105,6 +106,19 @@ class VerificationPurpose(StrEnum):
     PASSWORD_RESET = "password_reset"
 
 
+class ConceptState(StrEnum):
+    """Learning state of a student for one Level AI concept."""
+
+    #: The student has not worked on the concept yet.
+    UNSEEN = "unseen"
+    #: The student has started, but no question level is passed yet.
+    EMERGING = "emerging"
+    #: Basic understanding and reasoning are passed.
+    SATISFACTORY = "satisfactory"
+    #: Applying or comparing is passed as well.
+    SECURE = "secure"
+
+
 class Lecture(SQLModel, table=True):
     """Lecture model for storing lecture-specific settings."""
 
@@ -121,6 +135,9 @@ class Lecture(SQLModel, table=True):
         back_populates="lecture", sa_relationship_kwargs={"passive_deletes": True}
     )
     exercises: list[Exercise] = Relationship(
+        back_populates="lecture", sa_relationship_kwargs={"passive_deletes": True}
+    )
+    beta_exercises: list[BetaExercise] = Relationship(
         back_populates="lecture", sa_relationship_kwargs={"passive_deletes": True}
     )
     tags: list[Tag] = Relationship(
@@ -163,6 +180,17 @@ class ExerciseTagLink(SQLModel, table=True):
     )
 
 
+class BetaExerciseTagLink(SQLModel, table=True):
+    """Link table between Beta AI exercises and lecture tags."""
+
+    beta_exercise_id: Optional[int] = Field(
+        foreign_key="betaexercise.id", primary_key=True, ondelete="CASCADE"
+    )
+    tag_id: Optional[int] = Field(
+        foreign_key="tag.id", primary_key=True, ondelete="CASCADE"
+    )
+
+
 class Tag(SQLModel, table=True):
     """Tag model for storing allowed tags."""
 
@@ -183,6 +211,9 @@ class Tag(SQLModel, table=True):
     # ORM relationship
     exercises: list[Exercise] = Relationship(
         back_populates="tags", link_model=ExerciseTagLink
+    )
+    beta_exercises: list[BetaExercise] = Relationship(
+        back_populates="tags", link_model=BetaExerciseTagLink
     )
     lecture: Optional[Lecture] = Relationship(back_populates="tags")
 
@@ -293,6 +324,258 @@ class ExerciseResult(SQLModel, table=True):
         )
 
 
+class BetaExercise(SQLModel, table=True):
+    """
+    Exercise model for the Beta AI Tutor workflow.
+
+    Beta exercises intentionally do not reuse the regular Exercise/ExerciseResult
+    tables. They are the author-facing container for generated and manually curated
+    concepts, core points, and misconception hints.
+    """
+
+    __table_args__ = (
+        sa.UniqueConstraint(
+            "lecture_id",
+            "title",
+            name="uq_betaexercise_lecture_id_title",
+        ),
+    )
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    title: str = Field(nullable=False, default="")
+    description: str = Field(nullable=False, default="")
+    source_material_text: str = Field(nullable=False, default="")
+    source_material_filename: str = Field(nullable=False, default="")
+    lecture_id: int = Field(foreign_key="lecture.id", ondelete="CASCADE", index=True)
+    is_hidden: bool = Field(default=False)
+    deadline: Optional[datetime] = Field(
+        sa_column=Column(DateTime, nullable=True), default=None
+    )
+    days_to_complete: Optional[int] = Field(default=None)
+
+    # ORM relationships
+    concepts: list[BetaConcept] = Relationship(
+        back_populates="beta_exercise", sa_relationship_kwargs={"passive_deletes": True}
+    )
+    tags: list[Tag] = Relationship(
+        back_populates="beta_exercises", link_model=BetaExerciseTagLink
+    )
+    lecture: Lecture = Relationship(back_populates="beta_exercises")
+
+    @pydantic.computed_field
+    @property
+    def editing_start(self) -> Optional[datetime]:
+        """Start of the editing period, or None without deadline and duration."""
+        if self.deadline and self.days_to_complete:
+            return self.deadline - timedelta(days=self.days_to_complete)
+        return None
+
+    @pydantic.computed_field
+    @property
+    def is_started(self) -> bool:
+        """
+        Flag whether the beta exercise is already visible according to its editing
+        period. If no deadline is set, it counts as started.
+        """
+        if self.editing_start is None:
+            return True
+        return datetime.now(ZoneInfo(TIME_ZONE)) > to_tz_aware(self.editing_start)
+
+    @pydantic.computed_field
+    @property
+    def deadline_exceeded(self) -> bool:
+        """Flag whether the beta exercise deadline is over."""
+        if self.deadline:
+            deadline = to_tz_aware(self.deadline)
+            return datetime.now(ZoneInfo(TIME_ZONE)) > deadline
+        return False
+
+    def __repr__(self):
+        return f"<BetaExercise(id={self.id}, title='{self.title}')>"
+
+
+class BetaExerciseResult(SQLModel, table=True):
+    """Per-student persisted Beta AI chat state for one beta exercise.
+
+    This intentionally does not reuse the regular ExerciseResult table. It stores
+    the student-facing Beta AI conversation independently from later didactic
+    trace logs, student concept state, and completion logic.
+    """
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    conversation_text: list[dict[str, Any]] = Field(sa_column=Column(JSON), default=[])
+    finished_conversation: list[dict[str, Any]] = Field(
+        sa_column=Column(JSON), default=[]
+    )
+    completion_unlocked: bool = Field(default=False)
+    analysis_allowed: bool = Field(default=True)
+    completed_at: Optional[datetime] = Field(
+        sa_column=Column(type_=DateTime(timezone=True)), default=None
+    )
+    submit_time_stamp: Optional[datetime] = Field(
+        sa_column=Column(type_=DateTime(timezone=True)), default=None
+    )
+    tokens_used: int = Field(default=0)
+    started_at: Optional[datetime] = Field(
+        sa_column=Column(type_=DateTime(timezone=True)), default=None
+    )
+    updated_at: Optional[datetime] = Field(
+        sa_column=Column(type_=DateTime(timezone=True)), default=None
+    )
+
+    # database relationships
+    beta_exercise_id: int = Field(foreign_key="betaexercise.id", ondelete="CASCADE")
+    userinfo_id: int = Field(foreign_key="userinfo.id", ondelete="CASCADE")
+
+    # ORM relationships
+    beta_exercise: Optional[BetaExercise] = Relationship()
+    userinfo: UserInfo = Relationship()
+
+    def __repr__(self):
+        return (
+            f"<BetaExerciseResult(beta_exercise_id={self.beta_exercise_id}, "
+            f"userinfo_id={self.userinfo_id})>"
+        )
+
+
+class BetaExerciseTraceLog(SQLModel, table=True):
+    """Replayable didactic trace for one Beta AI chat turn.
+
+    Each row represents one student answer and the resulting diagnosis, policy
+    decision, tutor turn, and state snapshot. BetaExerciseResult remains the
+    conversation-level container; this table stores append-only per-turn audit
+    events so traces can be queried and evaluated without growing JSON blobs.
+    """
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    beta_exercise_result_id: int = Field(
+        foreign_key="betaexerciseresult.id", ondelete="CASCADE", index=True
+    )
+    beta_exercise_id: int = Field(
+        foreign_key="betaexercise.id", ondelete="CASCADE", index=True
+    )
+    userinfo_id: int = Field(foreign_key="userinfo.id", ondelete="CASCADE", index=True)
+    beta_concept_id: Optional[int] = Field(
+        default=None, foreign_key="betaconcept.id", ondelete="SET NULL", index=True
+    )
+    turn_index: int = Field(default=0, index=True)
+    concept_label: str = Field(nullable=False, default="")
+    student_answer: str = Field(nullable=False, default="")
+    final_pattern: str = Field(nullable=False, default="")
+    selected_action: str = Field(nullable=False, default="")
+    selected_rule_id: str = Field(nullable=False, default="")
+    question_level: str = Field(nullable=False, default="")
+    trace_entry: dict[str, Any] = Field(sa_column=Column(JSON), default={})
+    created_at: Optional[datetime] = Field(
+        sa_column=Column(type_=DateTime(timezone=True)), default=None
+    )
+
+    def __repr__(self):
+        return (
+            f"<BetaExerciseTraceLog(beta_exercise_result_id="
+            f"{self.beta_exercise_result_id}, turn_index={self.turn_index})>"
+        )
+
+
+class BetaStudentConceptState(SQLModel, table=True):
+    """Minimal per-student state for one Beta AI concept.
+
+    The state is deliberately heuristic and transparent. It is updated from the
+    structured diagnosis pattern and policy action, not directly by free-form LLM
+    text.
+    """
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    userinfo_id: int = Field(foreign_key="userinfo.id", ondelete="CASCADE")
+    beta_exercise_id: int = Field(foreign_key="betaexercise.id", ondelete="CASCADE")
+    beta_concept_id: int = Field(foreign_key="betaconcept.id", ondelete="CASCADE")
+    state: ConceptState = Field(default=ConceptState.UNSEEN)
+    attempts_total: int = Field(default=0)
+    successful_attempts: int = Field(default=0)
+    misconception_hits: int = Field(default=0)
+    covered_core_point_ids: list[int] = Field(sa_column=Column(JSON), default=[])
+    missing_core_point_ids: list[int] = Field(sa_column=Column(JSON), default=[])
+    evidence_by_core_point: dict[str, Any] = Field(sa_column=Column(JSON), default={})
+    level_status: dict[str, Any] = Field(sa_column=Column(JSON), default={})
+    level_evidence: dict[str, Any] = Field(sa_column=Column(JSON), default={})
+    active_misconceptions: list[dict[str, Any]] = Field(
+        sa_column=Column(JSON), default=[]
+    )
+    resolved_misconceptions: list[dict[str, Any]] = Field(
+        sa_column=Column(JSON), default=[]
+    )
+    last_diagnosis_pattern: str = Field(nullable=False, default="")
+    last_policy_action: str = Field(nullable=False, default="")
+    updated_at: Optional[datetime] = Field(
+        sa_column=Column(type_=DateTime(timezone=True)), default=None
+    )
+
+    def __repr__(self):
+        return (
+            f"<BetaStudentConceptState(userinfo_id={self.userinfo_id}, "
+            f"beta_concept_id={self.beta_concept_id}, state='{self.state}')>"
+        )
+
+
+class BetaConcept(SQLModel, table=True):
+    """
+    Concept generated or curated for a Beta AI Tutor exercise.
+
+    A concept is the didactic unit that later drives diagnosis, policy decisions,
+    student state, and audit logs.
+    """
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    beta_exercise_id: int = Field(foreign_key="betaexercise.id", ondelete="CASCADE")
+    label: str = Field(nullable=False, default="")
+    description: str = Field(nullable=False, default="")
+    order_index: int = Field(default=0)
+
+    # ORM relationships
+    beta_exercise: BetaExercise = Relationship(back_populates="concepts")
+    core_points: list[BetaCorePoint] = Relationship(
+        back_populates="beta_concept", sa_relationship_kwargs={"passive_deletes": True}
+    )
+    misconceptions: list[BetaMisconception] = Relationship(
+        back_populates="beta_concept", sa_relationship_kwargs={"passive_deletes": True}
+    )
+
+    def __repr__(self):
+        return f"<BetaConcept(id={self.id}, label='{self.label}')>"
+
+
+class BetaCorePoint(SQLModel, table=True):
+    """Expected core point that should be covered for a beta concept."""
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    beta_concept_id: int = Field(foreign_key="betaconcept.id", ondelete="CASCADE")
+    text: str = Field(nullable=False, default="")
+    order_index: int = Field(default=0)
+
+    # ORM relationships
+    beta_concept: BetaConcept = Relationship(back_populates="core_points")
+
+    def __repr__(self):
+        return f"<BetaCorePoint(id={self.id}, beta_concept_id={self.beta_concept_id})>"
+
+
+class BetaMisconception(SQLModel, table=True):
+    """Misconception hint associated with a beta concept."""
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    beta_concept_id: int = Field(foreign_key="betaconcept.id", ondelete="CASCADE")
+    label: str = Field(nullable=False, default="")
+    order_index: int = Field(default=0)
+
+    # ORM relationships
+    beta_concept: BetaConcept = Relationship(back_populates="misconceptions")
+
+    def __repr__(self):
+        return (
+            f"<BetaMisconception(id={self.id}, beta_concept_id={self.beta_concept_id})>"
+        )
+
+
 class UserInfo(SQLModel, table=True):
     """
     Adds more attributes to a user than just name and password.
@@ -352,6 +635,10 @@ class Config(SQLModel, table=True):
     #: Name of the AI model used for the exercise conversations.  Which models are
     #: available depends on the used provider.
     response_ai_model: str
+    #: Name of the AI model used by Level AI for concept generation, diagnosis,
+    #: and tutor responses. Available models depend on the provider.
+    #: The server default fills existing config rows when the column is added.
+    level_ai_model: str = Field(sa_column_kwargs={"server_default": "gpt-4.1"})
     #: Name of the AI model used for checking conversations.  Which models are available
     #: depends on the used provider.
     check_ai_model: str
@@ -400,15 +687,19 @@ class Report(SQLModel, table=True):
 
     Attributes:
         id: Primary key of the report.
-        exercise_id: Foreign key referencing the associated Exercise
-        (nullable if exercise deleted).
+        exercise_id: Foreign key referencing the associated Alpha Exercise
+        (nullable if exercise deleted or this is a Beta AI report).
+        beta_exercise_id: Foreign key referencing the associated Beta AI exercise
+        (nullable if exercise deleted or this is an Alpha report).
+        exercise_type: Stable source marker used even after an exercise is deleted.
         lecture_id: Foreign key referencing the lecture the report belongs to
         (kept if exercise is deleted; cascades if lecture is deleted).
         userinfo_id: Foreign key referencing the user who submitted the report.
         report_text: The text content of the report.
         looked_at: Flag indicating whether the report has been viewed by a tutor.
         conversation_snapshot: Snapshot of the conversation at report submission time.
-        exercise: Relationship to the associated Exercise (may be None if deleted).
+        exercise: Relationship to the associated Alpha Exercise (may be None).
+        beta_exercise: Relationship to the associated Beta AI exercise (may be None).
         user: Relationship to the user who submitted the report.
     """
 
@@ -423,6 +714,23 @@ class Report(SQLModel, table=True):
             ),
             nullable=True,
         ),
+    )
+    beta_exercise_id: Optional[int] = Field(
+        default=None,
+        sa_column=Column(
+            "beta_exercise_id",
+            sa.Integer,
+            SAForeignKey(
+                "betaexercise.id",
+                ondelete="SET NULL",
+                name="fk_report_beta_exercise_id",
+            ),
+            nullable=True,
+        ),
+    )
+    # The server default fills existing reports when the column is added.
+    exercise_type: str = Field(
+        default="alpha", nullable=False, sa_column_kwargs={"server_default": "alpha"}
     )
     lecture_id: Optional[int] = Field(
         default=None,
@@ -448,6 +756,7 @@ class Report(SQLModel, table=True):
     )
 
     exercise: Optional[Exercise] = Relationship()
+    beta_exercise: Optional[BetaExercise] = Relationship()
     userinfo: UserInfo = Relationship()
 
 

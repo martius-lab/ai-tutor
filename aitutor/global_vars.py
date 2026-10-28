@@ -6,6 +6,7 @@ import reflex as rx
 
 TIME_FORMAT = "%d.%m.%Y %H:%M:%S MEZ"
 MOMENT_DEADLINE_FORMAT = "DD.MM.YYYY, HH:mm"
+MOMENT_DATE_FORMAT = "DD.MM.YYYY"
 MOMENT_DATETIME_FORMAT = "YYYY-MM-DD HH:mm"
 TIME_ZONE = "Europe/Berlin"
 
@@ -25,6 +26,11 @@ CHAT_TOKEN_WARNING_THRESHOLD = 0.8  # Show warning at x% of limit
 
 """colors"""
 GREEN_CHECK_COLOR = rx.color("green", 9)
+LEVEL_AI_BADGE_COLOR_SCHEME = "purple"
+
+# ---- Level AI ----
+# Only this many characters of the teaching material are sent to concept generation.
+LEVEL_AI_MAX_SOURCE_MATERIAL_CHARS = 200_000
 
 
 # --- max length for UI input fields ---

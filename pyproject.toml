@@ -72,3 +72,6 @@ exclude = ["**/node_modules", "**/__pycache__", "**/.*", "build", "alembic"]
 
 [tool.uv.sources]
 python-lsp-pyright = { git = "https://github.com/luator/python-lsp-pyright.git" }
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
