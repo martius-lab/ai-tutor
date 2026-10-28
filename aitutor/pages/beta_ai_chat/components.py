@@ -130,22 +130,16 @@ def chat_message(message: dict[str, str]) -> rx.Component:
 
 def messages_panel() -> rx.Component:
     """Render the current Beta AI chat messages in the normal chat scroll style."""
-    return rx.box(
-        rx.auto_scroll(
-            rx.cond(
-                BetaAIChatState.messages.length() == 0,  # type: ignore
-                rx.callout(LS.beta_ai_no_messages, icon="info", width="100%"),
-                rx.foreach(BetaAIChatState.messages, chat_message),
-            ),
-            scroll_to_bottom_on_update=True,
-            width="100%",
-            height="100%",
-            padding_right="8px",
+    return rx.auto_scroll(
+        rx.cond(
+            BetaAIChatState.messages.length() == 0,  # type: ignore
+            rx.callout(LS.beta_ai_no_messages, icon="info", width="100%"),
+            rx.foreach(BetaAIChatState.messages, chat_message),
         ),
+        scroll_to_bottom_on_update=True,
         width="100%",
-        height="45vh",
-        min_height="16em",
-        overflow_y="auto",
+        flex="1",
+        padding_right="8px",
     )
 
 
