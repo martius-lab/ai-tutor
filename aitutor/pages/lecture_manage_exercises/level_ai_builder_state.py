@@ -1,6 +1,7 @@
 """State for the Beta AI builder in lecture exercise management."""
 
 import io
+import math
 from collections.abc import Mapping
 from datetime import datetime
 
@@ -18,6 +19,7 @@ from aitutor.beta_ai.schemas import (
     EditableCorePoint,
     EditableMisconception,
 )
+from aitutor.global_vars import LEVEL_AI_MAX_SOURCE_MATERIAL_CHARS
 from aitutor.language_state import BackendTranslations as BT
 from aitutor.models import (
     BetaConcept,
@@ -33,21 +35,20 @@ from aitutor.pages.lecture_manage_exercises.state import (
 )
 
 SECONDS_PER_ESTIMATED_QUESTION = 90
+MIN_GENERATION_TARGET = 1
+MAX_CONCEPT_TARGET = 30
+MAX_CORE_POINT_TARGET = 15
+MAX_MISCONCEPTION_TARGET = 10
 
 
 class BetaAIExercisesState(SessionState):
     """State for the UI-first Beta AI exercise builder."""
 
-    MIN_GENERATION_TARGET: int = 1
-    MAX_CONCEPT_TARGET: int = 30
-    MAX_CORE_POINT_TARGET: int = 15
-    MAX_MISCONCEPTION_TARGET: int = 10
-
     current_lecture_id: int | None = None
     title: str = ""
     description: str = ""
-    concept_target_count: int = 8
-    core_point_target_count: int = 4
+    concept_target_count: int = 3
+    core_point_target_count: int = 3
     misconception_target_count: int = 2
     source_material_text: str = ""
     source_material_filename: str = ""
@@ -60,7 +61,7 @@ class BetaAIExercisesState(SessionState):
     deadline: str = ""
     days_to_complete: str = ""
     use_deadline: bool = True
-    exercise_has_started: bool = False
+    exercise_has_results: bool = False
     builder_dialog_is_open: bool = False
     metadata_info_dialog_is_open: bool = False
     tag_names: list[str] = []
@@ -77,7 +78,9 @@ class BetaAIExercisesState(SessionState):
     @state_require_lecture_role(LectureRole.OWNER)
     def set_new_tag_name(self, value: str):
         """Set the name used by the add-tag dialog."""
-        self.new_tag_name = value[:100]
+        self.new_tag_name = value[
+            : LECTURE_MANAGE_EXERCISES_FIELD_MAX_LENGTHS["tag_name"]
+        ]
 
     @rx.event
     @state_require_lecture_role(LectureRole.OWNER)
@@ -131,16 +134,14 @@ class BetaAIExercisesState(SessionState):
     @state_require_lecture_role(LectureRole.OWNER)
     def set_concept_target_count(self, value: str):
         """Set the approximate number of concepts to generate."""
-        self._set_generation_target(
-            "concept_target_count", value, self.MAX_CONCEPT_TARGET
-        )
+        self._set_generation_target("concept_target_count", value, MAX_CONCEPT_TARGET)
 
     @rx.event
     @state_require_lecture_role(LectureRole.OWNER)
     def set_core_point_target_count(self, value: str):
         """Set the approximate number of core points per concept."""
         self._set_generation_target(
-            "core_point_target_count", value, self.MAX_CORE_POINT_TARGET
+            "core_point_target_count", value, MAX_CORE_POINT_TARGET
         )
 
     @rx.event
@@ -148,7 +149,7 @@ class BetaAIExercisesState(SessionState):
     def set_misconception_target_count(self, value: str):
         """Set the approximate number of misconceptions per concept."""
         self._set_generation_target(
-            "misconception_target_count", value, self.MAX_MISCONCEPTION_TARGET
+            "misconception_target_count", value, MAX_MISCONCEPTION_TARGET
         )
 
     @rx.event
@@ -195,6 +196,11 @@ class BetaAIExercisesState(SessionState):
         return [tag for tag in self.tag_names if tag not in self.selected_tags]
 
     @rx.var
+    def source_material_exceeds_limit(self) -> bool:
+        """Whether concept generation will only use the beginning of the material."""
+        return len(self.source_material_text) > LEVEL_AI_MAX_SOURCE_MATERIAL_CHARS
+
+    @rx.var
     def source_material_preview(self) -> str:
         """Short preview of the extracted source material."""
         if len(self.source_material_text) <= 800:
@@ -208,7 +214,7 @@ class BetaAIExercisesState(SessionState):
             self.title.strip()
             and self.source_material_text.strip()
             and not self.generating_concepts
-            and not self.exercise_has_started
+            and not self.exercise_has_results
         )
 
     @rx.var
@@ -227,7 +233,7 @@ class BetaAIExercisesState(SessionState):
     def estimated_duration_minutes(self) -> int:
         """Round the planning estimate up to whole minutes."""
         seconds = self.estimated_question_count * SECONDS_PER_ESTIMATED_QUESTION
-        return (seconds + 59) // 60
+        return math.ceil(seconds / 60)
 
     @rx.var
     def can_save_exercise(self) -> bool:
@@ -272,12 +278,12 @@ class BetaAIExercisesState(SessionState):
     def _matches_lecture_route(self, lecture_id: int | None) -> bool:
         """Keep builder operations scoped to the authorized route lecture."""
         try:
-            route_lecture_id = self.get_route_param_or_error("lecture_id", dtype=int)
+            route_lecture_id = self._get_route_param_or_error("lecture_id", dtype=int)
         except KeyError, ValueError, TypeError:
             return False
-        return lecture_id is not None and lecture_id == route_lecture_id
+        return lecture_id == route_lecture_id
 
-    def load_tags(self):
+    def _load_tags(self):
         """Load the shared tags belonging to the current lecture."""
         if self.current_lecture_id is None:
             self.tag_names = []
@@ -311,7 +317,9 @@ class BetaAIExercisesState(SessionState):
         """Create a shared lecture tag and select it for this exercise."""
         if not self._matches_lecture_route(self.current_lecture_id):
             return rx.redirect(routes.MY_LECTURES)
-        tag_name = self.new_tag_name[:100]
+        tag_name = self.new_tag_name[
+            : LECTURE_MANAGE_EXERCISES_FIELD_MAX_LENGTHS["tag_name"]
+        ]
         if not tag_name:
             return rx.window_alert("Please enter a tag name.")
         with rx.session() as session:
@@ -325,7 +333,7 @@ class BetaAIExercisesState(SessionState):
                 return rx.window_alert("Tag exists already.")
             session.add(Tag(name=tag_name, lecture_id=self.current_lecture_id))
             session.commit()
-        self.load_tags()
+        self._load_tags()
         self.add_to_selected_tags(tag_name)
         self.add_tag_dialog_is_open = False
         self.new_tag_name = ""
@@ -342,7 +350,7 @@ class BetaAIExercisesState(SessionState):
             target = int(value)
         except ValueError:
             return
-        setattr(self, field_name, max(self.MIN_GENERATION_TARGET, min(maximum, target)))
+        setattr(self, field_name, max(MIN_GENERATION_TARGET, min(maximum, target)))
 
     def _validate_generated_concepts(self) -> str | None:
         """Return a user-facing validation error for the editable concept list."""
@@ -419,7 +427,7 @@ class BetaAIExercisesState(SessionState):
         self.deadline = ""
         self.days_to_complete = ""
         self.use_deadline = True
-        self.exercise_has_started = False
+        self.exercise_has_results = False
         self.selected_tags = []
         self.new_tag_name = ""
         self.add_tag_dialog_is_open = False
@@ -428,7 +436,7 @@ class BetaAIExercisesState(SessionState):
         """Reset the builder and load the selected lecture's tags."""
         self.current_lecture_id = lecture_id
         self.reset_builder()
-        self.load_tags()
+        self._load_tags()
 
     @rx.event
     @state_require_lecture_role(LectureRole.OWNER)
@@ -506,7 +514,6 @@ class BetaAIExercisesState(SessionState):
         )
         return EditableConcept(
             id=concept.id,
-            concept_id=concept.concept_id,
             label=concept.label,
             description=concept.description,
             core_points=[
@@ -547,7 +554,7 @@ class BetaAIExercisesState(SessionState):
                     .order_by(col(BetaConcept.order_index))
                 ).all()
             )
-            exercise_has_started = self._exercise_has_results(session, exercise_id)
+            exercise_has_results = self._exercise_has_results(session, exercise_id)
             editable_concepts = self._load_editable_concepts(session, concepts)
 
         self.editing_exercise_id = exercise_id
@@ -566,7 +573,7 @@ class BetaAIExercisesState(SessionState):
         self.use_deadline = (
             exercise.deadline is not None and exercise.days_to_complete is not None
         )
-        self.exercise_has_started = exercise_has_started
+        self.exercise_has_results = exercise_has_results
         self.selected_tags = [tag.name for tag in exercise.tags]
 
     @rx.event
@@ -652,7 +659,6 @@ class BetaAIExercisesState(SessionState):
                 return
             self.generated_concepts = [
                 EditableConcept(
-                    concept_id=concept.concept_id,
                     label=concept.label,
                     description=concept.description,
                     core_points=[
@@ -681,7 +687,6 @@ class BetaAIExercisesState(SessionState):
         """Add an empty concept manually."""
         self.generated_concepts.append(
             EditableConcept(
-                concept_id=f"manual.concept-{len(self.generated_concepts) + 1}",
                 label=BT.beta_ai_new_concept(self.language),
                 core_points=[EditableCorePoint()],
             )
@@ -746,7 +751,6 @@ class BetaAIExercisesState(SessionState):
             db_concept = existing_concepts.get(concept.id)
             if db_concept is None:
                 db_concept = BetaConcept(beta_exercise_id=exercise_id)
-            db_concept.concept_id = concept.concept_id.strip()
             db_concept.label = concept.label.strip()
             db_concept.description = concept.description.strip()
             db_concept.order_index = concept_index
@@ -815,7 +819,8 @@ class BetaAIExercisesState(SessionState):
     @state_require_lecture_role(LectureRole.OWNER)
     def save_beta_exercise(self):
         """Persist the exercise and reviewed concepts."""
-        if not self._matches_lecture_route(self.current_lecture_id):
+        lecture_id = self.current_lecture_id
+        if lecture_id is None or not self._matches_lecture_route(lecture_id):
             return rx.redirect(routes.MY_LECTURES)
         if not self.can_save_exercise:
             return rx.toast.error(
@@ -852,7 +857,7 @@ class BetaAIExercisesState(SessionState):
         try:
             with rx.session() as session:
                 if self.editing_exercise_id is None:
-                    exercise = BetaExercise(lecture_id=self.current_lecture_id)
+                    exercise = BetaExercise(lecture_id=lecture_id)
                 else:
                     exercise = session.get(BetaExercise, self.editing_exercise_id)
                     if (
@@ -862,7 +867,7 @@ class BetaAIExercisesState(SessionState):
                         return rx.redirect(routes.NOT_FOUND)
                     if (
                         self._exercise_has_results(session, self.editing_exercise_id)
-                        and not self.exercise_has_started
+                        and not self.exercise_has_results
                     ):
                         return rx.toast.error(
                             description=BT.beta_ai_started_while_editing(self.language),
@@ -871,7 +876,7 @@ class BetaAIExercisesState(SessionState):
                             invert=True,
                         )
                 exercise.title = title
-                if not self.exercise_has_started:
+                if not self.exercise_has_results:
                     exercise.description = self.description.strip()
                     exercise.source_material_text = self.source_material_text
                     exercise.source_material_filename = self.source_material_filename
@@ -890,7 +895,7 @@ class BetaAIExercisesState(SessionState):
                 session.flush()
                 if exercise.id is None:
                     raise ValueError("Failed to create beta exercise id.")
-                if not self.exercise_has_started:
+                if not self.exercise_has_results:
                     self._save_concepts(session, exercise.id)
                 session.commit()
         except Exception as exc:

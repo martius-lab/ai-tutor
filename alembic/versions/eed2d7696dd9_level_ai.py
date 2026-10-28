@@ -1,8 +1,8 @@
-"""empty message
+"""level ai
 
-Revision ID: 458d936f7bca
-Revises: 0ce810c7ed80
-Create Date: 2026-09-30 21:14:40.077238
+Revision ID: eed2d7696dd9
+Revises: e4c7a1b90f32
+Create Date: 2026-10-25 16:50:28.487357
 
 """
 from typing import Sequence, Union
@@ -12,10 +12,13 @@ import sqlalchemy as sa
 import sqlmodel
 
 # revision identifiers, used by Alembic.
-revision: str = '458d936f7bca'
-down_revision: Union[str, None] = '0ce810c7ed80'
+revision: str = 'eed2d7696dd9'
+down_revision: Union[str, None] = 'e4c7a1b90f32'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
+
+# Defined here so the downgrade can drop the type as well (PostgreSQL keeps it).
+ConceptStateEnum = sa.Enum('UNSEEN', 'EMERGING', 'SATISFACTORY', 'SECURE', name='conceptstate')
 
 
 def upgrade() -> None:
@@ -27,7 +30,7 @@ def upgrade() -> None:
     sa.Column('description', sqlmodel.sql.sqltypes.AutoString(), nullable=False),
     sa.Column('source_material_text', sqlmodel.sql.sqltypes.AutoString(), nullable=False),
     sa.Column('source_material_filename', sqlmodel.sql.sqltypes.AutoString(), nullable=False),
-    sa.Column('lecture_id', sa.Integer(), nullable=True),
+    sa.Column('lecture_id', sa.Integer(), nullable=False),
     sa.Column('is_hidden', sa.Boolean(), nullable=False),
     sa.Column('deadline', sa.DateTime(), nullable=True),
     sa.Column('days_to_complete', sa.Integer(), nullable=True),
@@ -41,16 +44,12 @@ def upgrade() -> None:
     op.create_table('betaconcept',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('beta_exercise_id', sa.Integer(), nullable=False),
-    sa.Column('concept_id', sqlmodel.sql.sqltypes.AutoString(), nullable=False),
     sa.Column('label', sqlmodel.sql.sqltypes.AutoString(), nullable=False),
     sa.Column('description', sqlmodel.sql.sqltypes.AutoString(), nullable=False),
     sa.Column('order_index', sa.Integer(), nullable=False),
     sa.ForeignKeyConstraint(['beta_exercise_id'], ['betaexercise.id'], name=op.f('fk_betaconcept_beta_exercise_id_betaexercise'), ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id', name=op.f('pk_betaconcept'))
     )
-    with op.batch_alter_table('betaconcept', schema=None) as batch_op:
-        batch_op.create_index(batch_op.f('ix_betaconcept_concept_id'), ['concept_id'], unique=False)
-
     op.create_table('betaexerciseresult',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('conversation_text', sa.JSON(), nullable=True),
@@ -124,7 +123,7 @@ def upgrade() -> None:
     sa.Column('userinfo_id', sa.Integer(), nullable=False),
     sa.Column('beta_exercise_id', sa.Integer(), nullable=False),
     sa.Column('beta_concept_id', sa.Integer(), nullable=False),
-    sa.Column('state', sqlmodel.sql.sqltypes.AutoString(), nullable=False),
+    sa.Column('state', ConceptStateEnum, nullable=False),
     sa.Column('attempts_total', sa.Integer(), nullable=False),
     sa.Column('successful_attempts', sa.Integer(), nullable=False),
     sa.Column('misconception_hits', sa.Integer(), nullable=False),
@@ -144,11 +143,11 @@ def upgrade() -> None:
     sa.PrimaryKeyConstraint('id', name=op.f('pk_betastudentconceptstate'))
     )
     with op.batch_alter_table('config', schema=None) as batch_op:
-        batch_op.add_column(sa.Column('level_ai_model', sqlmodel.sql.sqltypes.AutoString(), server_default=sa.text("'gpt-4.1'"), nullable=False))
+        batch_op.add_column(sa.Column('level_ai_model', sqlmodel.sql.sqltypes.AutoString(), server_default='gpt-4.1', nullable=False))
 
     with op.batch_alter_table('report', schema=None) as batch_op:
         batch_op.add_column(sa.Column('beta_exercise_id', sa.Integer(), nullable=True))
-        batch_op.add_column(sa.Column('exercise_type', sqlmodel.sql.sqltypes.AutoString(), server_default=sa.text("'alpha'"), nullable=False))
+        batch_op.add_column(sa.Column('exercise_type', sqlmodel.sql.sqltypes.AutoString(), server_default='alpha', nullable=False))
         batch_op.create_foreign_key('fk_report_beta_exercise_id', 'betaexercise', ['beta_exercise_id'], ['id'], ondelete='SET NULL')
 
     # ### end Alembic commands ###
@@ -178,12 +177,10 @@ def downgrade() -> None:
     op.drop_table('betacorepoint')
     op.drop_table('betaexercisetaglink')
     op.drop_table('betaexerciseresult')
-    with op.batch_alter_table('betaconcept', schema=None) as batch_op:
-        batch_op.drop_index(batch_op.f('ix_betaconcept_concept_id'))
-
     op.drop_table('betaconcept')
     with op.batch_alter_table('betaexercise', schema=None) as batch_op:
         batch_op.drop_index(batch_op.f('ix_betaexercise_lecture_id'))
 
     op.drop_table('betaexercise')
     # ### end Alembic commands ###
+    ConceptStateEnum.drop(op.get_bind(), checkfirst=True)
