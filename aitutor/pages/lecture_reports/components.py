@@ -3,6 +3,7 @@
 import reflex as rx
 
 from aitutor.components.dialogs import destructive_confirm
+from aitutor.components.level_ai_badge import level_ai_badge
 from aitutor.global_vars import (
     SEARCH_EXERCISE_KEY,
     SEARCH_USER_KEY,
@@ -37,20 +38,28 @@ def show_table_row(table_row: LectureReportTableRow) -> rx.Component:
             _hover={"cursor": "pointer"},
         ),
         rx.table.cell(
-            rx.cond(
-                table_row.exercise_title == None,
-                rx.text(LanguageState.deleted_report_title, color="red"),
-                rx.text(
-                    table_row.exercise_title,
-                    on_click=LectureReportsState.add_search_value(
-                        {
-                            "search_value": (
-                                f'{SEARCH_EXERCISE_KEY}:"{table_row.exercise_title}"'
-                            )
-                        }
+            rx.hstack(
+                rx.cond(
+                    table_row.exercise_title == None,
+                    rx.text(LanguageState.deleted_report_title, color="red"),
+                    rx.text(
+                        table_row.exercise_title,
+                        on_click=LectureReportsState.add_search_value(
+                            {
+                                "search_value": (
+                                    f'{SEARCH_EXERCISE_KEY}:"{table_row.exercise_title}"'
+                                )
+                            }
+                        ),
+                        _hover={"cursor": "pointer"},
                     ),
-                    _hover={"cursor": "pointer"},
                 ),
+                rx.cond(
+                    table_row.exercise_type == "beta",
+                    level_ai_badge(),
+                ),
+                spacing="2",
+                align="center",
             )
         ),
         rx.table.cell(
