@@ -27,11 +27,11 @@ class LectureOverviewState(SessionState):
     @state_require_lecture_role(LectureRole.STUDENT)
     def on_load(self):
         """Initialize the lecture overview state when the page loads."""
-        self.global_load()
+        self._global_load()
         self._reset_lecture_state()
 
         try:
-            lecture_id = self.get_route_param_or_error("lecture_id", dtype=int)
+            lecture_id = self._get_route_param_or_error("lecture_id", dtype=int)
         except Exception:
             return rx.redirect(routes.NOT_FOUND)
 
@@ -44,7 +44,7 @@ class LectureOverviewState(SessionState):
                 return rx.redirect(routes.NOT_FOUND)
             self._apply_lecture_to_state(lecture)
 
-        assert self.authenticated_user_info is not None
+        assert self._authenticated_user_info is not None
         self._load_lecture_exercises()
 
     def _reset_lecture_state(self) -> None:
@@ -75,7 +75,7 @@ class LectureOverviewState(SessionState):
                     ExerciseResult,
                     and_(
                         Exercise.id == ExerciseResult.exercise_id,
-                        ExerciseResult.userinfo_id == self.authenticated_user_info.id,  # type: ignore
+                        ExerciseResult.userinfo_id == self._authenticated_user_info.id,  # type: ignore
                     ),
                     isouter=True,
                 )

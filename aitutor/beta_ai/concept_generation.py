@@ -5,12 +5,12 @@ from pydantic import BaseModel, Field
 
 from aitutor.config import get_config
 from aitutor.env_settings import get_env_settings
+from aitutor.global_vars import LEVEL_AI_MAX_SOURCE_MATERIAL_CHARS
 
 
 class GeneratedConcept(BaseModel):
     """One generated concept candidate."""
 
-    concept_id: str
     label: str
     description: str
     core_points: list[str] = Field(default_factory=list)
@@ -58,7 +58,7 @@ async def generate_concepts_from_material(
                     f"Exercise title: {title}\n\n"
                     f"Exercise description: {description}\n\n"
                     "Teaching material:\n"
-                    f"{source_material_text[:200000]}"
+                    f"{source_material_text[:LEVEL_AI_MAX_SOURCE_MATERIAL_CHARS]}"
                 ),
             },
         ],

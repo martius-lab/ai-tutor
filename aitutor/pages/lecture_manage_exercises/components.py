@@ -1,16 +1,27 @@
 """The Components for the manage exercises page."""
 
 from collections.abc import Sequence
+from datetime import datetime
 
 import reflex as rx
 
-import aitutor.global_vars as gv
+from aitutor.components import tag_components
 from aitutor.components.dialogs import destructive_confirm
-from aitutor.global_vars import SEARCH_TAG_KEY, TIME_ZONE
+from aitutor.components.level_ai_badge import level_ai_badge
+from aitutor.global_vars import (
+    MOMENT_DATE_FORMAT,
+    MOMENT_DEADLINE_FORMAT,
+    SEARCH_TAG_KEY,
+    TIME_ZONE,
+)
 from aitutor.language_state import LanguageState
 from aitutor.models import BetaExercise, Exercise
-from aitutor.pages.beta_ai_exercises.components import beta_ai_exercise_builder
-from aitutor.pages.beta_ai_exercises.state import BetaAIExercisesState
+from aitutor.pages.lecture_manage_exercises.level_ai_builder_components import (
+    beta_ai_exercise_builder,
+)
+from aitutor.pages.lecture_manage_exercises.level_ai_builder_state import (
+    BetaAIExercisesState,
+)
 from aitutor.pages.lecture_manage_exercises.state import (
     LECTURE_MANAGE_EXERCISES_FIELD_MAX_LENGTHS,
     DialogMode,
@@ -24,64 +35,13 @@ from aitutor.pages.lecture_manage_exercises.state import (
 from aitutor.utilities.helper_functions import truncate_text_reflex_var
 
 
-def new_tag_dialog():
+def new_tag_dialog() -> rx.Component:
     """Dialog for adding new tags."""
-    return rx.dialog.root(
-        rx.dialog.trigger(
-            rx.button(
-                rx.hstack(
-                    rx.icon("plus", size=20),
-                    rx.icon("tag", size=20),
-                    align="center",
-                    spacing="1",
-                ),
-                LanguageState.new_tag,
-                _hover={"cursor": "pointer"},
-            ),
-        ),
-        rx.dialog.content(
-            rx.vstack(
-                rx.heading(LanguageState.new_tag),
-                rx.input(
-                    placeholder=LanguageState.tagname,
-                    value=ManageTagsState.new_tag_name,
-                    on_change=ManageTagsState.set_new_tag_name,
-                    width="100%",
-                    on_key_down=lambda key: rx.cond(
-                        key == "Enter",
-                        ManageTagsState.add_new_tag,
-                        None,
-                    ),
-                    max_length=LECTURE_MANAGE_EXERCISES_FIELD_MAX_LENGTHS["tag_name"],
-                ),
-                rx.hstack(
-                    rx.dialog.close(
-                        rx.button(
-                            rx.text(LanguageState.cancel),
-                            variant="outline",
-                            _hover={"cursor": "pointer"},
-                        ),
-                    ),
-                    rx.button(
-                        LanguageState.add_tag,
-                        on_click=ManageTagsState.add_new_tag,
-                        _hover=rx.cond(
-                            ManageTagsState.new_tag_name == "",
-                            {"cursor": "not-allowed"},
-                            {"cursor": "pointer"},
-                        ),
-                        disabled=ManageTagsState.new_tag_name == "",
-                    ),
-                    padding_top="1em",
-                    spacing="2",
-                    justify="end",
-                    width="100%",
-                ),
-            ),
-            width="20em",
-            max_width="90vw",
-        ),
-        open=ManageTagsState.add_tag_dialog_is_open,
+    return tag_components.new_tag_dialog(
+        tag_name=ManageTagsState.new_tag_name,
+        on_tag_name_change=ManageTagsState.set_new_tag_name,
+        on_add=ManageTagsState.add_new_tag,
+        is_open=ManageTagsState.add_tag_dialog_is_open,
         on_open_change=ManageTagsState.set_add_tag_dialog_is_open,
     )
 
@@ -143,6 +103,7 @@ def edit_tags_button() -> rx.Component:
             rx.button(
                 rx.icon("tags"),
                 rx.text(LanguageState.edit_tags, size="3"),
+                variant="outline",
                 _hover={"cursor": "pointer"},
                 type="button",
             )
@@ -329,7 +290,7 @@ def show_beta_exercise(exercise: BetaExercise):
         rx.table.cell(
             rx.hstack(
                 rx.text(exercise.title),
-                gv.level_ai_badge(),
+                level_ai_badge(),
                 align="center",
                 wrap="wrap",
             ),
@@ -357,7 +318,21 @@ def show_beta_exercise(exercise: BetaExercise):
             )
         ),
         rx.table.cell(
-            ManageExercisesState.beta_editing_periods[exercise.id]  # type: ignore
+            rx.cond(
+                exercise.editing_start,
+                rx.text(
+                    rx.moment(
+                        date=exercise.editing_start.to(datetime),  # type: ignore[union-attr]
+                        format=MOMENT_DATE_FORMAT,
+                    ),
+                    " - ",
+                    rx.moment(
+                        date=exercise.deadline.to(datetime),  # type: ignore[union-attr]
+                        format=MOMENT_DEADLINE_FORMAT,
+                    ),
+                ),
+                LanguageState.no_deadline,
+            )
         ),
         rx.table.cell(
             rx.hstack(
@@ -366,13 +341,15 @@ def show_beta_exercise(exercise: BetaExercise):
                         exercise.is_hidden,
                         rx.icon("eye-off", size=18),
                         rx.cond(
-                            ManageExercisesState.beta_exercise_is_started[exercise.id],  # type: ignore
+                            exercise.is_started,
                             rx.icon("eye", size=18),
                             rx.icon("view", size=18),
                         ),
                     ),
                     _hover={"cursor": "pointer"},
-                    on_click=ManageExercisesState.toggle_beta_visibility(exercise.id),
+                    on_click=ManageExercisesState.toggle_beta_visibility(
+                        exercise.id  # type: ignore
+                    ),
                 ),
                 rx.icon_button(
                     rx.icon("wrench", size=22),
@@ -529,7 +506,10 @@ def beta_ai_exercise_dialog() -> rx.Component:
             max_width="90vw",
             max_height="85vh",
             overflow_y="auto",
-            on_escape_key_down=BetaAIExercisesState.close_builder_dialog,
+            # Only the explicit buttons close the builder, so an accidental Escape
+            # or click outside does not discard unsaved (possibly generated) work.
+            on_escape_key_down=rx.prevent_default,
+            on_interact_outside=rx.prevent_default,
         ),
         open=BetaAIExercisesState.builder_dialog_is_open,
         on_open_change=BetaAIExercisesState.set_builder_dialog_is_open,
@@ -555,6 +535,7 @@ def delete_selected_exercises_button() -> rx.Component:
                 size="3",
             ),
             color_scheme="red",
+            variant="outline",
             _hover=rx.cond(
                 ManageExercisesState.something_is_selected,
                 {"cursor": "pointer"},
@@ -577,6 +558,7 @@ def export_selected_exercises_button() -> rx.Component:
             + ")",
             size="3",
         ),
+        variant="outline",
         _hover=rx.cond(
             ManageExercisesState.something_is_selected,
             {"cursor": "pointer"},
@@ -715,7 +697,14 @@ def pdf_upload() -> rx.Component:
                 rx.text(
                     LanguageState.pdf_upload_info,
                 ),
-                rx.text(rx.selected_files("upload1"), color="yellow", size="3"),
+                # show file icon with file name
+                rx.cond(
+                    ManageExercisesState.lesson_file_name,
+                    rx.hstack(
+                        rx.text(LanguageState.last_uploaded_file, size="3"),
+                        rx.text(ManageExercisesState.lesson_file_name, color="gray"),
+                    ),
+                ),
                 align="center",
             ),
             id="upload1",
@@ -727,25 +716,6 @@ def pdf_upload() -> rx.Component:
                 rx.upload_files(upload_id="upload1")  # type: ignore
             ),
             _hover={"cursor": "pointer"},
-        ),
-        rx.text(
-            LanguageState.last_uploaded_file,
-            size="3",
-            weight="medium",
-            text_align="left",
-            width="100%",
-            padding_top="1.5em",
-            padding_bottom="0.5em",
-        ),
-        # show file icon with file name
-        rx.cond(
-            ManageExercisesState.lesson_file_name,
-            rx.box(
-                rx.hstack(
-                    rx.icon("file-text", size=25),
-                    rx.text(ManageExercisesState.lesson_file_name, color="green"),
-                ),
-            ),
         ),
     )
 
@@ -826,73 +796,12 @@ def select_prompt(mode: DialogMode) -> rx.Component:
 
 def tag_selection() -> rx.Component:
     """Tag selection component"""
-    return rx.vstack(
-        rx.text(
-            LanguageState.tags + ":",
-            size="3",
-            weight="medium",
-            text_align="left",
-            width="100%",
-            padding_top="1.5em",
-            padding_bottom="0.5em",
-        ),
-        rx.hstack(
-            rx.menu.root(
-                rx.menu.trigger(
-                    rx.button(
-                        rx.icon("list", size=18),
-                        LanguageState.select_tags,
-                        type="button",
-                        _hover={"cursor": "pointer"},
-                    ),
-                ),
-                rx.menu.content(
-                    rx.foreach(
-                        ManageExercisesState.selectable_tags,
-                        lambda tag_name: rx.menu.item(
-                            tag_name,
-                            on_click=ManageExercisesState.add_to_selected_tags(
-                                tag_name
-                            ),
-                        ),
-                    ),
-                    min_width="10em",
-                ),
-            ),
-            new_tag_dialog(),
-            align="center",
-            justify="between",
-            width="100%",
-        ),
-        rx.hstack(
-            rx.foreach(
-                ManageExercisesState.selected_tags,
-                lambda tag: rx.badge(
-                    rx.hstack(
-                        rx.text(tag),
-                        rx.icon(
-                            "circle-x",
-                            size=16,
-                        ),
-                        spacing="1",
-                        align_items="center",
-                    ),
-                    on_click=ManageExercisesState.remove_selected_tag(tag),  # type: ignore
-                    cursor="pointer",
-                    size="3",
-                    style={
-                        "_hover": {
-                            "background_color": "red",
-                            "color": "black",
-                        }
-                    },
-                ),
-            ),
-            margin_top="0.5em",
-            margin_bottom="0.5em",
-            wrap="wrap",
-        ),
-        spacing="1",
+    return tag_components.tag_selection(
+        selectable_tags=ManageExercisesState.selectable_tags,
+        selected_tags=ManageExercisesState.selected_tags,
+        on_select=ManageExercisesState.add_to_selected_tags,
+        on_remove=ManageExercisesState.remove_selected_tag,
+        add_tag_dialog=new_tag_dialog(),
     )
 
 
@@ -1052,7 +961,7 @@ def add_edit_exercise_form(mode: DialogMode) -> Sequence[rx.Component]:
                 mode == DialogMode.ADD,
                 rx.form.submit(
                     rx.button(
-                        LanguageState.add_task,
+                        LanguageState.add_exercise,
                         color_scheme="green",
                         type="submit",
                         _hover={"cursor": "pointer"},
@@ -1061,7 +970,7 @@ def add_edit_exercise_form(mode: DialogMode) -> Sequence[rx.Component]:
                 ),
                 rx.form.submit(
                     rx.button(
-                        LanguageState.update_task,
+                        LanguageState.save_changes,
                         color_scheme="yellow",
                         type="submit",
                         _hover={"cursor": "pointer"},
@@ -1088,6 +997,7 @@ def import_exercises_button() -> rx.Component:
                 rx.mobile_and_tablet(
                     rx.text(LanguageState.import_, size="3"),
                 ),
+                variant="outline",
                 _hover={"cursor": "pointer"},
             )
         ),
