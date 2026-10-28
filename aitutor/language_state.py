@@ -8,6 +8,7 @@ This class has all strings used in the frontend code. Strings that are used in t
 backend code (e.g. error/success messages) are in the corresponding state class.
 """
 
+import math
 import textwrap
 
 import reflex as rx
@@ -534,14 +535,6 @@ class LanguageState(SessionState):
         return self.translate(de="Tags", en="Tags")
 
     @rx.var
-    def no_submission(self) -> str:
-        """No submission string"""
-        return self.translate(
-            de="Keine Abgabe",
-            en="No submission",
-        )
-
-    @rx.var
     def submission(self) -> str:
         """Submission string"""
         return self.translate(de="Abgabe", en="Submission")
@@ -822,18 +815,12 @@ class LanguageState(SessionState):
         return self.translate(de="Zeitzone: ", en="Timezone: ")
 
     @rx.var
-    def add_task(self) -> str:
-        """Add task string"""
-        return self.translate(de="Aufgabe hinzufügen", en="Add exercise")
-
-    @rx.var
     def add(self) -> str:
         return self.translate(de="Hinzufügen", en="Add")
 
     @rx.var
-    def update_task(self) -> str:
-        """Update task string"""
-        return self.translate(de="Änderungen speichern", en="Update exercise")
+    def save_changes(self) -> str:
+        return self.translate(de="Änderungen speichern", en="Save changes")
 
     @rx.var
     def delete_selected_info(self) -> str:
@@ -876,25 +863,65 @@ class LanguageState(SessionState):
         return self.translate(de="Passwort bestätigen", en="Confirm Password")
 
     @rx.var
-    def successful_registration(self) -> str:
-        """Successful registration string"""
-        return self.translate(
-            de="Registrierung erfolgreich! Sie können sich jetzt anmelden.",
-            en="Registration successful! You can now log in.",
-        )
-
-    @rx.var
     def successful_registration_with_email(self) -> str:
+        """Successful registration string, asking the user to confirm the address."""
         return self.translate(
-            de="Registrierung erfolgreich. Wir haben Ihnen eine Willkommens-E-Mail gesendet.",
-            en="Registration successful. We sent you a welcome email.",
+            de=(
+                "Registrierung erfolgreich.  Wir haben Ihnen eine E-Mail mit einem"
+                " Bestätigungslink gesendet.  Bitte öffnen Sie diesen Link, um Ihr Konto"
+                " zu aktivieren.  Erst danach können Sie sich anmelden.  Bitte prüfen Sie"
+                " gegebenenfalls auch Ihren Spam-Ordner."
+            ),
+            en=(
+                "Registration successful.  We have sent you an email containing a"
+                " confirmation link.  Please open that link to activate your account."
+                "  Only then you will be able to log in.  If you cannot find the email,"
+                " please also check your spam folder."
+            ),
         )
 
     @rx.var
     def successful_registration_email_failed(self) -> str:
+        """Registration succeeded, but the confirmation mail could not be sent."""
         return self.translate(
-            de="Registrierung erfolgreich, aber die Willkommens-E-Mail konnte nicht gesendet werden.",
-            en="Registration successful, but the welcome email could not be sent.",
+            de=(
+                "Ihr Konto wurde erstellt, aber die E-Mail mit dem Bestätigungslink"
+                " konnte nicht gesendet werden.  Ohne Bestätigung Ihrer E-Mail-Adresse"
+                " können Sie sich nicht anmelden.  Bitte versuchen Sie, sich anzumelden"
+                " - auf der Anmeldeseite können Sie die E-Mail erneut anfordern."
+            ),
+            en=(
+                "Your account was created, but the email containing the confirmation"
+                " link could not be sent.  You cannot log in until your email address"
+                " is confirmed.  Please try to log in - on the login page you can"
+                " request the email again."
+            ),
+        )
+
+    @rx.var
+    def login_email_not_verified(self) -> str:
+        """Shown when the credentials are correct but the address is not confirmed."""
+        return self.translate(
+            de=(
+                "Ihre E-Mail-Adresse ist noch nicht bestätigt.  Bitte öffnen Sie den"
+                " Bestätigungslink, den wir Ihnen per E-Mail gesendet haben (bitte"
+                " prüfen Sie gegebenenfalls auch Ihren Spam-Ordner).  Ist der Link"
+                " abgelaufen, können Sie sich hier einen neuen zusenden lassen."
+            ),
+            en=(
+                "Your email address has not been confirmed yet.  Please open the"
+                " confirmation link we sent you by email (if you cannot find it,"
+                " please also check your spam folder).  If the link has expired, you"
+                " can have a new one sent to you here."
+            ),
+        )
+
+    @rx.var
+    def resend_verification_email(self) -> str:
+        """Label of the button that sends a new verification mail."""
+        return self.translate(
+            de="Bestätigungs-E-Mail erneut senden",
+            en="Resend confirmation email",
         )
 
     @rx.var
@@ -910,15 +937,90 @@ class LanguageState(SessionState):
             en="You get this code from your lecturer",
         )
 
+    # Email Verification Page Strings --------------------------------------------------
+
+    @rx.var
+    def verify_email_heading(self) -> str:
+        """Heading of the page that confirms an email address."""
+        return self.translate(
+            de="E-Mail-Adresse bestätigen", en="Confirm email address"
+        )
+
+    @rx.var
+    def verify_email_success(self) -> str:
+        """The address was confirmed by opening the link."""
+        return self.translate(
+            de=(
+                "Vielen Dank, Ihre E-Mail-Adresse wurde bestätigt.  Sie können sich"
+                " jetzt anmelden."
+            ),
+            en=(
+                "Thank you, your email address has been confirmed.  You can log in now."
+            ),
+        )
+
+    @rx.var
+    def verify_email_already_confirmed(self) -> str:
+        """The link had been opened before (possibly by a mail scanner)."""
+        return self.translate(
+            de=(
+                "Diese E-Mail-Adresse wurde bereits bestätigt.  Sie können sich"
+                " anmelden."
+            ),
+            en="This email address has already been confirmed.  You can log in.",
+        )
+
+    @rx.var
+    def verify_email_expired(self) -> str:
+        """The link is too old to be used."""
+        return self.translate(
+            de=(
+                "Dieser Bestätigungslink ist abgelaufen.  Bitte versuchen Sie, sich"
+                " anzumelden - auf der Anmeldeseite können Sie sich einen neuen Link"
+                " zusenden lassen."
+            ),
+            en=(
+                "This confirmation link has expired.  Please try to log in - on the"
+                " login page you can have a new link sent to you."
+            ),
+        )
+
+    @rx.var
+    def verify_email_invalid(self) -> str:
+        """The link does not belong to any known token."""
+        return self.translate(
+            de=(
+                "Dieser Bestätigungslink ist ungültig.  Möglicherweise wurde er durch"
+                " einen neueren ersetzt.  Bitte prüfen Sie, ob Sie den Link aus der"
+                " neuesten E-Mail verwendet haben, oder lassen Sie sich auf der"
+                " Anmeldeseite einen neuen zusenden."
+            ),
+            en=(
+                "This confirmation link is not valid.  It may have been replaced by a"
+                " newer one.  Please check whether you used the link from the most"
+                " recent email, or have a new one sent to you on the login page."
+            ),
+        )
+
+    @rx.var
+    def verify_email_error(self) -> str:
+        """The token is fine but the account it belongs to is broken."""
+        return self.translate(
+            de=(
+                "Die E-Mail-Adresse konnte wegen eines Fehlers nicht bestätigt werden."
+                "  Bitte wenden Sie sich an das AI Tutor Team."
+            ),
+            en=(
+                "The email address could not be confirmed due to an error.  Please"
+                " contact the AI Tutor team."
+            ),
+        )
+
     # Manage Users Page Strings --------------------------------------------------------
 
     @rx.var
     def edit_user(self) -> str:
         return self.translate(de="Benutzer bearbeiten", en="Edit User")
-
-    @rx.var
-    def id(self) -> str:
-        return self.translate(de="ID", en="ID")
 
     @rx.var
     def role(self) -> str:
@@ -927,6 +1029,49 @@ class LanguageState(SessionState):
     @rx.var
     def enabled(self) -> str:
         return self.translate(de="Aktiviert", en="Enabled")
+
+    @rx.var
+    def email_verified(self) -> str:
+        """Column header / badge for the email verification state."""
+        return self.translate(de="Bestätigt", en="Verified")
+
+    @rx.var
+    def email_not_verified(self) -> str:
+        """Badge for users who did not confirm their email address yet."""
+        return self.translate(de="Nicht bestätigt", en="Not confirmed")
+
+    @rx.var
+    def email_change_pending(self) -> str:
+        """Badge for users whose new email address still has to be confirmed."""
+        return self.translate(
+            de="Adressänderung ausstehend", en="Address change pending"
+        )
+
+    @rx.var
+    def email_change_pending_description(self) -> str:
+        """Followed by the (old) address that stays in use until the new one is confirmed."""
+        return self.translate(
+            de="Bis zur Bestätigung der neuen Adresse gilt weiterhin die bisherige:",
+            en="Until the new address is confirmed, the previous one remains in use:",
+        )
+
+    @rx.var
+    def email_change_pending_tooltip(self) -> str:
+        """Followed by the new address that still has to be confirmed."""
+        return self.translate(
+            de="Bestätigt, aber eine Änderung auf diese Adresse ist noch unbestätigt:",
+            en="Verified, but a change to this address is not confirmed yet:",
+        )
+
+    @rx.var
+    def created_at(self) -> str:
+        """Label for the time an account was created."""
+        return self.translate(de="Erstellt", en="Created")
+
+    @rx.var
+    def last_login_at(self) -> str:
+        """Label for the time of the last login of a user."""
+        return self.translate(de="Letzte Anmeldung", en="Last login")
 
     @rx.var
     def new_password(self) -> str:
@@ -1444,6 +1589,11 @@ Please test the chat for functionality after changing the model.
     # Beta AI Strings ------------------------------------------------------------------
 
     @rx.var
+    def level_ai_badge_label(self) -> str:
+        """Label of the badge that marks Level AI exercises."""
+        return self.translate(de="Level", en="Level")
+
+    @rx.var
     def beta_ai_source_material_help(self) -> str:
         return self.translate(
             de="Lade zuerst eine PDF mit dem relevanten Lehrmaterial hoch, zum Beispiel Vorlesungsfolien oder ein Skript. Prüfe anschließend die Textvorschau: Dieses Material dient der KI als Grundlage für die Konzepte und Fragen.",
@@ -1709,6 +1859,20 @@ Please test the chat for functionality after changing the model.
     @rx.var
     def beta_ai_preview(self) -> str:
         return self.translate(de="Vorschau", en="Preview")
+
+    @rx.var
+    def beta_ai_source_material_truncated(self) -> str:
+        limit = gv.LEVEL_AI_MAX_SOURCE_MATERIAL_CHARS
+        return self.translate(
+            de=(
+                "Das Material ist sehr lang. Für die Konzept-Generierung werden nur "
+                f"die ersten {limit:,} Zeichen verwendet.".replace(",", ".")
+            ),
+            en=(
+                "The material is very long. Only the first "
+                f"{limit:,} characters are used to generate concepts."
+            ),
+        )
 
     @rx.var
     def beta_ai_exercise_metadata(self) -> str:
@@ -2759,6 +2923,95 @@ class BackendTranslations:
             en=f"Error: The password cannot be longer than {gv.PASSWORD_MAX_BYTES} bytes.",
         )
 
+    @staticmethod
+    def error_email_invalid(language: Language) -> str:
+        return translate(
+            language,
+            de="Fehler: Die E-Mail-Adresse ist ungültig.",
+            en="Error: The email address is not valid.",
+        )
+
+    @staticmethod
+    def error_user_info_missing(language: Language) -> str:
+        return translate(
+            language,
+            de=(
+                "Fehler: Die Daten dieses Kontos sind unvollständig (kein UserInfo"
+                " Eintrag).  Details stehen im Server-Log."
+            ),
+            en=(
+                "Error: The data of this account is incomplete (no UserInfo entry)."
+                "  See the server log for details."
+            ),
+        )
+
+    @staticmethod
+    def admin_verification_email_sent(language: Language, email: str) -> str:
+        return translate(
+            language,
+            de=f"Ein Bestätigungslink wurde an {email} gesendet.",
+            en=f"A confirmation link has been sent to {email}.",
+        )
+
+    @staticmethod
+    def admin_email_change_pending(language: Language, email: str) -> str:
+        return translate(
+            language,
+            de=(
+                f"Ein Bestätigungslink wurde an {email} gesendet.  Die E-Mail-Adresse"
+                " wird erst geändert, wenn der Link geöffnet wurde."
+            ),
+            en=(
+                f"A confirmation link has been sent to {email}.  The email address"
+                " will only be changed once the link has been opened."
+            ),
+        )
+
+    @staticmethod
+    def admin_verification_email_failed(language: Language, email: str) -> str:
+        return translate(
+            language,
+            de=(
+                f"Fehler: Die Bestätigungs-E-Mail an {email} konnte nicht gesendet"
+                " werden.  Alle anderen Änderungen wurden gespeichert.  Sie können die"
+                " E-Mail später über 'Bestätigungs-E-Mail erneut senden' erneut"
+                " verschicken."
+            ),
+            en=(
+                f"Error: The confirmation email to {email} could not be sent.  All"
+                " other changes have been saved.  You can try again later using"
+                " 'Resend confirmation email'."
+            ),
+        )
+
+    @staticmethod
+    def admin_email_change_cancelled(language: Language) -> str:
+        return translate(
+            language,
+            de=(
+                "Die ausstehende Änderung der E-Mail-Adresse wurde verworfen, der"
+                " bereits versendete Bestätigungslink ist ungültig."
+            ),
+            en=(
+                "The pending change of the email address has been discarded, the"
+                " confirmation link that was already sent is no longer valid."
+            ),
+        )
+
+    @staticmethod
+    def admin_nothing_to_verify(language: Language) -> str:
+        return translate(
+            language,
+            de=(
+                "Die E-Mail-Adresse dieses Benutzers ist bereits bestätigt und es ist"
+                " keine Änderung ausstehend."
+            ),
+            en=(
+                "The email address of this user is already confirmed and there is no"
+                " pending change."
+            ),
+        )
+
     # Lecture states -------------------------------------------------------------------
 
     @staticmethod
@@ -2894,13 +3147,13 @@ class BackendTranslations:
     def signup_welcome_subject(language: Language) -> str:
         return translate(
             language,
-            de="Willkommen bei AI Tutor",
-            en="Welcome to AI Tutor",
+            de="Willkommen bei AI Tutor - bitte bestätigen Sie Ihre E-Mail-Adresse",
+            en="Welcome to AI Tutor - please confirm your email address",
         )
 
     @staticmethod
     def signup_welcome_body(
-        language: Language, *, username: str, login_url: str
+        language: Language, *, username: str, verification_url: str, validity_hours: int
     ) -> str:
         return translate(
             language,
@@ -2908,30 +3161,179 @@ class BackendTranslations:
                 f"""
                 Hallo {username},
 
-                Ihr AI Tutor Konto wurde erfolgreich erstellt.
+                Ihr AI Tutor Konto wurde erstellt.
 
                 Benutzername: {username}
 
-                Sie können sich hier anmelden:
-                {login_url}
+                Bitte bestätigen Sie Ihre E-Mail-Adresse, indem Sie den folgenden Link
+                öffnen.  Erst danach können Sie sich anmelden:
+                <{verification_url}>
 
-                Falls Sie dieses Konto nicht erstellt haben, kontaktieren Sie bitte das AI Tutor Team.
+                Der Link ist {validity_hours} Stunden gültig.  Ist er abgelaufen, können
+                Sie sich auf der Anmeldeseite einen neuen zusenden lassen.
+
+                Falls Sie dieses Konto nicht erstellt haben, ignorieren Sie diese E-Mail
+                bitte.  Ohne Bestätigung der Adresse kann das Konto nicht genutzt werden.
                 """
             ).lstrip(),
             en=textwrap.dedent(
                 f"""
                 Hello {username},
 
-                Your AI Tutor account has been created successfully.
+                Your AI Tutor account has been created.
 
                 Username: {username}
 
-                You can log in here:
-                {login_url}
+                Please confirm your email address by opening the following link.  Only
+                then you will be able to log in:
+                <{verification_url}>
 
-                If you did not create this account, please contact the AI Tutor team.
+                The link is valid for {validity_hours} hours.  If it has expired, you can
+                request a new one on the login page.
+
+                If you did not create this account, please ignore this email.  Without
+                confirmation of the address the account cannot be used.
                 """
             ).lstrip(),
+        )
+
+    @staticmethod
+    def email_verification_subject(language: Language) -> str:
+        return translate(
+            language,
+            de="AI Tutor - bitte bestätigen Sie Ihre E-Mail-Adresse",
+            en="AI Tutor - please confirm your email address",
+        )
+
+    @staticmethod
+    def email_verification_body(
+        language: Language, *, username: str, verification_url: str, validity_hours: int
+    ) -> str:
+        return translate(
+            language,
+            de=textwrap.dedent(
+                f"""
+                Hallo {username},
+
+                bitte bestätigen Sie Ihre E-Mail-Adresse, indem Sie den folgenden Link
+                öffnen.  Erst danach können Sie sich anmelden:
+                <{verification_url}>
+
+                Der Link ist {validity_hours} Stunden gültig.  Ist er abgelaufen, können
+                Sie sich auf der Anmeldeseite einen neuen zusenden lassen.
+
+                Falls Sie diese E-Mail nicht angefordert haben, ignorieren Sie sie bitte.
+                """
+            ).lstrip(),
+            en=textwrap.dedent(
+                f"""
+                Hello {username},
+
+                please confirm your email address by opening the following link.  Only
+                then you will be able to log in:
+                <{verification_url}>
+
+                The link is valid for {validity_hours} hours.  If it has expired, you can
+                request a new one on the login page.
+
+                If you did not request this email, please ignore it.
+                """
+            ).lstrip(),
+        )
+
+    @staticmethod
+    def verification_email_resent(language: Language) -> str:
+        return translate(
+            language,
+            de=(
+                "Wir haben Ihnen eine neue E-Mail mit einem Bestätigungslink gesendet."
+                "  Bitte prüfen Sie gegebenenfalls auch Ihren Spam-Ordner."
+            ),
+            en=(
+                "We have sent you a new email containing a confirmation link.  If you"
+                " cannot find it, please also check your spam folder."
+            ),
+        )
+
+    @staticmethod
+    def verification_email_resend_failed(language: Language) -> str:
+        return translate(
+            language,
+            de=(
+                "Fehler: Die Bestätigungs-E-Mail konnte nicht gesendet werden.  Bitte"
+                " versuchen Sie es später noch einmal."
+            ),
+            en=(
+                "Error: The confirmation email could not be sent.  Please try again"
+                " later."
+            ),
+        )
+
+    @staticmethod
+    def verification_email_resend_cooldown(language: Language, *, seconds: int) -> str:
+        # The cooldown is a couple of minutes, so whole minutes (rounded up) are
+        # precise enough and read better than a seconds countdown.
+        minutes = max(1, math.ceil(seconds / 60))
+        return translate(
+            language,
+            de=(
+                "Es wurde bereits vor Kurzem eine E-Mail an Sie gesendet.  Bitte"
+                f" warten Sie noch {minutes}"
+                f" {'Minute' if minutes == 1 else 'Minuten'}, bevor Sie eine neue"
+                " anfordern."
+            ),
+            en=(
+                "An email has been sent to you recently.  Please wait another"
+                f" {minutes} {'minute' if minutes == 1 else 'minutes'} before"
+                " requesting a new one."
+            ),
+        )
+
+    @staticmethod
+    def email_verified_successfully(language: Language) -> str:
+        return translate(
+            language,
+            de="Ihre E-Mail-Adresse wurde bestätigt.  Sie können sich jetzt anmelden.",
+            en="Your email address has been confirmed.  You can log in now.",
+        )
+
+    @staticmethod
+    def email_already_verified(language: Language) -> str:
+        return translate(
+            language,
+            de="Ihre E-Mail-Adresse ist bereits bestätigt.  Bitte melden Sie sich an.",
+            en="Your email address is already confirmed.  Please log in.",
+        )
+
+    # Login -----------------------------------------------------------------------------
+    @staticmethod
+    def login_failed(language: Language) -> str:
+        return translate(
+            language,
+            de="Benutzername oder Passwort falsch.  Bitte versuchen Sie es erneut.",
+            en="Incorrect username or password.  Please try again.",
+        )
+
+    @staticmethod
+    def account_disabled(language: Language) -> str:
+        return translate(
+            language,
+            de="Dieses Konto ist deaktiviert.",
+            en="This account is disabled.",
+        )
+
+    @staticmethod
+    def error_account_data_inconsistent(language: Language) -> str:
+        return translate(
+            language,
+            de=(
+                "Fehler: Die Daten dieses Kontos sind unvollständig, eine Anmeldung ist"
+                " nicht möglich.  Bitte wenden Sie sich an das AI Tutor Team."
+            ),
+            en=(
+                "Error: The data of this account is incomplete, logging in is not"
+                " possible.  Please contact the AI Tutor team."
+            ),
         )
 
     # LectureManageExercisesState ------------------------------------------------------

@@ -15,8 +15,8 @@ from aitutor.language_state import BackendTranslations as BT
 from aitutor.models import (
     BannerMessageType,
     Config,
+    GlobalPermission,
     LecturerRegistrationToken,
-    UserRole,
 )
 from aitutor.states.banner_state import (
     INITIAL_BANNER_IS_OPEN,
@@ -52,6 +52,9 @@ empty_config: Config = Config(
 )
 
 
+_REQUIRED_PERMISSIONS = [GlobalPermission.ADMIN]
+
+
 class ManageConfigState(SessionState):
     """The State for the configuration page."""
 
@@ -64,11 +67,7 @@ class ManageConfigState(SessionState):
         return str(self.current_config.exercise_token_limit)
 
     @rx.event
-    def set_unsaved_changes(self, unsaved: bool):
-        """Sets the unsaved changes flag."""
-        self.unsaved_changes = unsaved
-
-    @rx.event
+    @state_require_role_or_permission(allowed_permissions=_REQUIRED_PERMISSIONS)
     def set_config_value(self, name: str, value: str):
         """Sets a configuration value in the current config."""
         # set max length for input fields coming from UI
@@ -78,18 +77,21 @@ class ManageConfigState(SessionState):
         self.unsaved_changes = True
 
     @rx.event
+    @state_require_role_or_permission(allowed_permissions=_REQUIRED_PERMISSIONS)
     def set_banner_is_open(self, value: bool):
         """Sets whether the banner is open in current config."""
         self.current_config.banner_is_open = value
         self.unsaved_changes = True
 
     @rx.event
+    @state_require_role_or_permission(allowed_permissions=_REQUIRED_PERMISSIONS)
     def set_banner_message_type(self, value: str):
         """Sets the banner message type in current config."""
         self.current_config.banner_message_type = BannerMessageType(value)
         self.unsaved_changes = True
 
     @rx.event
+    @state_require_role_or_permission(allowed_permissions=_REQUIRED_PERMISSIONS)
     def set_exercise_token_limit(self, value: str):
         """Sets exercise_token_limit while allowing transient invalid input states."""
         try:
@@ -107,7 +109,7 @@ class ManageConfigState(SessionState):
         )
 
     @rx.event
-    @state_require_role_or_permission(required_role=UserRole.TUTOR)
+    @state_require_role_or_permission(allowed_permissions=_REQUIRED_PERMISSIONS)
     def on_load(self):
         """Initialization for the page."""
         with rx.session() as session:
@@ -115,10 +117,11 @@ class ManageConfigState(SessionState):
             if _config is None:
                 raise ValueError("Configuration not found in the database.")
             self.current_config = _config
-        self.global_load()
+        self._global_load()
         self.unsaved_changes = False
 
     @rx.event
+    @state_require_role_or_permission(allowed_permissions=_REQUIRED_PERMISSIONS)
     def save_config_to_db(self):
         """Saves the current configuration to the database."""
         if self.is_banner_message_invalid:
@@ -172,15 +175,16 @@ class LecturerRegistrationTokenState(SessionState):
     add_dialog_is_open: bool = False
 
     @rx.event
+    @state_require_role_or_permission(allowed_permissions=_REQUIRED_PERMISSIONS)
     def set_add_dialog_is_open(self, is_open: bool):
         """Sets the state of the add dialog."""
         self.add_dialog_is_open = is_open
 
     @rx.event
-    @state_require_role_or_permission(required_role=UserRole.ADMIN)
+    @state_require_role_or_permission(allowed_permissions=_REQUIRED_PERMISSIONS)
     def on_load(self):
         """Initialize the state"""
-        self.global_load()
+        self._global_load()
 
         self.link_base = f"{self.router.url.origin}/register?lrt="
         self.default_expires_at = (
@@ -194,7 +198,7 @@ class LecturerRegistrationTokenState(SessionState):
             self.tokens = list(session.exec(stmt).all())
 
     @rx.event
-    @state_require_role_or_permission(required_role=UserRole.ADMIN)
+    @state_require_role_or_permission(allowed_permissions=_REQUIRED_PERMISSIONS)
     def generate_new_token(self, form_data: dict):
         """Generates a new lecturer registration token."""
         assert self.authenticated_user.id is not None
@@ -230,7 +234,7 @@ class LecturerRegistrationTokenState(SessionState):
         self.add_dialog_is_open = False
 
     @rx.event
-    @state_require_role_or_permission(required_role=UserRole.ADMIN)
+    @state_require_role_or_permission(allowed_permissions=_REQUIRED_PERMISSIONS)
     def delete_token(self, token_id: int):
         """Deletes a lecturer registration token."""
         with rx.session() as session:
