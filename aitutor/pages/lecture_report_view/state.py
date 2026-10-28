@@ -28,14 +28,14 @@ class LectureReportViewState(SessionState):
     @state_require_lecture_role(LectureRole.TUTOR)
     def on_load(self):
         """Load report details when page opens."""
-        self.global_load()
+        self._global_load()
         self.current_lecture_id = None
         self.reports_route = routes.MY_LECTURES
         self._clear_report_data()
 
         try:
-            lecture_id = self.get_route_param_or_error("lecture_id", dtype=int)
-            self._report_id = self.get_route_param_or_error("report_id", dtype=int)
+            lecture_id = self._get_route_param_or_error("lecture_id", dtype=int)
+            self._report_id = self._get_route_param_or_error("report_id", dtype=int)
         except Exception:
             return rx.redirect(routes.NOT_FOUND)
 
