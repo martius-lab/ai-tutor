@@ -2284,6 +2284,16 @@ Please test the chat for functionality after changing the model.
         return self.translate(de="Meine Vorlesungen", en="My Lectures")
 
     @rx.var
+    def joined_lectures(self) -> str:
+        """Heading for lectures that the user is a member of."""
+        return self.translate(de="Beigetretene Vorlesungen", en="Joined Lectures")
+
+    @rx.var
+    def other_lectures(self) -> str:
+        """Heading for lectures that the user is not a member of (admin only)."""
+        return self.translate(de="Andere Vorlesungen", en="Other Lectures")
+
+    @rx.var
     def no_joined_lectures(self) -> str:
         """Message shown when the user has not joined any lectures yet."""
         return self.translate(
@@ -3439,6 +3449,18 @@ class BackendTranslations:
             language,
             de=f"Konfliktierende Prompts hinzugefügt und umbenannt: \n {prompt_list}",
             en=f"Added and renamed conflicting prompts: \n {prompt_list}",
+        )
+
+    @staticmethod
+    def lesson_context_pdf_truncated_warning_message(
+        language: Language, max_length: int
+    ) -> str:
+        return translate(
+            language,
+            de=f"Der Aufgabenkontext wurde auf {max_length:,} Zeichen gekürzt.".replace(
+                ",", "."
+            ),
+            en=f"The lesson context was truncated to {max_length:,} characters.",
         )
 
     # FinishedViewState ----------------------------------------------------------------
