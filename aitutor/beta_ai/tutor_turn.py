@@ -27,6 +27,9 @@ class TutorTurnResponse(BaseModel):
     question_level: QuestionLevel = "basic_understanding"
     focus_core_point_id: int | None = None
     reveals_answer: bool = False
+    # The token count comes from the API response, not from the structured output.
+    # As a private attribute it is left out of the JSON schema sent to the model
+    # and out of model_dump() (used for traces); the property gives normal access.
     _tokens_used: int = PrivateAttr(default=0)
 
     @property

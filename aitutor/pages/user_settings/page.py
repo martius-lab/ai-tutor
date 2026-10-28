@@ -1,15 +1,14 @@
 """Page where the user can change their settings."""
 
 import reflex as rx
+import reflex_local_auth
 
-from aitutor.auth.protection import page_require_role_or_permission
 from aitutor.language_state import LanguageState as LS
-from aitutor.models import UserRole
 from aitutor.pages.navbar import with_navbar
 from aitutor.pages.user_settings.components import change_password_card
 
 
-@page_require_role_or_permission(required_role=UserRole.STUDENT)
+@reflex_local_auth.require_login
 @with_navbar()
 def user_settings_page() -> rx.Component:
     """Page where the user can change their settings."""

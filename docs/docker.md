@@ -50,6 +50,25 @@ access the application.
 ```
 
 
+**Regular cleanup:**
+
+Accounts whose email address has not been confirmed within two weeks after
+registration are deleted, and expired verification links are purged, by the script
+`cleanup_accounts.py`.  The app does not do this on its own, so the script should be
+run regularly, e.g. once a day via cron on the host:
+
+```
+# m h dom mon dow  command
+30 3 * * *  cd /path/to/ai-tutor && docker compose -f compose.prod.yaml exec -T app python scripts/cleanup_accounts.py --quiet
+```
+
+With `--quiet` the script only prints something (and cron thus only sends a mail) if
+accounts have been deleted.  Use `--dry-run` to see what would be deleted without
+changing anything.  The exit code is 2 if an account is due for deletion but has been
+kept because it is the only owner of a lecture; such accounts need to be checked
+manually in the user management.
+
+
 ## Configuration
 
 ### .env
