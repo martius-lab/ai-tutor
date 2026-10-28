@@ -29,18 +29,18 @@ class BetaAIFinishedViewState(SessionState):
     @state_require_lecture_role(LectureRole.STUDENT)
     def on_load(self):
         """Load the submitted Beta AI conversation for the current student."""
-        self.global_load()
+        self._global_load()
         self.current_lecture_id = None
         self.messages = []
         self.exercise_title = ""
-        userinfo = self.authenticated_user_info
+        userinfo = self._authenticated_user_info
         if userinfo is None or userinfo.id is None:
             yield rx.redirect(routes.LOGIN)
             return
 
         try:
-            lecture_id = self.get_route_param_or_error("lecture_id", dtype=int)
-            self._beta_exercise_id = self.get_route_param_or_error(
+            lecture_id = self._get_route_param_or_error("lecture_id", dtype=int)
+            self._beta_exercise_id = self._get_route_param_or_error(
                 "beta_exercise_id", dtype=int
             )
         except KeyError, ValueError:
@@ -97,7 +97,7 @@ class BetaAIFinishedViewState(SessionState):
     @state_require_lecture_role(LectureRole.STUDENT)
     def delete_submission(self):
         """Withdraw the current student's submission without deleting learning state."""
-        userinfo = self.authenticated_user_info
+        userinfo = self._authenticated_user_info
         if userinfo is None or userinfo.id is None:
             return rx.redirect(routes.LOGIN)
 
@@ -106,7 +106,7 @@ class BetaAIFinishedViewState(SessionState):
             if exercise is None or exercise.lecture_id is None:
                 return rx.redirect(routes.NOT_FOUND)
 
-            if exercise.lecture_id != self.get_route_param_or_error(
+            if exercise.lecture_id != self._get_route_param_or_error(
                 "lecture_id", dtype=int
             ):
                 return rx.redirect(routes.NOT_FOUND)

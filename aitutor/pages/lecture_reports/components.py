@@ -2,8 +2,8 @@
 
 import reflex as rx
 
-import aitutor.global_vars as gv
 from aitutor.components.dialogs import destructive_confirm
+from aitutor.components.level_ai_badge import level_ai_badge
 from aitutor.global_vars import (
     SEARCH_EXERCISE_KEY,
     SEARCH_USER_KEY,
@@ -56,7 +56,7 @@ def show_table_row(table_row: LectureReportTableRow) -> rx.Component:
                 ),
                 rx.cond(
                     table_row.exercise_type == "beta",
-                    gv.level_ai_badge(),
+                    level_ai_badge(),
                 ),
                 spacing="2",
                 align="center",

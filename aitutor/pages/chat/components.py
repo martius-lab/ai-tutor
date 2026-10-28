@@ -49,6 +49,7 @@ def message_box(chat_message: ChatMessage) -> rx.Component:
             padding="1em",
             border_radius="8px",
             max_width=["30em", "30em", "50em", "50em", "50em", "50em"],
+            use_raw=False,
         ),
         text_align=rx.cond(
             chat_message.role == Role.USER,

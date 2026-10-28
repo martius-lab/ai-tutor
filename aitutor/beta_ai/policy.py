@@ -54,11 +54,11 @@ def _select_focus_core_point(
 def _covered_summary(
     diagnosis: DiagnosisResponse, core_points: list[BetaCorePoint]
 ) -> str:
-    """Create a short human-readable summary of covered core points."""
+    """Create a human-readable summary of all covered core points."""
     core_points_by_id = _core_point_by_id(core_points)
     covered_texts = [
         core_points_by_id[core_point_id].text
-        for core_point_id in diagnosis.covered_core_point_ids[:2]
+        for core_point_id in diagnosis.covered_core_point_ids
         if core_point_id in core_points_by_id
     ]
     if not covered_texts:

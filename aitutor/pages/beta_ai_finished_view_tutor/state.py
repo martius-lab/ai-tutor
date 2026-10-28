@@ -30,17 +30,17 @@ class BetaAIFinishedViewTutorState(SessionState):
     @state_require_lecture_role(LectureRole.TUTOR)
     def on_load(self):
         """Load the submitted Beta AI conversation and student info."""
-        self.global_load()
+        self._global_load()
         self.current_lecture_id = None
         self.exercise_title = ""
         self.username = ""
         self.messages = []
         try:
-            lecture_id = self.get_route_param_or_error("lecture_id", dtype=int)
-            beta_exercise_id = self.get_route_param_or_error(
+            lecture_id = self._get_route_param_or_error("lecture_id", dtype=int)
+            beta_exercise_id = self._get_route_param_or_error(
                 "beta_exercise_id", dtype=int
             )
-            url_user_id = self.get_route_param_or_error("url_user_id", dtype=int)
+            url_user_id = self._get_route_param_or_error("url_user_id", dtype=int)
         except KeyError, ValueError:
             yield rx.redirect(routes.NOT_FOUND)
             return

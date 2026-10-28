@@ -5,6 +5,7 @@ from datetime import datetime
 import reflex as rx
 
 import aitutor.global_vars as gv
+from aitutor.components.level_ai_badge import level_ai_badge
 from aitutor.language_state import LanguageState
 from aitutor.pages.lecture_exercises.state import (
     ExerciseCard,
@@ -126,7 +127,7 @@ def render_exercise_card(exercise: ExerciseCard) -> rx.Component:
                 ),
                 rx.cond(
                     exercise.is_beta,
-                    gv.level_ai_badge(),
+                    level_ai_badge(),
                 ),
                 align="center",
                 justify="between",
