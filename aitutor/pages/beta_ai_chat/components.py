@@ -130,7 +130,6 @@ def chat_message(message: dict[str, str]) -> rx.Component:
 
 def messages_panel() -> rx.Component:
     """Render the current Beta AI chat messages in the normal chat scroll style."""
-    # Same sizing as the classic ch
     return rx.auto_scroll(
         rx.cond(
             BetaAIChatState.messages.length() == 0,  # type: ignore

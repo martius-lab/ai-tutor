@@ -121,8 +121,6 @@ def beta_ai_chat_page() -> rx.Component:
                 height="100%",
                 width="100%",
             ),
-            # Below the chat column (same height as the classic chat), so the input
-            # stays at the bottom of the screen like in the classic chat.
             rx.box(analysis_preference(), margin_top="0.5em", width="100%"),
             width="100%",
         ),
