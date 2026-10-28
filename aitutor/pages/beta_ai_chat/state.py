@@ -182,7 +182,7 @@ class BetaAIChatState(SessionState):
     async def on_load(self):
         """Load the selected visible Beta AI exercise from the route parameter."""
         self._global_load()
-        self.reset_chat()
+        self._reset_chat()
         userinfo = self._authenticated_user_info
         if userinfo is None or userinfo.id is None:
             yield rx.redirect(routes.LOGIN)
@@ -245,7 +245,7 @@ class BetaAIChatState(SessionState):
                     )
                 ).all()
             }
-            current_concept_index = self.select_first_incomplete_concept_index(
+            current_concept_index = self._select_first_incomplete_concept_index(
                 concepts, concept_states
             )
             all_concepts_completed = bool(concepts) and all(
@@ -295,7 +295,7 @@ class BetaAIChatState(SessionState):
             ).one_or_none()
             if beta_result is not None:
                 conversation_text = beta_result.conversation_text
-                self.load_beta_result_state(beta_result)
+                self._load_beta_result_state(beta_result)
                 if beta_result.id is not None:
                     trace_logs = list(
                         session.exec(
@@ -370,23 +370,23 @@ class BetaAIChatState(SessionState):
         self.cumulative_covered_core_point_ids = cumulative_covered_core_point_ids
         self.cumulative_missing_core_point_ids = cumulative_missing_core_point_ids
         self.level_status = level_status
-        self.restore_current_question_context_from_trace(latest_trace)
+        self._restore_current_question_context_from_trace(latest_trace)
         if not conversation_text and not self.token_limit_reached:
             try:
-                intro_turn = await self.generate_concept_intro_turn(
+                intro_turn = await self._generate_concept_intro_turn(
                     transition_kind="initial",
                 )
-                self.append_tutor_turn_message(intro_turn)
-                self.save_conversation_to_db(tokens_to_add=intro_turn.tokens_used)
+                self._append_tutor_turn_message(intro_turn)
+                self._save_conversation_to_db(tokens_to_add=intro_turn.tokens_used)
             except OpenAIUsageError as exc:
-                self.use_initial_tutor_fallback()
-                self.save_conversation_to_db(tokens_to_add=exc.tokens_used)
+                self._use_initial_tutor_fallback()
+                self._save_conversation_to_db(tokens_to_add=exc.tokens_used)
             except Exception:
-                self.use_initial_tutor_fallback()
-            self.save_conversation_to_db()
+                self._use_initial_tutor_fallback()
+            self._save_conversation_to_db()
         elif not conversation_text:
-            self.use_initial_tutor_fallback()
-            self.save_conversation_to_db()
+            self._use_initial_tutor_fallback()
+            self._save_conversation_to_db()
 
     @rx.var
     def token_limit_reached(self) -> bool:
@@ -591,7 +591,7 @@ class BetaAIChatState(SessionState):
             return ""
         return BT.beta_ai_initial_question(self.language, self.selected_concept_label)
 
-    def load_beta_result_state(self, beta_result: BetaExerciseResult) -> None:
+    def _load_beta_result_state(self, beta_result: BetaExerciseResult) -> None:
         """Restore persisted conversation metadata from a Beta AI result."""
         self.current_tokens = beta_result.tokens_used
         self.analysis_allowed = beta_result.analysis_allowed
@@ -652,8 +652,7 @@ class BetaAIChatState(SessionState):
             invert=True,
         )
 
-    @rx.event
-    def reset_chat(self):
+    def _reset_chat(self):
         """Reset the in-memory chat skeleton state."""
         self.exercise_title = BT.beta_ai_no_selected_exercise(self.language)
         self.exercise_description = ""
@@ -700,7 +699,7 @@ class BetaAIChatState(SessionState):
         self.token_limit = 0
         self.report_text = ""
 
-    def fallback_question_for_level(self, question_level: str) -> str:
+    def _fallback_question_for_level(self, question_level: str) -> str:
         """Return a deterministic non-leaking fallback question for a level."""
         if self.selected_concept_id is None:
             return ""
@@ -714,7 +713,7 @@ class BetaAIChatState(SessionState):
             )
         return self.initial_tutor_question
 
-    def use_initial_tutor_fallback(self) -> None:
+    def _use_initial_tutor_fallback(self) -> None:
         """Restore the deterministic initial tutor message and question context."""
         self.messages = [{"role": "tutor", "content": self.initial_tutor_message}]
         self.current_question = self.initial_tutor_question
@@ -726,7 +725,7 @@ class BetaAIChatState(SessionState):
         """Return OpenAI usage attached to an exception, if available."""
         return exc.tokens_used if isinstance(exc, OpenAIUsageError) else 0
 
-    async def generate_concept_intro_turn(
+    async def _generate_concept_intro_turn(
         self,
         *,
         previous_concept_label: str = "",
@@ -749,7 +748,7 @@ class BetaAIChatState(SessionState):
             )
         return intro_turn
 
-    def append_tutor_turn_message(self, tutor_turn: TutorTurnResponse) -> None:
+    def _append_tutor_turn_message(self, tutor_turn: TutorTurnResponse) -> None:
         """Append a generated tutor turn and update current-question state."""
         tutor_response = (
             f"{tutor_turn.feedback_brief}\n\n"
@@ -760,7 +759,7 @@ class BetaAIChatState(SessionState):
         self.current_question_level = tutor_turn.question_level
         self.current_focus_core_point_id = tutor_turn.focus_core_point_id
 
-    def restore_current_question_context_from_trace(self, latest_trace: dict) -> None:
+    def _restore_current_question_context_from_trace(self, latest_trace: dict) -> None:
         """Restore current tutor-question context after page/state reload.
 
         Conversation text is persisted, but Reflex state fields are not. Without
@@ -787,14 +786,14 @@ class BetaAIChatState(SessionState):
             fallback_level = "apply_or_compare"
 
         self.current_question_level = fallback_level
-        self.current_question = self.fallback_question_for_level(fallback_level)
+        self.current_question = self._fallback_question_for_level(fallback_level)
         self.current_focus_core_point_id = (
             self.core_points[0].id
             if self.core_points and self.core_points[0].id
             else None
         )
 
-    def select_first_incomplete_concept_index(
+    def _select_first_incomplete_concept_index(
         self,
         concepts: list[BetaConcept],
         concept_states: dict[int, BetaStudentConceptState],
@@ -807,7 +806,7 @@ class BetaAIChatState(SessionState):
                 return index
         return max(len(concepts) - 1, 0)
 
-    def load_concept_context(self, concept_index: int) -> bool:
+    def _load_concept_context(self, concept_index: int) -> bool:
         """Load selected concept, registry entries, and student state by index."""
         if (
             self.current_beta_exercise_id is None
@@ -891,10 +890,10 @@ class BetaAIChatState(SessionState):
             )
 
         self.current_question = self.initial_tutor_question
-        self.all_concepts_completed = self.are_all_concepts_secure()
+        self.all_concepts_completed = self._are_all_concepts_secure()
         return True
 
-    def are_all_concepts_secure(self) -> bool:
+    def _are_all_concepts_secure(self) -> bool:
         """Return whether all concepts in the current exercise are secure."""
         if (
             self.current_beta_exercise_id is None
@@ -921,7 +920,7 @@ class BetaAIChatState(SessionState):
             )
         return secure_count == len(concept_ids)
 
-    def append_concept_transition_message(
+    def _append_concept_transition_message(
         self, *, previous_label: str, automatic: bool
     ) -> None:
         """Append a deterministic concept-transition tutor message."""
@@ -939,7 +938,7 @@ class BetaAIChatState(SessionState):
             }
         )
 
-    def append_all_concepts_completed_message(self) -> None:
+    def _append_all_concepts_completed_message(self) -> None:
         """Append a deterministic message when the full concept sequence is secure."""
         self.messages.append(
             {
@@ -949,7 +948,7 @@ class BetaAIChatState(SessionState):
         )
         self.completion_unlocked = True
 
-    def persist_completion_unlocked(self) -> None:
+    def _persist_completion_unlocked(self) -> None:
         """Persist that the student unlocked Beta AI submission for this exercise."""
         if self.current_beta_exercise_id is None or self.current_userinfo_id is None:
             return
@@ -982,7 +981,7 @@ class BetaAIChatState(SessionState):
                 beta_result.updated_at = now
             session.commit()
 
-    def advance_to_next_incomplete_concept(self) -> dict[str, object]:
+    def _advance_to_next_incomplete_concept(self) -> dict[str, object]:
         """Automatically move to the next non-secure concept if available."""
         previous_concept_id = self.selected_concept_id
         previous_label = self.selected_concept_label
@@ -1000,7 +999,7 @@ class BetaAIChatState(SessionState):
                 ).one_or_none()
             if (
                 student_state is None or student_state.state != ConceptState.SECURE
-            ) and (self.load_concept_context(next_index)):
+            ) and (self._load_concept_context(next_index)):
                 return {
                     "advanced": True,
                     "completed_all": False,
@@ -1010,10 +1009,10 @@ class BetaAIChatState(SessionState):
                     "reason": "current_concept_secure",
                 }
 
-        self.all_concepts_completed = self.are_all_concepts_secure()
+        self.all_concepts_completed = self._are_all_concepts_secure()
         if self.all_concepts_completed:
-            self.append_all_concepts_completed_message()
-            self.persist_completion_unlocked()
+            self._append_all_concepts_completed_message()
+            self._persist_completion_unlocked()
             return {
                 "advanced": False,
                 "completed_all": True,
@@ -1027,12 +1026,12 @@ class BetaAIChatState(SessionState):
     def _navigate_to_concept(self, offset: int) -> None:
         """Navigate manually and persist the transition when loading succeeds."""
         previous_label = self.selected_concept_label
-        if self.load_concept_context(self.current_concept_index + offset):
-            self.append_concept_transition_message(
+        if self._load_concept_context(self.current_concept_index + offset):
+            self._append_concept_transition_message(
                 previous_label=previous_label,
                 automatic=False,
             )
-            self.save_conversation_to_db()
+            self._save_conversation_to_db()
 
     @rx.event
     @state_require_lecture_role(LectureRole.STUDENT)
@@ -1091,7 +1090,7 @@ class BetaAIChatState(SessionState):
                 )
             )
 
-    def save_conversation_to_db(self, tokens_to_add: int = 0) -> int | None:
+    def _save_conversation_to_db(self, tokens_to_add: int = 0) -> int | None:
         """Persist the Beta AI conversation and accumulate newly consumed tokens."""
         if self.current_beta_exercise_id is None or self.current_userinfo_id is None:
             return None
@@ -1192,7 +1191,7 @@ class BetaAIChatState(SessionState):
             invert=True,
         )
 
-    def append_trace_to_db(
+    def _append_trace_to_db(
         self,
         *,
         beta_exercise_result_id: int,
@@ -1246,9 +1245,9 @@ class BetaAIChatState(SessionState):
         self, trace_entry: dict, *, beta_concept_id: int | None
     ) -> None:
         """Save the chat and append its trace only when the chat has a result id."""
-        beta_exercise_result_id = self.save_conversation_to_db()
+        beta_exercise_result_id = self._save_conversation_to_db()
         if beta_exercise_result_id is not None:
-            trace_log_id, trace_history_count = self.append_trace_to_db(
+            trace_log_id, trace_history_count = self._append_trace_to_db(
                 beta_exercise_result_id=beta_exercise_result_id,
                 beta_concept_id=beta_concept_id,
                 trace_entry=trace_entry,
@@ -1256,7 +1255,7 @@ class BetaAIChatState(SessionState):
             self.last_trace_log_id = trace_log_id
             self.trace_history_count = trace_history_count
 
-    def build_cumulative_diagnosis(
+    def _build_cumulative_diagnosis(
         self, *, latest_diagnosis: DiagnosisResponse, student_answer: str
     ) -> DiagnosisResponse:
         """Update cumulative evidence and return a cumulative diagnosis view."""
@@ -1317,7 +1316,7 @@ class BetaAIChatState(SessionState):
 
             return cumulative_diagnosis
 
-    def save_last_policy_action_to_student_state(self, policy_action: str) -> None:
+    def _save_last_policy_action_to_student_state(self, policy_action: str) -> None:
         """Persist the latest policy action after policy selection.
 
         The policy action is computed from the cumulative diagnosis, so it is
@@ -1417,7 +1416,7 @@ class BetaAIChatState(SessionState):
                 current_focus_core_point_id=current_focus_core_point_id,
             )
             async with self:
-                self.save_conversation_to_db(tokens_to_add=raw_diagnosis.tokens_used)
+                self._save_conversation_to_db(tokens_to_add=raw_diagnosis.tokens_used)
             validation_result = validate_and_normalize_diagnosis(
                 raw_diagnosis,
                 core_points=core_points,
@@ -1426,7 +1425,7 @@ class BetaAIChatState(SessionState):
             )
         except Exception as exc:
             async with self:
-                self.save_conversation_to_db(
+                self._save_conversation_to_db(
                     tokens_to_add=self.tokens_used_from_exception(exc)
                 )
                 self._finish_with_processing_error()
@@ -1442,7 +1441,7 @@ class BetaAIChatState(SessionState):
 
         try:
             async with self:
-                cumulative_diagnosis = self.build_cumulative_diagnosis(
+                cumulative_diagnosis = self._build_cumulative_diagnosis(
                     latest_diagnosis=validation_result.diagnosis,
                     student_answer=message,
                 )
@@ -1497,35 +1496,35 @@ class BetaAIChatState(SessionState):
                     ),
                     suggested_prompt="Advance to the next concept.",
                 )
-                self.save_last_policy_action_to_student_state(
+                self._save_last_policy_action_to_student_state(
                     completion_policy_preview.action
                 )
-                concept_transition = self.advance_to_next_incomplete_concept()
+                concept_transition = self._advance_to_next_incomplete_concept()
 
             if concept_transition.get("advanced"):
                 previous_label = str(
                     concept_transition.get("previous_label") or concept_label
                 )
                 try:
-                    transition_turn = await self.generate_concept_intro_turn(
+                    transition_turn = await self._generate_concept_intro_turn(
                         previous_concept_label=previous_label,
                         transition_kind="automatic",
                     )
                     async with self:
-                        self.save_conversation_to_db(
+                        self._save_conversation_to_db(
                             tokens_to_add=transition_turn.tokens_used
                         )
-                        self.append_tutor_turn_message(transition_turn)
+                        self._append_tutor_turn_message(transition_turn)
                 except OpenAIUsageError as exc:
                     async with self:
-                        self.save_conversation_to_db(tokens_to_add=exc.tokens_used)
-                        self.append_concept_transition_message(
+                        self._save_conversation_to_db(tokens_to_add=exc.tokens_used)
+                        self._append_concept_transition_message(
                             previous_label=previous_label,
                             automatic=True,
                         )
                 except Exception:
                     async with self:
-                        self.append_concept_transition_message(
+                        self._append_concept_transition_message(
                             previous_label=previous_label,
                             automatic=True,
                         )
@@ -1595,7 +1594,7 @@ class BetaAIChatState(SessionState):
                 )
                 return
         async with self:
-            self.save_last_policy_action_to_student_state(policy_preview.action)
+            self._save_last_policy_action_to_student_state(policy_preview.action)
         try:
             next_question_level = choose_question_level(
                 cumulative_diagnosis,
@@ -1642,11 +1641,11 @@ class BetaAIChatState(SessionState):
         if level_repair_policy_preview is not None:
             policy_preview = level_repair_policy_preview
             async with self:
-                self.save_last_policy_action_to_student_state(policy_preview.action)
+                self._save_last_policy_action_to_student_state(policy_preview.action)
         elif level_transition_policy_preview is not None:
             policy_preview = level_transition_policy_preview
             async with self:
-                self.save_last_policy_action_to_student_state(policy_preview.action)
+                self._save_last_policy_action_to_student_state(policy_preview.action)
         try:
             if level_transition_policy_preview is not None:
                 tutor_turn = await run_level_transition_question_generation(
@@ -1673,7 +1672,7 @@ class BetaAIChatState(SessionState):
                     student_answer=message,
                 )
             async with self:
-                self.save_conversation_to_db(tokens_to_add=tutor_turn.tokens_used)
+                self._save_conversation_to_db(tokens_to_add=tutor_turn.tokens_used)
             if tutor_turn_reveals_answer(tutor_turn, core_points=core_points):
                 try:
                     repaired_turn = await repair_leaky_tutor_turn(
@@ -1685,7 +1684,7 @@ class BetaAIChatState(SessionState):
                         question_level=next_question_level,
                     )
                     async with self:
-                        self.save_conversation_to_db(
+                        self._save_conversation_to_db(
                             tokens_to_add=repaired_turn.tokens_used
                         )
                     if tutor_turn_reveals_answer(
@@ -1700,7 +1699,7 @@ class BetaAIChatState(SessionState):
                         tutor_turn = repaired_turn
                 except Exception as exc:
                     async with self:
-                        self.save_conversation_to_db(
+                        self._save_conversation_to_db(
                             tokens_to_add=self.tokens_used_from_exception(exc)
                         )
                     tutor_turn = safe_fallback_tutor_turn(
@@ -1710,7 +1709,7 @@ class BetaAIChatState(SessionState):
                     )
         except Exception as exc:
             async with self:
-                self.save_conversation_to_db(
+                self._save_conversation_to_db(
                     tokens_to_add=self.tokens_used_from_exception(exc)
                 )
             tutor_turn = safe_fallback_tutor_turn(
@@ -1751,7 +1750,7 @@ class BetaAIChatState(SessionState):
             trace_entry["resolved_misconceptions"] = self.resolved_misconceptions
 
             async with self:
-                self.append_tutor_turn_message(tutor_turn)
+                self._append_tutor_turn_message(tutor_turn)
                 self.last_diagnosis_pattern = cumulative_diagnosis.diagnosis_pattern
                 self.last_policy_action = policy_preview.action
                 self.last_policy_rule_id = policy_preview.rule_id
