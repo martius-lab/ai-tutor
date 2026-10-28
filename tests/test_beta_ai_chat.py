@@ -5,13 +5,12 @@ import inspect
 from contextlib import contextmanager
 from datetime import datetime, timedelta
 from types import SimpleNamespace
-from typing import cast
 from unittest.mock import AsyncMock, Mock
 from zoneinfo import ZoneInfo
 
 import pytest
-import reflex as rx
 
+from aitutor.auth.state import SessionState
 from aitutor.beta_ai.diagnosis import DiagnosisResponse
 from aitutor.beta_ai.tutor_turn import TutorTurnResponse
 from aitutor.global_vars import TIME_ZONE
@@ -75,8 +74,8 @@ def test_trace_keeps_answered_concept_after_transition(monkeypatch):
         current_userinfo_id=2,
         selected_concept_id=20,
     )
-    cast(rx.EventHandler, chat.BetaAIChatState.append_trace_to_db).fn(
-        state,
+    chat.BetaAIChatState._append_trace_to_db(
+        state,  # type: ignore[arg-type]
         beta_exercise_result_id=3,
         beta_concept_id=10,
         trace_entry={"concept_label": "Answered concept"},
@@ -90,12 +89,12 @@ def test_trace_keeps_answered_concept_after_transition(monkeypatch):
 def test_save_forwards_answered_concept_id():
     state = Mock(
         spec=chat.BetaAIChatState,
-        save_conversation_to_db=Mock(return_value=3),
-        append_trace_to_db=Mock(return_value=(4, 5)),
+        _save_conversation_to_db=Mock(return_value=3),
+        _append_trace_to_db=Mock(return_value=(4, 5)),
     )
     trace = {"concept_label": "Answered concept"}
     chat.BetaAIChatState._save_conversation_and_trace(state, trace, beta_concept_id=10)
-    state.append_trace_to_db.assert_called_once_with(
+    state._append_trace_to_db.assert_called_once_with(
         beta_exercise_result_id=3, beta_concept_id=10, trace_entry=trace
     )
     assert state.last_trace_log_id == 4
@@ -110,9 +109,7 @@ def test_append_tutor_turn_updates_question_context():
         question_level="explain_reasoning",
         focus_core_point_id=14,
     )
-    cast(rx.EventHandler, chat.BetaAIChatState.append_tutor_turn_message).fn(
-        state, turn
-    )
+    chat.BetaAIChatState._append_tutor_turn_message(state, turn)  # type: ignore[arg-type]
     assert state.messages[0]["role"] == "tutor"
     assert "Good start." in state.messages[0]["content"]
     assert state.current_question == "Why?"
@@ -172,14 +169,14 @@ def test_completion_trace_retains_finished_concept_context(monkeypatch):
         level_status={"apply_or_compare": "passed"},
         cumulative_covered_core_point_ids=[],
         cumulative_missing_core_point_ids=[],
-        save_conversation_to_db=Mock(),
-        build_cumulative_diagnosis=Mock(return_value=diagnosis),
+        _save_conversation_to_db=Mock(),
+        _build_cumulative_diagnosis=Mock(return_value=diagnosis),
         concept_state="secure",
         active_misconceptions=[{"label": "Old active"}],
         resolved_misconceptions=[{"label": "Old resolved"}],
-        save_last_policy_action_to_student_state=Mock(),
-        generate_concept_intro_turn=AsyncMock(return_value=TutorTurnResponse()),
-        append_tutor_turn_message=Mock(),
+        _save_last_policy_action_to_student_state=Mock(),
+        _generate_concept_intro_turn=AsyncMock(return_value=TutorTurnResponse()),
+        _append_tutor_turn_message=Mock(),
         _save_conversation_and_trace=Mock(),
     )
 
@@ -190,7 +187,7 @@ def test_completion_trace_retains_finished_concept_context(monkeypatch):
         state.resolved_misconceptions = []
         return {"advanced": True, "previous_label": "Finished concept"}
 
-    state.advance_to_next_incomplete_concept = advance
+    state._advance_to_next_incomplete_concept = advance
 
     async def run_turn():
         async for _ in chat.BetaAIChatState.send_message.fn(state):
@@ -206,3 +203,24 @@ def test_completion_trace_retains_finished_concept_context(monkeypatch):
     assert trace["level_status"] == {"apply_or_compare": "passed"}
     assert trace["next_concept_level_status"] == {}
     assert state.running_diagnosis is False
+
+
+def test_only_intended_chat_methods_are_callable_from_the_browser():
+    # Reflex exposes every public state method as an event that the browser can
+    # trigger. Internal helpers (persisting results, traces or token counts) must stay
+    # private, otherwise a student could call them directly.
+    own_events = set(chat.BetaAIChatState.event_handlers) - set(
+        SessionState.event_handlers
+    )
+
+    assert own_events == {
+        "go_to_next_concept",
+        "go_to_previous_concept",
+        "on_load",
+        "send_message",
+        "set_analysis_allowed",
+        "set_report_text",
+        "set_student_message",
+        "submit_beta_conversation",
+        "submit_report",
+    }
