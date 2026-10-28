@@ -309,17 +309,17 @@ def lecture_card(joined_lecture: LectureWithRole) -> rx.Component:
     )
 
 
-def lectures_table() -> rx.Component:
+def lectures_table(lectures: rx.Var[list[LectureWithRole]]) -> rx.Component:
     """Render the desktop lectures table."""
     return rx.table.root(
         rx.table.header(
             rx.table.row(
-                rx.table.column_header_cell(LS.lecture_name),
-                rx.table.column_header_cell(LS.role),
-                rx.table.column_header_cell(""),
+                rx.table.column_header_cell(LS.lecture_name, width="50%"),
+                rx.table.column_header_cell(LS.role, width="20%"),
+                rx.table.column_header_cell("", width="30%"),
             )
         ),
-        rx.table.body(rx.foreach(MyLecturesState.filtered_lectures, lecture_row)),
+        rx.table.body(rx.foreach(lectures, lecture_row)),
         variant="surface",
         size="3",
         width="85vw",
@@ -329,10 +329,10 @@ def lectures_table() -> rx.Component:
     )
 
 
-def lecture_cards() -> rx.Component:
+def lecture_cards(lectures: rx.Var[list[LectureWithRole]]) -> rx.Component:
     """Render the mobile/tablet lectures card list."""
     return rx.vstack(
-        rx.foreach(MyLecturesState.filtered_lectures, lecture_card),
+        rx.foreach(lectures, lecture_card),
         spacing="3",
         align="center",
         width="85vw",
@@ -341,10 +341,10 @@ def lecture_cards() -> rx.Component:
 
 
 def empty_lectures_message() -> rx.Component:
-    """Render the empty state for the lectures list."""
+    """Render why no joined lectures are shown (filtered out or none joined)."""
     return rx.center(
         rx.cond(
-            MyLecturesState.joined_lectures,
+            MyLecturesState.has_joined_lectures,
             rx.text(LS.no_matching_lectures, size="4"),
             rx.text(LS.no_joined_lectures, size="4"),
         ),
@@ -353,24 +353,69 @@ def empty_lectures_message() -> rx.Component:
     )
 
 
-def my_lectures_table() -> rx.Component:
-    """Table of all lectures joined by the current user."""
+def lectures_list(lectures: rx.Var[list[LectureWithRole]]) -> rx.Component:
+    """Render the lectures list, either as a table or cards depending on screen size."""
+    return rx.center(
+        rx.box(
+            rx.desktop_only(lectures_table(lectures)),
+            rx.mobile_and_tablet(lecture_cards(lectures)),
+            width="85vw",
+            max_width="100%",
+        ),
+        width="100%",
+    )
+
+
+def joined_lectures_section() -> rx.Component:
+    """Render the joined lectures."""
     return rx.vstack(
-        lectures_toolbar(),
         rx.cond(
-            MyLecturesState.filtered_lectures,
-            rx.center(
-                rx.box(
-                    rx.desktop_only(lectures_table()),
-                    rx.mobile_and_tablet(lecture_cards()),
-                    width="85vw",
-                    max_width="100%",
-                ),
-                width="100%",
+            MyLecturesState.is_global_admin,
+            rx.heading(
+                LS.joined_lectures, size="4", width="85vw", max_width="100%", as_="h2"
             ),
+        ),
+        rx.cond(
+            MyLecturesState.filtered_joined_lectures,
+            lectures_list(MyLecturesState.filtered_joined_lectures),
             empty_lectures_message(),
         ),
         spacing="3",
+        align="center",
+        width="100%",
+    )
+
+
+def other_lectures_section() -> rx.Component:
+    """Render the other lectures (admin only)."""
+    return rx.cond(
+        MyLecturesState.has_other_lectures,
+        rx.vstack(
+            rx.heading(
+                LS.other_lectures, size="4", width="85vw", max_width="100%", as_="h2"
+            ),
+            rx.cond(
+                MyLecturesState.filtered_other_lectures,
+                lectures_list(MyLecturesState.filtered_other_lectures),
+                rx.center(
+                    rx.text(LS.no_matching_lectures, size="4"),
+                    width="85vw",
+                    max_width="100%",
+                ),
+            ),
+            spacing="3",
+            align="center",
+            width="100%",
+        ),
+    )
+
+
+def lecture_sections() -> rx.Component:
+    "Render the joined lectures and, for admins, the other lectures."
+    return rx.vstack(
+        joined_lectures_section(),
+        other_lectures_section(),
+        spacing="9",
         align="center",
         width="100%",
     )
@@ -380,8 +425,9 @@ def my_lectures_content() -> rx.Component:
     """Main content for the my lectures page."""
     return rx.vstack(
         rx.heading(LS.my_lectures, size="5", width="85vw", max_width="100%"),
-        my_lectures_table(),
-        spacing="3",
+        lectures_toolbar(),
+        lecture_sections(),
+        spacing="6",
         align="center",
         width="100%",
     )

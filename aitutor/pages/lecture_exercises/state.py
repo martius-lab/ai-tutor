@@ -13,9 +13,12 @@ from aitutor import routes
 from aitutor.auth.protection import state_require_lecture_role
 from aitutor.auth.state import SessionState
 from aitutor.global_vars import TIME_FORMAT, TIME_ZONE
-from aitutor.models import Exercise, ExerciseResult, Lecture, LectureRole, Tag, UserRole
+from aitutor.models import Exercise, ExerciseResult, Lecture, LectureRole, Tag
 from aitutor.utilities.filtering_components import FilterMixin
-from aitutor.utilities.lecture_permissions import user_may_view_lecture
+from aitutor.utilities.lecture_permissions import (
+    get_user_lecture_role,
+    user_may_view_lecture,
+)
 
 ExerciseWithResult = tuple[Exercise, ExerciseResult | None]
 
@@ -147,7 +150,11 @@ class LectureExercisesState(FilterMixin, SessionState):
         """
         Get exercises from db based on the current search values and the user role.
         """
-        if self._lecture_id is None:
+        if (
+            self._lecture_id is None
+            or self.authenticated_user is None
+            or self.authenticated_user.id is None
+        ):
             self._clear_exercises()
             return
 
@@ -169,8 +176,13 @@ class LectureExercisesState(FilterMixin, SessionState):
             )
 
             # Don't load hidden exercises for students
-            assert self.user_role is not None, "User role not set.  This is a bug."
-            if self.user_role < UserRole.TUTOR:
+            user_role = get_user_lecture_role(
+                session, user_id=self.authenticated_user.id, lecture_id=self._lecture_id
+            )
+            show_hidden = self.is_global_admin or (
+                user_role is not None and user_role >= LectureRole.TUTOR
+            )
+            if not show_hidden:
                 stmt = stmt.where(Exercise.is_hidden == False)  # noqa: E712
 
             # filtering logic
@@ -213,9 +225,9 @@ class LectureExercisesState(FilterMixin, SessionState):
                 if not exercise.is_started:
                     exercise.is_hidden = True
 
-            # if the user is a student, remove not started exercises
-            assert self.user_role is not None, "User role not set.  This is a bug."
-            if self.user_role < UserRole.TUTOR:
+            # if the user is a student, remove not-started exercises marked as hidden
+            # above
+            if not show_hidden:
                 self.exercises_with_result = [
                     ex_res
                     for ex_res in self.exercises_with_result
