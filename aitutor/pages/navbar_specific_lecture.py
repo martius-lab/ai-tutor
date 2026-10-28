@@ -247,6 +247,8 @@ def specific_lecture_navbar(tab_to_highlight: str, lecture_id) -> rx.Component:
                     tab_trigger(settings_link, lecture_id),
                 ),
                 width="100%",
+                size="1",
+                style={"scrollbar_width": "thin"},
             ),
             default_value=tab_to_highlight,
             width="100%",

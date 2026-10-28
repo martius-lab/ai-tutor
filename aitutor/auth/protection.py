@@ -3,6 +3,7 @@ Utilities for access control and role-based protection.
 """
 
 import functools
+from collections.abc import Sequence
 
 import reflex as rx
 from reflex_local_auth.login import LoginState
@@ -10,7 +11,7 @@ from sqlmodel import select
 
 from aitutor.auth.state import SessionState
 from aitutor.language_state import LanguageState
-from aitutor.models import GlobalPermission, LectureRole, LinkUserLecture, UserRole
+from aitutor.models import GlobalPermission, LectureRole, LinkUserLecture
 
 
 class LectureAccessState(SessionState):
@@ -89,7 +90,7 @@ def page_require_permission(
     page content before redirecting.
 
     Important: This is only handling the redirect on the UI level.  State methods need
-    to be protected separately with :ref:`state_require_role_or_permission` to prevent
+    to be protected separately with :ref:`state_require_permission` to prevent
     unauthorized access to the backend.
 
     Args:
@@ -246,19 +247,17 @@ def state_require_lecture_role(required_role: LectureRole):
     return decorator
 
 
-def state_require_role_or_permission(
-    *,
-    required_role: UserRole | None = None,
-    allowed_permissions: list[GlobalPermission] | None = None,
+def state_require_permission(
+    allowed_permissions: GlobalPermission | Sequence[GlobalPermission],
 ):
+    """Protect a state event based on user permissions.
+
+    Use as decorator on a state method.  It allows execution of the decorated method
+    only if the user has at least one of the listed permissions (or has ADMIN
+    permission, which allows everything).
     """
-    Protects a state event. Allows execution if the user has the required UserRole
-    OR at least one of the allowed GlobalPermissions (ADMIN is always allowed).
-    """
-    # copy the list to avoid modifying the original and ensure ADMIN is always included
-    perms_to_check = list(allowed_permissions) if allowed_permissions else []
-    if GlobalPermission.ADMIN not in perms_to_check:
-        perms_to_check.append(GlobalPermission.ADMIN)
+    if isinstance(allowed_permissions, GlobalPermission):
+        allowed_permissions = [allowed_permissions]
 
     def decorator(func):
         @functools.wraps(func)
@@ -266,21 +265,29 @@ def state_require_role_or_permission(
             if not self.is_authenticated:
                 return
 
-            # Lecture role condition
-            has_role = False
-            if required_role is not None and self.user_role is not None:
-                has_role = self.user_role >= required_role
-
-            # Global permissions condition
-            has_perm = False
-            if perms_to_check:
-                has_perm = any(
-                    perm in self.global_permissions for perm in perms_to_check
-                )
-
-            # grant access if the user has a required lecture role or global permission
-            if has_role or has_perm:
+            # ADMIN can do everything
+            has_permission = GlobalPermission.ADMIN in self.global_permissions
+            has_permission |= any(
+                perm in self.global_permissions for perm in allowed_permissions
+            )
+            if has_permission:
                 return func(self, *args, **kwargs)
+
+        return wrapper
+
+    return decorator
+
+
+def state_require_login():
+    """Protect a state event. Allows execution only if the user is logged in."""
+
+    def decorator(func):
+        @functools.wraps(func)
+        def wrapper(self: SessionState, *args, **kwargs):
+            if self.is_authenticated:
+                return func(self, *args, **kwargs)
+
+            return None
 
         return wrapper
 
