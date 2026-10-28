@@ -1,13 +1,27 @@
 """The Components for the manage exercises page."""
 
 from collections.abc import Sequence
+from datetime import datetime
 
 import reflex as rx
 
+from aitutor.components import tag_components
 from aitutor.components.dialogs import destructive_confirm
-from aitutor.global_vars import SEARCH_TAG_KEY, TIME_ZONE
+from aitutor.components.level_ai_badge import level_ai_badge
+from aitutor.global_vars import (
+    MOMENT_DATE_FORMAT,
+    MOMENT_DEADLINE_FORMAT,
+    SEARCH_TAG_KEY,
+    TIME_ZONE,
+)
 from aitutor.language_state import LanguageState
-from aitutor.models import Exercise
+from aitutor.models import BetaExercise, Exercise
+from aitutor.pages.lecture_manage_exercises.level_ai_builder_components import (
+    beta_ai_exercise_builder,
+)
+from aitutor.pages.lecture_manage_exercises.level_ai_builder_state import (
+    BetaAIExercisesState,
+)
 from aitutor.pages.lecture_manage_exercises.state import (
     LECTURE_MANAGE_EXERCISES_FIELD_MAX_LENGTHS,
     LESSON_CONTEXT_PDF_MAX_SIZE,
@@ -22,64 +36,13 @@ from aitutor.pages.lecture_manage_exercises.state import (
 from aitutor.utilities.helper_functions import truncate_text_reflex_var
 
 
-def new_tag_dialog():
+def new_tag_dialog() -> rx.Component:
     """Dialog for adding new tags."""
-    return rx.dialog.root(
-        rx.dialog.trigger(
-            rx.button(
-                rx.hstack(
-                    rx.icon("plus", size=20),
-                    rx.icon("tag", size=20),
-                    align="center",
-                    spacing="1",
-                ),
-                LanguageState.new_tag,
-                _hover={"cursor": "pointer"},
-            ),
-        ),
-        rx.dialog.content(
-            rx.vstack(
-                rx.heading(LanguageState.new_tag),
-                rx.input(
-                    placeholder=LanguageState.tagname,
-                    value=ManageTagsState.new_tag_name,
-                    on_change=ManageTagsState.set_new_tag_name,
-                    width="100%",
-                    on_key_down=lambda key: rx.cond(
-                        key == "Enter",
-                        ManageTagsState.add_new_tag,
-                        None,
-                    ),
-                    max_length=LECTURE_MANAGE_EXERCISES_FIELD_MAX_LENGTHS["tag_name"],
-                ),
-                rx.hstack(
-                    rx.dialog.close(
-                        rx.button(
-                            rx.text(LanguageState.cancel),
-                            variant="outline",
-                            _hover={"cursor": "pointer"},
-                        ),
-                    ),
-                    rx.button(
-                        LanguageState.add_tag,
-                        on_click=ManageTagsState.add_new_tag,
-                        _hover=rx.cond(
-                            ManageTagsState.new_tag_name == "",
-                            {"cursor": "not-allowed"},
-                            {"cursor": "pointer"},
-                        ),
-                        disabled=ManageTagsState.new_tag_name == "",
-                    ),
-                    padding_top="1em",
-                    spacing="2",
-                    justify="end",
-                    width="100%",
-                ),
-            ),
-            width="20em",
-            max_width="90vw",
-        ),
-        open=ManageTagsState.add_tag_dialog_is_open,
+    return tag_components.new_tag_dialog(
+        tag_name=ManageTagsState.new_tag_name,
+        on_tag_name_change=ManageTagsState.set_new_tag_name,
+        on_add=ManageTagsState.add_new_tag,
+        is_open=ManageTagsState.add_tag_dialog_is_open,
         on_open_change=ManageTagsState.set_add_tag_dialog_is_open,
     )
 
@@ -303,6 +266,112 @@ def show_exercise(exercise: Exercise):
     )
 
 
+def delete_beta_exercise_button(exercise: BetaExercise):
+    """Button for deleting a Beta AI exercise."""
+    return destructive_confirm(
+        title=LanguageState.delete_exercise,
+        description=LanguageState.beta_ai_delete_exercise_description,
+        confirm_text=LanguageState.delete,
+        cancel_text=LanguageState.cancel,
+        on_confirm=ManageExercisesState.delete_beta_exercise(exercise.id),  # type: ignore
+        trigger=rx.icon_button(
+            rx.icon("trash"),
+            size="2",
+            variant="ghost",
+            color_scheme="red",
+            _hover={"cursor": "pointer"},
+        ),
+    )
+
+
+def show_beta_exercise(exercise: BetaExercise):
+    """Show a Beta AI exercise in the shared exercise table."""
+    return rx.table.row(
+        rx.table.cell(rx.checkbox(disabled=True)),
+        rx.table.cell(
+            rx.hstack(
+                rx.text(exercise.title),
+                level_ai_badge(),
+                align="center",
+                wrap="wrap",
+            ),
+            max_width="175px",
+        ),
+        rx.table.cell(
+            truncate_text_reflex_var(exercise.description, max_length=150),
+            max_width="400px",
+        ),
+        rx.table.cell(
+            rx.hstack(
+                rx.foreach(
+                    exercise.tags,
+                    lambda tag: rx.badge(
+                        tag.name,
+                        variant="soft",
+                        on_click=ManageExercisesState.add_search_value(
+                            {"search_value": f'{SEARCH_TAG_KEY}:"{tag.name}"'}
+                        ),
+                        _hover={"cursor": "pointer"},
+                    ),
+                ),
+                spacing="1",
+                wrap="wrap",
+            )
+        ),
+        rx.table.cell(
+            rx.cond(
+                exercise.editing_start,
+                rx.text(
+                    rx.moment(
+                        date=exercise.editing_start.to(datetime),  # type: ignore[union-attr]
+                        format=MOMENT_DATE_FORMAT,
+                    ),
+                    " - ",
+                    rx.moment(
+                        date=exercise.deadline.to(datetime),  # type: ignore[union-attr]
+                        format=MOMENT_DEADLINE_FORMAT,
+                    ),
+                ),
+                LanguageState.no_deadline,
+            )
+        ),
+        rx.table.cell(
+            rx.hstack(
+                rx.center(
+                    rx.cond(
+                        exercise.is_hidden,
+                        rx.icon("eye-off", size=18),
+                        rx.cond(
+                            exercise.is_started,
+                            rx.icon("eye", size=18),
+                            rx.icon("view", size=18),
+                        ),
+                    ),
+                    _hover={"cursor": "pointer"},
+                    on_click=ManageExercisesState.toggle_beta_visibility(
+                        exercise.id  # type: ignore
+                    ),
+                ),
+                rx.icon_button(
+                    rx.icon("wrench", size=22),
+                    color_scheme="yellow",
+                    size="2",
+                    variant="ghost",
+                    on_click=BetaAIExercisesState.open_builder_dialog_for_editing(
+                        ManageExercisesState.current_lecture_id,
+                        exercise.id,
+                    ),
+                    _hover={"cursor": "pointer"},
+                ),
+                delete_beta_exercise_button(exercise),
+                spacing="5",
+            )
+        ),
+        style={"_hover": {"bg": rx.color("gray", 3)}},
+        align="center",
+    )
+
+
 def header_cell(text, icon: str):
     """Create header cells."""
     return rx.table.column_header_cell(
@@ -338,7 +407,8 @@ def exercise_table():
                 ),
                 # dynamically render each new entry
                 rx.table.body(
-                    rx.foreach(ManageExercisesState.exercises, show_exercise)
+                    rx.foreach(ManageExercisesState.exercises, show_exercise),
+                    rx.foreach(ManageExercisesState.beta_exercises, show_beta_exercise),
                 ),
                 variant="surface",
                 size="3",
@@ -348,6 +418,7 @@ def exercise_table():
             ),
             edit_exercise_dialog(),
             add_exercise_dialog(),
+            beta_ai_exercise_dialog(),
         ),
     )
 
@@ -383,17 +454,66 @@ def hide_exercise_button(exercise: Exercise):
 
 def add_exercise_button() -> rx.Component:
     """Button for adding new exercises."""
-    return rx.button(
-        rx.icon("plus"),
-        rx.desktop_only(
-            rx.text(LanguageState.add_exercise, size="3"),
+    return rx.dialog.root(
+        rx.dialog.trigger(
+            rx.button(
+                rx.icon("file-plus"),
+                rx.desktop_only(
+                    rx.text(LanguageState.add_exercise, size="3"),
+                ),
+                rx.mobile_and_tablet(
+                    rx.text(LanguageState.add, size="3"),
+                ),
+                _hover={"cursor": "pointer"},
+                type="button",
+            )
         ),
-        rx.mobile_and_tablet(
-            rx.text(LanguageState.add, size="3"),
+        rx.dialog.content(
+            rx.dialog.title(LanguageState.add_exercise),
+            rx.vstack(
+                rx.dialog.close(
+                    rx.button(
+                        LanguageState.classic_ai,
+                        on_click=ManageExercisesState.open_add_dialog,
+                        width="100%",
+                        _hover={"cursor": "pointer"},
+                    )
+                ),
+                rx.dialog.close(
+                    rx.button(
+                        LanguageState.beta_ai,
+                        on_click=BetaAIExercisesState.open_builder_dialog(
+                            ManageExercisesState.current_lecture_id
+                        ),
+                        width="100%",
+                        _hover={"cursor": "pointer"},
+                    )
+                ),
+                spacing="3",
+                width="100%",
+            ),
+            width="24em",
+            max_width="90vw",
         ),
-        _hover={"cursor": "pointer"},
-        on_click=ManageExercisesState.open_add_dialog,
-        type="button",
+    )
+
+
+def beta_ai_exercise_dialog() -> rx.Component:
+    """Dialog for creating Beta AI exercises."""
+    return rx.dialog.root(
+        rx.dialog.content(
+            beta_ai_exercise_builder(),
+            width="42em",
+            max_width="90vw",
+            max_height="85vh",
+            overflow_y="auto",
+            # Only the explicit buttons close the builder, so an accidental Escape
+            # or click outside does not discard unsaved (possibly generated) work.
+            on_escape_key_down=rx.prevent_default,
+            on_interact_outside=rx.prevent_default,
+        ),
+        open=BetaAIExercisesState.builder_dialog_is_open,
+        on_open_change=BetaAIExercisesState.set_builder_dialog_is_open,
     )
 
 
@@ -678,73 +798,12 @@ def select_prompt(mode: DialogMode) -> rx.Component:
 
 def tag_selection() -> rx.Component:
     """Tag selection component"""
-    return rx.vstack(
-        rx.text(
-            LanguageState.tags + ":",
-            size="3",
-            weight="medium",
-            text_align="left",
-            width="100%",
-            padding_top="1.5em",
-            padding_bottom="0.5em",
-        ),
-        rx.hstack(
-            rx.menu.root(
-                rx.menu.trigger(
-                    rx.button(
-                        rx.icon("list", size=18),
-                        LanguageState.select_tags,
-                        type="button",
-                        _hover={"cursor": "pointer"},
-                    ),
-                ),
-                rx.menu.content(
-                    rx.foreach(
-                        ManageExercisesState.selectable_tags,
-                        lambda tag_name: rx.menu.item(
-                            tag_name,
-                            on_click=ManageExercisesState.add_to_selected_tags(
-                                tag_name
-                            ),
-                        ),
-                    ),
-                    min_width="10em",
-                ),
-            ),
-            new_tag_dialog(),
-            align="center",
-            justify="between",
-            width="100%",
-        ),
-        rx.hstack(
-            rx.foreach(
-                ManageExercisesState.selected_tags,
-                lambda tag: rx.badge(
-                    rx.hstack(
-                        rx.text(tag),
-                        rx.icon(
-                            "circle-x",
-                            size=16,
-                        ),
-                        spacing="1",
-                        align_items="center",
-                    ),
-                    on_click=ManageExercisesState.remove_selected_tag(tag),  # type: ignore
-                    cursor="pointer",
-                    size="3",
-                    style={
-                        "_hover": {
-                            "background_color": "red",
-                            "color": "black",
-                        }
-                    },
-                ),
-            ),
-            margin_top="0.5em",
-            margin_bottom="0.5em",
-            wrap="wrap",
-        ),
-        spacing="1",
+    return tag_components.tag_selection(
+        selectable_tags=ManageExercisesState.selectable_tags,
+        selected_tags=ManageExercisesState.selected_tags,
+        on_select=ManageExercisesState.add_to_selected_tags,
+        on_remove=ManageExercisesState.remove_selected_tag,
+        add_tag_dialog=new_tag_dialog(),
     )
 
 
