@@ -92,6 +92,10 @@ OPENAI_BASE_URL=example-ai-company.com
 # doesn't exist yet).
 POSTGRES_PASSWORD=<secret password>
 
+# [Optional] Number of backend worker processes.  Defaults to the number of CPU cores
+# available in the container.
+GRANIAN_WORKERS=4
+
 # [Optional] SMTP settings for sending emails.  If not set, emails are printed to stdout
 # (only use this for local testing).
 # The example values below assume that the host has postfix configured for sending
