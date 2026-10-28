@@ -15,6 +15,7 @@ from aitutor.beta_ai.schemas import (
     EditableMisconception,
     SavedConceptDetail,
 )
+from aitutor.language_state import BackendTranslations as BT
 from aitutor.models import (
     BetaConcept,
     BetaCorePoint,
@@ -149,13 +150,6 @@ class BetaAIExercisesState(SessionState):
         )
 
     @rx.var
-    def generate_concepts_button_label(self) -> str:
-        """Return a clear generate/regenerate button label."""
-        if self.generated_concepts:
-            return "Regenerate Concepts (replaces current list)"
-        return "Generate Concepts"
-
-    @rx.var
     def concept_target_count_str(self) -> str:
         """Return the concept target count as a string for the input field."""
         return str(self.concept_target_count)
@@ -186,27 +180,24 @@ class BetaAIExercisesState(SessionState):
     def _validate_generated_concepts(self) -> str | None:
         """Return a user-facing validation error for the editable concept list."""
         if not self.generated_concepts:
-            return "Please generate or add at least one concept first."
+            return BT.beta_ai_generate_concept_first(self.language)
 
         for concept_index, concept in enumerate(self.generated_concepts, start=1):
             if not concept.label.strip():
-                return f"Concept {concept_index} needs a non-empty label."
+                return BT.beta_ai_concept_label_required(self.language, concept_index)
 
             has_core_point = any(
                 core_point.text.strip() for core_point in concept.core_points
             )
             if not has_core_point:
-                return (
-                    f"Concept {concept_index} needs at least one non-empty core point."
-                )
+                return BT.beta_ai_core_point_required(self.language, concept_index)
 
             for misconception_index, misconception in enumerate(
                 concept.misconceptions, start=1
             ):
                 if not misconception.label.strip():
-                    return (
-                        f"Concept {concept_index}, misconception "
-                        f"{misconception_index} needs a non-empty label."
+                    return BT.beta_ai_misconception_label_required(
+                        self.language, concept_index, misconception_index
                     )
 
         return None
@@ -260,7 +251,7 @@ class BetaAIExercisesState(SessionState):
             exercise = session.get(BetaExercise, exercise_id)
             if exercise is None:
                 return rx.toast.error(
-                    description="Beta AI exercise not found.",
+                    description=BT.beta_ai_exercise_not_found(self.language),
                     duration=5000,
                     position="bottom-center",
                     invert=True,
@@ -320,7 +311,7 @@ class BetaAIExercisesState(SessionState):
             exercise = session.get(BetaExercise, exercise_id)
             if exercise is None:
                 return rx.toast.error(
-                    description="Beta AI exercise not found.",
+                    description=BT.beta_ai_exercise_not_found(self.language),
                     duration=5000,
                     position="bottom-center",
                     invert=True,
@@ -332,7 +323,7 @@ class BetaAIExercisesState(SessionState):
             self.clear_selected_saved_exercise()
         self.load_beta_exercises()
         return rx.toast.success(
-            description="Beta AI exercise deleted.",
+            description=BT.beta_ai_exercise_deleted(self.language),
             duration=5000,
             position="bottom-center",
             invert=True,
@@ -352,14 +343,14 @@ class BetaAIExercisesState(SessionState):
                 with pdfplumber.open(io.BytesIO(upload_data)) as pdf:
                     text = "\n".join(page.extract_text() or "" for page in pdf.pages)
                 text_parts.append(" ".join(text.replace("\n", " ").split()))
-                file_names.append(file.name or "<unnamed file>")
+                file_names.append(file.name or BT.beta_ai_unnamed_file(self.language))
 
             self.source_material_text = "\n\n".join(text_parts)
             self.source_material_filename = ", ".join(file_names)
         except Exception as exc:
             self.extracting_source_material = False
             yield rx.toast.error(
-                description=f"Failed to extract PDF text: {exc}",
+                description=BT.beta_ai_pdf_extraction_failed(self.language, exc),
                 duration=5000,
                 position="bottom-center",
                 invert=True,
@@ -368,7 +359,7 @@ class BetaAIExercisesState(SessionState):
 
         self.extracting_source_material = False
         yield rx.toast.success(
-            description="PDF text extracted.",
+            description=BT.beta_ai_pdf_extracted(self.language),
             duration=5000,
             position="bottom-center",
             invert=True,
@@ -402,7 +393,7 @@ class BetaAIExercisesState(SessionState):
             async with self:
                 self.generating_concepts = False
             yield rx.toast.error(
-                description=f"Concept generation failed: {exc}",
+                description=BT.beta_ai_generation_failed(self.language, exc),
                 duration=5000,
                 position="bottom-center",
                 invert=True,
@@ -428,7 +419,7 @@ class BetaAIExercisesState(SessionState):
             ]
             self.generating_concepts = False
         yield rx.toast.success(
-            description="Concepts generated. Please review them before saving.",
+            description=BT.beta_ai_concepts_generated(self.language),
             duration=5000,
             position="bottom-center",
             invert=True,
@@ -440,7 +431,7 @@ class BetaAIExercisesState(SessionState):
         self.generated_concepts.append(
             EditableConcept(
                 concept_id=f"manual.concept-{len(self.generated_concepts) + 1}",
-                label="New concept",
+                label=BT.beta_ai_new_concept(self.language),
                 core_points=[EditableCorePoint()],
             )
         )
@@ -477,7 +468,7 @@ class BetaAIExercisesState(SessionState):
         """Persist the exercise and reviewed concepts."""
         if not self.can_save_exercise:
             return rx.toast.error(
-                description="Please generate or add at least one concept first.",
+                description=BT.beta_ai_generate_concept_first(self.language),
                 duration=5000,
                 position="bottom-center",
                 invert=True,
@@ -495,10 +486,7 @@ class BetaAIExercisesState(SessionState):
 
         if self._beta_exercise_title_exists(title):
             return rx.toast.error(
-                description=(
-                    "A Beta AI exercise with this title already exists. "
-                    "Please choose a different title."
-                ),
+                description=BT.beta_ai_title_exists(self.language),
                 duration=5000,
                 position="bottom-center",
                 invert=True,
@@ -560,7 +548,7 @@ class BetaAIExercisesState(SessionState):
         except Exception as exc:
             self.saving_exercise = False
             return rx.toast.error(
-                description=f"Failed to save Beta AI exercise: {exc}",
+                description=BT.beta_ai_save_failed(self.language, exc),
                 duration=5000,
                 position="bottom-center",
                 invert=True,
@@ -570,7 +558,7 @@ class BetaAIExercisesState(SessionState):
         self.reset_builder()
         self.load_beta_exercises()
         return rx.toast.success(
-            description="Beta AI exercise saved.",
+            description=BT.beta_ai_exercise_saved(self.language),
             duration=5000,
             position="bottom-center",
             invert=True,
