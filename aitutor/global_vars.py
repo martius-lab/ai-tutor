@@ -1,9 +1,13 @@
 """all global variables"""
 
+from datetime import timedelta
+
 import reflex as rx
 
 TIME_FORMAT = "%d.%m.%Y %H:%M:%S MEZ"
 MOMENT_DEADLINE_FORMAT = "DD.MM.YYYY, HH:mm"
+MOMENT_DATE_FORMAT = "DD.MM.YYYY"
+MOMENT_DATETIME_FORMAT = "YYYY-MM-DD HH:mm"
 TIME_ZONE = "Europe/Berlin"
 SEARCH_USER_KEY = "user"
 SEARCH_EXERCISE_KEY = "exercise"
@@ -19,13 +23,11 @@ CHAT_TOKEN_WARNING_THRESHOLD = 0.8  # Show warning at x% of limit
 
 """colors"""
 GREEN_CHECK_COLOR = rx.color("green", 9)
-LEVEL_AI_BADGE_LABEL = "Level"
 LEVEL_AI_BADGE_COLOR_SCHEME = "purple"
 
-
-def level_ai_badge() -> rx.Component:
-    """Render the shared badge for Level AI exercises."""
-    return rx.badge(LEVEL_AI_BADGE_LABEL, color_scheme=LEVEL_AI_BADGE_COLOR_SCHEME)
+# ---- Level AI ----
+# Only this many characters of the teaching material are sent to concept generation.
+LEVEL_AI_MAX_SOURCE_MATERIAL_CHARS = 200_000
 
 
 # --- max length for UI input fields ---
@@ -42,3 +44,17 @@ SEARCH_TEXT_MAX_LEN = 150
 # Chat
 CHAT_MESSAGE_MAX_LEN = 15_000
 REPORT_MAX_LEN = 2_000
+
+
+# --- account verification ---
+
+#: How long a verification token stays valid after it has been issued.
+VERIFICATION_TOKEN_VALIDITY = timedelta(hours=48)
+
+#: How long a user has to wait before another verification mail may be sent to them.
+#: Enforced server-side against ``VerificationToken.last_sent_at``.
+VERIFICATION_RESEND_COOLDOWN = timedelta(minutes=5)
+
+#: Accounts whose email address is still not confirmed this long after their creation
+#: are deleted by the account cleanup (see ``aitutor/account_cleanup.py``).
+UNVERIFIED_ACCOUNT_RETENTION = timedelta(weeks=2)

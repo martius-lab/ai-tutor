@@ -29,7 +29,6 @@ class EditableConcept(BaseModel):
     """Editable UI representation of a generated or manually added concept."""
 
     id: int | None = None
-    concept_id: str = ""
     label: str = ""
     description: str = ""
     core_points: list[EditableCorePoint] = Field(default_factory=list)

@@ -136,7 +136,7 @@ def test_tutor_finished_view_reuses_queried_result_and_submitted_snapshot(monkey
     monkeypatch.setattr(tutor_finished, "evaluated_messages", evaluate)
     state = Mock(
         spec=tutor_finished.BetaAIFinishedViewTutorState,
-        get_route_param_or_error=Mock(side_effect=[4, 3, 2]),
+        _get_route_param_or_error=Mock(side_effect=[4, 3, 2]),
         _user_may_view_submission=Mock(return_value=True),
     )
     on_load = inspect.unwrap(tutor_finished.BetaAIFinishedViewTutorState.on_load.fn)

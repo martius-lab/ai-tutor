@@ -5,9 +5,9 @@ import reflex as rx
 from aitutor import routes
 from aitutor.auth.protection import (
     page_require_lecture_role,
-    page_require_role_or_permission,
+    page_require_permission,
 )
-from aitutor.models import LectureRole
+from aitutor.models import GlobalPermission, LectureRole
 from aitutor.pages.beta_ai_trace_logs.components import beta_ai_trace_logs_content
 from aitutor.pages.beta_ai_trace_logs.state import BetaAITraceLogsState
 from aitutor.pages.navbar import with_navbar
@@ -24,7 +24,7 @@ def trace_logs_content_page() -> rx.Component:
     )
 
 
-@page_require_role_or_permission()
+@page_require_permission([GlobalPermission.ADMIN])
 @with_navbar()
 def beta_ai_global_trace_logs_page() -> rx.Component:
     """Render traces across all lectures for global administrators."""
