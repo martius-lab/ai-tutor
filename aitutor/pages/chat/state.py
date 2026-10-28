@@ -11,12 +11,12 @@ from sqlmodel import select
 
 import aitutor.global_vars as gv
 from aitutor import routes
-from aitutor.auth.protection import state_require_role_or_permission
+from aitutor.auth.protection import state_require_login
 from aitutor.auth.state import SessionState
 from aitutor.config import get_config
 from aitutor.env_settings import get_env_settings
 from aitutor.language_state import BackendTranslations as BT
-from aitutor.models import Exercise, ExerciseResult, Lecture, Report, UserRole
+from aitutor.models import Exercise, ExerciseResult, Lecture, Report
 from aitutor.utilities.lecture_permissions import (
     user_may_view_lecture,
     user_may_view_lecture_submissions,
@@ -207,7 +207,7 @@ class ChatState(SessionState):
         self.user_input = value[: CHAT_FIELD_MAX_LENGTHS["chat_message"]]
 
     @rx.event
-    @state_require_role_or_permission(required_role=UserRole.STUDENT)
+    @state_require_login()
     def on_load(self):
         """
         Loads the exercise with exercise_id from the database.

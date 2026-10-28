@@ -9,11 +9,14 @@ MOMENT_DEADLINE_FORMAT = "DD.MM.YYYY, HH:mm"
 MOMENT_DATE_FORMAT = "DD.MM.YYYY"
 MOMENT_DATETIME_FORMAT = "YYYY-MM-DD HH:mm"
 TIME_ZONE = "Europe/Berlin"
+
+# ---- Search related global variables ----
 SEARCH_USER_KEY = "user"
 SEARCH_EXERCISE_KEY = "exercise"
 SEARCH_TAG_KEY = "tag"
 SEARCH_EXERCISE_TITLE_KEY = "title"
 SEARCH_EXERCISE_DESCRIPTION_KEY = "description"
+
 DEFAULT_CHECK_CONVERSATION_PROMPT = """Check if the answers of the student answered the exercise correctly.
 If the student did not answer correctly, respond with what the errors are but do not give the solution.
 If the student answered correctly, you can write one sentence that the student answered correctly and the task is finished."""  # noqa: E501
