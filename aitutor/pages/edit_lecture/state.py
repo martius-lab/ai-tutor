@@ -7,7 +7,7 @@ import aitutor.global_vars as gv
 from aitutor import routes
 from aitutor.auth.protection import (
     state_require_lecture_role,
-    state_require_role_or_permission,
+    state_require_login,
 )
 from aitutor.auth.state import SessionState
 from aitutor.global_vars import DEFAULT_CHECK_CONVERSATION_PROMPT
@@ -17,7 +17,6 @@ from aitutor.models import (
     Lecture,
     LectureRole,
     LinkUserLecture,
-    UserRole,
 )
 from aitutor.utilities.lecture_permissions import user_may_edit_lecture
 
@@ -65,7 +64,7 @@ class EditLectureState(SessionState):
         self.delete_confirmation_password = ""
 
     @rx.event
-    @state_require_role_or_permission(required_role=UserRole.STUDENT)
+    @state_require_login()
     def on_load(self):
         """Initialize the page state."""
         self._global_load()
@@ -98,7 +97,7 @@ class EditLectureState(SessionState):
             self._apply_lecture_to_state(lecture)
 
     @rx.event
-    @state_require_role_or_permission(required_role=UserRole.STUDENT)
+    @state_require_login()
     def save_lecture(self):
         """Create a new lecture or save changes to an existing one."""
         if self.authenticated_user is None or self.authenticated_user.id is None:
