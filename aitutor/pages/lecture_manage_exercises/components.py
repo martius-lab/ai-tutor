@@ -140,6 +140,7 @@ def edit_tags_button() -> rx.Component:
             rx.button(
                 rx.icon("tags"),
                 rx.text(LanguageState.edit_tags, size="3"),
+                variant="outline",
                 _hover={"cursor": "pointer"},
                 type="button",
             )
@@ -382,7 +383,7 @@ def hide_exercise_button(exercise: Exercise):
 def add_exercise_button() -> rx.Component:
     """Button for adding new exercises."""
     return rx.button(
-        rx.icon("file-plus"),
+        rx.icon("plus"),
         rx.desktop_only(
             rx.text(LanguageState.add_exercise, size="3"),
         ),
@@ -414,6 +415,7 @@ def delete_selected_exercises_button() -> rx.Component:
                 size="3",
             ),
             color_scheme="red",
+            variant="outline",
             _hover=rx.cond(
                 ManageExercisesState.something_is_selected,
                 {"cursor": "pointer"},
@@ -436,6 +438,7 @@ def export_selected_exercises_button() -> rx.Component:
             + ")",
             size="3",
         ),
+        variant="outline",
         _hover=rx.cond(
             ManageExercisesState.something_is_selected,
             {"cursor": "pointer"},
@@ -574,7 +577,14 @@ def pdf_upload() -> rx.Component:
                 rx.text(
                     LanguageState.pdf_upload_info,
                 ),
-                rx.text(rx.selected_files("upload1"), color="yellow", size="3"),
+                # show file icon with file name
+                rx.cond(
+                    ManageExercisesState.lesson_file_name,
+                    rx.hstack(
+                        rx.text(LanguageState.last_uploaded_file, size="3"),
+                        rx.text(ManageExercisesState.lesson_file_name, color="gray"),
+                    ),
+                ),
                 align="center",
             ),
             id="upload1",
@@ -586,25 +596,6 @@ def pdf_upload() -> rx.Component:
                 rx.upload_files(upload_id="upload1")  # type: ignore
             ),
             _hover={"cursor": "pointer"},
-        ),
-        rx.text(
-            LanguageState.last_uploaded_file,
-            size="3",
-            weight="medium",
-            text_align="left",
-            width="100%",
-            padding_top="1.5em",
-            padding_bottom="0.5em",
-        ),
-        # show file icon with file name
-        rx.cond(
-            ManageExercisesState.lesson_file_name,
-            rx.box(
-                rx.hstack(
-                    rx.icon("file-text", size=25),
-                    rx.text(ManageExercisesState.lesson_file_name, color="green"),
-                ),
-            ),
         ),
     )
 
@@ -911,7 +902,7 @@ def add_edit_exercise_form(mode: DialogMode) -> Sequence[rx.Component]:
                 mode == DialogMode.ADD,
                 rx.form.submit(
                     rx.button(
-                        LanguageState.add_task,
+                        LanguageState.add_exercise,
                         color_scheme="green",
                         type="submit",
                         _hover={"cursor": "pointer"},
@@ -920,7 +911,7 @@ def add_edit_exercise_form(mode: DialogMode) -> Sequence[rx.Component]:
                 ),
                 rx.form.submit(
                     rx.button(
-                        LanguageState.update_task,
+                        LanguageState.save_changes,
                         color_scheme="yellow",
                         type="submit",
                         _hover={"cursor": "pointer"},
@@ -947,6 +938,7 @@ def import_exercises_button() -> rx.Component:
                 rx.mobile_and_tablet(
                     rx.text(LanguageState.import_, size="3"),
                 ),
+                variant="outline",
                 _hover={"cursor": "pointer"},
             )
         ),

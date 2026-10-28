@@ -36,7 +36,7 @@ services:
       context: .
       dockerfile: Caddy.Dockerfile
       additional_contexts:
-        app_image: "service:app"
+        app: "service:app"
     volumes:
       - caddy-data:/data/caddy
       - caddy-config:/config/caddy

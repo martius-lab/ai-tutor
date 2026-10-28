@@ -158,11 +158,11 @@ class LectureManageExercisesState(FilterMixin, SessionState):
     @state_require_lecture_role(LectureRole.OWNER)
     def on_load(self):
         """Initialize the state"""
-        self.global_load()
+        self._global_load()
         self.current_lecture_id = None
 
         try:
-            lecture_id = self.get_route_param_or_error("lecture_id", dtype=int)
+            lecture_id = self._get_route_param_or_error("lecture_id", dtype=int)
         except Exception:
             return rx.redirect(routes.NOT_FOUND)
 
