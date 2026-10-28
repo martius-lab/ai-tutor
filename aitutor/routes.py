@@ -21,6 +21,9 @@ PROMPTS = ADMIN_SETTINGS + "/prompts"
 
 USER_SETTINGS = "/user_settings"
 
+# expects the token as query parameter, i.e. /verify_email?token=...
+VERIFY_EMAIL = "/verify_email"
+
 BETA_AI = "/beta_ai"
 BETA_AI_DIAGNOSIS_LAB = BETA_AI + "/diagnosis_lab"
 BETA_AI_CHAT = BETA_AI + "/chat"

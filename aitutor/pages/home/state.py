@@ -134,15 +134,15 @@ class HomeState(SessionState):
     @state_require_role_or_permission(required_role=UserRole.STUDENT)
     def on_load(self):
         """Load exercises when the home page is loaded."""
-        self.global_load()
+        self._global_load()
 
-        assert self.authenticated_user_info is not None
+        assert self._authenticated_user_info is not None
         assert self.authenticated_user is not None
         assert self.authenticated_user.id is not None
         now = datetime.now(ZoneInfo(TIME_ZONE))
         with rx.session() as session:
             stmt = build_home_exercises_statement(
-                userinfo_id=self.authenticated_user_info.id,  # type: ignore[arg-type]
+                userinfo_id=self._authenticated_user_info.id,  # type: ignore[arg-type]
                 user_id=self.authenticated_user.id,
                 is_global_admin=self.is_global_admin,
                 now=now,
@@ -150,7 +150,7 @@ class HomeState(SessionState):
             rows = session.exec(stmt).all()
 
             beta_stmt = build_home_beta_exercises_statement(
-                userinfo_id=self.authenticated_user_info.id,  # type: ignore[arg-type]
+                userinfo_id=self._authenticated_user_info.id,  # type: ignore[arg-type]
                 user_id=self.authenticated_user.id,
                 is_global_admin=self.is_global_admin,
                 now=now,
