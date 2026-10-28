@@ -9,9 +9,8 @@ from datetime import datetime
 from typing import Any, Literal
 
 from aitutor.beta_ai.diagnosis import DiagnosisPattern, DiagnosisResponse
-from aitutor.models import BetaCorePoint, BetaStudentConceptState
+from aitutor.models import BetaCorePoint, BetaStudentConceptState, ConceptState
 
-ConceptState = Literal["unseen", "emerging", "satisfactory", "secure"]
 QuestionLevel = Literal["basic_understanding", "explain_reasoning", "apply_or_compare"]
 
 DEFAULT_LEVEL_STATUS = {
@@ -426,16 +425,16 @@ def update_student_concept_state_from_diagnosis(
     student_state.updated_at = now
 
     if level_status["apply_or_compare"] == "passed":
-        student_state.state = "secure"
+        student_state.state = ConceptState.SECURE
     elif (
         level_status["basic_understanding"] == "passed"
         and level_status["explain_reasoning"] == "passed"
     ):
-        student_state.state = "satisfactory"
+        student_state.state = ConceptState.SATISFACTORY
     elif cumulative_pattern == "sufficient_for_completion":
         student_state.successful_attempts += 1
-        if student_state.state == "unseen":
-            student_state.state = "emerging"
+        if student_state.state == ConceptState.UNSEEN:
+            student_state.state = ConceptState.EMERGING
     elif cumulative_pattern == "misconception_present":
         student_state.misconception_hits += 1
         # Misconceptions are handled by the tutor's automatic repair loop
@@ -444,11 +443,11 @@ def update_student_concept_state_from_diagnosis(
         # state: the Beta AI design goal is that the tutor pauses normal
         # progression and keeps repairing until the current answer no longer
         # contains the misconception.
-        if student_state.state not in {"satisfactory", "secure"}:
-            student_state.state = "emerging"
+        if student_state.state not in {ConceptState.SATISFACTORY, ConceptState.SECURE}:
+            student_state.state = ConceptState.EMERGING
     elif cumulative_pattern == "correct_but_incomplete":
-        if student_state.state not in {"satisfactory", "secure"}:
-            student_state.state = "emerging"
+        if student_state.state not in {ConceptState.SATISFACTORY, ConceptState.SECURE}:
+            student_state.state = ConceptState.EMERGING
     elif (
         cumulative_pattern
         in {
@@ -458,9 +457,9 @@ def update_student_concept_state_from_diagnosis(
             "shallow_keyword_only",
             "tutor_derived_answer",
         }
-        and student_state.state == "unseen"
+        and student_state.state == ConceptState.UNSEEN
     ):
-        student_state.state = "emerging"
+        student_state.state = ConceptState.EMERGING
 
     policy_pattern = cumulative_pattern
     if question_level in {
