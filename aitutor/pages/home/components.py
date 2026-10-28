@@ -6,6 +6,7 @@ import reflex as rx
 
 import aitutor.global_vars as gv
 from aitutor import DisplayConfigState, routes
+from aitutor.components.level_ai_badge import level_ai_badge
 from aitutor.language_state import LanguageState
 from aitutor.models import Lecture
 from aitutor.pages.home.state import HomeExerciseCard, HomeState, LectureExerciseGroup
@@ -120,7 +121,7 @@ def global_exercise_card(exercise: HomeExerciseCard) -> rx.Component:
                 rx.spacer(),
                 rx.cond(
                     exercise.is_beta,
-                    gv.level_ai_badge(),
+                    level_ai_badge(),
                 ),
                 width="100%",
                 align="center",
