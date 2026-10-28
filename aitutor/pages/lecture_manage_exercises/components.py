@@ -10,6 +10,7 @@ from aitutor.language_state import LanguageState
 from aitutor.models import Exercise
 from aitutor.pages.lecture_manage_exercises.state import (
     LECTURE_MANAGE_EXERCISES_FIELD_MAX_LENGTHS,
+    LESSON_CONTEXT_PDF_MAX_SIZE,
     DialogMode,
 )
 from aitutor.pages.lecture_manage_exercises.state import (
@@ -589,6 +590,7 @@ def pdf_upload() -> rx.Component:
             ),
             id="upload1",
             accept={"application/pdf": [".pdf"]},
+            max_size=LESSON_CONTEXT_PDF_MAX_SIZE,
             padding="5em",
             padding_top="1em",
             padding_bottom="1em",
