@@ -8,7 +8,6 @@ import reflex as rx
 from sqlalchemy.sql.elements import ColumnElement
 from sqlmodel import func, select
 
-import aitutor.global_vars as gv
 from aitutor import routes
 from aitutor.auth.protection import state_require_lecture_role
 from aitutor.auth.state import SessionState
@@ -27,7 +26,9 @@ from aitutor.utilities.lecture_permissions import user_may_view_lecture_submissi
 
 ALL_EXERCISES_OPTION = "All"
 ALL_USERS_OPTION = "All"
-BETA_EXERCISE_SUFFIX = f" ({gv.LEVEL_AI_BADGE_LABEL})"
+# Also identifies Level AI entries in the selected option, so it must not depend on
+# the UI language.
+BETA_EXERCISE_SUFFIX = " (Level)"
 USER_ANALYSIS_VIEW = "user"
 EXERCISE_ANALYSIS_VIEW = "exercise"
 
@@ -120,12 +121,12 @@ class LectureTokenAnalyzerState(SessionState):
     @state_require_lecture_role(LectureRole.TUTOR)
     def on_load(self):
         """Gets executed when the page loads."""
-        self.global_load()
+        self._global_load()
         self.current_lecture_id = None
         self._clear_token_analyzer_state()
 
         try:
-            lecture_id = self.get_route_param_or_error("lecture_id", dtype=int)
+            lecture_id = self._get_route_param_or_error("lecture_id", dtype=int)
         except Exception:
             return rx.redirect(routes.NOT_FOUND)
 
@@ -289,7 +290,7 @@ class LectureTokenAnalyzerState(SessionState):
                 .join(Exercise)
                 .where(Exercise.lecture_id == self.current_lecture_id)
                 .distinct()
-                .order_by(func.lower(LocalUser.username))
+                .order_by(LocalUser.username)
             ).all()
             beta_users = session.exec(
                 select(LocalUser.username)

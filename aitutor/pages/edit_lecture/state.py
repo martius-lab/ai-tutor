@@ -68,9 +68,9 @@ class EditLectureState(SessionState):
     @state_require_role_or_permission(required_role=UserRole.STUDENT)
     def on_load(self):
         """Initialize the page state."""
-        self.global_load()
+        self._global_load()
 
-        self.lecture_id_param = self.get_route_param_or_default(
+        self.lecture_id_param = self._get_route_param_or_default(
             "lecture_id", default=MAGIC_ID_NEW
         )
 
@@ -290,7 +290,7 @@ class EditLectureState(SessionState):
 
     def _user_may_create_lecture(self) -> bool:
         """Check whether the current user may create a new lecture."""
-        return self.has_permission(GlobalPermission.LECTURER)
+        return self._has_permission(GlobalPermission.LECTURER)
 
     def _user_may_edit_existing_lecture(self, lecture_id: int) -> bool:
         """Check whether the current user may edit an existing lecture."""

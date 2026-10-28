@@ -58,11 +58,11 @@ class BetaAIDiagnosisLabState(SessionState):
     @state_require_lecture_role(LectureRole.TUTOR)
     def on_load(self):
         """Initialize the diagnosis lab."""
-        self.global_load()
+        self._global_load()
         self.current_lecture_id = None
         self.reset_selection()
         try:
-            lecture_id = self.get_route_param_or_error("lecture_id", dtype=int)
+            lecture_id = self._get_route_param_or_error("lecture_id", dtype=int)
         except KeyError, ValueError, TypeError:
             return rx.redirect(routes.NOT_FOUND)
 
@@ -397,7 +397,7 @@ class BetaAIDiagnosisLabState(SessionState):
         async with self:
             if not state_has_lecture_role(self, LectureRole.TUTOR):
                 return
-            if self.current_lecture_id != self.get_route_param_or_error(
+            if self.current_lecture_id != self._get_route_param_or_error(
                 "lecture_id", dtype=int
             ):
                 return

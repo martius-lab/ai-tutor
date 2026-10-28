@@ -49,8 +49,8 @@ def test_fuzzy_title_requires_unambiguous_match():
     session = SimpleNamespace(
         exec=lambda _: SimpleNamespace(
             all=lambda: [
-                BetaExercise(id=1, title="Lecture A"),
-                BetaExercise(id=2, title="Lecture B"),
+                BetaExercise(lecture_id=1, id=1, title="Lecture A"),
+                BetaExercise(lecture_id=1, id=2, title="Lecture B"),
             ]
         )
     )
@@ -108,7 +108,7 @@ def test_three_levels_and_higher_level_repair(monkeypatch):
     )
     monkeypatch.setattr(sim, "run_tutor_turn_generation", repair)
     state = sim.SimulationState(current_question="Erkläre die Grundidee.")
-    exercise = BetaExercise(id=1, title="Activation functions")
+    exercise = BetaExercise(lecture_id=1, id=1, title="Activation functions")
     entries = []
     for turn in range(1, 5):
         entries.append(
@@ -158,7 +158,7 @@ def test_turn_limit_does_not_skip_incomplete_concept(monkeypatch, tmp_path):
     engine = create_engine(f"sqlite:///{db}")
     SQLModel.metadata.tables["betaexercise"].create(engine)
     with Session(engine) as session:
-        session.add(BetaExercise(id=1, title="Example"))
+        session.add(BetaExercise(lecture_id=1, id=1, title="Example"))
         session.commit()
     bundles = [bundle(10), bundle(11)]
     monkeypatch.setattr(sim, "load_concept_bundles", lambda *_: bundles)
@@ -223,7 +223,7 @@ def test_negative_controls_never_pass_basic(monkeypatch, persona):
     for turn in range(1, 4):
         entry = asyncio.run(
             sim.simulate_turn(
-                exercise=BetaExercise(id=1, title="Example"),
+                exercise=BetaExercise(lecture_id=1, id=1, title="Example"),
                 bundle=data,
                 sim_state=state,
                 turn_in_concept=turn,

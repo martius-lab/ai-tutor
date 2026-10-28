@@ -75,10 +75,28 @@ from aitutor.pages.not_found.page import not_found_page
 from aitutor.pages.prompts.page import prompts_page
 from aitutor.pages.prompts.state import ManagePromptsState
 from aitutor.pages.user_settings.page import user_settings_page
+from aitutor.pages.verify_email.page import verify_email_page
+from aitutor.pages.verify_email.state import VerifyEmailState
 from aitutor.utilities.cprint import cprint
 from aitutor.utilities.first_setup import first_time_setup
 
 app = rx.App()
+app.add_page(
+    beta_ai_chat_page,
+    route=routes.BETA_AI_CHAT + "/[lecture_id]/[beta_exercise_id]",
+    on_load=BetaAIChatState.on_load,
+)
+app.add_page(
+    beta_ai_finished_view_tutor_page,
+    route=routes.BETA_AI_FINISHED_VIEW_TUTOR
+    + "/[lecture_id]/[beta_exercise_id]/[url_user_id]",
+    on_load=BetaAIFinishedViewTutorState.on_load,
+)
+app.add_page(
+    beta_ai_finished_view_page,
+    route=routes.BETA_AI_FINISHED_VIEW + "/[lecture_id]/[beta_exercise_id]",
+    on_load=BetaAIFinishedViewState.on_load,
+)
 # info: add dynamic routes first
 app.add_page(
     finished_view_tutor_page,
@@ -99,22 +117,6 @@ app.add_page(
     finished_view_page,
     route=routes.FINISHED_VIEW + "/[exercise_id]",
     on_load=FinishedViewState.on_load,
-)
-app.add_page(
-    beta_ai_chat_page,
-    route=routes.BETA_AI_CHAT + "/[lecture_id]/[beta_exercise_id]",
-    on_load=BetaAIChatState.on_load,
-)
-app.add_page(
-    beta_ai_finished_view_tutor_page,
-    route=routes.BETA_AI_FINISHED_VIEW_TUTOR
-    + "/[lecture_id]/[beta_exercise_id]/[url_user_id]",
-    on_load=BetaAIFinishedViewTutorState.on_load,
-)
-app.add_page(
-    beta_ai_finished_view_page,
-    route=routes.BETA_AI_FINISHED_VIEW + "/[lecture_id]/[beta_exercise_id]",
-    on_load=BetaAIFinishedViewState.on_load,
 )
 app.add_page(
     my_lectures_page,
@@ -200,6 +202,16 @@ app.add_page(
     on_load=ManagePromptsState.on_load,
 )
 app.add_page(
+    user_settings_page,
+    route=routes.USER_SETTINGS,
+)
+app.add_page(
+    verify_email_page,
+    route=routes.VERIFY_EMAIL,
+    on_load=VerifyEmailState.on_load,
+)
+
+app.add_page(
     beta_ai_diagnosis_lab_page,
     route=routes.BETA_AI_DIAGNOSIS_LAB + "/[lecture_id]",
     on_load=BetaAIDiagnosisLabState.on_load,
@@ -209,14 +221,12 @@ app.add_page(
     route=routes.BETA_AI_TRACE_LOGS + "/[lecture_id]",
     on_load=BetaAITraceLogsState.on_load,
 )
+
+
 app.add_page(
     beta_ai_global_trace_logs_page,
     route=routes.BETA_AI_TRACE_LOGS,
     on_load=BetaAITraceLogsState.on_load,
-)
-app.add_page(
-    user_settings_page,
-    route=routes.USER_SETTINGS,
 )
 
 # reflex_local_auth pages
