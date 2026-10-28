@@ -8,10 +8,10 @@ from sqlmodel import and_, select
 
 import aitutor.global_vars as gv
 from aitutor import routes
-from aitutor.auth.protection import state_require_role_or_permission
+from aitutor.auth.protection import state_require_login
 from aitutor.auth.state import SessionState
 from aitutor.language_state import BackendTranslations as BT
-from aitutor.models import Lecture, LectureRole, LinkUserLecture, UserRole
+from aitutor.models import Lecture, LectureRole, LinkUserLecture
 
 ALL_LECTURES_FIELD_MAX_LENGTHS: dict[str, int] = {
     "search_text": gv.SEARCH_TEXT_MAX_LEN,
@@ -123,7 +123,7 @@ class AllLecturesState(SessionState):
         self.close_join_dialog()
 
     @rx.event
-    @state_require_role_or_permission(required_role=UserRole.STUDENT)
+    @state_require_login()
     def join_selected_lecture(self):
         """Validate the selected lecture and join it as a student."""
         if self.authenticated_user is None or self.authenticated_user.id is None:
@@ -188,15 +188,18 @@ class AllLecturesState(SessionState):
         self.load_lectures()
         self.close_join_dialog()
         self.close_details_dialog()
-        return rx.toast.success(
-            description=BT.joined_lecture_successfully(self.language),
-            duration=5000,
-            position="bottom-center",
-            invert=True,
-        )
+        return [
+            rx.toast.success(
+                description=BT.joined_lecture_successfully(self.language),
+                duration=5000,
+                position="bottom-center",
+                invert=True,
+            ),
+            rx.redirect(f"{routes.LECTURE_OVERVIEW}/{lecture_id}"),
+        ]
 
     @rx.event
-    @state_require_role_or_permission(required_role=UserRole.STUDENT)
+    @state_require_login()
     def on_load(self):
         """Initialize the page state."""
         self._global_load()
