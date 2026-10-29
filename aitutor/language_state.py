@@ -2385,6 +2385,14 @@ class BackendTranslations:
             en=f"The lesson context was truncated to {max_length:,} characters.",
         )
 
+    @staticmethod
+    def lesson_context_pdf_extraction_failed(language: Language) -> str:
+        return translate(
+            language,
+            de="Der Text konnte nicht aus dem PDF gelesen werden.",
+            en="Could not read text from the PDF.",
+        )
+
     # FinishedViewState ----------------------------------------------------------------
     @staticmethod
     def submission_deleted_title(language: Language) -> str:
