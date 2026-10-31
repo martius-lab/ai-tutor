@@ -925,6 +925,14 @@ class LanguageState(SessionState):
             en="You get this code from your lecturer",
         )
 
+    @rx.var
+    def allowed_email_domains_hint(self) -> str:
+        """Hint below the email field listing the allowed domains."""
+        return self.translate(
+            de="Nur Adressen dieser Domains sind erlaubt:",
+            en="Only addresses of these domains are allowed:",
+        )
+
     # Email Verification Page Strings --------------------------------------------------
 
     @rx.var
@@ -1144,6 +1152,36 @@ class LanguageState(SessionState):
                 "Code that is required to register an account.  Leave empty to allow"
                 " registration without a code."
             ),
+        )
+
+    @rx.var
+    def allowed_email_domains(self) -> str:
+        return self.translate(
+            de="Erlaubte E-Mail-Domains",
+            en="Allowed email domains",
+        )
+
+    @rx.var
+    def allowed_email_domains_info(self) -> str:
+        return self.translate(
+            de=(
+                "Liste der erlaubten E-Mail-Domains, getrennt durch Kommas, z. B."
+                " 'uni-tuebingen.de, example.com' (Subdomains eingeschlossen)."
+                "  Leer lassen, um alle Domains zu erlauben.  Betrifft nur neue"
+                " Registrierungen."
+            ),
+            en=(
+                "List of allowed email domains, separated by commas, e.g."
+                " 'uni-tuebingen.de, example.com' (subdomains included).  Leave empty"
+                " to allow all domains.  Only affects new registrations."
+            ),
+        )
+
+    @rx.var
+    def invalid_email_domains_hint(self) -> str:
+        return self.translate(
+            de="Ungültige Domains!",
+            en="Invalid domains!",
         )
 
     @rx.var
@@ -1842,6 +1880,14 @@ class BackendTranslations:
             language,
             de="Fehler: Die E-Mail-Adresse ist ungültig.",
             en="Error: The email address is not valid.",
+        )
+
+    @staticmethod
+    def error_email_domain_not_allowed(language: Language, domains: str) -> str:
+        return translate(
+            language,
+            de=f"Fehler: Nur E-Mail-Adressen dieser Domains sind erlaubt: {domains}",
+            en=f"Error: Only email addresses of these domains are allowed: {domains}",
         )
 
     @staticmethod

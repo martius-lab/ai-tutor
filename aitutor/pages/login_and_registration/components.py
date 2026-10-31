@@ -215,6 +215,16 @@ def register_form() -> rx.Component:
                 disabled=MyRegisterState.registration_in_progress,
                 max_length=AUTH_FIELD_MAX_LENGTHS["email"],
             ),
+            rx.cond(
+                MyRegisterState.allowed_email_domains,
+                rx.text(
+                    LanguageState.allowed_email_domains_hint,
+                    " ",
+                    MyRegisterState.allowed_email_domains,
+                    size="1",
+                    color_scheme="gray",
+                ),
+            ),
             rx.text(LanguageState.password),
             password_input(
                 "password",

@@ -29,6 +29,10 @@ from aitutor.models import (
     Permission,
     UserInfo,
 )
+from aitutor.utilities.email_domains import (
+    is_email_domain_allowed,
+    parse_email_domains,
+)
 from aitutor.verification import issue_token, resend_cooldown_remaining
 
 # check for the password max length in terms of bytes
@@ -322,6 +326,7 @@ class MyRegisterState(reflex_local_auth.RegistrationState):
     password: str = ""
     confirm_password: str = ""
     registration_code: str = ""
+    allowed_email_domains: str = ""
     welcome_email_failed: bool = False
     registration_in_progress: bool = False
 
@@ -359,10 +364,13 @@ class MyRegisterState(reflex_local_auth.RegistrationState):
     @rx.event
     def on_load(self):
         """function that gets called when the register page loads"""
+        config = get_config()
         self.clear_state_vars()
         self.error_message = ""
         self.success = False
-        self.needs_registration_code = bool(get_config().registration_code)
+        self.needs_registration_code = bool(config.registration_code)
+
+        self.allowed_email_domains = config.allowed_email_domains
 
         # Important: Clear the token to prevent a previous value from being used even if
         # the current URL does not contain a token.
@@ -386,6 +394,7 @@ class MyRegisterState(reflex_local_auth.RegistrationState):
         self.welcome_email_failed = False
         self.registration_in_progress = False
         self.needs_registration_code = False
+        self.allowed_email_domains = ""
 
     # This event handler must be named something besides `handle_registration`!!!
     @rx.event
@@ -422,6 +431,14 @@ class MyRegisterState(reflex_local_auth.RegistrationState):
                 return
 
             language = language_from_value(form_data.get("language"))
+
+            allowed_domains = parse_email_domains(get_config().allowed_email_domains)
+            if not is_email_domain_allowed(form_data["email"], allowed_domains):
+                self.error_message = BT.error_email_domain_not_allowed(
+                    language, ", ".join(allowed_domains)
+                )
+                return
+
             # check for allowed user name
             if not re.match(r"^[a-zA-Z0-9._-]+$", form_data["username"]):
                 self.error_message = (
