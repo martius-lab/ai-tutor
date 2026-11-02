@@ -1,5 +1,6 @@
 """The state for the manage exercises page."""
 
+import asyncio
 import io
 import json
 from datetime import datetime
@@ -495,48 +496,65 @@ class LectureManageExercisesState(FilterMixin, SessionState):
             data=json_data, filename=f"aitutor-exercises-{timestamp}.json"
         )
 
+    @staticmethod
+    def _extract_pdf_text(pdf_data: bytes, max_chars: int) -> str:
+        """Extract the text of a PDF, with line breaks and repeated spaces collapsed.
+
+        Stops reading further pages once ``max_chars`` characters are collected, since
+        the rest would be truncated anyway.
+        """
+
+        parts: list[str] = []
+        length = 0
+        with pdfplumber.open(io.BytesIO(pdf_data)) as pdf:
+            for page in pdf.pages:
+                page_text = " ".join(page.extract_text().split())
+                if not page_text:
+                    continue  # e.g. an empty or scanned page
+                parts.append(page_text)
+                length += len(page_text) + 1  # + 1 for the joining space
+                if length >= max_chars:
+                    break  # the rest would be truncated anyway
+        return " ".join(parts)
+
     @rx.event
     async def extract_lesson_material(self, files: list[rx.UploadFile]):
-        """Extract the lesson material as text."""
+        """Extract the text of the uploaded PDFs and append it to the lesson context."""
+        max_length = LECTURE_MANAGE_EXERCISES_FIELD_MAX_LENGTHS["lesson_context"]
         self.extracting_lesson_material = True
         yield
-        for file in files:
-            upload_data = await file.read()
-            # extract text from PDF
-            with pdfplumber.open(io.BytesIO(upload_data)) as pdf:
-                text = ""
-                for page in pdf.pages:
-                    text += page.extract_text()
-
-            # remove line breaks and double spaces
-            text = " ".join(text.replace("\n", " ").split())
-
-            # save PDF text in lesson_context (truncated to max length)
-            new_lesson_context = (
-                self.lesson_context
-                + "\n\n―――――――――――――――――――――――――――――――――\n"
-                + text
-                + "\n―――――――――――――――――――――――――――――――――\n\n"
-            )
-            self.set_lesson_context(new_lesson_context)
-            if (
-                len(new_lesson_context)
-                > LECTURE_MANAGE_EXERCISES_FIELD_MAX_LENGTHS["lesson_context"]
-            ):
-                yield rx.toast.warning(
-                    BT.lesson_context_pdf_truncated_warning_message(
-                        self.language,
-                        LECTURE_MANAGE_EXERCISES_FIELD_MAX_LENGTHS["lesson_context"],
-                    ),
-                    duration=10000,
-                    position="bottom-center",
-                    invert=True,
+        try:
+            for file in files:
+                remaining = max_length - len(self.lesson_context)
+                text = await asyncio.to_thread(
+                    self._extract_pdf_text, await file.read(), remaining
                 )
-
-            # save PDF name
-            self.lesson_file_name = file.name or "<unnamed file>"
-        self.extracting_lesson_material = False
-        yield
+                new_lesson_context = (
+                    self.lesson_context
+                    + "\n\n―――――――――――――――――――――――――――――――――\n"
+                    + text
+                    + "\n―――――――――――――――――――――――――――――――――\n\n"
+                )
+                self.set_lesson_context(new_lesson_context)  # truncates to max_length
+                if len(new_lesson_context) > max_length:
+                    yield rx.toast.warning(
+                        BT.lesson_context_pdf_truncated_warning_message(
+                            self.language, max_length
+                        ),
+                        duration=10000,
+                        position="bottom-center",
+                        invert=True,
+                    )
+                self.lesson_file_name = file.name or "<unnamed file>"
+        except Exception:
+            yield rx.toast.error(
+                BT.lesson_context_pdf_extraction_failed(self.language),
+                duration=10000,
+                position="bottom-center",
+                invert=True,
+            )
+        finally:
+            self.extracting_lesson_material = False
 
     @rx.event
     async def import_exercises(self, files: list[rx.UploadFile]):
