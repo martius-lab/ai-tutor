@@ -6,7 +6,7 @@ import logging
 from typing import override
 
 import reflex as rx
-from reflex_local_auth.auth_session import LocalAuthSession
+from aitutor.reflex_local_auth.auth_session import LocalAuthSession
 from sqlmodel import Session, select
 
 import aitutor.global_vars as gv

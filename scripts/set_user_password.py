@@ -115,7 +115,7 @@ def user_query():
     Returns:
         A SQLModel select statement yielding ``(LocalUser, UserInfo | None)`` rows.
     """
-    from reflex_local_auth.user import LocalUser
+    from aitutor.reflex_local_auth.user import LocalUser
     from sqlmodel import select
 
     from aitutor.models import UserInfo
@@ -135,8 +135,8 @@ def main() -> int:
     # Imported here, so the REFLEX_DB_URL override above is picked up and the script
     # can print its help without loading the (slow) reflex imports.
     import reflex as rx
-    from reflex_local_auth.auth_session import LocalAuthSession
-    from reflex_local_auth.user import LocalUser
+    from aitutor.reflex_local_auth.auth_session import LocalAuthSession
+    from aitutor.reflex_local_auth.user import LocalUser
     from sqlmodel import select
 
     from aitutor import global_vars as gv

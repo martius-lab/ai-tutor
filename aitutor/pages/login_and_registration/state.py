@@ -10,8 +10,8 @@ from typing import Any
 from zoneinfo import ZoneInfo
 
 import reflex as rx
-import reflex_local_auth
-from reflex_local_auth.user import LocalUser
+from aitutor import reflex_local_auth
+from aitutor.reflex_local_auth.user import LocalUser
 from sqlmodel import Session, func, select
 
 import aitutor.global_vars as gv

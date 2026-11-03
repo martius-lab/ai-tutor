@@ -1,8 +1,8 @@
 """Components for the login and for the registration page."""
 
 import reflex as rx
-import reflex_local_auth
-from reflex_local_auth.pages.components import MIN_WIDTH
+from aitutor import reflex_local_auth
+from aitutor.reflex_local_auth.pages.components import MIN_WIDTH
 
 from aitutor import components, routes
 from aitutor.language_state import LanguageState

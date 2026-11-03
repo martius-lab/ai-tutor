@@ -6,7 +6,7 @@ import functools
 from collections.abc import Sequence
 
 import reflex as rx
-from reflex_local_auth.login import LoginState
+from aitutor.reflex_local_auth.login import LoginState
 from sqlmodel import select
 
 from aitutor.auth.state import SessionState

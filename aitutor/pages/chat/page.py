@@ -1,7 +1,7 @@
 """This module contains the chat component."""
 
 import reflex as rx
-import reflex_local_auth
+from aitutor import reflex_local_auth
 
 from aitutor import routes
 from aitutor.language_state import LanguageState

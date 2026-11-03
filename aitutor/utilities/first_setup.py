@@ -1,7 +1,7 @@
 """Utility functions for first-time setup of the application."""
 
 import reflex as rx
-from reflex_local_auth.user import LocalUser
+from aitutor.reflex_local_auth.user import LocalUser
 from sqlmodel import select
 
 from aitutor.config import (

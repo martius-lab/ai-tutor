@@ -1,7 +1,7 @@
 """Page where the user can change their settings."""
 
 import reflex as rx
-import reflex_local_auth
+from aitutor import reflex_local_auth
 
 from aitutor.language_state import LanguageState as LS
 from aitutor.pages.navbar import with_navbar

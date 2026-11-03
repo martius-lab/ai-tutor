@@ -5,7 +5,7 @@ from typing import override
 
 import reflex as rx
 import sqlalchemy
-from reflex_local_auth.user import LocalUser
+from aitutor.reflex_local_auth.user import LocalUser
 from sqlalchemy.orm import selectinload
 from sqlmodel import and_, func, or_, select
 

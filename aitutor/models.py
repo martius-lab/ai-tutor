@@ -10,7 +10,7 @@ from zoneinfo import ZoneInfo
 
 import pydantic
 import sqlalchemy as sa
-from reflex_local_auth.user import LocalUser
+from aitutor.reflex_local_auth.user import LocalUser
 from sqlalchemy import ForeignKey as SAForeignKey
 from sqlmodel import (
     JSON,

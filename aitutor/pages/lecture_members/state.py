@@ -3,7 +3,7 @@
 from dataclasses import dataclass
 
 import reflex as rx
-from reflex_local_auth.user import LocalUser
+from aitutor.reflex_local_auth.user import LocalUser
 from sqlmodel import col, func, select
 
 import aitutor.global_vars as gv

@@ -1,7 +1,7 @@
 """State for the user settings page."""
 
 import reflex as rx
-from reflex_local_auth import LocalUser
+from aitutor.reflex_local_auth import LocalUser
 
 from aitutor.auth.state import SessionState
 from aitutor.language_state import BackendTranslations as BT

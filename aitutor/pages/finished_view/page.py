@@ -1,7 +1,7 @@
 """Displays the submitted chat messages"""
 
 import reflex as rx
-import reflex_local_auth
+from aitutor import reflex_local_auth
 
 import aitutor.global_vars as gv
 from aitutor import routes

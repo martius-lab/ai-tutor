@@ -4,8 +4,8 @@ from dataclasses import dataclass
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
-from reflex_local_auth.auth_session import LocalAuthSession
-from reflex_local_auth.user import LocalUser
+from aitutor.reflex_local_auth.auth_session import LocalAuthSession
+from aitutor.reflex_local_auth.user import LocalUser
 from sqlmodel import Session, select
 
 from aitutor.global_vars import TIME_ZONE, UNVERIFIED_ACCOUNT_RETENTION

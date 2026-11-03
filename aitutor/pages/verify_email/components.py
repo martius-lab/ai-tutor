@@ -2,7 +2,7 @@
 
 import reflex as rx
 from reflex_components_radix.themes.base import LiteralAccentColor
-from reflex_local_auth.pages.components import MIN_WIDTH
+from aitutor.reflex_local_auth.pages.components import MIN_WIDTH
 
 from aitutor import routes
 from aitutor.components.dialogs import TextLike

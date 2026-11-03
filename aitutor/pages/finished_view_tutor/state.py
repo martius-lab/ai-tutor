@@ -1,7 +1,7 @@
 """The state for the finished view page."""
 
 import reflex as rx
-from reflex_local_auth import LocalUser
+from aitutor.reflex_local_auth import LocalUser
 from sqlmodel import select
 
 from aitutor import routes

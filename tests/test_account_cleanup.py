@@ -2,8 +2,8 @@ from datetime import UTC, datetime, timedelta
 from zoneinfo import ZoneInfo
 
 import pytest
-from reflex_local_auth.auth_session import LocalAuthSession
-from reflex_local_auth.user import LocalUser
+from aitutor.reflex_local_auth.auth_session import LocalAuthSession
+from aitutor.reflex_local_auth.user import LocalUser
 from sqlalchemy import event
 from sqlmodel import Session, SQLModel, create_engine, select
 
