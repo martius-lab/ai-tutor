@@ -10,11 +10,10 @@ from typing import Any
 from zoneinfo import ZoneInfo
 
 import reflex as rx
-from aitutor import reflex_local_auth
-from aitutor.reflex_local_auth.user import LocalUser
 from sqlmodel import Session, func, select
 
 import aitutor.global_vars as gv
+from aitutor import reflex_local_auth
 from aitutor.account_emails import (
     send_email_verification_email,
     send_signup_welcome_email,
@@ -29,6 +28,7 @@ from aitutor.models import (
     Permission,
     UserInfo,
 )
+from aitutor.reflex_local_auth.user import LocalUser
 from aitutor.verification import issue_token, resend_cooldown_remaining
 
 # check for the password max length in terms of bytes

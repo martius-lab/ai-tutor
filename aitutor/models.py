@@ -10,7 +10,6 @@ from zoneinfo import ZoneInfo
 
 import pydantic
 import sqlalchemy as sa
-from aitutor.reflex_local_auth.user import LocalUser
 from sqlalchemy import ForeignKey as SAForeignKey
 from sqlmodel import (
     JSON,
@@ -26,6 +25,7 @@ from aitutor.global_vars import (
     TIME_ZONE,
     VERIFICATION_TOKEN_VALIDITY,
 )
+from aitutor.reflex_local_auth.user import LocalUser
 
 # For alembic to properly work, we need to set explicit naming conventions for
 # constraints.  See https://alembic.sqlalchemy.org/en/latest/naming.html

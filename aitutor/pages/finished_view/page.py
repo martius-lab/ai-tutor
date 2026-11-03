@@ -1,10 +1,9 @@
 """Displays the submitted chat messages"""
 
 import reflex as rx
-from aitutor import reflex_local_auth
 
 import aitutor.global_vars as gv
-from aitutor import routes
+from aitutor import reflex_local_auth, routes
 from aitutor.language_state import LanguageState
 from aitutor.pages.chat.components import message_box
 from aitutor.pages.finished_view.components import delete_submission_button

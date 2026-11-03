@@ -5,7 +5,6 @@ from typing import override
 
 import reflex as rx
 import sqlalchemy
-from aitutor.reflex_local_auth.user import LocalUser
 from sqlalchemy.orm import selectinload
 from sqlmodel import and_, func, or_, select
 
@@ -22,6 +21,7 @@ from aitutor.models import (
     Tag,
     UserInfo,
 )
+from aitutor.reflex_local_auth.user import LocalUser
 from aitutor.utilities.filtering_components import FilterMixin
 from aitutor.utilities.lecture_permissions import user_may_view_lecture_submissions
 

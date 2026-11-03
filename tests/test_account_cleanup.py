@@ -2,8 +2,6 @@ from datetime import UTC, datetime, timedelta
 from zoneinfo import ZoneInfo
 
 import pytest
-from aitutor.reflex_local_auth.auth_session import LocalAuthSession
-from aitutor.reflex_local_auth.user import LocalUser
 from sqlalchemy import event
 from sqlmodel import Session, SQLModel, create_engine, select
 
@@ -21,6 +19,8 @@ from aitutor.models import (
     VerificationPurpose,
     VerificationToken,
 )
+from aitutor.reflex_local_auth.auth_session import LocalAuthSession
+from aitutor.reflex_local_auth.user import LocalUser
 from aitutor.verification import issue_token
 
 NOW = datetime(2026, 9, 16, 12, 0, tzinfo=ZoneInfo(TIME_ZONE))

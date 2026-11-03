@@ -1,9 +1,8 @@
 """Displays the submitted chat messages for the tutor"""
 
 import reflex as rx
-from aitutor import reflex_local_auth
 
-from aitutor import routes
+from aitutor import reflex_local_auth, routes
 from aitutor.language_state import LanguageState
 from aitutor.pages.chat.components import message_box
 from aitutor.pages.finished_view_tutor.state import FinishedViewTutorState

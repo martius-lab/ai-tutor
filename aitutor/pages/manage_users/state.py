@@ -6,7 +6,6 @@ import logging
 from typing import override
 
 import reflex as rx
-from aitutor.reflex_local_auth.auth_session import LocalAuthSession
 from sqlmodel import Session, select
 
 import aitutor.global_vars as gv
@@ -23,6 +22,7 @@ from aitutor.models import (
     Permission,
     UserInfo,
 )
+from aitutor.reflex_local_auth.auth_session import LocalAuthSession
 from aitutor.utilities.filtering_components import FilterMixin
 from aitutor.verification import (
     cancel_pending_email_change,

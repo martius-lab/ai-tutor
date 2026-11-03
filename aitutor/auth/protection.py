@@ -6,12 +6,12 @@ import functools
 from collections.abc import Sequence
 
 import reflex as rx
-from aitutor.reflex_local_auth.login import LoginState
 from sqlmodel import select
 
 from aitutor.auth.state import SessionState
 from aitutor.language_state import LanguageState
 from aitutor.models import GlobalPermission, LectureRole, LinkUserLecture
+from aitutor.reflex_local_auth.login import LoginState
 
 
 class LectureAccessState(SessionState):

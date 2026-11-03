@@ -3,7 +3,6 @@
 from dataclasses import dataclass
 
 import reflex as rx
-from aitutor.reflex_local_auth.user import LocalUser
 from sqlmodel import col, func, select
 
 import aitutor.global_vars as gv
@@ -12,6 +11,7 @@ from aitutor.auth.protection import state_require_lecture_role
 from aitutor.auth.state import SessionState
 from aitutor.language_state import BackendTranslations as BT
 from aitutor.models import Lecture, LectureRole, LinkUserLecture
+from aitutor.reflex_local_auth.user import LocalUser
 from aitutor.utilities.lecture_permissions import (
     count_lecture_owners,
     get_user_lecture_link,

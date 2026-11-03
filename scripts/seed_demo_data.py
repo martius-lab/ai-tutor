@@ -419,10 +419,10 @@ def seed_user(session: Session, user: SeedUser) -> tuple[int, int]:
     Returns:
         The ids of the user's ``LocalUser`` and ``UserInfo``.
     """
-    from aitutor.reflex_local_auth.user import LocalUser
     from sqlmodel import select
 
     from aitutor.models import GlobalPermission, Permission, UserInfo
+    from aitutor.reflex_local_auth.user import LocalUser
     from aitutor.routes import VERIFY_EMAIL
     from aitutor.verification import issue_token
 
