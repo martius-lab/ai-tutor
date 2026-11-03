@@ -9,7 +9,7 @@ import reflex_local_auth
 from sqlmodel import select
 
 from aitutor import routes
-from aitutor.models import GlobalPermission, Language, Permission, UserInfo, UserRole
+from aitutor.models import GlobalPermission, Language, Permission, UserInfo
 
 
 class SessionState(reflex_local_auth.LocalAuthState):
@@ -86,18 +86,6 @@ class SessionState(reflex_local_auth.LocalAuthState):
         self.language = language
 
         return rx.redirect(routes.HOME, replace=True)
-
-    @rx.var(cache=True, initial_value=None)
-    def user_role(self) -> UserRole | None:
-        """
-        Retrieves the role of the authenticated user.
-
-        Returns:
-            UserRole: The role of the authenticated user.
-        """
-        if self._authenticated_user_info is None:
-            return None
-        return self._authenticated_user_info.role
 
     @rx.var(cache=True, initial_value=False)
     def is_global_admin(self) -> bool:

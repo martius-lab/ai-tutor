@@ -9,12 +9,7 @@ from aitutor.global_vars import (
     VERIFICATION_RESEND_COOLDOWN,
     VERIFICATION_TOKEN_VALIDITY,
 )
-from aitutor.models import (
-    UserInfo,
-    UserRole,
-    VerificationPurpose,
-    VerificationToken,
-)
+from aitutor.models import UserInfo, VerificationPurpose, VerificationToken
 from aitutor.verification import (
     RedeemResult,
     cancel_pending_email_change,
@@ -165,7 +160,7 @@ def test_resend_cooldown_is_per_purpose(session):
 
 def make_user_info(session, *, user_id=1, email="old@example.com"):
     """Create the UserInfo row a token redemption operates on."""
-    user_info = UserInfo(user_id=user_id, email=email, role=UserRole.STUDENT)
+    user_info = UserInfo(user_id=user_id, email=email)
     session.add(user_info)
     session.commit()
     return user_info

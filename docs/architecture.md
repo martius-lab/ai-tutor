@@ -21,12 +21,21 @@ To see how to add a new page to the app, have a look at the following commit. Th
 Commit Hash: `83f36d6f44070c84bb0d8affd5577fadb17bad06`
 
 ## States
-State files contain the functions that are used to process data and handle user interactions. These functions can be called from the frontend components.
+State files contain the functions that are used to process data and handle user
+interactions. These functions can be called from the frontend components.
 
-A state usually always has these two functions:
-- an `on_load()` function that is called when the page is loaded and therefore can be used to initialize variables. This function needs to be protected with the `@state_require_role_at_least(userrole)` decorator so that no data is loaded for unauthorized users.
+A state usually always has an `on_load()` method that is called when the page is
+loaded and therefore can be used to initialize variables.  States derived from
+`SessionState` should call `self._global_load()` as a first step in this method.
 
-To keep the state classes readable for everyone, we always order its content in the following order:
+All public state methods can be directly called from the front end!  Any such function
+that returns or modifies any data that requires some permission (being logged in or
+having a certain role/permission) needs to be protected with an appropriate decorator
+(`state_require_lecture_role`, `state_require_permission`, `state_require_login`, see
+`protection.py`).
+
+To keep the state classes readable for everyone, we always order its content in the
+following order:
 - state variables
 - setters for state variables
 - on_load function
