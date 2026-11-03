@@ -1,5 +1,9 @@
 # local-auth
 
+The reflex_local_auth package is based on https://github.com/masenf/reflex-local-auth
+
+------------------------
+
 Easy access to local authentication in your [Reflex](https://reflex.dev) app.
 
 ## Installation
