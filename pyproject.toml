@@ -67,7 +67,14 @@ extend-exclude = ["alembic"]
 [tool.pyright]
 # first three entries are the default excludes that get overwritten when using that
 # setting.
-exclude = ["**/node_modules", "**/__pycache__", "**/.*", "build", "alembic"]
+exclude = [
+    "**/node_modules",
+    "**/__pycache__",
+    "**/.*",
+    "build",
+    "alembic",
+    "aitutor/reflex_local_auth/local_auth_demo/",
+]
 
 [tool.uv.sources]
 python-lsp-pyright = { git = "https://github.com/luator/python-lsp-pyright.git" }
