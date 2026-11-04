@@ -176,6 +176,33 @@ def config_form() -> rx.Component:
                     max_length=CONFIG_FIELD_MAX_LENGTHS["registration_code"],
                 ),
                 input(
+                    name="allowed_email_domains",
+                    heading=LS.allowed_email_domains,
+                    value=ManageConfigState.current_config.allowed_email_domains,
+                    on_change=lambda value: ManageConfigState.set_config_value(
+                        "allowed_email_domains", value
+                    ),
+                    info=info_icon(LS.allowed_email_domains_info),
+                    max_length=CONFIG_FIELD_MAX_LENGTHS["allowed_email_domains"],
+                ),
+                rx.cond(
+                    ManageConfigState.invalid_email_domains,
+                    rx.callout(
+                        rx.vstack(
+                            rx.text(LS.invalid_email_domains_hint),
+                            rx.foreach(
+                                ManageConfigState.invalid_email_domains,
+                                lambda domain: rx.text(domain),
+                            ),
+                        ),
+                        icon="triangle-alert",
+                        color_scheme="red",
+                        size="1",
+                        width="40em",
+                        max_width="100%",
+                    ),
+                ),
+                input(
                     name="response_ai_model",
                     heading=LS.response_ai_model,
                     value=ManageConfigState.current_config.response_ai_model,
@@ -260,9 +287,9 @@ def config_form() -> rx.Component:
                     rx.button(
                         LS.save,
                         type="submit",
-                        disabled=~ManageConfigState.unsaved_changes,  # type: ignore
+                        disabled=~ManageConfigState.can_save,
                         _hover=rx.cond(
-                            ManageConfigState.unsaved_changes,
+                            ManageConfigState.can_save,
                             {"cursor": "pointer"},
                             {"cursor": "not-allowed"},
                         ),

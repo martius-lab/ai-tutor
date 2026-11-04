@@ -25,6 +25,10 @@ from aitutor.states.banner_state import (
     BannerState,
 )
 from aitutor.states.config_state import DisplayConfigState
+from aitutor.utilities.email_domains import (
+    find_invalid_email_domains,
+    parse_email_domains,
+)
 
 CONFIG_FIELD_MAX_LENGTHS: dict[str, int] = {
     "registration_code": gv.REGISTRATION_CODE_MAX_LEN,
@@ -33,6 +37,7 @@ CONFIG_FIELD_MAX_LENGTHS: dict[str, int] = {
     "how_to_use_text": 10_000,
     "general_information_text": 10_000,
     "impressum_text": 10_000,
+    "allowed_email_domains": 1_000,
 }
 
 empty_config: Config = Config(
@@ -47,6 +52,7 @@ empty_config: Config = Config(
     banner_message=INITIAL_BANNER_MESSAGE,
     banner_message_type=INITIAL_BANNER_MESSAGE_TYPE,
     banner_is_open=INITIAL_BANNER_IS_OPEN,
+    allowed_email_domains="failed to load!",
 )
 
 
@@ -106,6 +112,22 @@ class ManageConfigState(SessionState):
             and not self.current_config.banner_message.strip()
         )
 
+    @rx.var
+    def invalid_email_domains(self) -> list[str]:
+        """Returns the invalid email domains from the current config."""
+
+        return find_invalid_email_domains(self.current_config.allowed_email_domains)
+
+    @rx.var
+    def is_form_valid(self) -> bool:
+        """Whether all fields of the form are valid."""
+        return not self.is_banner_message_invalid and not self.invalid_email_domains
+
+    @rx.var
+    def can_save(self) -> bool:
+        """Whether there are changes and all of them are valid."""
+        return self.unsaved_changes and self.is_form_valid
+
     @rx.event
     @state_require_permission(_REQUIRED_PERMISSIONS)
     def on_load(self):
@@ -130,6 +152,16 @@ class ManageConfigState(SessionState):
                 invert=True,
             )
             return
+
+        if self.invalid_email_domains:
+            return
+
+        # Parse domains to remove whitespace, duplicates and empty entries,
+        # and store them in lower case.
+        self.current_config.allowed_email_domains = ", ".join(
+            parse_email_domains(self.current_config.allowed_email_domains)
+        )
+
         with rx.session() as session:
             db_config = session.get(Config, 1)
             if db_config:
@@ -147,6 +179,9 @@ class ManageConfigState(SessionState):
                 db_config.banner_message = self.current_config.banner_message
                 db_config.banner_message_type = self.current_config.banner_message_type
                 db_config.banner_is_open = self.current_config.banner_is_open
+                db_config.allowed_email_domains = (
+                    self.current_config.allowed_email_domains
+                )
                 session.add(db_config)
                 session.commit()
 
