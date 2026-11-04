@@ -1,14 +1,14 @@
 """The login and the registration page."""
 
 import reflex as rx
-from reflex_local_auth.pages.login import LoginState
-from reflex_local_auth.pages.registration import RegistrationState
 
 from aitutor.pages.login_and_registration.components import (
     login_form,
     register_form_wrapper,
 )
 from aitutor.pages.navbar import with_navbar
+from aitutor.reflex_local_auth.pages.login import LoginState
+from aitutor.reflex_local_auth.pages.registration import RegistrationState
 
 # login --------------------------------------------------------------------------------
 

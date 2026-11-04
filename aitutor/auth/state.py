@@ -5,10 +5,9 @@ The state for managing user sessions.
 from collections.abc import Callable
 
 import reflex as rx
-import reflex_local_auth
 from sqlmodel import select
 
-from aitutor import routes
+from aitutor import reflex_local_auth, routes
 from aitutor.models import GlobalPermission, Language, Permission, UserInfo
 
 

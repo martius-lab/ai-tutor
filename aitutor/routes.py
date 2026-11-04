@@ -2,7 +2,7 @@
 Defines the routes used in the AI Tutor application.
 """
 
-import reflex_local_auth
+from aitutor import reflex_local_auth
 
 HOME = "/"
 IMPRESSUM = "/impressum"

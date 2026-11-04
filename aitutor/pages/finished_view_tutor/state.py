@@ -1,7 +1,6 @@
 """The state for the finished view page."""
 
 import reflex as rx
-from reflex_local_auth import LocalUser
 from sqlmodel import select
 
 from aitutor import routes
@@ -9,6 +8,7 @@ from aitutor.auth.protection import state_require_login
 from aitutor.auth.state import SessionState
 from aitutor.models import Exercise, ExerciseResult, UserInfo
 from aitutor.pages.chat.state import ChatMessage, Role
+from aitutor.reflex_local_auth import LocalUser
 from aitutor.utilities.lecture_permissions import user_may_view_lecture_submissions
 
 

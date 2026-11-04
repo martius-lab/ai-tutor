@@ -1,10 +1,10 @@
 import pytest
-from reflex_local_auth.user import LocalUser
 from sqlmodel import Session, SQLModel, create_engine, select
 
 from aitutor.global_vars import PASSWORD_MAX_BYTES
 from aitutor.models import UserInfo
 from aitutor.pages.login_and_registration.state import LoginCheckOutcome, check_login
+from aitutor.reflex_local_auth.user import LocalUser
 
 PASSWORD = "correct horse battery staple"
 

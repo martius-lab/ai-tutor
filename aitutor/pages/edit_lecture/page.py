@@ -1,9 +1,8 @@
 """Lecture edit/create page."""
 
 import reflex as rx
-import reflex_local_auth
 
-from aitutor import routes
+from aitutor import reflex_local_auth, routes
 from aitutor.pages.edit_lecture.components import edit_lecture_content
 from aitutor.pages.edit_lecture.state import EditLectureState
 from aitutor.pages.navbar import with_navbar
