@@ -10,6 +10,7 @@ from reflex_local_auth.auth_session import LocalAuthSession
 from sqlmodel import Session, select
 
 import aitutor.global_vars as gv
+import aitutor.utilities.filtering_components as fc
 from aitutor.account_emails import send_email_verification_email
 from aitutor.auth.protection import state_require_permission
 from aitutor.auth.state import SessionState
@@ -54,7 +55,7 @@ class ManageUsersState(FilterMixin, SessionState):
     save_in_progress: bool = False
     resend_in_progress: bool = False
     #: Search keys for the search bar
-    search_keys: list[str] = [gv.SEARCH_USER_KEY]
+    search_keys: list[str] = [fc.USER.key]
 
     @rx.event
     @state_require_permission(_REQUIRED_PERMISSIONS)
