@@ -14,14 +14,14 @@ from aitutor.global_vars import (
     SEARCH_USER_KEY,
 )
 from aitutor.language_state import LanguageState
-from aitutor.utilities.parser import parse_query_keys
+from aitutor.utilities.parser import SearchTerm, parse_query_keys
 
 
 class FilterMixin(rx.State, mixin=True):
     """Mixin for filtering components."""
 
     # a list of search values, each a tuple of (key, value)
-    search_values: list[tuple[str, str]] = []
+    search_values: list[SearchTerm] = []
 
     # valid search keys. Needs to be overridden by parent class
     search_keys: list[str] = []
@@ -36,13 +36,13 @@ class FilterMixin(rx.State, mixin=True):
     def add_search_value(self, form_data: dict):
         """Adds a search value to the list of search values."""
         raw_val = form_data["search_value"][:SEARCH_TEXT_MAX_LEN]
-        parsed = parse_query_keys(raw_val, self.search_keys)
-        if parsed not in self.search_values:
-            self.search_values.append(parsed)
+        for term in parse_query_keys(raw_val, self.search_keys):
+            if term not in self.search_values:
+                self.search_values.append(term)
         self.load_filtered_data()
 
     @rx.event
-    def remove_search_value(self, value: tuple[str, str]):
+    def remove_search_value(self, value: SearchTerm):
         """Removes a search value from the list."""
         with contextlib.suppress(ValueError):
             self.search_values.remove(tuple[str, str](value))
