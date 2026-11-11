@@ -37,7 +37,7 @@ SEARCH_KEYS = [FREE_TEXT, TAG, USER, EXERCISE, TITLE, DESCRIPTION]
 class FilterMixin(rx.State, mixin=True):
     """Mixin for filtering components."""
 
-    # a list of search values, each a tuple of (key, value)
+    # a list of search values, each a SearchTerm(key, value)
     search_values: list[SearchTerm] = []
 
     # valid search keys. Needs to be overridden by parent class
@@ -62,7 +62,7 @@ class FilterMixin(rx.State, mixin=True):
     def remove_search_value(self, value: SearchTerm):
         """Removes a search value from the list."""
         with contextlib.suppress(ValueError):
-            self.search_values.remove(tuple[str, str](value))
+            self.search_values.remove(SearchTerm(*value))
         self.load_filtered_data()
 
 
