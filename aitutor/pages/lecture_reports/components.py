@@ -8,7 +8,7 @@ from aitutor.pages.lecture_reports.state import (
     LectureReportsState,
     LectureReportTableRow,
 )
-from aitutor.utilities.filtering_components import (
+from aitutor.search.state import (
     EXERCISE,
     USER,
 )

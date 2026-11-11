@@ -9,7 +9,7 @@ from reflex_local_auth.user import LocalUser
 from sqlalchemy.orm import selectinload
 from sqlmodel import and_, func, or_, select
 
-import aitutor.utilities.filtering_components as fc
+import aitutor.search.state as fc
 from aitutor import routes
 from aitutor.auth.protection import state_require_lecture_role
 from aitutor.auth.state import SessionState
@@ -22,7 +22,7 @@ from aitutor.models import (
     Tag,
     UserInfo,
 )
-from aitutor.utilities.filtering_components import FilterMixin
+from aitutor.search.state import FilterMixin
 from aitutor.utilities.lecture_permissions import user_may_view_lecture_submissions
 
 

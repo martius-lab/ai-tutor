@@ -9,7 +9,7 @@ from reflex.vars import ArrayVar
 from reflex_components_radix.themes.base import LiteralAccentColor
 
 from aitutor.language_state import LanguageState
-from aitutor.utilities.parser import FREE_TEXT_KEY, SearchTerm, parse_query_keys
+from aitutor.search.parser import FREE_TEXT_KEY, SearchTerm, parse_query_keys
 
 # maximum length of a search query typed by the user
 SEARCH_TEXT_MAX_LEN = 150

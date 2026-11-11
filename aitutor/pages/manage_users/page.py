@@ -9,7 +9,7 @@ from aitutor.pages.manage_users.components import edit_user_dialog, users_table
 from aitutor.pages.manage_users.state import ManageUsersState
 from aitutor.pages.navbar import with_navbar
 from aitutor.pages.navbar_admin import with_admin_navbar
-from aitutor.utilities.filtering_components import search_badges, search_bar
+from aitutor.search.state import search_badges, search_bar
 
 
 @page_require_permission(allowed_permissions=[GlobalPermission.MAINTAINER])
