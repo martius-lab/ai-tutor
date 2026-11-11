@@ -15,7 +15,7 @@ from sqlalchemy.orm import selectinload
 from sqlmodel import and_, func, or_, select
 
 import aitutor.global_vars as gv
-import aitutor.utilities.filtering_components as fc
+import aitutor.search.state as fc
 from aitutor import routes
 from aitutor.auth.protection import state_require_lecture_role
 from aitutor.auth.state import SessionState
@@ -29,7 +29,7 @@ from aitutor.models import (
     Prompt,
     Tag,
 )
-from aitutor.utilities.filtering_components import FilterMixin
+from aitutor.search.state import FilterMixin
 from aitutor.utilities.lecture_permissions import user_may_manage_lecture_exercises
 
 LECTURE_MANAGE_EXERCISES_FIELD_MAX_LENGTHS = {

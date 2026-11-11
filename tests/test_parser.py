@@ -1,6 +1,6 @@
 import pytest
 
-from aitutor.utilities.parser import parse_query_keys
+from aitutor.search.parser import parse_query_keys
 
 KEYS = ["tag", "user", "exercise"]
 

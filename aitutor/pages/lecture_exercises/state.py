@@ -8,13 +8,13 @@ import reflex as rx
 from sqlalchemy.orm import selectinload
 from sqlmodel import and_, func, or_, select
 
-import aitutor.utilities.filtering_components as fc
+import aitutor.search.state as fc
 from aitutor import routes
 from aitutor.auth.protection import state_require_lecture_role
 from aitutor.auth.state import SessionState
 from aitutor.global_vars import TIME_FORMAT, TIME_ZONE
 from aitutor.models import Exercise, ExerciseResult, Lecture, LectureRole, Tag
-from aitutor.utilities.filtering_components import FilterMixin
+from aitutor.search.state import FilterMixin
 from aitutor.utilities.lecture_permissions import (
     get_user_lecture_role,
     user_may_view_lecture,

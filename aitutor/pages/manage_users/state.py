@@ -10,7 +10,7 @@ from reflex_local_auth.auth_session import LocalAuthSession
 from sqlmodel import Session, select
 
 import aitutor.global_vars as gv
-import aitutor.utilities.filtering_components as fc
+import aitutor.search.state as fc
 from aitutor.account_emails import send_email_verification_email
 from aitutor.auth.protection import state_require_permission
 from aitutor.auth.state import SessionState
@@ -24,7 +24,7 @@ from aitutor.models import (
     Permission,
     UserInfo,
 )
-from aitutor.utilities.filtering_components import FilterMixin
+from aitutor.search.state import FilterMixin
 from aitutor.verification import (
     cancel_pending_email_change,
     get_pending_email_changes,

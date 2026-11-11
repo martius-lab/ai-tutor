@@ -16,7 +16,7 @@ from aitutor.pages.lecture_manage_exercises.components import (
 from aitutor.pages.lecture_manage_exercises.state import LectureManageExercisesState
 from aitutor.pages.navbar import with_navbar
 from aitutor.pages.navbar_specific_lecture import with_specific_lecture_navbar
-from aitutor.utilities.filtering_components import search_badges, search_bar
+from aitutor.search.state import search_badges, search_bar
 
 
 @page_require_lecture_role(LectureRole.OWNER)
