@@ -5,7 +5,6 @@ from collections.abc import Sequence
 import reflex as rx
 from sqlmodel import and_, select
 
-import aitutor.global_vars as GV
 from aitutor.auth.protection import state_require_login
 from aitutor.auth.state import SessionState
 from aitutor.language_state import BackendTranslations as BT
@@ -15,13 +14,14 @@ from aitutor.models import (
     LectureRole,
     LinkUserLecture,
 )
+from aitutor.utilities.filtering_components import SEARCH_TEXT_MAX_LEN
 from aitutor.utilities.lecture_permissions import (
     count_lecture_owners,
     get_user_lecture_link,
 )
 
 MY_LECTURES_FIELD_MAX_LENGTHS: dict[str, int] = {
-    "search_text": GV.SEARCH_TEXT_MAX_LEN,
+    "search_text": SEARCH_TEXT_MAX_LEN,
 }
 
 LectureWithRole = tuple[Lecture, int | None]

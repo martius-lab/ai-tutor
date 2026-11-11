@@ -8,7 +8,7 @@ from sqlalchemy import and_, or_
 from sqlalchemy.orm import selectinload
 from sqlmodel import select
 
-import aitutor.global_vars as gv
+import aitutor.utilities.filtering_components as fc
 from aitutor import routes
 from aitutor.auth.protection import state_require_lecture_role
 from aitutor.auth.state import SessionState
@@ -46,8 +46,8 @@ class LectureReportsState(FilterMixin, SessionState):
 
     # valid search keys
     search_keys: list[str] = [
-        gv.SEARCH_USER_KEY,
-        gv.SEARCH_EXERCISE_KEY,
+        fc.USER.key,
+        fc.EXERCISE.key,
     ]
 
     @rx.event
@@ -107,7 +107,7 @@ class LectureReportsState(FilterMixin, SessionState):
                 search_conditions = []
                 for key, value in self.search_values:
                     match key:
-                        case gv.SEARCH_USER_KEY:
+                        case fc.USER.key:
                             stmt = stmt.join(UserInfo, Report.userinfo).join(  # type: ignore
                                 LocalUser,
                                 UserInfo.local_user,  # type: ignore
@@ -115,7 +115,7 @@ class LectureReportsState(FilterMixin, SessionState):
                             search_conditions.append(
                                 LocalUser.username.ilike(f"%{value}%")  # type: ignore
                             )
-                        case gv.SEARCH_EXERCISE_KEY:
+                        case fc.EXERCISE.key:
                             stmt = stmt.outerjoin(Exercise, Report.exercise)  # type: ignore
                             search_conditions.append(Exercise.title.ilike(f"%{value}%"))  # type: ignore
 
