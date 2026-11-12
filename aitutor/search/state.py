@@ -2,13 +2,29 @@
 
 import contextlib
 from abc import abstractmethod
+from enum import StrEnum
+from typing import Any
 
 import reflex as rx
 
-from aitutor.search.parser import SearchTerm, parse_query_keys
+from aitutor.search.parser import FREE_TEXT_KEY, SearchTerm, parse_query_keys
 
-# maximum length of a search query typed by the user
+#: maximum length of a search query typed by the user
 SEARCH_TEXT_MAX_LEN = 150
+
+#: name of the search bar's input field (also used by click-to-filter).
+SEARCH_INPUT_NAME = "search_value"
+
+
+class SearchKey(StrEnum):
+    """Keys usable in a search query, e.g. `tag:python`."""
+
+    FREE_TEXT = FREE_TEXT_KEY  # terms without a key
+    TAG = "tag"
+    USER = "user"
+    EXERCISE = "exercise"
+    TITLE = "title"
+    DESCRIPTION = "description"
 
 
 class FilterMixin(rx.State, mixin=True):
@@ -27,9 +43,9 @@ class FilterMixin(rx.State, mixin=True):
         raise NotImplementedError
 
     @rx.event
-    def add_search_value(self, form_data: dict):
+    def add_search_value(self, form_data: dict[str, Any]):
         """Adds a search value to the list of search values."""
-        raw_val = form_data["search_value"][:SEARCH_TEXT_MAX_LEN]
+        raw_val = form_data[SEARCH_INPUT_NAME][:SEARCH_TEXT_MAX_LEN]
         for term in parse_query_keys(raw_val, self.search_keys):
             if term not in self.search_values:
                 self.search_values.append(term)

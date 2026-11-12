@@ -1,16 +1,47 @@
 """UI components for searching tables: the search bar and the search badges."""
 
+from types import MappingProxyType
+from typing import NamedTuple
+
 import reflex as rx
 from reflex.vars import ArrayVar
+from reflex_components_radix.themes.base import LiteralAccentColor
 
 from aitutor.language_state import LanguageState
-from aitutor.search.keys import FREE_TEXT, SEARCH_KEYS, SearchKey
 from aitutor.search.parser import SearchTerm
-from aitutor.search.state import SEARCH_TEXT_MAX_LEN, FilterMixin
+from aitutor.search.state import (
+    SEARCH_INPUT_NAME,
+    SEARCH_TEXT_MAX_LEN,
+    FilterMixin,
+    SearchKey,
+)
+
+
+class BadgeStyle(NamedTuple):
+    """Icon and color of a search badge."""
+
+    icon: str
+    color: LiteralAccentColor
+
+
+# Used for free text and for any key without its own style.
+_FALLBACK_STYLE = BadgeStyle("search", "gray")
+
+#: Badge style per search key (read-only).
+BADGE_STYLES = MappingProxyType(
+    {
+        SearchKey.FREE_TEXT: _FALLBACK_STYLE,
+        SearchKey.TAG: BadgeStyle("tag", "indigo"),
+        SearchKey.USER: BadgeStyle("user-round", "cyan"),
+        SearchKey.EXERCISE: BadgeStyle("book", "violet"),
+        SearchKey.TITLE: BadgeStyle("book", "violet"),
+        SearchKey.DESCRIPTION: BadgeStyle("book-open-text", "violet"),
+    }
+)
 
 
 def search_bar(state: type[FilterMixin]) -> rx.Component:
-    """Search bar for the input of search values."""
+    """Search bar for entering a search query."""
     return rx.form.root(
         rx.hstack(
             rx.dialog.root(
@@ -35,7 +66,7 @@ def search_bar(state: type[FilterMixin]) -> rx.Component:
             ),
             rx.input(
                 rx.input.slot(rx.icon("search")),
-                name="search_value",
+                name=SEARCH_INPUT_NAME,
                 placeholder=LanguageState.search_placeholder,
                 required=True,
                 max_width="60vw",
@@ -54,9 +85,9 @@ def search_bar(state: type[FilterMixin]) -> rx.Component:
 
 
 def search_badges(state: type[FilterMixin]) -> rx.Component:
-    """Display search badges, styled by their key."""
+    """Display the active search terms as badges, styled by their key."""
 
-    def badge(term: ArrayVar[SearchTerm], style: SearchKey) -> rx.Component:
+    def badge(term: ArrayVar[SearchTerm], style: BadgeStyle) -> rx.Component:
         return rx.badge(
             rx.hstack(
                 rx.icon(style.icon, size=16),
@@ -73,10 +104,15 @@ def search_badges(state: type[FilterMixin]) -> rx.Component:
             variant="soft",
         )
 
-    def styled_badge(term: ArrayVar[SearchTerm]):
-        cases = [(k.key, badge(term, k)) for k in SEARCH_KEYS]
-        return rx.match(term[0], *cases, badge(term, FREE_TEXT))
+    def styled_badge(term: ArrayVar[SearchTerm]) -> rx.Component | rx.Var:
+        cases = [(key, badge(term, style)) for key, style in BADGE_STYLES.items()]
+        return rx.match(term[0], *cases, badge(term, _FALLBACK_STYLE))
 
-    return rx.hstack(
-        rx.foreach(state.search_values, styled_badge), spacing="2", wrap="wrap"
+    return rx.cond(
+        state.search_values,
+        rx.hstack(
+            rx.foreach(state.search_values, styled_badge),
+            spacing="2",
+            wrap="wrap",
+        ),
     )

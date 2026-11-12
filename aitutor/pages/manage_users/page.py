@@ -20,10 +20,7 @@ def manage_users_page() -> rx.Component:
     return rx.center(
         rx.vstack(
             search_bar(ManageUsersState),
-            rx.cond(
-                ManageUsersState.search_values.length() > 0,  # type: ignore
-                search_badges(ManageUsersState),
-            ),
+            search_badges(ManageUsersState),
             users_table(),
             edit_user_dialog(),
             spacing="3",
