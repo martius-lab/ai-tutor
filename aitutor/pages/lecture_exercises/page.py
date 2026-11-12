@@ -32,10 +32,7 @@ def lecture_exercises_page() -> rx.Component:
             ),
             rx.vstack(
                 search_bar(LectureExercisesState),
-                rx.cond(
-                    LectureExercisesState.search_values.length() > 0,  # type: ignore
-                    search_badges(LectureExercisesState),
-                ),
+                search_badges(LectureExercisesState),
                 rx.desktop_only(
                     rx.hstack(
                         filter_options(),
