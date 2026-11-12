@@ -8,7 +8,7 @@ from aitutor.pages.lecture_reports.state import (
     LectureReportsState,
     LectureReportTableRow,
 )
-from aitutor.search.state import (
+from aitutor.search.keys import (
     EXERCISE,
     USER,
 )
