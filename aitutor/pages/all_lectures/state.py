@@ -12,7 +12,7 @@ from aitutor.auth.protection import state_require_login
 from aitutor.auth.state import SessionState
 from aitutor.language_state import BackendTranslations as BT
 from aitutor.models import Lecture, LectureRole, LinkUserLecture
-from aitutor.utilities.filtering_components import SEARCH_TEXT_MAX_LEN
+from aitutor.search.state import SEARCH_TEXT_MAX_LEN
 
 ALL_LECTURES_FIELD_MAX_LENGTHS: dict[str, int] = {
     "search_text": SEARCH_TEXT_MAX_LEN,

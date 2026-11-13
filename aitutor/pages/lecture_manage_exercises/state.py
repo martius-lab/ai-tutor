@@ -15,7 +15,6 @@ from sqlalchemy.orm import selectinload
 from sqlmodel import and_, func, or_, select
 
 import aitutor.global_vars as gv
-import aitutor.utilities.filtering_components as fc
 from aitutor import routes
 from aitutor.auth.protection import state_require_lecture_role
 from aitutor.auth.state import SessionState
@@ -29,7 +28,8 @@ from aitutor.models import (
     Prompt,
     Tag,
 )
-from aitutor.utilities.filtering_components import FilterMixin
+from aitutor.search import keys
+from aitutor.search.state import FilterMixin
 from aitutor.utilities.lecture_permissions import user_may_manage_lecture_exercises
 
 LECTURE_MANAGE_EXERCISES_FIELD_MAX_LENGTHS = {
@@ -238,7 +238,7 @@ class LectureManageExercisesState(FilterMixin, SessionState):
     tag_list: list[Tag] = []
     tag_names: list[str] = []
     # valid search keys. overrides the var from FilterMixin
-    search_keys: list[str] = [fc.EXERCISE.key, fc.TAG.key]
+    search_keys: list[str] = [keys.EXERCISE.key, keys.TAG.key]
     #: the current exercise to be edited
     current_exercise: Exercise = Exercise()
     #: List to store selected tags temporarily
@@ -736,9 +736,9 @@ class LectureManageExercisesState(FilterMixin, SessionState):
                 search_conditions = []
                 for key, value in self.search_values:
                     match key:
-                        case fc.EXERCISE.key:
+                        case keys.EXERCISE.key:
                             search_conditions.append(Exercise.title.ilike(f"%{value}%"))  # type: ignore
-                        case fc.TAG.key:
+                        case keys.TAG.key:
                             search_conditions.append(
                                 Exercise.tags.any(Tag.name.ilike(f"%{value}%"))  # type: ignore
                             )
