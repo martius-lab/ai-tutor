@@ -19,8 +19,7 @@ from aitutor.models import (
     Report,
     UserInfo,
 )
-from aitutor.search import keys
-from aitutor.search.state import FilterMixin
+from aitutor.search.state import FilterMixin, SearchKey
 from aitutor.utilities.lecture_permissions import user_may_view_lecture_submissions
 
 REPORT_PREVIEW_LENGTH = 20  # Number of characters to show in table preview
@@ -46,8 +45,8 @@ class LectureReportsState(FilterMixin, SessionState):
 
     # valid search keys
     search_keys: list[str] = [
-        keys.USER.key,
-        keys.EXERCISE.key,
+        SearchKey.USER,
+        SearchKey.EXERCISE,
     ]
 
     @rx.event
@@ -107,7 +106,7 @@ class LectureReportsState(FilterMixin, SessionState):
                 search_conditions = []
                 for key, value in self.search_values:
                     match key:
-                        case keys.USER.key:
+                        case SearchKey.USER:
                             stmt = stmt.join(UserInfo, Report.userinfo).join(  # type: ignore
                                 LocalUser,
                                 UserInfo.local_user,  # type: ignore
@@ -115,7 +114,7 @@ class LectureReportsState(FilterMixin, SessionState):
                             search_conditions.append(
                                 LocalUser.username.ilike(f"%{value}%")  # type: ignore
                             )
-                        case keys.EXERCISE.key:
+                        case SearchKey.EXERCISE:
                             stmt = stmt.outerjoin(Exercise, Report.exercise)  # type: ignore
                             search_conditions.append(Exercise.title.ilike(f"%{value}%"))  # type: ignore
 

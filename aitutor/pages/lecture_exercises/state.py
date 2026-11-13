@@ -13,8 +13,7 @@ from aitutor.auth.protection import state_require_lecture_role
 from aitutor.auth.state import SessionState
 from aitutor.global_vars import TIME_FORMAT, TIME_ZONE
 from aitutor.models import Exercise, ExerciseResult, Lecture, LectureRole, Tag
-from aitutor.search import keys
-from aitutor.search.state import FilterMixin
+from aitutor.search.state import FilterMixin, SearchKey
 from aitutor.utilities.lecture_permissions import (
     get_user_lecture_role,
     user_may_view_lecture,
@@ -37,9 +36,9 @@ class LectureExercisesState(FilterMixin, SessionState):
 
     # valid search keys. overrides the var from FilterMixin
     search_keys: list[str] = [
-        keys.TITLE.key,
-        keys.DESCRIPTION.key,
-        keys.TAG.key,
+        SearchKey.TITLE,
+        SearchKey.DESCRIPTION,
+        SearchKey.TAG,
     ]
 
     @rx.event
@@ -190,15 +189,15 @@ class LectureExercisesState(FilterMixin, SessionState):
                 search_conditions = []
                 for key, value in self.search_values:
                     match key:
-                        case keys.TITLE.key:
+                        case SearchKey.TITLE:
                             search_conditions.append(
                                 Exercise.title.ilike(f"%{value}%")  # type: ignore
                             )
-                        case keys.DESCRIPTION.key:
+                        case SearchKey.DESCRIPTION:
                             search_conditions.append(
                                 Exercise.description.ilike(f"%{value}%")  # type: ignore
                             )
-                        case keys.TAG.key:
+                        case SearchKey.TAG:
                             search_conditions.append(
                                 Exercise.tags.any(Tag.name.ilike(f"%{value}%"))  # type: ignore
                             )

@@ -21,8 +21,7 @@ from aitutor.models import (
     Tag,
     UserInfo,
 )
-from aitutor.search import keys
-from aitutor.search.state import FilterMixin
+from aitutor.search.state import FilterMixin, SearchKey
 from aitutor.utilities.lecture_permissions import user_may_view_lecture_submissions
 
 
@@ -47,9 +46,9 @@ class LectureSubmissionsState(FilterMixin, SessionState):
 
     # valid search keys. overrides the var from FilterMixin
     search_keys: list[str] = [
-        keys.USER.key,
-        keys.EXERCISE.key,
-        keys.TAG.key,
+        SearchKey.USER,
+        SearchKey.EXERCISE,
+        SearchKey.TAG,
     ]
 
     @rx.event
@@ -132,15 +131,15 @@ class LectureSubmissionsState(FilterMixin, SessionState):
                 search_conditions = []
                 for key, value in self.search_values:
                     match key:
-                        case keys.USER.key:
+                        case SearchKey.USER:
                             search_conditions.append(
                                 LocalUser.username.ilike(f"%{value}%")  # type: ignore
                             )
-                        case keys.EXERCISE.key:
+                        case SearchKey.EXERCISE:
                             search_conditions.append(
                                 Exercise.title.ilike(f"%{value}%")  # type: ignore
                             )
-                        case keys.TAG.key:
+                        case SearchKey.TAG:
                             search_conditions.append(
                                 Exercise.tags.any(Tag.name.ilike(f"%{value}%"))  # type: ignore
                             )
