@@ -42,3 +42,9 @@ def test_parse_query_keys(query, expected):
 
 def test_parse_query_keys_without_keys():
     assert parse_query_keys("tag:python", []) == [("rest", "tag:python")]
+
+
+def test_parse_query_keys_returns_named_terms():
+    term = parse_query_keys("tag:python", ["tag"])[0]
+    assert term.key == "tag"
+    assert term.value == "python"

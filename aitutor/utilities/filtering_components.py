@@ -37,7 +37,7 @@ SEARCH_KEYS = [FREE_TEXT, TAG, USER, EXERCISE, TITLE, DESCRIPTION]
 class FilterMixin(rx.State, mixin=True):
     """Mixin for filtering components."""
 
-    # a list of search values, each a tuple of (key, value)
+    # a list of search values, each a SearchTerm(key, value)
     search_values: list[SearchTerm] = []
 
     # valid search keys. Needs to be overridden by parent class
@@ -59,10 +59,10 @@ class FilterMixin(rx.State, mixin=True):
         self.load_filtered_data()
 
     @rx.event
-    def remove_search_value(self, value: SearchTerm):
-        """Removes a search value from the list."""
+    def remove_search_value(self, key: str, value: str):
+        """Removes the search term with the given key and value."""
         with contextlib.suppress(ValueError):
-            self.search_values.remove(tuple[str, str](value))
+            self.search_values.remove(SearchTerm(key, value))
         self.load_filtered_data()
 
 
@@ -120,7 +120,7 @@ def search_badges(state: type[FilterMixin]) -> rx.Component:
                 rx.text(term[1]),
                 rx.icon(
                     "x",
-                    on_click=state.remove_search_value(term),
+                    on_click=state.remove_search_value(term[0], term[1]),
                     _hover={"cursor": "pointer"},
                 ),
                 spacing="1",
