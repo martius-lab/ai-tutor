@@ -3,15 +3,15 @@
 import reflex as rx
 
 from aitutor import routes
-from aitutor.global_vars import (
-    SEARCH_EXERCISE_KEY,
-    SEARCH_TAG_KEY,
-    SEARCH_USER_KEY,
-)
 from aitutor.language_state import LanguageState
 from aitutor.pages.lecture_submissions.state import (
     LectureSubmissionsState,
     LectureSubmissionTableRow,
+)
+from aitutor.utilities.filtering_components import (
+    EXERCISE,
+    TAG,
+    USER,
 )
 
 
@@ -33,14 +33,14 @@ def show_table_row(table_row: LectureSubmissionTableRow) -> rx.Component:
         rx.table.cell(
             table_row.username,
             on_click=LectureSubmissionsState.add_search_value(
-                {"search_value": f'{SEARCH_USER_KEY}:"{table_row.username}"'}
+                {"search_value": f'{USER.key}:"{table_row.username}"'}
             ),
             _hover={"cursor": "pointer"},
         ),
         rx.table.cell(
             table_row.exercise_title,
             on_click=LectureSubmissionsState.add_search_value(
-                {"search_value": f'{SEARCH_EXERCISE_KEY}:"{table_row.exercise_title}"'}
+                {"search_value": f'{EXERCISE.key}:"{table_row.exercise_title}"'}
             ),
             _hover={"cursor": "pointer"},
         ),
@@ -52,7 +52,7 @@ def show_table_row(table_row: LectureSubmissionTableRow) -> rx.Component:
                         tag,
                         variant="soft",
                         on_click=LectureSubmissionsState.add_search_value(
-                            {"search_value": f'{SEARCH_TAG_KEY}:"{tag}"'}
+                            {"search_value": f'{TAG.key}:"{tag}"'}
                         ),
                         _hover={"cursor": "pointer"},
                     ),

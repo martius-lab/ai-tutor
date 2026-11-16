@@ -46,6 +46,7 @@ I’m looking forward to working with you!
         banner_message="",
         banner_message_type=BannerMessageType.INFO,
         banner_is_open=False,
+        allowed_email_domains="",
     )
 
 
@@ -97,6 +98,7 @@ def get_config() -> Config:
             banner_message=_config.banner_message,
             banner_message_type=_parse_banner_message_type(_config.banner_message_type),
             banner_is_open=_config.banner_is_open,
+            allowed_email_domains=_config.allowed_email_domains,
         )
 
 

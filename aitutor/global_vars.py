@@ -9,13 +9,6 @@ MOMENT_DEADLINE_FORMAT = "DD.MM.YYYY, HH:mm"
 MOMENT_DATETIME_FORMAT = "YYYY-MM-DD HH:mm"
 TIME_ZONE = "Europe/Berlin"
 
-# ---- Search related global variables ----
-SEARCH_USER_KEY = "user"
-SEARCH_EXERCISE_KEY = "exercise"
-SEARCH_TAG_KEY = "tag"
-SEARCH_EXERCISE_TITLE_KEY = "title"
-SEARCH_EXERCISE_DESCRIPTION_KEY = "description"
-
 DEFAULT_CHECK_CONVERSATION_PROMPT = """Check if the answers of the student answered the exercise correctly.
 If the student did not answer correctly, respond with what the errors are but do not give the solution.
 If the student answered correctly, you can write one sentence that the student answered correctly and the task is finished."""  # noqa: E501
@@ -34,9 +27,6 @@ USERNAME_MAX_LEN = 100
 EMAIL_MAX_LEN = 254
 PASSWORD_MAX_BYTES = 72
 REGISTRATION_CODE_MAX_LEN = 150
-
-# Search
-SEARCH_TEXT_MAX_LEN = 150
 
 # Chat
 CHAT_MESSAGE_MAX_LEN = 15_000

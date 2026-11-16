@@ -5,7 +5,7 @@ from collections.abc import Sequence
 import reflex as rx
 
 from aitutor.components.dialogs import destructive_confirm
-from aitutor.global_vars import SEARCH_TAG_KEY, TIME_ZONE
+from aitutor.global_vars import TIME_ZONE
 from aitutor.language_state import LanguageState
 from aitutor.models import Exercise
 from aitutor.pages.lecture_manage_exercises.state import (
@@ -19,6 +19,7 @@ from aitutor.pages.lecture_manage_exercises.state import (
 from aitutor.pages.lecture_manage_exercises.state import (
     LectureManageTagsState as ManageTagsState,
 )
+from aitutor.utilities.filtering_components import TAG
 from aitutor.utilities.helper_functions import truncate_text_reflex_var
 
 
@@ -278,7 +279,7 @@ def show_exercise(exercise: Exercise):
                         tag.name,
                         variant="soft",
                         on_click=ManageExercisesState.add_search_value(
-                            {"search_value": f'{SEARCH_TAG_KEY}:"{tag.name}"'}
+                            {"search_value": f'{TAG.key}:"{tag.name}"'}
                         ),
                         _hover={"cursor": "pointer"},
                     ),

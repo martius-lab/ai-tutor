@@ -3,14 +3,14 @@
 import reflex as rx
 
 from aitutor.components.dialogs import destructive_confirm
-from aitutor.global_vars import (
-    SEARCH_EXERCISE_KEY,
-    SEARCH_USER_KEY,
-)
 from aitutor.language_state import LanguageState
 from aitutor.pages.lecture_reports.state import (
     LectureReportsState,
     LectureReportTableRow,
+)
+from aitutor.utilities.filtering_components import (
+    EXERCISE,
+    USER,
 )
 
 
@@ -32,7 +32,7 @@ def show_table_row(table_row: LectureReportTableRow) -> rx.Component:
         rx.table.cell(
             table_row.username,
             on_click=LectureReportsState.add_search_value(
-                {"search_value": f'{SEARCH_USER_KEY}:"{table_row.username}"'}
+                {"search_value": f'{USER.key}:"{table_row.username}"'}
             ),
             _hover={"cursor": "pointer"},
         ),
@@ -45,7 +45,7 @@ def show_table_row(table_row: LectureReportTableRow) -> rx.Component:
                     on_click=LectureReportsState.add_search_value(
                         {
                             "search_value": (
-                                f'{SEARCH_EXERCISE_KEY}:"{table_row.exercise_title}"'
+                                f'{EXERCISE.key}:"{table_row.exercise_title}"'
                             )
                         }
                     ),

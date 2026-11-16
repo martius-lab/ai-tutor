@@ -15,6 +15,7 @@ from sqlalchemy.orm import selectinload
 from sqlmodel import and_, func, or_, select
 
 import aitutor.global_vars as gv
+import aitutor.utilities.filtering_components as fc
 from aitutor import routes
 from aitutor.auth.protection import state_require_lecture_role
 from aitutor.auth.state import SessionState
@@ -237,7 +238,7 @@ class LectureManageExercisesState(FilterMixin, SessionState):
     tag_list: list[Tag] = []
     tag_names: list[str] = []
     # valid search keys. overrides the var from FilterMixin
-    search_keys: list[str] = [gv.SEARCH_EXERCISE_KEY, gv.SEARCH_TAG_KEY]
+    search_keys: list[str] = [fc.EXERCISE.key, fc.TAG.key]
     #: the current exercise to be edited
     current_exercise: Exercise = Exercise()
     #: List to store selected tags temporarily
@@ -735,9 +736,9 @@ class LectureManageExercisesState(FilterMixin, SessionState):
                 search_conditions = []
                 for key, value in self.search_values:
                     match key:
-                        case gv.SEARCH_EXERCISE_KEY:
+                        case fc.EXERCISE.key:
                             search_conditions.append(Exercise.title.ilike(f"%{value}%"))  # type: ignore
-                        case gv.SEARCH_TAG_KEY:
+                        case fc.TAG.key:
                             search_conditions.append(
                                 Exercise.tags.any(Tag.name.ilike(f"%{value}%"))  # type: ignore
                             )

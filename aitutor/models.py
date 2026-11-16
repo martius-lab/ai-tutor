@@ -361,6 +361,11 @@ class Config(SQLModel, table=True):
     banner_message_type: BannerMessageType = Field(default=BannerMessageType.INFO)
     #: Whether to show the info banner or not.
     banner_is_open: bool = Field(default=False)
+    #: Comma-separated list of email domains that are allowed to register an
+    #: account.  If empty, all domains are allowed.
+    allowed_email_domains: str = Field(
+        default="", sa_column_kwargs={"server_default": ""}
+    )
 
     def __repr__(self):
         return f"<Config(id={self.id})>"

@@ -8,7 +8,7 @@ import reflex as rx
 from sqlalchemy.orm import selectinload
 from sqlmodel import and_, func, or_, select
 
-import aitutor.global_vars as gv
+import aitutor.utilities.filtering_components as fc
 from aitutor import routes
 from aitutor.auth.protection import state_require_lecture_role
 from aitutor.auth.state import SessionState
@@ -37,9 +37,9 @@ class LectureExercisesState(FilterMixin, SessionState):
 
     # valid search keys. overrides the var from FilterMixin
     search_keys: list[str] = [
-        gv.SEARCH_EXERCISE_TITLE_KEY,
-        gv.SEARCH_EXERCISE_DESCRIPTION_KEY,
-        gv.SEARCH_TAG_KEY,
+        fc.TITLE.key,
+        fc.DESCRIPTION.key,
+        fc.TAG.key,
     ]
 
     @rx.event
@@ -190,15 +190,15 @@ class LectureExercisesState(FilterMixin, SessionState):
                 search_conditions = []
                 for key, value in self.search_values:
                     match key:
-                        case gv.SEARCH_EXERCISE_TITLE_KEY:
+                        case fc.TITLE.key:
                             search_conditions.append(
                                 Exercise.title.ilike(f"%{value}%")  # type: ignore
                             )
-                        case gv.SEARCH_EXERCISE_DESCRIPTION_KEY:
+                        case fc.DESCRIPTION.key:
                             search_conditions.append(
                                 Exercise.description.ilike(f"%{value}%")  # type: ignore
                             )
-                        case gv.SEARCH_TAG_KEY:
+                        case fc.TAG.key:
                             search_conditions.append(
                                 Exercise.tags.any(Tag.name.ilike(f"%{value}%"))  # type: ignore
                             )

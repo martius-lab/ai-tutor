@@ -2,26 +2,43 @@
 
 import contextlib
 from abc import abstractmethod
+from typing import NamedTuple
 
 import reflex as rx
+from reflex.vars import ArrayVar
+from reflex_components_radix.themes.base import LiteralAccentColor
 
-from aitutor.global_vars import (
-    SEARCH_EXERCISE_DESCRIPTION_KEY,
-    SEARCH_EXERCISE_KEY,
-    SEARCH_EXERCISE_TITLE_KEY,
-    SEARCH_TAG_KEY,
-    SEARCH_TEXT_MAX_LEN,
-    SEARCH_USER_KEY,
-)
 from aitutor.language_state import LanguageState
-from aitutor.utilities.parser import parse_query_keys
+from aitutor.utilities.parser import FREE_TEXT_KEY, SearchTerm, parse_query_keys
+
+# maximum length of a search query typed by the user
+SEARCH_TEXT_MAX_LEN = 150
+
+
+class SearchKey(NamedTuple):
+    """A search key (`tag:python`) and the look of its badge."""
+
+    key: str
+    icon: str
+    color: LiteralAccentColor
+
+
+# search keys with the look (icon + color) of their badge
+FREE_TEXT = SearchKey(FREE_TEXT_KEY, "search", "gray")  # also used for unknown keys
+TAG = SearchKey("tag", "tag", "indigo")
+USER = SearchKey("user", "user-round", "cyan")
+EXERCISE = SearchKey("exercise", "book", "violet")
+TITLE = SearchKey("title", "book", "violet")
+DESCRIPTION = SearchKey("description", "book-open-text", "violet")
+
+SEARCH_KEYS = [FREE_TEXT, TAG, USER, EXERCISE, TITLE, DESCRIPTION]
 
 
 class FilterMixin(rx.State, mixin=True):
     """Mixin for filtering components."""
 
-    # a list of search values, each a tuple of (key, value)
-    search_values: list[tuple[str, str]] = []
+    # a list of search values, each a SearchTerm(key, value)
+    search_values: list[SearchTerm] = []
 
     # valid search keys. Needs to be overridden by parent class
     search_keys: list[str] = []
@@ -36,16 +53,16 @@ class FilterMixin(rx.State, mixin=True):
     def add_search_value(self, form_data: dict):
         """Adds a search value to the list of search values."""
         raw_val = form_data["search_value"][:SEARCH_TEXT_MAX_LEN]
-        parsed = parse_query_keys(raw_val, self.search_keys)
-        if parsed not in self.search_values:
-            self.search_values.append(parsed)
+        for term in parse_query_keys(raw_val, self.search_keys):
+            if term not in self.search_values:
+                self.search_values.append(term)
         self.load_filtered_data()
 
     @rx.event
-    def remove_search_value(self, value: tuple[str, str]):
-        """Removes a search value from the list."""
+    def remove_search_value(self, key: str, value: str):
+        """Removes the search term with the given key and value."""
         with contextlib.suppress(ValueError):
-            self.search_values.remove(tuple[str, str](value))
+            self.search_values.remove(SearchTerm(key, value))
         self.load_filtered_data()
 
 
@@ -94,44 +111,29 @@ def search_bar(state: type[FilterMixin]) -> rx.Component:
 
 
 def search_badges(state: type[FilterMixin]) -> rx.Component:
-    """Display search badges for the current search values."""
-    return rx.hstack(
-        rx.foreach(
-            state.search_values,
-            lambda value: rx.badge(
-                rx.hstack(
-                    rx.cond(
-                        value[0] == SEARCH_USER_KEY,
-                        rx.icon("user-round", size=18),
-                    ),
-                    rx.cond(
-                        value[0] == SEARCH_EXERCISE_KEY,
-                        rx.icon("book", size=18),
-                    ),
-                    rx.cond(
-                        value[0] == SEARCH_TAG_KEY,
-                        rx.icon("tag", size=18),
-                    ),
-                    rx.cond(
-                        value[0] == SEARCH_EXERCISE_TITLE_KEY,
-                        rx.icon("book", size=18),
-                    ),
-                    rx.cond(
-                        value[0] == SEARCH_EXERCISE_DESCRIPTION_KEY,
-                        rx.icon("text", size=18),
-                    ),
-                    rx.text(value[1]),
-                    rx.icon(
-                        "x",
-                        on_click=state.remove_search_value(value),
-                        _hover={"cursor": "pointer"},
-                    ),
-                    spacing="1",
-                    align="center",
+    """Display search badges, styled by their key."""
+
+    def badge(term: ArrayVar[SearchTerm], style: SearchKey) -> rx.Component:
+        return rx.badge(
+            rx.hstack(
+                rx.icon(style.icon, size=16),
+                rx.text(term[1]),
+                rx.icon(
+                    "x",
+                    on_click=state.remove_search_value(term[0], term[1]),
+                    _hover={"cursor": "pointer"},
                 ),
-                variant="solid",
+                spacing="1",
+                align="center",
             ),
-        ),
-        spacing="2",
-        wrap="wrap",
+            color_scheme=style.color,
+            variant="soft",
+        )
+
+    def styled_badge(term: ArrayVar[SearchTerm]):
+        cases = [(k.key, badge(term, k)) for k in SEARCH_KEYS]
+        return rx.match(term[0], *cases, badge(term, FREE_TEXT))
+
+    return rx.hstack(
+        rx.foreach(state.search_values, styled_badge), spacing="2", wrap="wrap"
     )
