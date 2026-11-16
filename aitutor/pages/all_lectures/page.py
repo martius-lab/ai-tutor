@@ -1,9 +1,8 @@
 """All lectures page."""
 
 import reflex as rx
-import reflex_local_auth
 
-from aitutor import routes
+from aitutor import reflex_local_auth, routes
 from aitutor.pages.all_lectures.components import all_lectures_content
 from aitutor.pages.navbar import with_navbar
 

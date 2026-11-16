@@ -2,12 +2,12 @@
 
 import reflex as rx
 from reflex_components_radix.themes.base import LiteralAccentColor
-from reflex_local_auth.pages.components import MIN_WIDTH
 
 from aitutor import routes
 from aitutor.components.dialogs import TextLike
 from aitutor.language_state import LanguageState as LS
 from aitutor.pages.verify_email.state import VerifyEmailState
+from aitutor.reflex_local_auth.pages.components import MIN_WIDTH
 from aitutor.verification import RedeemResult
 
 

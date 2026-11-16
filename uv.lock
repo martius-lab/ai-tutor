@@ -17,7 +17,6 @@ dependencies = [
     { name = "pyparsing" },
     { name = "pytest" },
     { name = "reflex", extra = ["db"] },
-    { name = "reflex-local-auth" },
 ]
 
 [package.dev-dependencies]
@@ -47,7 +46,6 @@ requires-dist = [
     { name = "pyparsing", specifier = ">=3.2.3" },
     { name = "pytest" },
     { name = "reflex", extras = ["db"] },
-    { name = "reflex-local-auth", specifier = ">=0.4.0" },
 ]
 
 [package.metadata.requires-dev]
@@ -1811,19 +1809,6 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/9e/dd/461504ffd09599f3156514fd43f2a9067d9e09ae6a0d182e80bd2dfeaadc/reflex_hosting_cli-0.1.72.tar.gz", hash = "sha256:095cca6ed6b73f765a4ea6c3bbe120be0a4f1e9cd1bca4aed6777dbab7737481", size = 82027, upload-time = "2026-09-11T20:26:56.488Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/aa/96/2b5fab44b53ff5e66df5ae9664dc3407e4e36b458c4bb283cf6775da06be/reflex_hosting_cli-0.1.72-py3-none-any.whl", hash = "sha256:86fdbb2de80ff1b6062d9445949574e5af013ec5ad96793bd55e9db9127522b1", size = 92818, upload-time = "2026-09-11T20:26:55.238Z" },
-]
-
-[[package]]
-name = "reflex-local-auth"
-version = "0.5.0"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "bcrypt" },
-    { name = "reflex", extra = ["db"] },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/d0/04/6c1f6f8834e269e3513430f00486478642eec142cc4c90abe5e503755a62/reflex_local_auth-0.5.0.tar.gz", hash = "sha256:3618e85bbeab6d28c8ec87cdff534093b194f5ab86539c8947a3a12f862ada8c", size = 19961, upload-time = "2026-05-12T22:14:57.618Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/bc/23/d976fc02040b591eab1548be9058fdc21d37d9ad24da5c573ee2031b306e/reflex_local_auth-0.5.0-py3-none-any.whl", hash = "sha256:40553135e6aac73791a286628a089a860009199f832642924b518ab3a3eb313b", size = 12159, upload-time = "2026-05-12T22:14:58.676Z" },
 ]
 
 [[package]]
