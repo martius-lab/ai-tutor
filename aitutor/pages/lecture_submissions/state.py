@@ -7,7 +7,7 @@ import reflex as rx
 import sqlalchemy
 from reflex_local_auth.user import LocalUser
 from sqlalchemy.orm import selectinload
-from sqlmodel import and_, func, or_, select
+from sqlmodel import func, or_, select
 
 from aitutor import routes
 from aitutor.auth.protection import state_require_lecture_role
@@ -21,8 +21,24 @@ from aitutor.models import (
     Tag,
     UserInfo,
 )
+from aitutor.search.query import SearchFields, any_of
 from aitutor.search.state import SearchKey, SearchMixin
 from aitutor.utilities.lecture_permissions import user_may_view_lecture_submissions
+
+
+def _username(value: str):
+    """Search field: username."""
+    return LocalUser.username.ilike(f"%{value}%")  # type: ignore
+
+
+def _exercise_title(value: str):
+    """Search field: exercise title."""
+    return Exercise.title.ilike(f"%{value}%")  # type: ignore
+
+
+def _exercise_tag(value: str):
+    """Search field: one of the exercise's tags."""
+    return Exercise.tags.any(Tag.name.ilike(f"%{value}%"))  # type: ignore
 
 
 @dataclass
@@ -50,6 +66,16 @@ class LectureSubmissionsState(SearchMixin, SessionState):
         SearchKey.EXERCISE,
         SearchKey.TAG,
     ]
+
+    @override
+    @classmethod
+    def _search_fields(cls) -> SearchFields:
+        return {
+            SearchKey.USER: _username,
+            SearchKey.EXERCISE: _exercise_title,
+            SearchKey.TAG: _exercise_tag,
+            SearchKey.FREE_TEXT: any_of(_username, _exercise_title, _exercise_tag),
+        }
 
     @rx.event
     @state_require_lecture_role(LectureRole.TUTOR)
@@ -126,32 +152,7 @@ class LectureSubmissionsState(SearchMixin, SessionState):
                 )
             )
 
-            # filter with search values
-            if self.search_values:
-                search_conditions = []
-                for key, value in self.search_values:
-                    match key:
-                        case SearchKey.USER:
-                            search_conditions.append(
-                                LocalUser.username.ilike(f"%{value}%")  # type: ignore
-                            )
-                        case SearchKey.EXERCISE:
-                            search_conditions.append(
-                                Exercise.title.ilike(f"%{value}%")  # type: ignore
-                            )
-                        case SearchKey.TAG:
-                            search_conditions.append(
-                                Exercise.tags.any(Tag.name.ilike(f"%{value}%"))  # type: ignore
-                            )
-                        case _:
-                            search_conditions.append(
-                                sqlalchemy.or_(
-                                    LocalUser.username.ilike(f"%{value}%"),  # type: ignore
-                                    Exercise.title.ilike(f"%{value}%"),  # type: ignore
-                                    Exercise.tags.any(Tag.name.ilike(f"%{value}%")),  # type: ignore
-                                )
-                            )
-                stmt = stmt.where(and_(*search_conditions))
+            stmt = stmt.where(self._search_condition())
 
             # get submissions from db
             self.table_rows = [
