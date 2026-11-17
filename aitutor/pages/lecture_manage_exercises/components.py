@@ -19,7 +19,7 @@ from aitutor.pages.lecture_manage_exercises.state import (
 from aitutor.pages.lecture_manage_exercises.state import (
     LectureManageTagsState as ManageTagsState,
 )
-from aitutor.search.keys import TAG
+from aitutor.search.state import SEARCH_INPUT_NAME, SearchKey
 from aitutor.utilities.helper_functions import truncate_text_reflex_var
 
 
@@ -279,7 +279,7 @@ def show_exercise(exercise: Exercise):
                         tag.name,
                         variant="soft",
                         on_click=ManageExercisesState.add_search_value(
-                            {"search_value": f'{TAG.key}:"{tag.name}"'}
+                            {SEARCH_INPUT_NAME: f'{SearchKey.TAG}:"{tag.name}"'}
                         ),
                         _hover={"cursor": "pointer"},
                     ),

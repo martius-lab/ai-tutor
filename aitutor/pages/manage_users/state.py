@@ -23,8 +23,7 @@ from aitutor.models import (
     Permission,
     UserInfo,
 )
-from aitutor.search import keys
-from aitutor.search.state import FilterMixin
+from aitutor.search.state import FilterMixin, SearchKey
 from aitutor.verification import (
     cancel_pending_email_change,
     get_pending_email_changes,
@@ -55,7 +54,7 @@ class ManageUsersState(FilterMixin, SessionState):
     save_in_progress: bool = False
     resend_in_progress: bool = False
     #: Search keys for the search bar
-    search_keys: list[str] = [keys.USER.key]
+    search_keys: list[str] = [SearchKey.USER]
 
     @rx.event
     @state_require_permission(_REQUIRED_PERMISSIONS)

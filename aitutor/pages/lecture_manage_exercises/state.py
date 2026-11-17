@@ -28,8 +28,7 @@ from aitutor.models import (
     Prompt,
     Tag,
 )
-from aitutor.search import keys
-from aitutor.search.state import FilterMixin
+from aitutor.search.state import FilterMixin, SearchKey
 from aitutor.utilities.lecture_permissions import user_may_manage_lecture_exercises
 
 LECTURE_MANAGE_EXERCISES_FIELD_MAX_LENGTHS = {
@@ -238,7 +237,7 @@ class LectureManageExercisesState(FilterMixin, SessionState):
     tag_list: list[Tag] = []
     tag_names: list[str] = []
     # valid search keys. overrides the var from FilterMixin
-    search_keys: list[str] = [keys.EXERCISE.key, keys.TAG.key]
+    search_keys: list[str] = [SearchKey.EXERCISE, SearchKey.TAG]
     #: the current exercise to be edited
     current_exercise: Exercise = Exercise()
     #: List to store selected tags temporarily
@@ -736,9 +735,9 @@ class LectureManageExercisesState(FilterMixin, SessionState):
                 search_conditions = []
                 for key, value in self.search_values:
                     match key:
-                        case keys.EXERCISE.key:
+                        case SearchKey.EXERCISE:
                             search_conditions.append(Exercise.title.ilike(f"%{value}%"))  # type: ignore
-                        case keys.TAG.key:
+                        case SearchKey.TAG:
                             search_conditions.append(
                                 Exercise.tags.any(Tag.name.ilike(f"%{value}%"))  # type: ignore
                             )

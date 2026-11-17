@@ -8,11 +8,7 @@ from aitutor.pages.lecture_submissions.state import (
     LectureSubmissionsState,
     LectureSubmissionTableRow,
 )
-from aitutor.search.keys import (
-    EXERCISE,
-    TAG,
-    USER,
-)
+from aitutor.search.state import SEARCH_INPUT_NAME, SearchKey
 
 
 def header_cell(text, icon: str):
@@ -33,14 +29,18 @@ def show_table_row(table_row: LectureSubmissionTableRow) -> rx.Component:
         rx.table.cell(
             table_row.username,
             on_click=LectureSubmissionsState.add_search_value(
-                {"search_value": f'{USER.key}:"{table_row.username}"'}
+                {SEARCH_INPUT_NAME: f'{SearchKey.USER}:"{table_row.username}"'}
             ),
             _hover={"cursor": "pointer"},
         ),
         rx.table.cell(
             table_row.exercise_title,
             on_click=LectureSubmissionsState.add_search_value(
-                {"search_value": f'{EXERCISE.key}:"{table_row.exercise_title}"'}
+                {
+                    SEARCH_INPUT_NAME: (
+                        f'{SearchKey.EXERCISE}:"{table_row.exercise_title}"'
+                    )
+                }
             ),
             _hover={"cursor": "pointer"},
         ),
@@ -52,7 +52,7 @@ def show_table_row(table_row: LectureSubmissionTableRow) -> rx.Component:
                         tag,
                         variant="soft",
                         on_click=LectureSubmissionsState.add_search_value(
-                            {"search_value": f'{TAG.key}:"{tag}"'}
+                            {SEARCH_INPUT_NAME: f'{SearchKey.TAG}:"{tag}"'}
                         ),
                         _hover={"cursor": "pointer"},
                     ),

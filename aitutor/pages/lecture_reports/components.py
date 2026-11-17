@@ -8,10 +8,7 @@ from aitutor.pages.lecture_reports.state import (
     LectureReportsState,
     LectureReportTableRow,
 )
-from aitutor.search.keys import (
-    EXERCISE,
-    USER,
-)
+from aitutor.search.state import SEARCH_INPUT_NAME, SearchKey
 
 
 def header_cell(text, icon: str):
@@ -32,7 +29,7 @@ def show_table_row(table_row: LectureReportTableRow) -> rx.Component:
         rx.table.cell(
             table_row.username,
             on_click=LectureReportsState.add_search_value(
-                {"search_value": f'{USER.key}:"{table_row.username}"'}
+                {SEARCH_INPUT_NAME: f'{SearchKey.USER}:"{table_row.username}"'}
             ),
             _hover={"cursor": "pointer"},
         ),
@@ -44,8 +41,8 @@ def show_table_row(table_row: LectureReportTableRow) -> rx.Component:
                     table_row.exercise_title,
                     on_click=LectureReportsState.add_search_value(
                         {
-                            "search_value": (
-                                f'{EXERCISE.key}:"{table_row.exercise_title}"'
+                            SEARCH_INPUT_NAME: (
+                                f'{SearchKey.EXERCISE}:"{table_row.exercise_title}"'
                             )
                         }
                     ),
