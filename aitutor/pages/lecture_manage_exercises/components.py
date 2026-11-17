@@ -19,7 +19,7 @@ from aitutor.pages.lecture_manage_exercises.state import (
 from aitutor.pages.lecture_manage_exercises.state import (
     LectureManageTagsState as ManageTagsState,
 )
-from aitutor.utilities.filtering_components import TAG
+from aitutor.search.keys import TAG
 from aitutor.utilities.helper_functions import truncate_text_reflex_var
 
 

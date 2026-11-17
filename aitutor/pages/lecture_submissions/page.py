@@ -9,7 +9,7 @@ from aitutor.pages.lecture_submissions.components import lecture_submissions_tab
 from aitutor.pages.lecture_submissions.state import LectureSubmissionsState
 from aitutor.pages.navbar import with_navbar
 from aitutor.pages.navbar_specific_lecture import with_specific_lecture_navbar
-from aitutor.utilities.filtering_components import search_badges, search_bar
+from aitutor.search.components import search_badges, search_bar
 
 
 def lecture_submissions_content() -> rx.Component:

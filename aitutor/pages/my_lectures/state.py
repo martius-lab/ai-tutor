@@ -14,7 +14,7 @@ from aitutor.models import (
     LectureRole,
     LinkUserLecture,
 )
-from aitutor.utilities.filtering_components import SEARCH_TEXT_MAX_LEN
+from aitutor.search.state import SEARCH_TEXT_MAX_LEN
 from aitutor.utilities.lecture_permissions import (
     count_lecture_owners,
     get_user_lecture_link,

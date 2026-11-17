@@ -9,7 +9,6 @@ from reflex_local_auth.user import LocalUser
 from sqlalchemy.orm import selectinload
 from sqlmodel import and_, func, or_, select
 
-import aitutor.utilities.filtering_components as fc
 from aitutor import routes
 from aitutor.auth.protection import state_require_lecture_role
 from aitutor.auth.state import SessionState
@@ -22,7 +21,8 @@ from aitutor.models import (
     Tag,
     UserInfo,
 )
-from aitutor.utilities.filtering_components import FilterMixin
+from aitutor.search import keys
+from aitutor.search.state import FilterMixin
 from aitutor.utilities.lecture_permissions import user_may_view_lecture_submissions
 
 
@@ -47,9 +47,9 @@ class LectureSubmissionsState(FilterMixin, SessionState):
 
     # valid search keys. overrides the var from FilterMixin
     search_keys: list[str] = [
-        fc.USER.key,
-        fc.EXERCISE.key,
-        fc.TAG.key,
+        keys.USER.key,
+        keys.EXERCISE.key,
+        keys.TAG.key,
     ]
 
     @rx.event
@@ -132,15 +132,15 @@ class LectureSubmissionsState(FilterMixin, SessionState):
                 search_conditions = []
                 for key, value in self.search_values:
                     match key:
-                        case fc.USER.key:
+                        case keys.USER.key:
                             search_conditions.append(
                                 LocalUser.username.ilike(f"%{value}%")  # type: ignore
                             )
-                        case fc.EXERCISE.key:
+                        case keys.EXERCISE.key:
                             search_conditions.append(
                                 Exercise.title.ilike(f"%{value}%")  # type: ignore
                             )
-                        case fc.TAG.key:
+                        case keys.TAG.key:
                             search_conditions.append(
                                 Exercise.tags.any(Tag.name.ilike(f"%{value}%"))  # type: ignore
                             )

@@ -8,7 +8,7 @@ from aitutor.pages.lecture_submissions.state import (
     LectureSubmissionsState,
     LectureSubmissionTableRow,
 )
-from aitutor.utilities.filtering_components import (
+from aitutor.search.keys import (
     EXERCISE,
     TAG,
     USER,
