@@ -6,13 +6,14 @@ from zoneinfo import ZoneInfo
 
 import reflex as rx
 from sqlalchemy.orm import selectinload
-from sqlmodel import and_, func, or_, select
+from sqlmodel import and_, func, select
 
 from aitutor import routes
 from aitutor.auth.protection import state_require_lecture_role
 from aitutor.auth.state import SessionState
 from aitutor.global_vars import TIME_FORMAT, TIME_ZONE
 from aitutor.models import Exercise, ExerciseResult, Lecture, LectureRole, Tag
+from aitutor.search.query import SearchFields, any_of
 from aitutor.search.state import SearchKey, SearchMixin
 from aitutor.utilities.lecture_permissions import (
     get_user_lecture_role,
@@ -20,6 +21,21 @@ from aitutor.utilities.lecture_permissions import (
 )
 
 ExerciseWithResult = tuple[Exercise, ExerciseResult | None]
+
+
+def _exercise_title(value: str):
+    """Search field: exercise title."""
+    return Exercise.title.ilike(f"%{value}%")  # type: ignore
+
+
+def _exercise_tag(value: str):
+    """Search field: one of the exercise's tags."""
+    return Exercise.tags.any(Tag.name.ilike(f"%{value}%"))  # type: ignore
+
+
+def _exercise_description(value: str):
+    """Search field: exercise description."""
+    return Exercise.description.ilike(f"%{value}%")  # type: ignore
 
 
 class LectureExercisesState(SearchMixin, SessionState):
@@ -40,6 +56,18 @@ class LectureExercisesState(SearchMixin, SessionState):
         SearchKey.DESCRIPTION,
         SearchKey.TAG,
     ]
+
+    @override
+    @classmethod
+    def _search_fields(cls) -> SearchFields:
+        return {
+            SearchKey.TITLE: _exercise_title,
+            SearchKey.DESCRIPTION: _exercise_description,
+            SearchKey.TAG: _exercise_tag,
+            SearchKey.FREE_TEXT: any_of(
+                _exercise_title, _exercise_description, _exercise_tag
+            ),
+        }
 
     @rx.event
     @state_require_lecture_role(LectureRole.STUDENT)
@@ -184,34 +212,7 @@ class LectureExercisesState(SearchMixin, SessionState):
             if not show_hidden:
                 stmt = stmt.where(Exercise.is_hidden == False)  # noqa: E712
 
-            # filtering logic
-            if self.search_values:
-                search_conditions = []
-                for key, value in self.search_values:
-                    match key:
-                        case SearchKey.TITLE:
-                            search_conditions.append(
-                                Exercise.title.ilike(f"%{value}%")  # type: ignore
-                            )
-                        case SearchKey.DESCRIPTION:
-                            search_conditions.append(
-                                Exercise.description.ilike(f"%{value}%")  # type: ignore
-                            )
-                        case SearchKey.TAG:
-                            search_conditions.append(
-                                Exercise.tags.any(Tag.name.ilike(f"%{value}%"))  # type: ignore
-                            )
-                        case _:
-                            # Default search across title, description and tags
-                            search_conditions.append(
-                                or_(
-                                    Exercise.title.ilike(f"%{value}%"),  # type: ignore
-                                    Exercise.description.ilike(f"%{value}%"),  # type: ignore
-                                    Exercise.tags.any(Tag.name.ilike(f"%{value}%")),  # type: ignore
-                                )
-                            )
-                # Apply all conditions with AND
-                stmt = stmt.where(and_(*search_conditions))
+            stmt = stmt.where(self._search_condition())
 
             # fill self.exercises_with_result
             exercises_with_result = session.exec(
