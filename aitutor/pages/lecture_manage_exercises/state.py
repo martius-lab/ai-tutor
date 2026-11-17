@@ -28,7 +28,7 @@ from aitutor.models import (
     Prompt,
     Tag,
 )
-from aitutor.search.state import FilterMixin, SearchKey
+from aitutor.search.state import SearchKey, SearchMixin
 from aitutor.utilities.lecture_permissions import user_may_manage_lecture_exercises
 
 LECTURE_MANAGE_EXERCISES_FIELD_MAX_LENGTHS = {
@@ -222,7 +222,7 @@ def _import_exercises(lecture_id: int, file_content: bytes):
     return len(exercises_list), new_prompts, prompt_renames
 
 
-class LectureManageExercisesState(FilterMixin, SessionState):
+class LectureManageExercisesState(SearchMixin, SessionState):
     """State for managing exercises belonging to one lecture."""
 
     # Flags to control if dialogs are open.  They are needed as a workaround due to a
@@ -236,7 +236,7 @@ class LectureManageExercisesState(FilterMixin, SessionState):
     exercises: list[Exercise] = []
     tag_list: list[Tag] = []
     tag_names: list[str] = []
-    # valid search keys. overrides the var from FilterMixin
+    # valid search keys. overrides the var from SearchMixin
     search_keys: list[str] = [SearchKey.EXERCISE, SearchKey.TAG]
     #: the current exercise to be edited
     current_exercise: Exercise = Exercise()
@@ -707,7 +707,7 @@ class LectureManageExercisesState(FilterMixin, SessionState):
     @override
     @rx.event
     def load_filtered_data(self):
-        """implements the abstract method from FilterMixin"""
+        """implements the abstract method from SearchMixin"""
         self.load_exercises()
 
     def load_exercises(self):

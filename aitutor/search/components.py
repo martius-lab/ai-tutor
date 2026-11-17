@@ -12,8 +12,8 @@ from aitutor.search.parser import SearchTerm
 from aitutor.search.state import (
     SEARCH_INPUT_NAME,
     SEARCH_TEXT_MAX_LEN,
-    FilterMixin,
     SearchKey,
+    SearchMixin,
 )
 
 
@@ -40,7 +40,7 @@ BADGE_STYLES = MappingProxyType(
 )
 
 
-def search_bar(state: type[FilterMixin]) -> rx.Component:
+def search_bar(state: type[SearchMixin]) -> rx.Component:
     """Search bar for entering a search query."""
     return rx.form.root(
         rx.hstack(
@@ -84,7 +84,7 @@ def search_bar(state: type[FilterMixin]) -> rx.Component:
     )
 
 
-def search_badges(state: type[FilterMixin]) -> rx.Component:
+def search_badges(state: type[SearchMixin]) -> rx.Component:
     """Display the active search terms as badges, styled by their key."""
 
     def badge(term: ArrayVar[SearchTerm], style: BadgeStyle) -> rx.Component:

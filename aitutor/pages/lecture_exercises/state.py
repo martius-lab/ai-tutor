@@ -13,7 +13,7 @@ from aitutor.auth.protection import state_require_lecture_role
 from aitutor.auth.state import SessionState
 from aitutor.global_vars import TIME_FORMAT, TIME_ZONE
 from aitutor.models import Exercise, ExerciseResult, Lecture, LectureRole, Tag
-from aitutor.search.state import FilterMixin, SearchKey
+from aitutor.search.state import SearchKey, SearchMixin
 from aitutor.utilities.lecture_permissions import (
     get_user_lecture_role,
     user_may_view_lecture,
@@ -22,7 +22,7 @@ from aitutor.utilities.lecture_permissions import (
 ExerciseWithResult = tuple[Exercise, ExerciseResult | None]
 
 
-class LectureExercisesState(FilterMixin, SessionState):
+class LectureExercisesState(SearchMixin, SessionState):
     """State for managing exercises belonging to one lecture."""
 
     _lecture_id: int
@@ -34,7 +34,7 @@ class LectureExercisesState(FilterMixin, SessionState):
     show_submitted_exercises: bool = True
     show_closed_exercises: bool = True
 
-    # valid search keys. overrides the var from FilterMixin
+    # valid search keys. overrides the var from SearchMixin
     search_keys: list[str] = [
         SearchKey.TITLE,
         SearchKey.DESCRIPTION,
@@ -127,7 +127,7 @@ class LectureExercisesState(FilterMixin, SessionState):
     @rx.event
     @state_require_lecture_role(LectureRole.STUDENT)
     def load_filtered_data(self):
-        """implements the abstract method from FilterMixin"""
+        """implements the abstract method from SearchMixin"""
         self.load_exercises()
 
     @rx.event
