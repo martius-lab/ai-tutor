@@ -6,8 +6,10 @@ from enum import StrEnum
 from typing import Any
 
 import reflex as rx
+from sqlalchemy import ColumnElement
 
 from aitutor.search.parser import FREE_TEXT_KEY, SearchTerm, parse_query_keys
+from aitutor.search.query import SearchFields, build_search_condition
 
 #: maximum length of a search query typed by the user
 SEARCH_TEXT_MAX_LEN = 150
@@ -36,6 +38,11 @@ class SearchMixin(rx.State, mixin=True):
     # valid search keys. Needs to be overridden by parent class
     search_keys: list[str] = []
 
+    @classmethod
+    def _search_fields(cls) -> SearchFields:
+        """The page's searchable fields, e.g. title, description."""
+        raise NotImplementedError
+
     @abstractmethod
     @rx.event
     def load_filtered_data(self):
@@ -57,3 +64,7 @@ class SearchMixin(rx.State, mixin=True):
         with contextlib.suppress(ValueError):
             self.search_values.remove(SearchTerm(key, value))
         self.load_filtered_data()
+
+    def _search_condition(self) -> ColumnElement[bool]:
+        """SQL condition for the current search terms, to use in `.where()`."""
+        return build_search_condition(self.search_values, self._search_fields())
