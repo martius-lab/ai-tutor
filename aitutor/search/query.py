@@ -19,6 +19,9 @@ from aitutor.search.parser import SearchTerm
 #: Example: `title("loop")` -> `exercise.title ILIKE '%loop%'`.
 SearchField = Callable[[str], ColumnElement[bool]]
 
+#: A page's search key -> field mapping, e.g. `{SearchKey.TITLE: title}`.
+SearchFields = Mapping[str, SearchField]
+
 
 def any_of(*fields: SearchField) -> SearchField:
     """Combine fields into one that matches if any of them matches.
@@ -33,7 +36,7 @@ def any_of(*fields: SearchField) -> SearchField:
 
 
 def build_search_condition(
-    terms: Iterable[SearchTerm], fields: Mapping[str, SearchField]
+    terms: Iterable[SearchTerm], fields: SearchFields
 ) -> ColumnElement[bool]:
     """Combine the search terms with AND, using the field of each term's key.
 

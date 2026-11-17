@@ -23,6 +23,7 @@ from aitutor.models import (
     Permission,
     UserInfo,
 )
+from aitutor.search.query import SearchFields
 from aitutor.search.state import SearchKey, SearchMixin
 from aitutor.verification import (
     cancel_pending_email_change,
@@ -41,6 +42,11 @@ MANAGE_USERS_FIELD_MAX_LENGTHS: dict[str, int] = {
 _REQUIRED_PERMISSIONS = [GlobalPermission.MAINTAINER]
 
 
+def _username(value: str):
+    """Search field: username."""
+    return LocalUser.username.ilike(f"%{value}%")  # type: ignore
+
+
 class ManageUsersState(SearchMixin, SessionState):
     """State for managing user accounts."""
 
@@ -55,6 +61,14 @@ class ManageUsersState(SearchMixin, SessionState):
     resend_in_progress: bool = False
     #: Search keys for the search bar
     search_keys: list[str] = [SearchKey.USER]
+
+    @override
+    @classmethod
+    def _search_fields(cls) -> SearchFields:
+        return {
+            SearchKey.USER: _username,
+            SearchKey.FREE_TEXT: _username,
+        }
 
     @rx.event
     @state_require_permission(_REQUIRED_PERMISSIONS)
@@ -77,13 +91,7 @@ class ManageUsersState(SearchMixin, SessionState):
             query = (
                 select(LocalUser, UserInfo)
                 .join(UserInfo)
-                # filter by search values (all of them have to match)
-                .where(
-                    *(
-                        LocalUser.username.ilike(f"%{value}%")  # type: ignore
-                        for _, value in self.search_values
-                    )
-                )
+                .where(self._search_condition())
                 .order_by(LocalUser.username)
             )
 
