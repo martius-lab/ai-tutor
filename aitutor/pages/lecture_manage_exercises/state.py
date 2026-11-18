@@ -12,7 +12,7 @@ import jsonschema
 import pdfplumber
 import reflex as rx
 from sqlalchemy.orm import selectinload
-from sqlmodel import and_, func, or_, select
+from sqlmodel import col, func, or_, select
 
 import aitutor.global_vars as gv
 from aitutor import routes
@@ -28,6 +28,7 @@ from aitutor.models import (
     Prompt,
     Tag,
 )
+from aitutor.search.query import SearchFields, any_of
 from aitutor.search.state import SearchKey, SearchMixin
 from aitutor.utilities.lecture_permissions import user_may_manage_lecture_exercises
 
@@ -40,6 +41,21 @@ LECTURE_MANAGE_EXERCISES_FIELD_MAX_LENGTHS = {
 }
 
 LESSON_CONTEXT_PDF_MAX_SIZE = 50 * 1024 * 1024  # 50 MB
+
+
+def _exercise_title(value: str):
+    """Search field: exercise title."""
+    return col(Exercise.title).ilike(f"%{value}%")
+
+
+def _exercise_description(value: str):
+    """Search field: exercise description."""
+    return col(Exercise.description).ilike(f"%{value}%")
+
+
+def _exercise_tag(value: str):
+    """Search field: one of the exercise's tags."""
+    return col(Exercise.tags).any(col(Tag.name).ilike(f"%{value}%"))
 
 
 class DialogMode(Enum):
@@ -270,6 +286,18 @@ class LectureManageExercisesState(SearchMixin, SessionState):
     exercise_is_started: dict[int, bool] = {}
     #: dictionary to store which exercises are selected. Key is exercise id.
     exercise_is_selected: dict[int, bool] = {}
+
+    @override
+    @classmethod
+    def _search_fields(cls) -> SearchFields:
+        return {
+            SearchKey.EXERCISE: _exercise_title,
+            SearchKey.TAG: _exercise_tag,
+            SearchKey.DESCRIPTION: _exercise_description,
+            SearchKey.FREE_TEXT: any_of(
+                _exercise_title, _exercise_description, _exercise_tag
+            ),
+        }
 
     @rx.event
     def add_to_selected_tags(self, tag: str):
@@ -730,26 +758,7 @@ class LectureManageExercisesState(SearchMixin, SessionState):
                 .where(Exercise.lecture_id == self.current_lecture_id)
             )
 
-            # filter with search values
-            if self.search_values:
-                search_conditions = []
-                for key, value in self.search_values:
-                    match key:
-                        case SearchKey.EXERCISE:
-                            search_conditions.append(Exercise.title.ilike(f"%{value}%"))  # type: ignore
-                        case SearchKey.TAG:
-                            search_conditions.append(
-                                Exercise.tags.any(Tag.name.ilike(f"%{value}%"))  # type: ignore
-                            )
-                        case _:
-                            search_conditions.append(
-                                or_(
-                                    Exercise.title.ilike(f"%{value}%"),  # type: ignore
-                                    Exercise.description.ilike(f"%{value}%"),  # type: ignore
-                                    Exercise.tags.any(Tag.name.ilike(f"%{value}%")),  # type: ignore
-                                )
-                            )
-                query_exercises = query_exercises.where(and_(*search_conditions))
+            query_exercises = query_exercises.where(self._search_condition())
 
             # get exercises from db and order by id descending
             self.exercises = list(
