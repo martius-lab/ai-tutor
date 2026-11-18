@@ -11,6 +11,7 @@ from aitutor.auth.protection import state_require_lecture_role
 from aitutor.auth.state import SessionState
 from aitutor.global_vars import TIME_ZONE
 from aitutor.models import Exercise, ExerciseResult, Lecture, LectureRole
+from aitutor.utilities.helper_functions import to_tz_aware
 from aitutor.utilities.lecture_permissions import user_may_view_lecture
 
 
@@ -123,10 +124,10 @@ class LectureOverviewState(SessionState):
         time_now = datetime.now(ZoneInfo(TIME_ZONE))
 
         tasks = [
-            (ex.title, ex.deadline.replace(tzinfo=ZoneInfo(TIME_ZONE)))
+            (ex.title, to_tz_aware(ex.deadline).astimezone(ZoneInfo(TIME_ZONE)))
             for ex, res in self.exercises_with_result
             if ex.deadline
-            and ex.deadline.replace(tzinfo=ZoneInfo(TIME_ZONE)) > time_now
+            and to_tz_aware(ex.deadline) > time_now
             and not (res and res.finished_conversation)  # not submitted
         ]
 
@@ -134,7 +135,7 @@ class LectureOverviewState(SessionState):
             return ""
 
         title, deadline = min(tasks, key=lambda t: t[1])
-        return f"{title} – {deadline.strftime('%d.%m.%Y, %H:%M')}"
+        return f"{title} – {deadline.strftime('%d.%m.%Y %H:%M %Z')}"
 
     def _user_may_view_lecture(self, lecture_id: int) -> bool:
         """Check whether the current user may open this lecture."""

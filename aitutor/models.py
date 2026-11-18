@@ -26,6 +26,7 @@ from aitutor.global_vars import (
     TIME_ZONE,
     VERIFICATION_TOKEN_VALIDITY,
 )
+from aitutor.utilities.helper_functions import to_tz_aware
 
 # For alembic to properly work, we need to set explicit naming conventions for
 # constraints.  See https://alembic.sqlalchemy.org/en/latest/naming.html
@@ -193,7 +194,7 @@ class Exercise(SQLModel, table=True):
     )
     is_hidden: bool = Field(default=False)
     deadline: Optional[datetime] = Field(
-        sa_column=Column(DateTime, nullable=True), default=None
+        sa_column=Column(DateTime(timezone=True), nullable=True), default=None
     )
     days_to_complete: Optional[int] = Field(default=None)
 
@@ -214,9 +215,10 @@ class Exercise(SQLModel, table=True):
         the deadline and days to complete.
         """
         if self.deadline and self.days_to_complete:
-            start = self.deadline - timedelta(days=self.days_to_complete)
+            deadline = to_tz_aware(self.deadline).astimezone(ZoneInfo(TIME_ZONE))
+            start = deadline - timedelta(days=self.days_to_complete)
             return f"{start.strftime('%d.%m.%Y')} -\
-                {self.deadline.strftime('%d.%m.%Y, %H:%M')}"
+                {deadline.strftime('%d.%m.%Y, %H:%M %Z')}"
         else:
             return "No deadline"
 
@@ -227,7 +229,7 @@ class Exercise(SQLModel, table=True):
         It is used to show what exercise is automatically hidden
         """
         if self.deadline and self.days_to_complete:
-            end = self.deadline.replace(tzinfo=ZoneInfo(TIME_ZONE))
+            end = to_tz_aware(self.deadline)
             start = end - timedelta(days=self.days_to_complete)
             current_time = datetime.now(ZoneInfo(TIME_ZONE))
             return current_time > start
@@ -240,7 +242,7 @@ class Exercise(SQLModel, table=True):
         flag wheter the deadline of the exercise is over.
         """
         if self.deadline:
-            deadline = self.deadline.replace(tzinfo=ZoneInfo(TIME_ZONE))
+            deadline = to_tz_aware(self.deadline)
             return datetime.now(ZoneInfo(TIME_ZONE)) > deadline
         return False
 
