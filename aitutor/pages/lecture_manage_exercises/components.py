@@ -485,7 +485,9 @@ def add_exercise_dialog() -> rx.Component:
             rx.form(
                 add_edit_exercise_form(mode=DialogMode.ADD),
                 on_mount=ManageExercisesState.load_tags,
-                on_submit=ManageExercisesState.add_exercise,
+                on_submit=lambda form_data: ManageExercisesState.save_exercise(
+                    DialogMode.ADD, form_data
+                ),
                 reset_on_submit=False,
                 enter_key_submit=True,
             ),
@@ -541,7 +543,9 @@ def edit_exercise_dialog() -> rx.Component:
             rx.form(
                 add_edit_exercise_form(mode=DialogMode.EDIT),
                 on_mount=ManageExercisesState.load_tags,
-                on_submit=ManageExercisesState.update_exercise,
+                on_submit=lambda form_data: ManageExercisesState.save_exercise(
+                    DialogMode.EDIT, form_data
+                ),
                 reset_on_submit=False,
                 enter_key_submit=True,
             ),
@@ -764,7 +768,7 @@ def add_edit_exercise_form(mode: DialogMode) -> Sequence[rx.Component]:
         rx.input(
             default_value=rx.cond(
                 mode == DialogMode.EDIT,
-                ManageExercisesState.current_exercise.title,
+                ManageExercisesState.edited_exercise_title,
                 "",
             ),
             placeholder=LanguageState.exercise_title_placeholder,
@@ -787,7 +791,7 @@ def add_edit_exercise_form(mode: DialogMode) -> Sequence[rx.Component]:
         rx.text_area(
             default_value=rx.cond(
                 mode == DialogMode.EDIT,
-                ManageExercisesState.current_exercise.description,
+                ManageExercisesState.edited_exercise_description,
                 "",
             ),
             placeholder=LanguageState.description_placeholder,
