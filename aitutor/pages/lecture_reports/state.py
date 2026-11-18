@@ -4,9 +4,8 @@ from dataclasses import dataclass
 from typing import override
 
 import reflex as rx
-from sqlalchemy import and_, or_
-from sqlalchemy.orm import selectinload
-from sqlmodel import select
+from sqlalchemy import ColumnElement
+from sqlmodel import col, select
 
 from aitutor import routes
 from aitutor.auth.protection import state_require_lecture_role
@@ -19,10 +18,26 @@ from aitutor.models import (
     Report,
     UserInfo,
 )
+from aitutor.search.query import SearchFields, any_of
 from aitutor.search.state import SearchKey, SearchMixin
 from aitutor.utilities.lecture_permissions import user_may_view_lecture_submissions
 
 REPORT_PREVIEW_LENGTH = 20  # Number of characters to show in table preview
+
+
+def _username(value: str) -> ColumnElement[bool]:
+    """Search field: username of the reporter."""
+    return col(LocalUser.username).ilike(f"%{value}%")
+
+
+def _exercise_title(value: str) -> ColumnElement[bool]:
+    """Search field: title of the exercise associated with the report."""
+    return col(Exercise.title).ilike(f"%{value}%")
+
+
+def _report_text(value: str) -> ColumnElement[bool]:
+    """Search field: text of the report."""
+    return col(Report.report_text).ilike(f"%{value}%")
 
 
 @dataclass
@@ -48,6 +63,15 @@ class LectureReportsState(SearchMixin, SessionState):
         SearchKey.USER,
         SearchKey.EXERCISE,
     ]
+
+    @override
+    @classmethod
+    def _search_fields(cls) -> SearchFields:
+        return {
+            SearchKey.USER: _username,
+            SearchKey.EXERCISE: _exercise_title,
+            SearchKey.FREE_TEXT: any_of(_username, _exercise_title, _report_text),
+        }
 
     @rx.event
     @state_require_lecture_role(LectureRole.TUTOR)
@@ -88,82 +112,37 @@ class LectureReportsState(SearchMixin, SessionState):
             return
 
         with rx.session() as session:
-            # Build query with all necessary relationships.
-            # Report.lecture_id is kept even when the exercise is deleted, so deleted
-            # exercises can still be shown as "Deleted" in the lecture-specific table.
+            # Exercise is an outer join: reports on deleted exercises are kept and
+            # get exercise_title=None (shown as "Deleted" in the table).
             stmt = (
-                select(Report)
+                select(Report, LocalUser.username, Exercise.title)
+                .select_from(Report)
+                .join(UserInfo)
+                .join(LocalUser)
+                .outerjoin(Exercise)
                 .where(Report.lecture_id == self.current_lecture_id)
-                .options(
-                    selectinload(Report.exercise),  # type: ignore
-                    selectinload(Report.userinfo).selectinload(UserInfo.local_user),  # type: ignore
-                )
-                .order_by(Report.id.desc())  # type: ignore
+                .where(self._search_condition())
+                .order_by(col(Report.id).desc())
             )
 
-            # Apply search filters if any
-            if self.search_values:
-                search_conditions = []
-                for key, value in self.search_values:
-                    match key:
-                        case SearchKey.USER:
-                            stmt = stmt.join(UserInfo, Report.userinfo).join(  # type: ignore
-                                LocalUser,
-                                UserInfo.local_user,  # type: ignore
-                            )  # type: ignore
-                            search_conditions.append(
-                                LocalUser.username.ilike(f"%{value}%")  # type: ignore
-                            )
-                        case SearchKey.EXERCISE:
-                            stmt = stmt.outerjoin(Exercise, Report.exercise)  # type: ignore
-                            search_conditions.append(Exercise.title.ilike(f"%{value}%"))  # type: ignore
-
-                        case _:
-                            stmt = (
-                                stmt.join(UserInfo, Report.userinfo)  # type: ignore
-                                .join(LocalUser, UserInfo.local_user)  # type: ignore
-                                .outerjoin(Exercise, Report.exercise)  # type: ignore
-                            )
-                            search_conditions.append(
-                                or_(
-                                    LocalUser.username.ilike(f"%{value}%"),  # type: ignore
-                                    Exercise.title.ilike(f"%{value}%"),  # type: ignore
-                                    Report.report_text.ilike(f"%{value}%"),  # type: ignore
-                                )
-                            )
-
-                if search_conditions:
-                    stmt = stmt.where(and_(*search_conditions))
-
-            # Execute query
-            reports = session.exec(stmt).all()
-
-            # Convert to LectureReportTableRow format
-            self.table_rows = []
-
-            for report in reports:
-                # Determine the report preview text
-                if len(report.report_text) > REPORT_PREVIEW_LENGTH:
-                    preview = report.report_text[:REPORT_PREVIEW_LENGTH] + "..."
-                else:
-                    preview = report.report_text
-
-                exercise_title = report.exercise.title if report.exercise else None
-
-                # Append a LectureReportTableRow
-                self.table_rows.append(
-                    LectureReportTableRow(
-                        report_id=report.id,
-                        report_view_route=(
-                            f"{routes.LECTURE_REPORT_VIEW}/"
-                            f"{self.current_lecture_id}/{report.id}"
-                        ),
-                        username=report.userinfo.local_user.username,
-                        exercise_title=exercise_title,
-                        report_preview=preview,
-                        looked_at=report.looked_at,
-                    )
+            self.table_rows = [
+                LectureReportTableRow(
+                    report_id=report.id,
+                    report_view_route=(
+                        f"{routes.LECTURE_REPORT_VIEW}/"
+                        f"{self.current_lecture_id}/{report.id}"
+                    ),
+                    username=username,
+                    exercise_title=exercise_title,
+                    report_preview=(
+                        report.report_text[:REPORT_PREVIEW_LENGTH] + "..."
+                        if len(report.report_text) > REPORT_PREVIEW_LENGTH
+                        else report.report_text
+                    ),
+                    looked_at=report.looked_at,
                 )
+                for report, username, exercise_title in session.exec(stmt)
+            ]
 
     @rx.event
     @state_require_lecture_role(LectureRole.TUTOR)
