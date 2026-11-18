@@ -252,8 +252,7 @@ class LectureManageExercisesState(SearchMixin, SessionState):
     exercises: list[Exercise] = []
     tag_list: list[Tag] = []
     tag_names: list[str] = []
-    # valid search keys. overrides the var from SearchMixin
-    search_keys: list[str] = [SearchKey.EXERCISE, SearchKey.TAG]
+
     #: the current exercise to be edited
     current_exercise: Exercise = Exercise()
     #: List to store selected tags temporarily
@@ -286,6 +285,9 @@ class LectureManageExercisesState(SearchMixin, SessionState):
     exercise_is_started: dict[int, bool] = {}
     #: dictionary to store which exercises are selected. Key is exercise id.
     exercise_is_selected: dict[int, bool] = {}
+
+    # valid search keys. overrides the var from SearchMixin
+    search_keys: list[str] = [SearchKey.EXERCISE, SearchKey.TAG, SearchKey.DESCRIPTION]
 
     @override
     @classmethod

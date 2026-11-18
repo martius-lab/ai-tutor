@@ -7,7 +7,7 @@ import reflex as rx
 import sqlalchemy
 from reflex_local_auth.user import LocalUser
 from sqlalchemy.orm import selectinload
-from sqlmodel import func, or_, select
+from sqlmodel import col, func, or_, select
 
 from aitutor import routes
 from aitutor.auth.protection import state_require_lecture_role
@@ -28,17 +28,17 @@ from aitutor.utilities.lecture_permissions import user_may_view_lecture_submissi
 
 def _username(value: str):
     """Search field: username."""
-    return LocalUser.username.ilike(f"%{value}%")  # type: ignore
+    return col(LocalUser.username).ilike(f"%{value}%")
 
 
 def _exercise_title(value: str):
     """Search field: exercise title."""
-    return Exercise.title.ilike(f"%{value}%")  # type: ignore
+    return col(Exercise.title).ilike(f"%{value}%")
 
 
 def _exercise_tag(value: str):
     """Search field: one of the exercise's tags."""
-    return Exercise.tags.any(Tag.name.ilike(f"%{value}%"))  # type: ignore
+    return col(Exercise.tags).any(col(Tag.name).ilike(f"%{value}%"))
 
 
 @dataclass
