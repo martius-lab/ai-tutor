@@ -243,8 +243,12 @@ class LectureManageExercisesState(SearchMixin, SessionState):
     tag_list: list[Tag] = []
     tag_names: list[str] = []
 
-    #: the current exercise to be edited
-    current_exercise: Exercise = Exercise()
+    # ID, title and description of the exercise being edited.
+    # Must be cleared when adding a _new_exercise!
+    edited_exercise_id: int | None = None
+    edited_exercise_title: str = ""
+    edited_exercise_description: str = ""
+
     #: List to store selected tags temporarily
     selected_tags: list[str] = []
     #: the lesson context from the form
@@ -442,19 +446,24 @@ class LectureManageExercisesState(SearchMixin, SessionState):
             return None
 
     def _lecture_exercise_title_conflicts_with_db(
-        self, exercise_ids: set[int | None], titles: list[str]
+        self, *, title: str, ignore_id: int | None = None
     ) -> bool:
-        """Return whether a title conflicts with exercises in this lecture."""
-        if self.current_lecture_id is None or not titles:
+        """Return whether a title conflicts with exercises in this lecture.
+
+        Args:
+            title: The title to check for conflicts.
+            ignore_id: If set, exclude the exercise with this ID from the check (use
+                when editing an existing exercise).
+        """
+        if self.current_lecture_id is None:
             return False
 
         query = select(Exercise.id).where(
             Exercise.lecture_id == self.current_lecture_id,
-            Exercise.title.in_(titles),  # type: ignore
+            Exercise.title == title,
         )
-
-        if exercise_ids:
-            query = query.where(Exercise.id.not_in(exercise_ids))  # type: ignore
+        if ignore_id is not None:
+            query = query.where(Exercise.id != ignore_id)
 
         with rx.session() as session:
             return session.exec(query).first() is not None
@@ -656,10 +665,14 @@ class LectureManageExercisesState(SearchMixin, SessionState):
             self.selected_tags.remove(tag)
 
     @rx.event
-    def add_exercise(self, form_data: dict):
-        """Add exercises to db."""
+    @state_require_lecture_role(LectureRole.OWNER)
+    def save_exercise(self, mode: DialogMode, form_data: dict):
+        """Save new or edited exercise."""
         if self.current_lecture_id is None:
             return rx.redirect(routes.MY_LECTURES)
+
+        update_existing = mode == DialogMode.EDIT
+
         with rx.session() as session:
             form_data["title"] = form_data["title"][
                 : LECTURE_MANAGE_EXERCISES_FIELD_MAX_LENGTHS["title"]
@@ -670,15 +683,9 @@ class LectureManageExercisesState(SearchMixin, SessionState):
 
             if not form_data["title"]:
                 return rx.window_alert("Please enter a title for the exercise.")
-            if self._lecture_exercise_title_conflicts_with_db(
-                set(), [form_data["title"]]
-            ):
-                return rx.window_alert(
-                    BT.exercise_title_already_exists(self.language, form_data["title"])
-                )
             if not form_data["description"]:
                 return rx.window_alert("Please enter a description for the exercise.")
-            if self.lesson_context == "":
+            if not self.lesson_context:
                 return rx.window_alert(
                     "Please add some lesson context to the exercise."
                 )
@@ -686,41 +693,76 @@ class LectureManageExercisesState(SearchMixin, SessionState):
                 return rx.window_alert(
                     "Please select a prompt template for the exercise."
                 )
-            new_exercise = Exercise(
-                lesson_context=self.lesson_context,
+
+            if self._lecture_exercise_title_conflicts_with_db(
                 title=form_data["title"],
-                description=form_data["description"],
-                prompt_id=self.get_current_prompt_id(),
-                lecture_id=self.current_lecture_id,
-                is_hidden=self.current_hidden_state,
-                tags=session.exec(
+                ignore_id=self.edited_exercise_id if update_existing else None,
+            ):
+                return rx.window_alert(
+                    BT.exercise_title_already_exists(self.language, form_data["title"])
+                )
+
+            tags = list(
+                session.exec(
                     select(Tag).where(
                         Tag.lecture_id == self.current_lecture_id,
                         Tag.name.in_(self.selected_tags),  # type: ignore
                     )
-                ).all(),
+                ).all()
             )
+
+            if update_existing:
+                exercise = session.exec(
+                    select(Exercise).where(
+                        Exercise.id == self.edited_exercise_id,
+                        Exercise.lecture_id == self.current_lecture_id,
+                    )
+                ).one()
+
+                exercise.title = form_data["title"]
+                exercise.description = form_data["description"]
+                exercise.lesson_context = self.lesson_context
+                exercise.prompt_id = self.get_current_prompt_id()
+                exercise.is_hidden = self.current_hidden_state
+                exercise.tags = tags
+            else:
+                exercise = Exercise(
+                    title=form_data["title"],
+                    description=form_data["description"],
+                    lesson_context=self.lesson_context,
+                    prompt_id=self.get_current_prompt_id(),
+                    lecture_id=self.current_lecture_id,
+                    is_hidden=self.current_hidden_state,
+                    tags=tags,
+                )
+
             # set deadline and days to complete
             alert, deadline, days_to_complete = self.get_deadline_and_days_to_complete()
             # alert the user if no values were provided
             if alert:
                 return alert
-            new_exercise.deadline = (
-                datetime.fromisoformat(deadline) if deadline else None
-            )
-            new_exercise.days_to_complete = days_to_complete
 
-            session.add(new_exercise)
+            exercise.deadline = datetime.fromisoformat(deadline) if deadline else None
+            exercise.days_to_complete = days_to_complete
+
+            session.add(exercise)
             session.commit()
+
             self.load_exercises()
             self.selected_tags = []
             self.lesson_context = ""
             self.lesson_file_name = ""
             self.add_exercise_dialog_is_open = False
+            self.edit_exercise_dialog_is_open = False
+
+        if update_existing:
+            success_msg = BT.changes_saved(self.language)
+        else:
+            success_msg = BT.exercise_added(self.language)
 
         return rx.toast.success(
-            BT.exercise_added(self.language),
-            duration=2500,
+            success_msg,
+            duration=5000,
             position="bottom-center",
             invert=True,
         )
@@ -808,69 +850,11 @@ class LectureManageExercisesState(SearchMixin, SessionState):
                     break
 
     @rx.event
-    def update_exercise(self, form_data: dict):
-        """Update exercises in db."""
-        with rx.session() as session:
-            form_data["title"] = form_data["title"][
-                : LECTURE_MANAGE_EXERCISES_FIELD_MAX_LENGTHS["title"]
-            ]
-            form_data["description"] = form_data["description"][
-                : LECTURE_MANAGE_EXERCISES_FIELD_MAX_LENGTHS["description"]
-            ]
-
-            if self._lecture_exercise_title_conflicts_with_db(
-                {self.current_exercise.id}, [form_data["title"]]
-            ):
-                return rx.window_alert(
-                    BT.exercise_title_already_exists(self.language, form_data["title"])
-                )
-            updated_exercise = session.exec(
-                select(Exercise).where(
-                    Exercise.id == self.current_exercise.id,
-                    Exercise.lecture_id == self.current_lecture_id,
-                )
-            ).one()
-            # update fields
-            updated_exercise.title = form_data["title"]
-            updated_exercise.description = form_data["description"]
-            updated_exercise.tags = session.exec(
-                select(Tag).where(
-                    Tag.lecture_id == self.current_lecture_id,
-                    Tag.name.in_(self.selected_tags),  # type: ignore
-                )
-            ).all()
-            updated_exercise.prompt_id = self.get_current_prompt_id()
-            updated_exercise.lesson_context = self.lesson_context
-            updated_exercise.is_hidden = self.current_hidden_state
-
-            # set deadline and days to complete if use_deadline is True
-            alert, deadline, days_to_complete = self.get_deadline_and_days_to_complete()
-            # alert the user if no values were provided
-            if alert:
-                return alert
-            updated_exercise.deadline = (
-                datetime.fromisoformat(deadline) if deadline else None
-            )
-            updated_exercise.days_to_complete = days_to_complete
-
-            session.add(updated_exercise)
-            session.commit()
-            self.load_exercises()
-            self.edit_exercise_dialog_is_open = False
-
-        # reset selected tags
-        self.selected_tags = []
-
-        return rx.toast.success(
-            BT.changes_saved(self.language),
-            duration=2500,
-            position="bottom-center",
-            invert=True,
-        )
-
-    @rx.event
     def reset_exercise_form(self):
         """Reset the exercise form."""
+        self.edited_exercise_id = None
+        self.edited_exercise_title = ""
+        self.edited_exercise_description = ""
         self.lesson_context = ""
         self.lesson_file_name = ""
         self.selected_tags = []
@@ -905,7 +889,10 @@ class LectureManageExercisesState(SearchMixin, SessionState):
             if e.id == exercise.id:
                 exercise = self.exercises[i]
                 break
-        self.current_exercise = exercise
+
+        self.edited_exercise_id = exercise.id
+        self.edited_exercise_title = exercise.title
+        self.edited_exercise_description = exercise.description
         self.current_prompt_id = str(exercise.prompt_id or "")
         self.lesson_context = exercise.lesson_context
         self.selected_tags = [tag.name for tag in exercise.tags]
@@ -948,6 +935,7 @@ class LectureManageExercisesState(SearchMixin, SessionState):
         """Close the add/edit dialog."""
         self.add_exercise_dialog_is_open = False
         self.edit_exercise_dialog_is_open = False
+        self.reset_exercise_form()
 
     def get_deadline_and_days_to_complete(self):
         """
