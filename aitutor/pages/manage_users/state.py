@@ -23,7 +23,7 @@ from aitutor.models import (
     Permission,
     UserInfo,
 )
-from aitutor.search.state import FilterMixin, SearchKey
+from aitutor.search.state import SearchKey, SearchMixin
 from aitutor.verification import (
     cancel_pending_email_change,
     get_pending_email_changes,
@@ -41,7 +41,7 @@ MANAGE_USERS_FIELD_MAX_LENGTHS: dict[str, int] = {
 _REQUIRED_PERMISSIONS = [GlobalPermission.MAINTAINER]
 
 
-class ManageUsersState(FilterMixin, SessionState):
+class ManageUsersState(SearchMixin, SessionState):
     """State for managing user accounts."""
 
     #: Users with the address of a pending email change ("" if there is none).

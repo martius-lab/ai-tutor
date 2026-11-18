@@ -21,7 +21,7 @@ from aitutor.models import (
     Tag,
     UserInfo,
 )
-from aitutor.search.state import FilterMixin, SearchKey
+from aitutor.search.state import SearchKey, SearchMixin
 from aitutor.utilities.lecture_permissions import user_may_view_lecture_submissions
 
 
@@ -38,13 +38,13 @@ class LectureSubmissionTableRow:
     exercise_tags: list[str]
 
 
-class LectureSubmissionsState(FilterMixin, SessionState):
+class LectureSubmissionsState(SearchMixin, SessionState):
     """State for the lecture-specific submissions page."""
 
     current_lecture_id: int | None = None
     table_rows: list[LectureSubmissionTableRow]
 
-    # valid search keys. overrides the var from FilterMixin
+    # valid search keys. overrides the var from SearchMixin
     search_keys: list[str] = [
         SearchKey.USER,
         SearchKey.EXERCISE,
@@ -91,7 +91,7 @@ class LectureSubmissionsState(FilterMixin, SessionState):
     @rx.event
     @state_require_lecture_role(LectureRole.TUTOR)
     def load_filtered_data(self):
-        """Implements the abstract method from FilterMixin."""
+        """Implements the abstract method from SearchMixin."""
         self.load_submissions()
 
     def load_submissions(self):

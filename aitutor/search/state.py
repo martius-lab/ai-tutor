@@ -27,8 +27,8 @@ class SearchKey(StrEnum):
     DESCRIPTION = "description"
 
 
-class FilterMixin(rx.State, mixin=True):
-    """Mixin for filtering components."""
+class SearchMixin(rx.State, mixin=True):
+    """Mixin for search components to filter records."""
 
     # a list of search values, each a SearchTerm(key, value)
     search_values: list[SearchTerm] = []

@@ -19,7 +19,7 @@ from aitutor.models import (
     Report,
     UserInfo,
 )
-from aitutor.search.state import FilterMixin, SearchKey
+from aitutor.search.state import SearchKey, SearchMixin
 from aitutor.utilities.lecture_permissions import user_may_view_lecture_submissions
 
 REPORT_PREVIEW_LENGTH = 20  # Number of characters to show in table preview
@@ -37,7 +37,7 @@ class LectureReportTableRow:
     looked_at: bool
 
 
-class LectureReportsState(FilterMixin, SessionState):
+class LectureReportsState(SearchMixin, SessionState):
     """State for the lecture-specific reports page."""
 
     current_lecture_id: int | None = None
@@ -76,7 +76,7 @@ class LectureReportsState(FilterMixin, SessionState):
     @rx.event
     @state_require_lecture_role(LectureRole.TUTOR)
     def load_filtered_data(self):
-        """Implements the abstract method from FilterMixin."""
+        """Implements the abstract method from SearchMixin."""
         self.load_reports()
 
     @rx.event
