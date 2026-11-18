@@ -5,6 +5,7 @@ from typing import override
 from zoneinfo import ZoneInfo
 
 import reflex as rx
+from sqlalchemy import ColumnElement
 from sqlalchemy.orm import selectinload
 from sqlmodel import and_, col, func, select
 
@@ -23,17 +24,17 @@ from aitutor.utilities.lecture_permissions import (
 ExerciseWithResult = tuple[Exercise, ExerciseResult | None]
 
 
-def _exercise_title(value: str):
+def _exercise_title(value: str) -> ColumnElement[bool]:
     """Search field: exercise title."""
     return col(Exercise.title).ilike(f"%{value}%")
 
 
-def _exercise_tag(value: str):
+def _exercise_tag(value: str) -> ColumnElement[bool]:
     """Search field: one of the exercise's tags."""
     return col(Exercise.tags).any(col(Tag.name).ilike(f"%{value}%"))
 
 
-def _exercise_description(value: str):
+def _exercise_description(value: str) -> ColumnElement[bool]:
     """Search field: exercise description."""
     return col(Exercise.description).ilike(f"%{value}%")
 

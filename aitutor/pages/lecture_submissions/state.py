@@ -6,6 +6,7 @@ from typing import override
 import reflex as rx
 import sqlalchemy
 from reflex_local_auth.user import LocalUser
+from sqlalchemy import ColumnElement
 from sqlalchemy.orm import selectinload
 from sqlmodel import col, func, or_, select
 
@@ -26,17 +27,17 @@ from aitutor.search.state import SearchKey, SearchMixin
 from aitutor.utilities.lecture_permissions import user_may_view_lecture_submissions
 
 
-def _username(value: str):
+def _username(value: str) -> ColumnElement[bool]:
     """Search field: username."""
     return col(LocalUser.username).ilike(f"%{value}%")
 
 
-def _exercise_title(value: str):
+def _exercise_title(value: str) -> ColumnElement[bool]:
     """Search field: exercise title."""
     return col(Exercise.title).ilike(f"%{value}%")
 
 
-def _exercise_tag(value: str):
+def _exercise_tag(value: str) -> ColumnElement[bool]:
     """Search field: one of the exercise's tags."""
     return col(Exercise.tags).any(col(Tag.name).ilike(f"%{value}%"))
 

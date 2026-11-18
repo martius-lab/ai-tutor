@@ -11,6 +11,7 @@ from zoneinfo import ZoneInfo
 import jsonschema
 import pdfplumber
 import reflex as rx
+from sqlalchemy import ColumnElement
 from sqlalchemy.orm import selectinload
 from sqlmodel import col, func, or_, select
 
@@ -43,17 +44,17 @@ LECTURE_MANAGE_EXERCISES_FIELD_MAX_LENGTHS = {
 LESSON_CONTEXT_PDF_MAX_SIZE = 50 * 1024 * 1024  # 50 MB
 
 
-def _exercise_title(value: str):
+def _exercise_title(value: str) -> ColumnElement[bool]:
     """Search field: exercise title."""
     return col(Exercise.title).ilike(f"%{value}%")
 
 
-def _exercise_description(value: str):
+def _exercise_description(value: str) -> ColumnElement[bool]:
     """Search field: exercise description."""
     return col(Exercise.description).ilike(f"%{value}%")
 
 
-def _exercise_tag(value: str):
+def _exercise_tag(value: str) -> ColumnElement[bool]:
     """Search field: one of the exercise's tags."""
     return col(Exercise.tags).any(col(Tag.name).ilike(f"%{value}%"))
 

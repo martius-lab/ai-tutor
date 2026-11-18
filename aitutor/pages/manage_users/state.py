@@ -7,6 +7,7 @@ from typing import override
 
 import reflex as rx
 from reflex_local_auth.auth_session import LocalAuthSession
+from sqlalchemy import ColumnElement
 from sqlmodel import Session, col, select
 
 import aitutor.global_vars as gv
@@ -42,7 +43,7 @@ MANAGE_USERS_FIELD_MAX_LENGTHS: dict[str, int] = {
 _REQUIRED_PERMISSIONS = [GlobalPermission.MAINTAINER]
 
 
-def _username(value: str):
+def _username(value: str) -> ColumnElement[bool]:
     """Search field: username."""
     return col(LocalUser.username).ilike(f"%{value}%")
 
