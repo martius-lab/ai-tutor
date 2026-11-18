@@ -6,7 +6,7 @@ from zoneinfo import ZoneInfo
 
 import reflex as rx
 from sqlalchemy.orm import selectinload
-from sqlmodel import and_, func, select
+from sqlmodel import and_, col, func, select
 
 from aitutor import routes
 from aitutor.auth.protection import state_require_lecture_role
@@ -25,17 +25,17 @@ ExerciseWithResult = tuple[Exercise, ExerciseResult | None]
 
 def _exercise_title(value: str):
     """Search field: exercise title."""
-    return Exercise.title.ilike(f"%{value}%")  # type: ignore
+    return col(Exercise.title).ilike(f"%{value}%")
 
 
 def _exercise_tag(value: str):
     """Search field: one of the exercise's tags."""
-    return Exercise.tags.any(Tag.name.ilike(f"%{value}%"))  # type: ignore
+    return col(Exercise.tags).any(col(Tag.name).ilike(f"%{value}%"))
 
 
 def _exercise_description(value: str):
     """Search field: exercise description."""
-    return Exercise.description.ilike(f"%{value}%")  # type: ignore
+    return col(Exercise.description).ilike(f"%{value}%")
 
 
 class LectureExercisesState(SearchMixin, SessionState):

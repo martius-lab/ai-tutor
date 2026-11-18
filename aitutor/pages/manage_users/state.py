@@ -7,7 +7,7 @@ from typing import override
 
 import reflex as rx
 from reflex_local_auth.auth_session import LocalAuthSession
-from sqlmodel import Session, select
+from sqlmodel import Session, col, select
 
 import aitutor.global_vars as gv
 from aitutor.account_emails import send_email_verification_email
@@ -44,7 +44,7 @@ _REQUIRED_PERMISSIONS = [GlobalPermission.MAINTAINER]
 
 def _username(value: str):
     """Search field: username."""
-    return LocalUser.username.ilike(f"%{value}%")  # type: ignore
+    return col(LocalUser.username).ilike(f"%{value}%")
 
 
 class ManageUsersState(SearchMixin, SessionState):
