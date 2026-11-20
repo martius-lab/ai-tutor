@@ -35,8 +35,10 @@ class SearchMixin(rx.State, mixin=True):
     # a list of search values, each a SearchTerm(key, value)
     search_values: list[SearchTerm] = []
 
-    # valid search keys. Needs to be overridden by parent class
-    search_keys: list[str] = []
+    @rx.var
+    def search_keys(self) -> list[str]:
+        """Keys the user can type, e.g. `tag:`; derived from `_search_fields`."""
+        return [key for key in self._search_fields() if key != SearchKey.FREE_TEXT]
 
     @classmethod
     @abstractmethod

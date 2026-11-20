@@ -54,8 +54,6 @@ class ManageUsersState(SearchMixin, SessionState):
     edit_dialog_is_open: bool = False
     save_in_progress: bool = False
     resend_in_progress: bool = False
-    #: Search keys for the search bar
-    search_keys: list[str] = [SearchKey.USER]
 
     @override
     @classmethod

@@ -276,9 +276,6 @@ class LectureManageExercisesState(SearchMixin, SessionState):
     #: dictionary to store which exercises are selected. Key is exercise id.
     exercise_is_selected: dict[int, bool] = {}
 
-    # valid search keys. overrides the var from SearchMixin
-    search_keys: list[str] = [SearchKey.EXERCISE, SearchKey.TAG, SearchKey.DESCRIPTION]
-
     @override
     @classmethod
     def _search_fields(cls) -> SearchFields:

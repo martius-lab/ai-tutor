@@ -40,13 +40,6 @@ class LectureExercisesState(SearchMixin, SessionState):
     show_submitted_exercises: bool = True
     show_closed_exercises: bool = True
 
-    # valid search keys. overrides the var from SearchMixin
-    search_keys: list[str] = [
-        SearchKey.TITLE,
-        SearchKey.DESCRIPTION,
-        SearchKey.TAG,
-    ]
-
     @override
     @classmethod
     def _search_fields(cls) -> SearchFields:
