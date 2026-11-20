@@ -12,7 +12,7 @@ import jsonschema
 import pdfplumber
 import reflex as rx
 from sqlalchemy.orm import selectinload
-from sqlmodel import and_, func, or_, select
+from sqlmodel import func, or_, select
 
 import aitutor.global_vars as gv
 from aitutor import routes
@@ -27,6 +27,12 @@ from aitutor.models import (
     LectureRole,
     Prompt,
     Tag,
+)
+from aitutor.search.query import (
+    SearchFields,
+    any_contains,
+    any_of,
+    contains,
 )
 from aitutor.search.state import SearchKey, SearchMixin
 from aitutor.utilities.lecture_permissions import user_may_manage_lecture_exercises
@@ -236,8 +242,7 @@ class LectureManageExercisesState(SearchMixin, SessionState):
     exercises: list[Exercise] = []
     tag_list: list[Tag] = []
     tag_names: list[str] = []
-    # valid search keys. overrides the var from SearchMixin
-    search_keys: list[str] = [SearchKey.EXERCISE, SearchKey.TAG]
+
     #: the current exercise to be edited
     current_exercise: Exercise = Exercise()
     #: List to store selected tags temporarily
@@ -270,6 +275,22 @@ class LectureManageExercisesState(SearchMixin, SessionState):
     exercise_is_started: dict[int, bool] = {}
     #: dictionary to store which exercises are selected. Key is exercise id.
     exercise_is_selected: dict[int, bool] = {}
+
+    @override
+    @classmethod
+    def _search_fields(cls) -> SearchFields:
+        exercise_title = contains(Exercise.title)
+        exercise_description = contains(Exercise.description)
+        exercise_tag = any_contains(Exercise.tags, Tag.name)
+
+        return {
+            SearchKey.EXERCISE: exercise_title,
+            SearchKey.TAG: exercise_tag,
+            SearchKey.DESCRIPTION: exercise_description,
+            SearchKey.FREE_TEXT: any_of(
+                exercise_title, exercise_description, exercise_tag
+            ),
+        }
 
     @rx.event
     def add_to_selected_tags(self, tag: str):
@@ -730,26 +751,7 @@ class LectureManageExercisesState(SearchMixin, SessionState):
                 .where(Exercise.lecture_id == self.current_lecture_id)
             )
 
-            # filter with search values
-            if self.search_values:
-                search_conditions = []
-                for key, value in self.search_values:
-                    match key:
-                        case SearchKey.EXERCISE:
-                            search_conditions.append(Exercise.title.ilike(f"%{value}%"))  # type: ignore
-                        case SearchKey.TAG:
-                            search_conditions.append(
-                                Exercise.tags.any(Tag.name.ilike(f"%{value}%"))  # type: ignore
-                            )
-                        case _:
-                            search_conditions.append(
-                                or_(
-                                    Exercise.title.ilike(f"%{value}%"),  # type: ignore
-                                    Exercise.description.ilike(f"%{value}%"),  # type: ignore
-                                    Exercise.tags.any(Tag.name.ilike(f"%{value}%")),  # type: ignore
-                                )
-                            )
-                query_exercises = query_exercises.where(and_(*search_conditions))
+            query_exercises = query_exercises.where(self._search_condition())
 
             # get exercises from db and order by id descending
             self.exercises = list(

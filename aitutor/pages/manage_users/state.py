@@ -23,6 +23,7 @@ from aitutor.models import (
     Permission,
     UserInfo,
 )
+from aitutor.search.query import SearchFields, contains
 from aitutor.search.state import SearchKey, SearchMixin
 from aitutor.verification import (
     cancel_pending_email_change,
@@ -53,8 +54,16 @@ class ManageUsersState(SearchMixin, SessionState):
     edit_dialog_is_open: bool = False
     save_in_progress: bool = False
     resend_in_progress: bool = False
-    #: Search keys for the search bar
-    search_keys: list[str] = [SearchKey.USER]
+
+    @override
+    @classmethod
+    def _search_fields(cls) -> SearchFields:
+        username = contains(LocalUser.username)
+
+        return {
+            SearchKey.USER: username,
+            SearchKey.FREE_TEXT: username,
+        }
 
     @rx.event
     @state_require_permission(_REQUIRED_PERMISSIONS)
@@ -77,13 +86,7 @@ class ManageUsersState(SearchMixin, SessionState):
             query = (
                 select(LocalUser, UserInfo)
                 .join(UserInfo)
-                # filter by search values (all of them have to match)
-                .where(
-                    *(
-                        LocalUser.username.ilike(f"%{value}%")  # type: ignore
-                        for _, value in self.search_values
-                    )
-                )
+                .where(self._search_condition())
                 .order_by(LocalUser.username)
             )
 

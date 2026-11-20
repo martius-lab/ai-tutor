@@ -6,13 +6,19 @@ from zoneinfo import ZoneInfo
 
 import reflex as rx
 from sqlalchemy.orm import selectinload
-from sqlmodel import and_, func, or_, select
+from sqlmodel import and_, func, select
 
 from aitutor import routes
 from aitutor.auth.protection import state_require_lecture_role
 from aitutor.auth.state import SessionState
 from aitutor.global_vars import TIME_FORMAT, TIME_ZONE
 from aitutor.models import Exercise, ExerciseResult, Lecture, LectureRole, Tag
+from aitutor.search.query import (
+    SearchFields,
+    any_contains,
+    any_of,
+    contains,
+)
 from aitutor.search.state import SearchKey, SearchMixin
 from aitutor.utilities.lecture_permissions import (
     get_user_lecture_role,
@@ -34,12 +40,19 @@ class LectureExercisesState(SearchMixin, SessionState):
     show_submitted_exercises: bool = True
     show_closed_exercises: bool = True
 
-    # valid search keys. overrides the var from SearchMixin
-    search_keys: list[str] = [
-        SearchKey.TITLE,
-        SearchKey.DESCRIPTION,
-        SearchKey.TAG,
-    ]
+    @override
+    @classmethod
+    def _search_fields(cls) -> SearchFields:
+        title = contains(Exercise.title)
+        description = contains(Exercise.description)
+        tag = any_contains(Exercise.tags, Tag.name)
+
+        return {
+            SearchKey.TITLE: title,
+            SearchKey.DESCRIPTION: description,
+            SearchKey.TAG: tag,
+            SearchKey.FREE_TEXT: any_of(title, description, tag),
+        }
 
     @rx.event
     @state_require_lecture_role(LectureRole.STUDENT)
@@ -184,34 +197,7 @@ class LectureExercisesState(SearchMixin, SessionState):
             if not show_hidden:
                 stmt = stmt.where(Exercise.is_hidden == False)  # noqa: E712
 
-            # filtering logic
-            if self.search_values:
-                search_conditions = []
-                for key, value in self.search_values:
-                    match key:
-                        case SearchKey.TITLE:
-                            search_conditions.append(
-                                Exercise.title.ilike(f"%{value}%")  # type: ignore
-                            )
-                        case SearchKey.DESCRIPTION:
-                            search_conditions.append(
-                                Exercise.description.ilike(f"%{value}%")  # type: ignore
-                            )
-                        case SearchKey.TAG:
-                            search_conditions.append(
-                                Exercise.tags.any(Tag.name.ilike(f"%{value}%"))  # type: ignore
-                            )
-                        case _:
-                            # Default search across title, description and tags
-                            search_conditions.append(
-                                or_(
-                                    Exercise.title.ilike(f"%{value}%"),  # type: ignore
-                                    Exercise.description.ilike(f"%{value}%"),  # type: ignore
-                                    Exercise.tags.any(Tag.name.ilike(f"%{value}%")),  # type: ignore
-                                )
-                            )
-                # Apply all conditions with AND
-                stmt = stmt.where(and_(*search_conditions))
+            stmt = stmt.where(self._search_condition())
 
             # fill self.exercises_with_result
             exercises_with_result = session.exec(
