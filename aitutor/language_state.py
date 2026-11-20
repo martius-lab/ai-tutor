@@ -125,14 +125,27 @@ class LanguageState(SessionState):
 
     @rx.var
     def search_info(self) -> str:
+        """General help text for the search bar."""
         return self.translate(
-            de='Suchen Sie mit `key:Suchbegriff` oder `key:"Such Begriff"`, '
-            "um nach etwas Bestimmtem zu suchen.  \n"
-            "Ohne Verwendung von `key:` werden alle keys durchsucht.",
-            en='Search with `key:searchterm` or `key:"search term"` '
-            "to search for something specific.  \n"
-            "Without using `key:` every key will be searched.",
+            de="Geben Sie Suchbegriffe ein, um in allen Feldern zu suchen.  \n"
+            "Mit einem Filter suchen Sie nur in einem Feld: `filter:Begriff`, "
+            'z.B. `tag:python` oder `tag:"for loop"`.  \n'
+            "Mehrere Begriffe werden kombiniert: `loop tag:python`.",
+            en="Type search terms to search all fields.  \n"
+            "Use a filter to search only one field: `filter:term`, "
+            'e.g. `tag:python` or `tag:"for loop"`.  \n'
+            "Multiple terms are combined: `loop tag:python`.",
         )
+
+    @rx.var
+    def search_filters_label(self) -> str:
+        """Label above the list of available filters in the search help."""
+        return self.translate(de="Verfügbare Filter:", en="Available filters:")
+
+    @rx.var
+    def clear_search(self) -> str:
+        """Button text to remove all search terms."""
+        return self.translate(de="Alle entfernen", en="Clear all")
 
     # Navigation Bar Strings -----------------------------------------------------------
     @rx.var

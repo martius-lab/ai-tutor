@@ -65,7 +65,7 @@ def lecture_manage_exercises_page() -> rx.Component:
             ),
             rx.desktop_only(
                 rx.hstack(
-                    search_bar(LectureManageExercisesState),
+                    search_bar(LectureManageExercisesState, flex="1"),
                     edit_tags_button(),
                     align="center",
                     justify="between",
