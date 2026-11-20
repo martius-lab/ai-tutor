@@ -32,8 +32,8 @@ class SearchKey(StrEnum):
 class SearchMixin(rx.State, mixin=True):
     """Mixin for search components to filter records."""
 
-    # a list of search values, each a SearchTerm(key, value)
-    search_values: list[SearchTerm] = []
+    # a list of search terms, each a SearchTerm(key, value)
+    search_terms: list[SearchTerm] = []
 
     @rx.var
     def search_keys(self) -> list[str]:
@@ -53,21 +53,21 @@ class SearchMixin(rx.State, mixin=True):
         raise NotImplementedError
 
     @rx.event
-    def add_search_value(self, form_data: dict[str, Any]):
-        """Adds a search value to the list of search values."""
+    def add_search_term(self, form_data: dict[str, Any]):
+        """Adds a search term to the list of search terms."""
         raw_val = form_data[SEARCH_INPUT_NAME][:SEARCH_TEXT_MAX_LEN]
         for term in parse_query_keys(raw_val, self.search_keys):
-            if term not in self.search_values:
-                self.search_values.append(term)
+            if term not in self.search_terms:
+                self.search_terms.append(term)
         self.load_filtered_data()
 
     @rx.event
-    def remove_search_value(self, key: str, value: str):
+    def remove_search_term(self, key: str, value: str):
         """Removes the search term with the given key and value."""
         with contextlib.suppress(ValueError):
-            self.search_values.remove(SearchTerm(key, value))
+            self.search_terms.remove(SearchTerm(key, value))
         self.load_filtered_data()
 
     def _search_condition(self) -> ColumnElement[bool]:
         """SQL condition for the current search terms, to use in `.where()`."""
-        return build_search_condition(self.search_values, self._search_fields())
+        return build_search_condition(self.search_terms, self._search_fields())
