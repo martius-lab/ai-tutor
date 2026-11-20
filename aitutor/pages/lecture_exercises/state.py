@@ -5,16 +5,20 @@ from typing import override
 from zoneinfo import ZoneInfo
 
 import reflex as rx
-from sqlalchemy import ColumnElement
 from sqlalchemy.orm import selectinload
-from sqlmodel import and_, col, func, select
+from sqlmodel import and_, func, select
 
 from aitutor import routes
 from aitutor.auth.protection import state_require_lecture_role
 from aitutor.auth.state import SessionState
 from aitutor.global_vars import TIME_FORMAT, TIME_ZONE
 from aitutor.models import Exercise, ExerciseResult, Lecture, LectureRole, Tag
-from aitutor.search.query import SearchFields, any_of
+from aitutor.search.query import (
+    SearchFields,
+    any_contains,
+    any_of,
+    contains,
+)
 from aitutor.search.state import SearchKey, SearchMixin
 from aitutor.utilities.lecture_permissions import (
     get_user_lecture_role,
@@ -22,21 +26,6 @@ from aitutor.utilities.lecture_permissions import (
 )
 
 ExerciseWithResult = tuple[Exercise, ExerciseResult | None]
-
-
-def _exercise_title(value: str) -> ColumnElement[bool]:
-    """Search field: exercise title."""
-    return col(Exercise.title).ilike(f"%{value}%")
-
-
-def _exercise_tag(value: str) -> ColumnElement[bool]:
-    """Search field: one of the exercise's tags."""
-    return col(Exercise.tags).any(col(Tag.name).ilike(f"%{value}%"))
-
-
-def _exercise_description(value: str) -> ColumnElement[bool]:
-    """Search field: exercise description."""
-    return col(Exercise.description).ilike(f"%{value}%")
 
 
 class LectureExercisesState(SearchMixin, SessionState):
@@ -61,13 +50,15 @@ class LectureExercisesState(SearchMixin, SessionState):
     @override
     @classmethod
     def _search_fields(cls) -> SearchFields:
+        title = contains(Exercise.title)
+        description = contains(Exercise.description)
+        tag = any_contains(Exercise.tags, Tag.name)
+
         return {
-            SearchKey.TITLE: _exercise_title,
-            SearchKey.DESCRIPTION: _exercise_description,
-            SearchKey.TAG: _exercise_tag,
-            SearchKey.FREE_TEXT: any_of(
-                _exercise_title, _exercise_description, _exercise_tag
-            ),
+            SearchKey.TITLE: title,
+            SearchKey.DESCRIPTION: description,
+            SearchKey.TAG: tag,
+            SearchKey.FREE_TEXT: any_of(title, description, tag),
         }
 
     @rx.event

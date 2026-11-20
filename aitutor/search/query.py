@@ -12,6 +12,7 @@ Each page maps its search keys to fields; this module combines them::
 from collections.abc import Callable, Iterable, Mapping
 
 from sqlalchemy import ColumnElement, and_, or_, true
+from sqlmodel import col
 
 from aitutor.search.parser import SearchTerm
 
@@ -21,6 +22,31 @@ SearchField = Callable[[str], ColumnElement[bool]]
 
 #: A page's search key -> field mapping, e.g. `{SearchKey.TITLE: title}`.
 SearchFields = Mapping[str, SearchField]
+
+
+def contains(column: object) -> SearchField:
+    """Field that matches if `column` contains the value (case-insensitive).
+
+    Example: `contains(Exercise.title)("loop")` -> `exercise.title ILIKE '%loop%'`.
+    """
+
+    def match(value: str) -> ColumnElement[bool]:
+        return col(column).ilike(f"%{value}%")
+
+    return match
+
+
+def any_contains(relationship: object, column: object) -> SearchField:
+    """Field that matches if any related row's `column` contains the value.
+
+    Example: `any_contains(Exercise.tags, Tag.name)("py")` -> exercise has a tag
+    whose name contains "py".
+    """
+
+    def match(value: str) -> ColumnElement[bool]:
+        return col(relationship).any(contains(column)(value))
+
+    return match
 
 
 def any_of(*fields: SearchField) -> SearchField:

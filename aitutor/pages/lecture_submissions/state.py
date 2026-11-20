@@ -6,9 +6,8 @@ from typing import override
 import reflex as rx
 import sqlalchemy
 from reflex_local_auth.user import LocalUser
-from sqlalchemy import ColumnElement
 from sqlalchemy.orm import selectinload
-from sqlmodel import col, func, or_, select
+from sqlmodel import func, or_, select
 
 from aitutor import routes
 from aitutor.auth.protection import state_require_lecture_role
@@ -22,24 +21,14 @@ from aitutor.models import (
     Tag,
     UserInfo,
 )
-from aitutor.search.query import SearchFields, any_of
+from aitutor.search.query import (
+    SearchFields,
+    any_contains,
+    any_of,
+    contains,
+)
 from aitutor.search.state import SearchKey, SearchMixin
 from aitutor.utilities.lecture_permissions import user_may_view_lecture_submissions
-
-
-def _username(value: str) -> ColumnElement[bool]:
-    """Search field: username."""
-    return col(LocalUser.username).ilike(f"%{value}%")
-
-
-def _exercise_title(value: str) -> ColumnElement[bool]:
-    """Search field: exercise title."""
-    return col(Exercise.title).ilike(f"%{value}%")
-
-
-def _exercise_tag(value: str) -> ColumnElement[bool]:
-    """Search field: one of the exercise's tags."""
-    return col(Exercise.tags).any(col(Tag.name).ilike(f"%{value}%"))
 
 
 @dataclass
@@ -71,11 +60,15 @@ class LectureSubmissionsState(SearchMixin, SessionState):
     @override
     @classmethod
     def _search_fields(cls) -> SearchFields:
+        username = contains(LocalUser.username)
+        exercise_title = contains(Exercise.title)
+        exercise_tag = any_contains(Exercise.tags, Tag.name)
+
         return {
-            SearchKey.USER: _username,
-            SearchKey.EXERCISE: _exercise_title,
-            SearchKey.TAG: _exercise_tag,
-            SearchKey.FREE_TEXT: any_of(_username, _exercise_title, _exercise_tag),
+            SearchKey.USER: username,
+            SearchKey.EXERCISE: exercise_title,
+            SearchKey.TAG: exercise_tag,
+            SearchKey.FREE_TEXT: any_of(username, exercise_title, exercise_tag),
         }
 
     @rx.event

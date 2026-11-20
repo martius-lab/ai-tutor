@@ -11,9 +11,8 @@ from zoneinfo import ZoneInfo
 import jsonschema
 import pdfplumber
 import reflex as rx
-from sqlalchemy import ColumnElement
 from sqlalchemy.orm import selectinload
-from sqlmodel import col, func, or_, select
+from sqlmodel import func, or_, select
 
 import aitutor.global_vars as gv
 from aitutor import routes
@@ -29,7 +28,12 @@ from aitutor.models import (
     Prompt,
     Tag,
 )
-from aitutor.search.query import SearchFields, any_of
+from aitutor.search.query import (
+    SearchFields,
+    any_contains,
+    any_of,
+    contains,
+)
 from aitutor.search.state import SearchKey, SearchMixin
 from aitutor.utilities.lecture_permissions import user_may_manage_lecture_exercises
 
@@ -42,21 +46,6 @@ LECTURE_MANAGE_EXERCISES_FIELD_MAX_LENGTHS = {
 }
 
 LESSON_CONTEXT_PDF_MAX_SIZE = 50 * 1024 * 1024  # 50 MB
-
-
-def _exercise_title(value: str) -> ColumnElement[bool]:
-    """Search field: exercise title."""
-    return col(Exercise.title).ilike(f"%{value}%")
-
-
-def _exercise_description(value: str) -> ColumnElement[bool]:
-    """Search field: exercise description."""
-    return col(Exercise.description).ilike(f"%{value}%")
-
-
-def _exercise_tag(value: str) -> ColumnElement[bool]:
-    """Search field: one of the exercise's tags."""
-    return col(Exercise.tags).any(col(Tag.name).ilike(f"%{value}%"))
 
 
 class DialogMode(Enum):
@@ -293,12 +282,16 @@ class LectureManageExercisesState(SearchMixin, SessionState):
     @override
     @classmethod
     def _search_fields(cls) -> SearchFields:
+        exercise_title = contains(Exercise.title)
+        exercise_description = contains(Exercise.description)
+        exercise_tag = any_contains(Exercise.tags, Tag.name)
+
         return {
-            SearchKey.EXERCISE: _exercise_title,
-            SearchKey.TAG: _exercise_tag,
-            SearchKey.DESCRIPTION: _exercise_description,
+            SearchKey.EXERCISE: exercise_title,
+            SearchKey.TAG: exercise_tag,
+            SearchKey.DESCRIPTION: exercise_description,
             SearchKey.FREE_TEXT: any_of(
-                _exercise_title, _exercise_description, _exercise_tag
+                exercise_title, exercise_description, exercise_tag
             ),
         }
 
