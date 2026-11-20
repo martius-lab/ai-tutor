@@ -28,14 +28,14 @@ def show_table_row(table_row: LectureSubmissionTableRow) -> rx.Component:
     return rx.table.row(
         rx.table.cell(
             table_row.username,
-            on_click=LectureSubmissionsState.add_search_value(
+            on_click=LectureSubmissionsState.add_search_term(
                 {SEARCH_INPUT_NAME: f'{SearchKey.USER}:"{table_row.username}"'}
             ),
             _hover={"cursor": "pointer"},
         ),
         rx.table.cell(
             table_row.exercise_title,
-            on_click=LectureSubmissionsState.add_search_value(
+            on_click=LectureSubmissionsState.add_search_term(
                 {
                     SEARCH_INPUT_NAME: (
                         f'{SearchKey.EXERCISE}:"{table_row.exercise_title}"'
@@ -51,7 +51,7 @@ def show_table_row(table_row: LectureSubmissionTableRow) -> rx.Component:
                     lambda tag: rx.badge(
                         tag,
                         variant="soft",
-                        on_click=LectureSubmissionsState.add_search_value(
+                        on_click=LectureSubmissionsState.add_search_term(
                             {SEARCH_INPUT_NAME: f'{SearchKey.TAG}:"{tag}"'}
                         ),
                         _hover={"cursor": "pointer"},

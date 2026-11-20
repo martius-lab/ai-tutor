@@ -278,7 +278,7 @@ def show_exercise(exercise: Exercise):
                     lambda tag: rx.badge(
                         tag.name,
                         variant="soft",
-                        on_click=ManageExercisesState.add_search_value(
+                        on_click=ManageExercisesState.add_search_term(
                             {SEARCH_INPUT_NAME: f'{SearchKey.TAG}:"{tag.name}"'}
                         ),
                         _hover={"cursor": "pointer"},
