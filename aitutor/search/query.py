@@ -25,7 +25,8 @@ SearchFields = Mapping[str, SearchField]
 
 
 def contains(column: object) -> SearchField:
-    """Field that matches if `column` contains the value (case-insensitive).
+    """Return a matcher that checks if a row's `column` contains the typed text
+    (case-insensitive).
 
     Example: `contains(Exercise.title)("loop")` -> `exercise.title ILIKE '%loop%'`.
     """
@@ -37,14 +38,15 @@ def contains(column: object) -> SearchField:
 
 
 def any_contains(relationship: object, column: object) -> SearchField:
-    """Field that matches if any related row's `column` contains the value.
+    """Return a matcher that checks if any item in `relationship` has a
+    `column` containing the typed text (case-insensitive).
 
     Example: `any_contains(Exercise.tags, Tag.name)("py")` -> exercise has a tag
     whose name contains "py".
     """
 
     def match(value: str) -> ColumnElement[bool]:
-        return col(relationship).any(contains(column)(value))
+        return col(relationship).any(col(column).ilike(f"%{value}%"))
 
     return match
 

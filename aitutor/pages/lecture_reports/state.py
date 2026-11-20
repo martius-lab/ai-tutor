@@ -42,12 +42,6 @@ class LectureReportsState(SearchMixin, SessionState):
     current_lecture_id: int | None = None
     table_rows: list[LectureReportTableRow]
 
-    # valid search keys
-    search_keys: list[str] = [
-        SearchKey.USER,
-        SearchKey.EXERCISE,
-    ]
-
     @override
     @classmethod
     def _search_fields(cls) -> SearchFields:

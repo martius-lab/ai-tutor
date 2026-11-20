@@ -50,13 +50,6 @@ class LectureSubmissionsState(SearchMixin, SessionState):
     current_lecture_id: int | None = None
     table_rows: list[LectureSubmissionTableRow]
 
-    # valid search keys. overrides the var from SearchMixin
-    search_keys: list[str] = [
-        SearchKey.USER,
-        SearchKey.EXERCISE,
-        SearchKey.TAG,
-    ]
-
     @override
     @classmethod
     def _search_fields(cls) -> SearchFields:
