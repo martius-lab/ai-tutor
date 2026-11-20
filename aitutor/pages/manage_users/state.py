@@ -7,8 +7,7 @@ from typing import override
 
 import reflex as rx
 from reflex_local_auth.auth_session import LocalAuthSession
-from sqlalchemy import ColumnElement
-from sqlmodel import Session, col, select
+from sqlmodel import Session, select
 
 import aitutor.global_vars as gv
 from aitutor.account_emails import send_email_verification_email
@@ -24,7 +23,7 @@ from aitutor.models import (
     Permission,
     UserInfo,
 )
-from aitutor.search.query import SearchFields
+from aitutor.search.query import SearchFields, contains
 from aitutor.search.state import SearchKey, SearchMixin
 from aitutor.verification import (
     cancel_pending_email_change,
@@ -41,11 +40,6 @@ MANAGE_USERS_FIELD_MAX_LENGTHS: dict[str, int] = {
 
 
 _REQUIRED_PERMISSIONS = [GlobalPermission.MAINTAINER]
-
-
-def _username(value: str) -> ColumnElement[bool]:
-    """Search field: username."""
-    return col(LocalUser.username).ilike(f"%{value}%")
 
 
 class ManageUsersState(SearchMixin, SessionState):
@@ -66,9 +60,11 @@ class ManageUsersState(SearchMixin, SessionState):
     @override
     @classmethod
     def _search_fields(cls) -> SearchFields:
+        username = contains(LocalUser.username)
+
         return {
-            SearchKey.USER: _username,
-            SearchKey.FREE_TEXT: _username,
+            SearchKey.USER: username,
+            SearchKey.FREE_TEXT: username,
         }
 
     @rx.event

@@ -39,6 +39,7 @@ class SearchMixin(rx.State, mixin=True):
     search_keys: list[str] = []
 
     @classmethod
+    @abstractmethod
     def _search_fields(cls) -> SearchFields:
         """The page's searchable fields, e.g. title, description."""
         raise NotImplementedError

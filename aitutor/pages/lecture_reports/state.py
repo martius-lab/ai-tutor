@@ -4,7 +4,6 @@ from dataclasses import dataclass
 from typing import override
 
 import reflex as rx
-from sqlalchemy import ColumnElement
 from sqlmodel import col, select
 
 from aitutor import routes
@@ -18,26 +17,11 @@ from aitutor.models import (
     Report,
     UserInfo,
 )
-from aitutor.search.query import SearchFields, any_of
+from aitutor.search.query import SearchFields, any_of, contains
 from aitutor.search.state import SearchKey, SearchMixin
 from aitutor.utilities.lecture_permissions import user_may_view_lecture_submissions
 
 REPORT_PREVIEW_LENGTH = 20  # Number of characters to show in table preview
-
-
-def _username(value: str) -> ColumnElement[bool]:
-    """Search field: username of the reporter."""
-    return col(LocalUser.username).ilike(f"%{value}%")
-
-
-def _exercise_title(value: str) -> ColumnElement[bool]:
-    """Search field: title of the exercise associated with the report."""
-    return col(Exercise.title).ilike(f"%{value}%")
-
-
-def _report_text(value: str) -> ColumnElement[bool]:
-    """Search field: text of the report."""
-    return col(Report.report_text).ilike(f"%{value}%")
 
 
 @dataclass
@@ -67,10 +51,14 @@ class LectureReportsState(SearchMixin, SessionState):
     @override
     @classmethod
     def _search_fields(cls) -> SearchFields:
+        username = contains(LocalUser.username)
+        exercise_title = contains(Exercise.title)
+        report_text = contains(Report.report_text)
+
         return {
-            SearchKey.USER: _username,
-            SearchKey.EXERCISE: _exercise_title,
-            SearchKey.FREE_TEXT: any_of(_username, _exercise_title, _report_text),
+            SearchKey.USER: username,
+            SearchKey.EXERCISE: exercise_title,
+            SearchKey.FREE_TEXT: any_of(username, exercise_title, report_text),
         }
 
     @rx.event
