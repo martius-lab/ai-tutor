@@ -5,6 +5,7 @@ from collections.abc import Sequence
 import reflex as rx
 
 from aitutor.components.dialogs import destructive_confirm
+from aitutor.components.forms import form_label
 from aitutor.global_vars import TIME_ZONE
 from aitutor.language_state import LanguageState
 from aitutor.models import Exercise
@@ -140,9 +141,12 @@ def edit_tags_button() -> rx.Component:
     return rx.dialog.root(
         rx.dialog.trigger(
             rx.button(
-                rx.icon("tags"),
-                rx.text(LanguageState.edit_tags, size="3"),
-                variant="outline",
+                rx.icon("tags", size=18),
+                LanguageState.edit_tags,
+                size="3",
+                radius="full",
+                variant="soft",
+                color_scheme="purple",
                 _hover={"cursor": "pointer"},
                 type="button",
             )
@@ -554,15 +558,7 @@ def edit_exercise_dialog() -> rx.Component:
 def pdf_upload() -> rx.Component:
     """Upload area for lesson material in PDF format."""
     return (
-        rx.text(
-            LanguageState.add_lesson_context_pdf,
-            size="3",
-            weight="medium",
-            text_align="left",
-            width="100%",
-            padding_top="1.5em",
-            padding_bottom="0.5em",
-        ),
+        form_label(LanguageState.add_lesson_context_pdf),
         rx.upload(
             rx.vstack(
                 rx.button(
@@ -606,15 +602,7 @@ def pdf_upload() -> rx.Component:
 def select_prompt(mode: DialogMode) -> rx.Component:
     """The prompt selection component."""
     return (
-        rx.text(
-            LanguageState.prompt + ":",
-            size="3",
-            weight="medium",
-            text_align="left",
-            width="100%",
-            padding_top="1.5em",
-            padding_bottom="0.5em",
-        ),
+        form_label(LanguageState.prompt + ":"),
         rx.hstack(
             rx.select.root(
                 rx.select.trigger(placeholder=LanguageState.select_prompt),
@@ -680,15 +668,7 @@ def select_prompt(mode: DialogMode) -> rx.Component:
 def tag_selection() -> rx.Component:
     """Tag selection component"""
     return rx.vstack(
-        rx.text(
-            LanguageState.tags + ":",
-            size="3",
-            weight="medium",
-            text_align="left",
-            width="100%",
-            padding_top="1.5em",
-            padding_bottom="0.5em",
-        ),
+        form_label(LanguageState.tags + ":"),
         rx.hstack(
             rx.menu.root(
                 rx.menu.trigger(
@@ -752,15 +732,7 @@ def tag_selection() -> rx.Component:
 def add_edit_exercise_form(mode: DialogMode) -> Sequence[rx.Component]:
     """Button for adding or editing exercises."""
     return (
-        # title
-        rx.text(
-            LanguageState.title,
-            size="3",
-            weight="medium",
-            text_align="left",
-            width="100%",
-            padding_bottom="0.5em",
-        ),
+        form_label(LanguageState.title),
         rx.input(
             default_value=rx.cond(
                 mode == DialogMode.EDIT,
@@ -774,16 +746,7 @@ def add_edit_exercise_form(mode: DialogMode) -> Sequence[rx.Component]:
             name="title",
             max_length=LECTURE_MANAGE_EXERCISES_FIELD_MAX_LENGTHS["title"],
         ),
-        # description
-        rx.text(
-            LanguageState.description + ":",
-            size="3",
-            weight="medium",
-            text_align="left",
-            width="100%",
-            padding_top="1.5em",
-            padding_bottom="0.5em",
-        ),
+        form_label(LanguageState.description + ":"),
         rx.text_area(
             default_value=rx.cond(
                 mode == DialogMode.EDIT,
@@ -798,16 +761,7 @@ def add_edit_exercise_form(mode: DialogMode) -> Sequence[rx.Component]:
             name="description",
             max_length=LECTURE_MANAGE_EXERCISES_FIELD_MAX_LENGTHS["description"],
         ),
-        # lesson context
-        rx.text(
-            LanguageState.lesson_context,
-            size="3",
-            weight="medium",
-            text_align="left",
-            width="100%",
-            padding_top="1.5em",
-            padding_bottom="0.5em",
-        ),
+        form_label(LanguageState.lesson_context),
         rx.text_area(
             placeholder=LanguageState.lesson_context_placeholder,
             value=ManageExercisesState.lesson_context,
@@ -819,7 +773,6 @@ def add_edit_exercise_form(mode: DialogMode) -> Sequence[rx.Component]:
             name="lesson_context",
             max_length=LECTURE_MANAGE_EXERCISES_FIELD_MAX_LENGTHS["lesson_context"],
         ),
-        # lesson file upload area
         pdf_upload(),
         # prompt
         select_prompt(mode),
@@ -838,7 +791,6 @@ def add_edit_exercise_form(mode: DialogMode) -> Sequence[rx.Component]:
             padding_top="1.5em",
             padding_bottom="0.5em",
         ),
-        # deadline
         rx.hstack(
             rx.text(
                 LanguageState.activate_deadline,

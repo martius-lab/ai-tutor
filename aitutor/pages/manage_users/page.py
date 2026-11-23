@@ -25,7 +25,7 @@ def manage_users_page() -> rx.Component:
             edit_user_dialog(),
             align="center",
             justify="center",
-            spacing="6"
+            spacing="6",
         ),
         margin_top="2em",
         margin_bottom="2em",

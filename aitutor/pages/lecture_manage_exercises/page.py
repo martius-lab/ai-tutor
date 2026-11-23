@@ -29,58 +29,31 @@ def lecture_manage_exercises_page() -> rx.Component:
     """Manage lecture-specific exercises page."""
     return rx.center(
         rx.vstack(
-            rx.desktop_only(
-                rx.hstack(
-                    rx.hstack(
-                        delete_selected_exercises_button(),
-                        export_selected_exercises_button(),
-                    ),
-                    rx.hstack(
-                        import_exercises_button(),
-                        add_exercise_button(),
-                    ),
-                    align="center",
-                    justify="between",
-                    width="100%",
-                ),
-                width="100%",
-            ),
-            rx.mobile_and_tablet(
-                rx.hstack(
-                    import_exercises_button(),
-                    add_exercise_button(),
-                ),
-            ),
-            rx.mobile_and_tablet(
-                rx.hstack(
-                    delete_selected_exercises_button(),
-                    export_selected_exercises_button(),
-                ),
-            ),
-            rx.mobile_and_tablet(
-                edit_tags_button(),
-            ),
-            rx.mobile_and_tablet(
-                search_bar(LectureManageExercisesState),
-            ),
-            rx.desktop_only(
-                rx.hstack(
-                    search_bar(LectureManageExercisesState),
-                    edit_tags_button(),
-                    align="center",
-                    justify="between",
-                    width="100%",
-                ),
-                width="100%",
-            ),
+            _toolbar(),
+            rx.box(edit_tags_button(), align_self="center"),
+            search_bar(LectureManageExercisesState),
             search_badges(LectureManageExercisesState),
             exercise_table(),
             spacing="6",
-            align="center",
-            justify="center",
             width="100%",
         ),
-        margin_top="2em",
-        margin_bottom="2em",
+        margin_y="2em",
+        width="100%",
+    )
+
+
+def _toolbar() -> rx.Component:
+    """Selection actions left, lecture actions right; wraps on small screens."""
+    return rx.hstack(
+        rx.hstack(
+            delete_selected_exercises_button(),
+            export_selected_exercises_button(),
+        ),
+        rx.hstack(
+            import_exercises_button(),
+            add_exercise_button(),
+        ),
+        justify="between",
+        wrap="wrap",
         width="100%",
     )

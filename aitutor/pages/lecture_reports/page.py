@@ -36,5 +36,5 @@ def lecture_reports_content() -> rx.Component:
         lecture_reports_table(),
         align="center",
         justify="center",
-        spacing="6"
+        spacing="6",
     )
