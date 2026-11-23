@@ -348,8 +348,6 @@ def exercise_table():
                 variant="surface",
                 size="3",
                 width="100%",
-                overflow_y="auto",
-                max_height="66vh",
             ),
             edit_exercise_dialog(),
             add_exercise_dialog(),

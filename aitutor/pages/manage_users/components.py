@@ -294,7 +294,6 @@ def edit_user_dialog() -> rx.Component:
 def users_table() -> rx.Component:
     """Component to display the users table."""
     return rx.fragment(
-        # head cells for the main table
         rx.table.root(
             rx.table.header(
                 rx.table.row(
@@ -306,13 +305,10 @@ def users_table() -> rx.Component:
                     rx.table.column_header_cell(""),
                 ),
             ),
-            # dynamically render each new entry
             rx.table.body(rx.foreach(ManageUsersState.users, user_table_row)),
             variant="surface",
             size="3",
             width="85vw",
             overflow_x="auto",
-            overflow_y="auto",
-            max_height="66vh",
         ),
     )

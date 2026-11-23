@@ -29,10 +29,19 @@ def lecture_manage_exercises_page() -> rx.Component:
     """Manage lecture-specific exercises page."""
     return rx.center(
         rx.vstack(
-            _toolbar(),
-            rx.box(edit_tags_button(), align_self="center"),
-            search_bar(LectureManageExercisesState),
-            search_badges(LectureManageExercisesState),
+            rx.vstack(
+                _toolbar(),
+                rx.box(edit_tags_button(), align_self="center"),
+                search_bar(LectureManageExercisesState),
+                search_badges(LectureManageExercisesState),
+                spacing="6",
+                width="100%",
+                position=rx.breakpoints(initial="static", md="sticky"),
+                top="0",
+                z_index="1",
+                background=rx.color("gray", 1),
+                padding_y="0.75em",
+            ),
             exercise_table(),
             spacing="6",
             width="100%",
