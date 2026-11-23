@@ -47,6 +47,8 @@ def lecture_exercises_page() -> rx.Component:
                 ),
                 align="center",
                 justify="center",
+                width="100%",
+                spacing="6",
             ),
             render_exercises(),
             spacing="5",

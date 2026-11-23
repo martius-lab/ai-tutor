@@ -20,6 +20,7 @@ def lecture_submissions_content() -> rx.Component:
         lecture_submissions_table(),
         align="center",
         justify="center",
+        spacing="6"
     )
 
 

@@ -65,7 +65,7 @@ def lecture_manage_exercises_page() -> rx.Component:
             ),
             rx.desktop_only(
                 rx.hstack(
-                    search_bar(LectureManageExercisesState, flex="1"),
+                    search_bar(LectureManageExercisesState),
                     edit_tags_button(),
                     align="center",
                     justify="between",
@@ -75,7 +75,7 @@ def lecture_manage_exercises_page() -> rx.Component:
             ),
             search_badges(LectureManageExercisesState),
             exercise_table(),
-            spacing="3",
+            spacing="6",
             align="center",
             justify="center",
             width="100%",

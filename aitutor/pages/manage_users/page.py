@@ -23,9 +23,9 @@ def manage_users_page() -> rx.Component:
             search_badges(ManageUsersState),
             users_table(),
             edit_user_dialog(),
-            spacing="3",
             align="center",
             justify="center",
+            spacing="6"
         ),
         margin_top="2em",
         margin_bottom="2em",

@@ -147,6 +147,11 @@ class LanguageState(SessionState):
         """Button text to remove all search terms."""
         return self.translate(de="Alle entfernen", en="Clear all")
 
+    @rx.var
+    def search_submit(self) -> str:
+        """Button text to add the typed search term."""
+        return self.translate(de="Suchen", en="Search")
+
     # Navigation Bar Strings -----------------------------------------------------------
     @rx.var
     def home_link(self) -> str:

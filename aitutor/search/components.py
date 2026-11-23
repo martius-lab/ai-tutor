@@ -63,8 +63,9 @@ def search_help(state: type[SearchMixin]) -> rx.Component:
             rx.icon_button(
                 rx.icon("info", size=18),
                 variant="ghost",
+                color_scheme="gray",  
                 radius="full",
-                type="button",  # don't submit the form when opening the help
+                type="button",  
                 _hover={"cursor": "pointer"},
             ),
         ),
@@ -86,17 +87,27 @@ def search_help(state: type[SearchMixin]) -> rx.Component:
     )
 
 
-def search_bar(state: type[SearchMixin], **props) -> rx.Component:
+
+def search_bar(state: type[SearchMixin]) -> rx.Component:
     """Search bar for entering a search query.
 
-    Fills the width of its container; pass layout props (e.g. `max_width`,
-    `flex`) to control its size from outside.
+    Fills the width of its parent; wrap it in a container to control its size.
     """
-
     return rx.form.root(
         rx.input(
             rx.input.slot(rx.icon("search", size=18)),
-            rx.input.slot(search_help(state)),
+            rx.input.slot(
+                search_help(state),
+                rx.button(
+                    LanguageState.search_submit,
+                    type="submit",
+                    radius="full",
+                    size="2",  
+                    _hover={"cursor": "pointer"},
+                ),
+                gap="2",
+                padding_right="4px",  
+            ),
             name=SEARCH_INPUT_NAME,
             placeholder=LanguageState.search_placeholder,
             required=True,
@@ -113,7 +124,6 @@ def search_bar(state: type[SearchMixin], **props) -> rx.Component:
         on_submit=state.add_search_term,
         reset_on_submit=True,
         width="100%",
-        **props,
     )
 
 
