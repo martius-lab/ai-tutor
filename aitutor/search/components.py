@@ -79,7 +79,7 @@ def search_bar(state: type[SearchMixin]) -> rx.Component:
             justify="center",
             align="center",
         ),
-        on_submit=state.add_search_value,
+        on_submit=state.add_search_term,
         reset_on_submit=True,
     )
 
@@ -94,7 +94,7 @@ def search_badges(state: type[SearchMixin]) -> rx.Component:
                 rx.text(term[1]),
                 rx.icon(
                     "x",
-                    on_click=state.remove_search_value(term[0], term[1]),
+                    on_click=state.remove_search_term(term[0], term[1]),
                     _hover={"cursor": "pointer"},
                 ),
                 spacing="1",
@@ -109,9 +109,9 @@ def search_badges(state: type[SearchMixin]) -> rx.Component:
         return rx.match(term[0], *cases, badge(term, _FALLBACK_STYLE))
 
     return rx.cond(
-        state.search_values,
+        state.search_terms,
         rx.hstack(
-            rx.foreach(state.search_values, styled_badge),
+            rx.foreach(state.search_terms, styled_badge),
             spacing="2",
             wrap="wrap",
         ),

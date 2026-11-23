@@ -28,7 +28,7 @@ def show_table_row(table_row: LectureReportTableRow) -> rx.Component:
     return rx.table.row(
         rx.table.cell(
             table_row.username,
-            on_click=LectureReportsState.add_search_value(
+            on_click=LectureReportsState.add_search_term(
                 {SEARCH_INPUT_NAME: f'{SearchKey.USER}:"{table_row.username}"'}
             ),
             _hover={"cursor": "pointer"},
@@ -39,7 +39,7 @@ def show_table_row(table_row: LectureReportTableRow) -> rx.Component:
                 rx.text(LanguageState.deleted_report_title, color="red"),
                 rx.text(
                     table_row.exercise_title,
-                    on_click=LectureReportsState.add_search_value(
+                    on_click=LectureReportsState.add_search_term(
                         {
                             SEARCH_INPUT_NAME: (
                                 f'{SearchKey.EXERCISE}:"{table_row.exercise_title}"'
