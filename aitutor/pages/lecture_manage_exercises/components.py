@@ -3,6 +3,7 @@
 from collections.abc import Sequence
 
 import reflex as rx
+from reflex_components_radix.themes.base import LiteralAccentColor
 
 from aitutor.components.dialogs import destructive_confirm
 from aitutor.components.forms import form_label
@@ -141,12 +142,11 @@ def edit_tags_button() -> rx.Component:
     return rx.dialog.root(
         rx.dialog.trigger(
             rx.button(
-                rx.icon("tags", size=18),
+                rx.icon("tags", size=16),
                 LanguageState.edit_tags,
-                size="3",
-                radius="full",
+                size="2",
+                radius="large",
                 variant="soft",
-                color_scheme="purple",
                 _hover={"cursor": "pointer"},
                 type="button",
             )
@@ -387,16 +387,24 @@ def hide_exercise_button(exercise: Exercise):
 def add_exercise_button() -> rx.Component:
     """Button for adding new exercises."""
     return rx.button(
-        rx.icon("plus"),
-        rx.desktop_only(
-            rx.text(LanguageState.add_exercise, size="3"),
-        ),
-        rx.mobile_and_tablet(
-            rx.text(LanguageState.add, size="3"),
-        ),
+        rx.icon("plus", size=16),
+        rx.desktop_only(LanguageState.add_exercise),
+        rx.mobile_and_tablet(LanguageState.add),
+        size="2",
         _hover={"cursor": "pointer"},
         on_click=ManageExercisesState.open_add_dialog,
         type="button",
+        radius="large",
+    )
+
+
+def _selected_count_badge(color: LiteralAccentColor) -> rx.Component:
+    """Number of selected exercises, gray while nothing is selected."""
+    return rx.badge(
+        ManageExercisesState.selected_exercises_num,
+        color_scheme=rx.cond(ManageExercisesState.something_is_selected, color, "gray"),
+        variant="solid",
+        radius="full",
     )
 
 
@@ -410,16 +418,12 @@ def delete_selected_exercises_button() -> rx.Component:
         cancel_text=LanguageState.cancel,
         on_confirm=ManageExercisesState.delete_selected_exercises,
         trigger=rx.button(
-            rx.icon("trash"),
-            rx.text(
-                LanguageState.delete
-                + " ("
-                + ManageExercisesState.selected_exercises_num
-                + ")",
-                size="3",
-            ),
+            rx.icon("trash", size=16),
+            LanguageState.delete,
+            _selected_count_badge("red"),
+            size="2",
             color_scheme="red",
-            variant="outline",
+            variant="soft",
             _hover=rx.cond(
                 ManageExercisesState.something_is_selected,
                 {"cursor": "pointer"},
@@ -427,6 +431,7 @@ def delete_selected_exercises_button() -> rx.Component:
             ),
             type="button",
             disabled=~ManageExercisesState.something_is_selected,
+            radius="large",
         ),
     )
 
@@ -434,15 +439,11 @@ def delete_selected_exercises_button() -> rx.Component:
 def export_selected_exercises_button() -> rx.Component:
     """Button to export all selected exercises."""
     return rx.button(
-        rx.icon("file-down"),
-        rx.text(
-            LanguageState.export
-            + " ("
-            + ManageExercisesState.selected_exercises_num
-            + ")",
-            size="3",
-        ),
-        variant="outline",
+        rx.icon("file-down", size=16),
+        LanguageState.export,
+        _selected_count_badge("indigo"),  # the app's accent color (rxconfig.py)
+        size="2",
+        variant="soft",
         _hover=rx.cond(
             ManageExercisesState.something_is_selected,
             {"cursor": "pointer"},
@@ -451,6 +452,7 @@ def export_selected_exercises_button() -> rx.Component:
         on_click=ManageExercisesState.export_selected_exercises,
         type="button",
         disabled=~ManageExercisesState.something_is_selected,
+        radius="large",
     )
 
 
@@ -884,15 +886,13 @@ def import_exercises_button() -> rx.Component:
     return rx.dialog.root(
         rx.dialog.trigger(
             rx.button(
-                rx.icon("file_up"),
-                rx.desktop_only(
-                    rx.text(LanguageState.import_exercises, size="3"),
-                ),
-                rx.mobile_and_tablet(
-                    rx.text(LanguageState.import_, size="3"),
-                ),
-                variant="outline",
+                rx.icon("file_up", size=16),
+                rx.desktop_only(LanguageState.import_exercises),
+                rx.mobile_and_tablet(LanguageState.import_),
+                size="2",
+                variant="soft",
                 _hover={"cursor": "pointer"},
+                radius="large",
             )
         ),
         rx.dialog.content(

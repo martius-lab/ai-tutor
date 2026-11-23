@@ -87,7 +87,7 @@ def search_help(state: type[SearchMixin]) -> rx.Component:
     )
 
 
-def search_bar(state: type[SearchMixin], **props) -> rx.Component:
+def _search_input(state: type[SearchMixin], **props) -> rx.Component:
     """Search bar for entering a search query.
 
     Fills the width of its parent; wrap it in a container to control its size.
@@ -116,14 +116,21 @@ def search_bar(state: type[SearchMixin], **props) -> rx.Component:
             radius="full",
             variant="surface",
             width="100%",
-            box_shadow="var(--shadow-3)",
-            transition="box-shadow 0.2s",
-            _focus_within={"box_shadow": "var(--shadow-4)"},
         ),
         on_submit=state.add_search_term,
         reset_on_submit=True,
         width="100%",
         **props,
+    )
+
+
+def search_bar(state: type[SearchMixin]) -> rx.Component:
+    """Search input with the active search terms shown as badges below it."""
+    return rx.vstack(
+        _search_input(state),
+        search_badges(state),
+        spacing="4",
+        width="100%",
     )
 
 
@@ -179,5 +186,7 @@ def search_badges(state: type[SearchMixin]) -> rx.Component:
             spacing="2",
             wrap="wrap",
             align="center",
+            justify="center",
+            width="100%",
         ),
     )
