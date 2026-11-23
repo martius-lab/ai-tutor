@@ -8,7 +8,6 @@ from sqlalchemy import event
 from sqlmodel import Session, SQLModel, create_engine, select
 
 from aitutor.account_cleanup import (
-    _is_sole_owner_of_a_lecture,
     delete_unverified_accounts,
     purge_expired_tokens,
 )
@@ -298,93 +297,3 @@ def test_delete_with_reference_time_in_another_time_zone(session):
 def test_delete_rejects_naive_reference_time(session):
     with pytest.raises(ValueError):
         delete_unverified_accounts(session, now=NOW.replace(tzinfo=None))
-
-
-# _is_sole_owner_of_a_lecture ----------------------------------------------------------
-
-
-def make_lectures(session, count):
-    """Create lectures with IDs 1 to count."""
-    for i in range(1, count + 1):
-        session.add(Lecture(id=i, lecture_name=f"Lecture {i}"))
-    session.commit()
-
-
-def link(session, user_id, lecture_id, role):
-    session.add(LinkUserLecture(user_id=user_id, lecture_id=lecture_id, role=role))
-    session.commit()
-
-
-def test_sole_owner_without_lectures(session):
-    make_local_users(session, 1)
-
-    assert not _is_sole_owner_of_a_lecture(session, 1)
-
-
-def test_sole_owner_of_lecture(session):
-    make_local_users(session, 1)
-    make_lectures(session, 1)
-    link(session, 1, 1, LectureRole.OWNER)
-
-    assert _is_sole_owner_of_a_lecture(session, 1)
-
-
-@pytest.mark.parametrize("role", [LectureRole.STUDENT, LectureRole.TUTOR])
-def test_sole_owner_ignores_non_owner_roles_of_user(session, role):
-    make_local_users(session, 1)
-    make_lectures(session, 1)
-    link(session, 1, 1, role)
-
-    assert not _is_sole_owner_of_a_lecture(session, 1)
-
-
-def test_sole_owner_with_co_owner(session):
-    make_local_users(session, 2)
-    make_lectures(session, 1)
-    link(session, 1, 1, LectureRole.OWNER)
-    link(session, 2, 1, LectureRole.OWNER)
-
-    assert not _is_sole_owner_of_a_lecture(session, 1)
-    assert not _is_sole_owner_of_a_lecture(session, 2)
-
-
-@pytest.mark.parametrize("role", [LectureRole.STUDENT, LectureRole.TUTOR])
-def test_sole_owner_ignores_non_owner_roles_of_others(session, role):
-    make_local_users(session, 2)
-    make_lectures(session, 1)
-    link(session, 1, 1, LectureRole.OWNER)
-    link(session, 2, 1, role)
-
-    assert _is_sole_owner_of_a_lecture(session, 1)
-
-
-def test_sole_owner_ignores_owners_of_other_lectures(session):
-    make_local_users(session, 2)
-    make_lectures(session, 2)
-    link(session, 1, 1, LectureRole.OWNER)
-    link(session, 2, 2, LectureRole.OWNER)
-
-    assert _is_sole_owner_of_a_lecture(session, 1)
-
-
-@pytest.mark.parametrize("sole_lecture", [1, 2])
-def test_sole_owner_of_one_of_multiple_lectures(session, sole_lecture):
-    co_owned_lecture = 3 - sole_lecture
-    make_local_users(session, 2)
-    make_lectures(session, 2)
-    link(session, 1, 1, LectureRole.OWNER)
-    link(session, 1, 2, LectureRole.OWNER)
-    link(session, 2, co_owned_lecture, LectureRole.OWNER)
-
-    assert _is_sole_owner_of_a_lecture(session, 1)
-
-
-def test_sole_owner_with_co_owners_in_all_lectures(session):
-    make_local_users(session, 3)
-    make_lectures(session, 2)
-    link(session, 1, 1, LectureRole.OWNER)
-    link(session, 1, 2, LectureRole.OWNER)
-    link(session, 2, 1, LectureRole.OWNER)
-    link(session, 3, 2, LectureRole.OWNER)
-
-    assert not _is_sole_owner_of_a_lecture(session, 1)
