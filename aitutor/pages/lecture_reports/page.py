@@ -9,7 +9,7 @@ from aitutor.pages.lecture_reports.components import lecture_reports_table
 from aitutor.pages.lecture_reports.state import LectureReportsState
 from aitutor.pages.navbar import with_navbar
 from aitutor.pages.navbar_specific_lecture import with_specific_lecture_navbar
-from aitutor.search.components import search_badges, search_bar
+from aitutor.search.components import search_bar
 
 
 @page_require_lecture_role(LectureRole.TUTOR)
@@ -32,8 +32,7 @@ def lecture_reports_content() -> rx.Component:
     """Render lecture reports content."""
     return rx.vstack(
         search_bar(LectureReportsState),
-        search_badges(LectureReportsState),
         lecture_reports_table(),
         align="center",
-        justify="center",
+        spacing="6",
     )

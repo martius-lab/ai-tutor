@@ -16,7 +16,7 @@ from aitutor.pages.lecture_manage_exercises.components import (
 from aitutor.pages.lecture_manage_exercises.state import LectureManageExercisesState
 from aitutor.pages.navbar import with_navbar
 from aitutor.pages.navbar_specific_lecture import with_specific_lecture_navbar
-from aitutor.search.components import search_badges, search_bar
+from aitutor.search.components import search_bar
 
 
 @page_require_lecture_role(LectureRole.OWNER)
@@ -29,58 +29,43 @@ def lecture_manage_exercises_page() -> rx.Component:
     """Manage lecture-specific exercises page."""
     return rx.center(
         rx.vstack(
-            rx.desktop_only(
-                rx.hstack(
-                    rx.hstack(
-                        delete_selected_exercises_button(),
-                        export_selected_exercises_button(),
-                    ),
-                    rx.hstack(
-                        import_exercises_button(),
-                        add_exercise_button(),
-                    ),
-                    align="center",
-                    justify="between",
-                    width="100%",
-                ),
-                width="100%",
-            ),
-            rx.mobile_and_tablet(
-                rx.hstack(
-                    import_exercises_button(),
-                    add_exercise_button(),
-                ),
-            ),
-            rx.mobile_and_tablet(
-                rx.hstack(
-                    delete_selected_exercises_button(),
-                    export_selected_exercises_button(),
-                ),
-            ),
-            rx.mobile_and_tablet(
-                edit_tags_button(),
-            ),
-            rx.mobile_and_tablet(
+            rx.vstack(
                 search_bar(LectureManageExercisesState),
-            ),
-            rx.desktop_only(
-                rx.hstack(
-                    search_bar(LectureManageExercisesState),
-                    edit_tags_button(),
-                    align="center",
-                    justify="between",
-                    width="100%",
-                ),
+                _toolbar(),
+                spacing="6",
                 width="100%",
+                position=rx.breakpoints(initial="static", md="sticky"),
+                top="0",
+                z_index="1",
+                background=rx.color("gray", 1),
+                padding_top="0.75em",
+                padding_bottom="2em",
             ),
-            search_badges(LectureManageExercisesState),
             exercise_table(),
-            spacing="3",
-            align="center",
-            justify="center",
+            spacing="0",
             width="100%",
         ),
-        margin_top="2em",
-        margin_bottom="2em",
+        margin_y="2em",
+        width="100%",
+    )
+
+
+def _toolbar() -> rx.Component:
+    """Selection actions left, tags in the middle, lecture actions right.
+
+    Wraps on small screens.
+    """
+    return rx.hstack(
+        rx.hstack(
+            delete_selected_exercises_button(),
+            export_selected_exercises_button(),
+        ),
+        edit_tags_button(),
+        rx.hstack(
+            import_exercises_button(),
+            add_exercise_button(),
+        ),
+        justify="between",
+        wrap="wrap",
         width="100%",
     )

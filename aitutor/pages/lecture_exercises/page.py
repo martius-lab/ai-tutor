@@ -9,7 +9,7 @@ from aitutor.pages.lecture_exercises.components import filter_options, render_ex
 from aitutor.pages.lecture_exercises.state import LectureExercisesState
 from aitutor.pages.navbar import with_navbar
 from aitutor.pages.navbar_specific_lecture import with_specific_lecture_navbar
-from aitutor.search.components import search_badges, search_bar
+from aitutor.search.components import search_bar
 
 
 @page_require_lecture_role(LectureRole.STUDENT)
@@ -32,7 +32,6 @@ def lecture_exercises_page() -> rx.Component:
             ),
             rx.vstack(
                 search_bar(LectureExercisesState),
-                search_badges(LectureExercisesState),
                 rx.desktop_only(
                     rx.hstack(
                         filter_options(),
@@ -46,11 +45,11 @@ def lecture_exercises_page() -> rx.Component:
                     ),
                 ),
                 align="center",
-                justify="center",
+                width="100%",
+                spacing="6",
             ),
             render_exercises(),
             spacing="5",
-            justify="center",
             align="center",
             width="100%",
         ),

@@ -101,7 +101,5 @@ def lecture_submissions_table():
             variant="surface",
             size="3",
             width="85vw",
-            overflow_y="auto",
-            max_height="60vh",
         ),
     )

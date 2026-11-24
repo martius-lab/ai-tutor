@@ -9,7 +9,7 @@ from aitutor.pages.manage_users.components import edit_user_dialog, users_table
 from aitutor.pages.manage_users.state import ManageUsersState
 from aitutor.pages.navbar import with_navbar
 from aitutor.pages.navbar_admin import with_admin_navbar
-from aitutor.search.components import search_badges, search_bar
+from aitutor.search.components import search_bar
 
 
 @page_require_permission(allowed_permissions=[GlobalPermission.MAINTAINER])
@@ -20,12 +20,10 @@ def manage_users_page() -> rx.Component:
     return rx.center(
         rx.vstack(
             search_bar(ManageUsersState),
-            search_badges(ManageUsersState),
             users_table(),
             edit_user_dialog(),
-            spacing="3",
             align="center",
-            justify="center",
+            spacing="6",
         ),
         margin_top="2em",
         margin_bottom="2em",

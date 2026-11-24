@@ -40,6 +40,11 @@ class SearchMixin(rx.State, mixin=True):
         """Keys the user can type, e.g. `tag:`; derived from `_search_fields`."""
         return [key for key in self._search_fields() if key != SearchKey.FREE_TEXT]
 
+    @rx.var
+    def has_multiple_search_terms(self) -> bool:
+        """Whether more than one search term is active (shows "clear all")."""
+        return len(self.search_terms) > 1
+
     @classmethod
     @abstractmethod
     def _search_fields(cls) -> SearchFields:
@@ -66,6 +71,12 @@ class SearchMixin(rx.State, mixin=True):
         """Removes the search term with the given key and value."""
         with contextlib.suppress(ValueError):
             self.search_terms.remove(SearchTerm(key, value))
+        self.load_filtered_data()
+
+    @rx.event
+    def clear_search_terms(self):
+        """Removes all search terms."""
+        self.search_terms = []
         self.load_filtered_data()
 
     def _search_condition(self) -> ColumnElement[bool]:

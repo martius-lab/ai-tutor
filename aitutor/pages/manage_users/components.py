@@ -5,6 +5,7 @@ import reflex as rx
 import aitutor.global_vars as gv
 from aitutor.components import password_input
 from aitutor.components.dialogs import destructive_confirm
+from aitutor.components.forms import form_label
 from aitutor.language_state import LanguageState as LS
 from aitutor.models import LocalUser, UserInfo
 from aitutor.pages.manage_users.state import (
@@ -94,19 +95,6 @@ def user_table_row(user: tuple[LocalUser, UserInfo, str]) -> rx.Component:
                 spacing="2",
             ),
         ),
-    )
-
-
-def form_label(text: str | rx.vars.StringVar[str]) -> rx.Component:
-    """Create a form label."""
-    return rx.text(
-        text,
-        size="3",
-        weight="medium",
-        text_align="left",
-        width="100%",
-        padding_top="1.5em",
-        padding_bottom="0.5em",
     )
 
 
@@ -306,7 +294,6 @@ def edit_user_dialog() -> rx.Component:
 def users_table() -> rx.Component:
     """Component to display the users table."""
     return rx.fragment(
-        # head cells for the main table
         rx.table.root(
             rx.table.header(
                 rx.table.row(
@@ -318,13 +305,10 @@ def users_table() -> rx.Component:
                     rx.table.column_header_cell(""),
                 ),
             ),
-            # dynamically render each new entry
             rx.table.body(rx.foreach(ManageUsersState.users, user_table_row)),
             variant="surface",
             size="3",
             width="85vw",
             overflow_x="auto",
-            overflow_y="auto",
-            max_height="66vh",
         ),
     )
