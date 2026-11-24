@@ -157,10 +157,15 @@ class ChatState(SessionState):
     """Handles the ChatState."""
 
     _exercise_id: int
+    _current_exercise: Exercise | None = None
+    _system_message_gpt: str
+    _userinfo_id: int = -1
+    _current_tokens: int = 0
+    _token_limit: int = 0
+    _current_lecture_id: int | None = None
+
     messages: list[ChatMessage] = []
-    current_exercise: Exercise | None = None
     exercise_title: str = "No Exercise Selected"
-    system_message_gpt: str
     waiting_for_response: bool = False
     check_passed: bool = False
     conversation_is_submitted: bool = False
@@ -168,30 +173,26 @@ class ChatState(SessionState):
     user_input: str = ""
     last_user_message_index: int = -1
     is_overdue: bool = False
-    _userinfo_id: int = -1
     report_text: str = ""
-    current_tokens: int = 0
-    token_limit: int = 0
-    current_lecture_id: int | None = None
 
     @rx.var
     def token_limit_reached(self) -> bool:
         """Check if token limit has been reached."""
-        return self.current_tokens >= self.token_limit
+        return self._current_tokens >= self._token_limit
 
     @rx.var
     def token_warning_threshold_reached(self) -> bool:
         """Check if token warning threshold has been reached."""
-        return self.current_tokens >= (
-            self.token_limit * gv.CHAT_TOKEN_WARNING_THRESHOLD
+        return self._current_tokens >= (
+            self._token_limit * gv.CHAT_TOKEN_WARNING_THRESHOLD
         )
 
     @rx.var
     def token_usage_percentage(self) -> int:
         """Get current token usage as percentage."""
-        if self.token_limit == 0:
+        if self._token_limit == 0:
             return 0
-        return int((self.current_tokens / self.token_limit) * 100)
+        return int((self._current_tokens / self._token_limit) * 100)
 
     @rx.event
     def set_report_text(self, value: str):
@@ -213,7 +214,7 @@ class ChatState(SessionState):
 
         self._global_load()
         self.waiting_for_response = False
-        self.current_lecture_id = None
+        self._current_lecture_id = None
 
         userinfo = self._authenticated_user_info
         # should be guaranteed by the decorator but assert for type checkers
@@ -228,7 +229,7 @@ class ChatState(SessionState):
 
         with rx.session() as session:
             config = get_config()
-            self.token_limit = max(1, config.exercise_token_limit)
+            self._token_limit = max(1, config.exercise_token_limit)
             exercise = session.exec(
                 select(Exercise).where(Exercise.id == self._exercise_id)
             ).one_or_none()
@@ -249,7 +250,7 @@ class ChatState(SessionState):
             ):
                 yield rx.redirect(routes.MY_LECTURES)
                 return
-            self.current_lecture_id = exercise.lecture_id
+            self._current_lecture_id = exercise.lecture_id
 
             exercise_result = session.exec(
                 select(ExerciseResult).where(
@@ -258,29 +259,29 @@ class ChatState(SessionState):
                 )
             ).one_or_none()
             error_when_loading_prompt: bool = False
-            self.current_exercise = exercise
-            self.exercise_title = self.current_exercise.title
-            self.is_overdue = self.current_exercise.deadline_exceeded
+            self._current_exercise = exercise
+            self.exercise_title = self._current_exercise.title
+            self.is_overdue = self._current_exercise.deadline_exceeded
 
-            if self.current_exercise.prompt:
-                exercise_prompt = self.current_exercise.prompt.prompt_template
+            if self._current_exercise.prompt:
+                exercise_prompt = self._current_exercise.prompt.prompt_template
             else:
                 exercise_prompt = (
                     "tell the user there was an error when loading "
                     "the prompt. Don't answer any questions."
                 )
                 error_when_loading_prompt = True
-            self.system_message_gpt = exercise_prompt.format(
-                title=self.current_exercise.title,
-                description=self.current_exercise.description,
-                lesson_context=self.current_exercise.lesson_context,
+            self._system_message_gpt = exercise_prompt.format(
+                title=self._current_exercise.title,
+                description=self._current_exercise.description,
+                lesson_context=self._current_exercise.lesson_context,
             )
 
             self.messages = []
             self._load_existing_conversation()
             if not self.messages:
                 self._append_chat_message(
-                    self.current_exercise.description,
+                    self._current_exercise.description,
                     role=Role.AITUTOR,
                     check_passed=False,
                 )
@@ -295,11 +296,11 @@ class ChatState(SessionState):
                     if exercise_result.submit_time_stamp
                     else ""
                 )
-                self.current_tokens = exercise_result.tokens_used
+                self._current_tokens = exercise_result.tokens_used
             else:
                 self.check_passed = False
                 self.conversation_is_submitted = False
-                self.current_tokens = 0
+                self._current_tokens = 0
         if error_when_loading_prompt:
             yield rx.toast.error(
                 description=BT.prompt_loading_error(self.language),
@@ -334,14 +335,14 @@ class ChatState(SessionState):
     @rx.var
     def exercises_url(self) -> str:
         """Return the exercise list URL for the current lecture."""
-        if self.current_lecture_id is None:
+        if self._current_lecture_id is None:
             return routes.MY_LECTURES
-        return f"{routes.LECTURE_EXERCISES}/{self.current_lecture_id}"
+        return f"{routes.LECTURE_EXERCISES}/{self._current_lecture_id}"
 
     @rx.event
     def submit_report(self):
         """Save the report to the database."""
-        if not self.current_exercise or not self.report_text.strip():
+        if not self._current_exercise or not self.report_text.strip():
             return rx.toast.error(
                 title=BT.no_report_message_title(self.language),
                 description=BT.no_report_message_description(self.language),
@@ -350,15 +351,15 @@ class ChatState(SessionState):
             )
 
         with rx.session() as session:
-            if self.current_exercise.id is None:
+            if self._current_exercise.id is None:
                 raise ValueError("Failed to save report because exercise_id is None.")
 
             # Create a snapshot of the current conversation
             conversation_snapshot = self._get_messages_dict_gpt()
 
             report = Report(
-                exercise_id=self.current_exercise.id,
-                lecture_id=self.current_exercise.lecture_id,
+                exercise_id=self._current_exercise.id,
+                lecture_id=self._current_exercise.lecture_id,
                 userinfo_id=self._userinfo_id,
                 report_text=self.report_text,
                 looked_at=False,
@@ -403,11 +404,11 @@ class ChatState(SessionState):
     def reset_conversation(self):
         """Resets conversation for current exercise."""
         # Clear conversation from database but keep tokens_used
-        if self.current_exercise:
+        if self._current_exercise:
             with rx.session() as session:
                 exercise_result = session.exec(
                     select(ExerciseResult).where(
-                        ExerciseResult.exercise_id == self.current_exercise.id,
+                        ExerciseResult.exercise_id == self._current_exercise.id,
                         ExerciseResult.userinfo_id == self._userinfo_id,
                     )
                 ).one_or_none()
@@ -425,9 +426,9 @@ class ChatState(SessionState):
         self.user_input = ""
         if len(self.messages) > 1:
             self.messages = []
-            if self.current_exercise:
+            if self._current_exercise:
                 self._append_chat_message(
-                    self.current_exercise.description,
+                    self._current_exercise.description,
                     role=Role.AITUTOR,
                     check_passed=False,
                 )
@@ -493,12 +494,12 @@ class ChatState(SessionState):
         async with self:
             if self.token_limit_reached:
                 return
-            if self.current_exercise is None:
+            if self._current_exercise is None:
                 return
             self.waiting_for_response = True
             conversation = self._get_messages_dict_gpt()
             check_conversation_prompt = (
-                self._get_check_conversation_prompt_for_exercise(self.current_exercise)
+                self._get_check_conversation_prompt_for_exercise(self._current_exercise)
             )
         yield
         (
@@ -559,11 +560,11 @@ class ChatState(SessionState):
         """
         if self.check_passed:
             conversation = self._get_messages_dict_gpt()
-            if self.current_exercise:
+            if self._current_exercise:
                 with rx.session() as session:
                     exercise_result = session.exec(
                         select(ExerciseResult).where(
-                            ExerciseResult.exercise_id == self.current_exercise.id,
+                            ExerciseResult.exercise_id == self._current_exercise.id,
                             ExerciseResult.userinfo_id == self._userinfo_id,
                         )
                     ).one_or_none()
@@ -619,23 +620,23 @@ class ChatState(SessionState):
             conversation: The conversation history as a list of dictionaries
             tokens_to_add: Number of tokens used in the current API call to accumulate
         """
-        if self.current_exercise:
+        if self._current_exercise:
             with rx.session() as session:
                 exercise_result = session.exec(
                     select(ExerciseResult).where(
-                        ExerciseResult.exercise_id == self.current_exercise.id,
+                        ExerciseResult.exercise_id == self._current_exercise.id,
                         ExerciseResult.userinfo_id == self._userinfo_id,
                     )
                 ).one_or_none()
 
                 if exercise_result is None:
                     # create new ExerciseResult if none exists
-                    if self.current_exercise.id is None:
+                    if self._current_exercise.id is None:
                         raise ValueError(
                             "Failed to save conversation because exercise_id is None."
                         )
                     exercise_result = ExerciseResult(
-                        exercise_id=self.current_exercise.id,
+                        exercise_id=self._current_exercise.id,
                         userinfo_id=self._userinfo_id,
                         conversation_text=conversation,
                         check_passed=self.check_passed,
@@ -652,7 +653,7 @@ class ChatState(SessionState):
                     session.commit()
 
                 # Update current_tokens from database
-                self.current_tokens = exercise_result.tokens_used
+                self._current_tokens = exercise_result.tokens_used
 
     def _get_messages_dict_gpt(self):
         """
@@ -664,7 +665,7 @@ class ChatState(SessionState):
         messages_gpt = [
             {
                 "role": Role.SYSTEM.value,
-                "content": self.system_message_gpt,
+                "content": self._system_message_gpt,
                 "check_passed": False,
             }
         ]
@@ -684,11 +685,11 @@ class ChatState(SessionState):
         """
         Loads existing conversation from database.
         """
-        if self.current_exercise:
+        if self._current_exercise:
             with rx.session() as session:
                 exercise_result = session.exec(
                     select(ExerciseResult).where(
-                        ExerciseResult.exercise_id == self.current_exercise.id,
+                        ExerciseResult.exercise_id == self._current_exercise.id,
                         ExerciseResult.userinfo_id == self._userinfo_id,
                     )
                 ).one_or_none()
