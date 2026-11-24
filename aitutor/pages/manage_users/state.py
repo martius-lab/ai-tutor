@@ -42,6 +42,20 @@ MANAGE_USERS_FIELD_MAX_LENGTHS: dict[str, int] = {
 _REQUIRED_PERMISSIONS = [GlobalPermission.MAINTAINER]
 
 
+def error_toast(message: str) -> rx.event.EventSpec:
+    """Create an error toast in the style used on this page."""
+    return rx.toast.error(
+        message, duration=7_000, position="bottom-center", invert=True
+    )
+
+
+def success_toast(message: str) -> rx.event.EventSpec:
+    """Create a success toast in the style used on this page."""
+    return rx.toast.success(
+        message, duration=7_000, position="bottom-center", invert=True
+    )
+
+
 class ManageUsersState(SearchMixin, SessionState):
     """State for managing user accounts."""
 
@@ -141,24 +155,13 @@ class ManageUsersState(SearchMixin, SessionState):
             )
 
         if not row:
-            return rx.toast.error(
-                BT.error_user_not_found(self.language),
-                duration=5000,
-                position="bottom-center",
-                invert=True,
-            )
+            return error_toast(BT.error_user_not_found(self.language))
 
         # need to convert to proper tuple to avoid some weird type errors...
         self.edited_user = (row[0], row[1])
         self.edited_user_pending_email = pending_email
         self.edited_user_permissions = permissions  # type: ignore
         self.edit_dialog_is_open = True
-
-    def _error_toast(self, message: str):
-        """Create an error toast in the style used on this page."""
-        return rx.toast.error(
-            message, duration=7_000, position="bottom-center", invert=True
-        )
 
     def _load_user(
         self, session: Session, user_id: int
@@ -280,14 +283,9 @@ class ManageUsersState(SearchMixin, SessionState):
                 " admin).",
                 user_id,
             )
-            return self._error_toast(failure_message)
+            return error_toast(failure_message)
 
-        return rx.toast.success(
-            success_message,
-            duration=7_000,
-            position="bottom-center",
-            invert=True,
-        )
+        return success_toast(success_message)
 
     @rx.event
     @state_require_permission(_REQUIRED_PERMISSIONS)
@@ -310,12 +308,12 @@ class ManageUsersState(SearchMixin, SessionState):
         new_email = form_data["email"].strip()
         # same basic syntax check as in the registration
         if "@" not in email.utils.parseaddr(new_email, strict=True)[1]:
-            yield self._error_toast(BT.error_email_invalid(self.language))
+            yield error_toast(BT.error_email_invalid(self.language))
             return
 
         # check for the password max length in terms of bytes
         if len(form_data["new_password"].encode("utf-8")) > gv.PASSWORD_MAX_BYTES:
-            yield self._error_toast(BT.error_password_too_long(self.language))
+            yield error_toast(BT.error_password_too_long(self.language))
             return
 
         self.save_in_progress = True
@@ -325,7 +323,7 @@ class ManageUsersState(SearchMixin, SessionState):
             with rx.session() as session:
                 row, error_message = self._load_user(session, user_id)
                 if row is None:
-                    yield self._error_toast(error_message)
+                    yield error_toast(error_message)
                     return
                 local_user, user_info = row
                 assert local_user.id is not None
@@ -441,7 +439,7 @@ class ManageUsersState(SearchMixin, SessionState):
             with rx.session() as session:
                 row, error_message = self._load_user(session, user_id)
                 if row is None:
-                    yield self._error_toast(error_message)
+                    yield error_toast(error_message)
                     return
                 local_user, user_info = row
 
@@ -519,11 +517,8 @@ class ManageUsersState(SearchMixin, SessionState):
                         )
                     ).first()
                     if other_owner is None:
-                        return rx.toast.error(
-                            BT.cannot_delete_sole_lecture_owner(self.language),
-                            duration=7000,
-                            position="bottom-center",
-                            invert=True,
+                        return error_toast(
+                            BT.cannot_delete_sole_lecture_owner(self.language)
                         )
 
                 # NOTE: The deletions below could be reduced to a single delete of
@@ -548,19 +543,9 @@ class ManageUsersState(SearchMixin, SessionState):
 
                 session.commit()
             else:
-                return rx.toast.error(
-                    BT.error_user_not_found(self.language),
-                    duration=5000,
-                    position="bottom-center",
-                    invert=True,
-                )
+                return error_toast(BT.error_user_not_found(self.language))
 
         # reload the table
         self._load_users()
 
-        return rx.toast.success(
-            BT.deleted_user(self.language, local_user.username),
-            duration=5000,
-            position="bottom-center",
-            invert=True,
-        )
+        return success_toast(BT.deleted_user(self.language, local_user.username))
