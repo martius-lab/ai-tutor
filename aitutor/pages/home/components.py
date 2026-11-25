@@ -15,8 +15,6 @@ from aitutor.routes import LOGIN, REGISTER
 
 def dashboard_card():
     """Render the dashboard card"""
-    exercises_num = HomeState.exercises_with_result.length()  # type: ignore
-
     return (
         rx.card(
             rx.cond(
@@ -31,10 +29,10 @@ def dashboard_card():
                     rx.hstack(
                         rx.icon("circle-check", color=gv.GREEN_CHECK_COLOR, size=20),
                         rx.cond(
-                            exercises_num > 0,
+                            HomeState.num_total_exercises > 0,
                             rx.text(
-                                f"{HomeState.completed_exercises_num} \
-                                /{exercises_num} \
+                                f"{HomeState.num_completed_exercises} \
+                                /{HomeState.num_total_exercises} \
                                     {LanguageState.open_exercises_submitted}"
                             ),
                             rx.text(LanguageState.no_pending_exercises),

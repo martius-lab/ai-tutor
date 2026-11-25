@@ -62,7 +62,10 @@ def build_home_exercises_statement(
 class HomeState(SessionState):
     """The state for the home page."""
 
-    exercises_with_result: list[ExerciseWithResult] = []
+    num_total_exercises: int = 0
+    num_completed_exercises: int = 0
+    progress_value: int = 0
+    next_deadline_task: str = ""
     lecture_exercise_groups: list[LectureExerciseGroup] = []
 
     @rx.event
@@ -88,36 +91,35 @@ class HomeState(SessionState):
                 for exercise, result, lecture in rows
                 if exercise.is_started
             ]
-            self.exercises_with_result = [
+
+            exercises_with_result: list[ExerciseWithResult] = [
                 (exercise, result) for exercise, result, _ in started_rows
             ]
+            self.num_total_exercises = len(exercises_with_result)
+            self.num_completed_exercises = sum(
+                1
+                for _, result in exercises_with_result
+                if result and result.finished_conversation
+            )
+            self.progress_value = (
+                int((self.num_completed_exercises / self.num_total_exercises) * 100)
+                if self.num_total_exercises > 0
+                else 100
+            )
+            self.next_deadline_task = self._next_deadline_task(exercises_with_result)
+
             self.lecture_exercise_groups = self._group_exercises_by_lecture(
                 started_rows
             )
 
-    @rx.var
-    def completed_exercises_num(self) -> int:
-        """Number of completed exercises."""
-        return sum(
-            1
-            for _, result in self.exercises_with_result
-            if result and result.finished_conversation
-        )
-
-    @rx.var
-    def progress_value(self) -> int:
-        """Progress value for the progress bar."""
-        total = len(self.exercises_with_result)
-        return int((self.completed_exercises_num / total) * 100) if total > 0 else 100
-
-    @rx.var
-    def next_deadline_task(self) -> str:
+    @staticmethod
+    def _next_deadline_task(exercises_with_result: list[ExerciseWithResult]) -> str:
         """Next task with deadline."""
         time_now = datetime.now(ZoneInfo(TIME_ZONE))
 
         tasks = [
             (ex.title, ex.deadline.replace(tzinfo=ZoneInfo(TIME_ZONE)))
-            for ex, res in self.exercises_with_result
+            for ex, res in exercises_with_result
             if ex.deadline
             and ex.deadline.replace(tzinfo=ZoneInfo(TIME_ZONE)) > time_now
             and not (res and res.finished_conversation)  # not submitted
@@ -129,8 +131,8 @@ class HomeState(SessionState):
         title, deadline = min(tasks, key=lambda t: t[1])
         return f"{title} – {deadline.strftime('%d.%m.%Y, %H:%M')}"
 
+    @staticmethod
     def _group_exercises_by_lecture(
-        self,
         rows: Sequence[tuple[Exercise, ExerciseResult | None, Lecture]],
     ) -> list[LectureExerciseGroup]:
         """Group exercise rows by lecture while preserving query order."""
