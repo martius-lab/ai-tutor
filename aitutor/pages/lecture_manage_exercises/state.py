@@ -893,7 +893,7 @@ class LectureManageExercisesState(SearchMixin, SessionState):
             invert=True,
         )
 
-    def load_exercise(self, exercise: Exercise):
+    def _load_exercise(self, exercise: Exercise):
         """load the exercise into the state variables."""
         # load the exercise from the state variable so it also contains the tags.
         # Because the argument exercise for some reason does not have the tags loaded.
@@ -939,7 +939,7 @@ class LectureManageExercisesState(SearchMixin, SessionState):
     @rx.event
     def open_edit_dialog(self, exercise: Exercise):
         """Open the edit dialog for an exercise."""
-        self.load_exercise(exercise)
+        self._load_exercise(exercise)
         self.edit_exercise_dialog_is_open = True
 
     @rx.event
