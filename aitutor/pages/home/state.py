@@ -1,6 +1,7 @@
 """The state for the home page."""
 
 from collections.abc import Sequence
+from dataclasses import dataclass
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
@@ -14,6 +15,25 @@ from aitutor.models import Exercise, ExerciseResult, Lecture, LinkUserLecture
 
 ExerciseWithResult = tuple[Exercise, ExerciseResult | None]
 LectureExerciseGroup = tuple[Lecture, list[ExerciseWithResult]]
+
+
+@dataclass
+class ExerciseData:
+    """Bundles the data needed about an exercise for the home page."""
+
+    id: int
+    title: str
+    deadline: datetime | None
+    is_submitted: bool
+
+
+@dataclass
+class LectureExercisesData:
+    """Bundles the data needed about a lecture and its exercises for the home page."""
+
+    lecture_id: int
+    lecture_name: str
+    exercises: list[ExerciseData]
 
 
 def build_home_exercises_statement(
@@ -66,7 +86,7 @@ class HomeState(SessionState):
     num_completed_exercises: int = 0
     progress_value: int = 0
     next_deadline_task: str = ""
-    lecture_exercise_groups: list[LectureExerciseGroup] = []
+    lecture_exercise_groups: list[LectureExercisesData] = []
 
     @rx.event
     @state_require_login()
@@ -134,12 +154,26 @@ class HomeState(SessionState):
     @staticmethod
     def _group_exercises_by_lecture(
         rows: Sequence[tuple[Exercise, ExerciseResult | None, Lecture]],
-    ) -> list[LectureExerciseGroup]:
+    ) -> list[LectureExercisesData]:
         """Group exercise rows by lecture while preserving query order."""
-        grouped: dict[int, LectureExerciseGroup] = {}
+        grouped: dict[int, LectureExercisesData] = {}
         for exercise, result, lecture in rows:
             assert lecture.id is not None
+            assert exercise.id is not None
+
             if lecture.id not in grouped:
-                grouped[lecture.id] = (lecture, [])
-            grouped[lecture.id][1].append((exercise, result))
+                grouped[lecture.id] = LectureExercisesData(
+                    lecture_id=lecture.id,
+                    lecture_name=lecture.lecture_name,
+                    exercises=[],
+                )
+            grouped[lecture.id].exercises.append(
+                ExerciseData(
+                    id=exercise.id,
+                    title=exercise.title,
+                    deadline=exercise.deadline,
+                    is_submitted=result is not None
+                    and result.submit_time_stamp is not None,
+                )
+            )
         return list(grouped.values())
