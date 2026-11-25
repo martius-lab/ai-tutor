@@ -717,7 +717,14 @@ class LectureManageExercisesState(SearchMixin, SessionState):
                         Exercise.id == self.edited_exercise_id,
                         Exercise.lecture_id == self.current_lecture_id,
                     )
-                ).one()
+                ).one_or_none()
+                if exercise is None:
+                    return rx.toast.error(
+                        BT.exercise_does_not_exist_anymore(self.language),
+                        duration=7000,
+                        position="bottom-center",
+                        invert=True,
+                    )
 
                 exercise.title = form_data["title"]
                 exercise.description = form_data["description"]
