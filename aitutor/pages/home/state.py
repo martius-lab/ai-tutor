@@ -85,7 +85,7 @@ class HomeState(SessionState):
     num_total_exercises: int = 0
     num_completed_exercises: int = 0
     progress_value: int = 0
-    next_deadline_task: str = ""
+    next_deadline_task: tuple[str, datetime] | None = None
     lecture_exercise_groups: list[LectureExercisesData] = []
 
     @rx.event
@@ -133,7 +133,9 @@ class HomeState(SessionState):
             )
 
     @staticmethod
-    def _next_deadline_task(exercises_with_result: list[ExerciseWithResult]) -> str:
+    def _next_deadline_task(
+        exercises_with_result: list[ExerciseWithResult],
+    ) -> tuple[str, datetime] | None:
         """Next task with deadline."""
         time_now = datetime.now(ZoneInfo(TIME_ZONE))
 
@@ -146,10 +148,9 @@ class HomeState(SessionState):
         ]
 
         if not tasks:
-            return ""
+            return None
 
-        title, deadline = min(tasks, key=lambda t: t[1])
-        return f"{title} – {deadline.strftime('%d.%m.%Y, %H:%M')}"
+        return min(tasks, key=lambda t: t[1])
 
     @staticmethod
     def _group_exercises_by_lecture(
