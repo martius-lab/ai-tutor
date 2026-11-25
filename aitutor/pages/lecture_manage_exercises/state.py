@@ -881,7 +881,13 @@ class LectureManageExercisesState(SearchMixin, SessionState):
         with rx.session() as session:
             exercise = session.exec(select(Exercise).where(Exercise.id == id)).first()
             if exercise is None or exercise.lecture_id != self.current_lecture_id:
-                return rx.redirect(routes.MY_LECTURES)
+                return rx.toast.error(
+                    BT.exercise_does_not_exist_anymore(self.language),
+                    duration=7000,
+                    position="bottom-center",
+                    invert=True,
+                )
+
             session.delete(exercise)
             session.commit()
         self.load_exercises()
