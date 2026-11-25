@@ -17,8 +17,9 @@ from __future__ import annotations
 
 import argparse
 import getpass
-import os
 import sys
+
+from aitutor.utilities.scripts import connect_database
 
 
 def parse_args() -> argparse.Namespace:
@@ -127,14 +128,14 @@ def main() -> int:
     """Run the script."""
     args = parse_args()
 
-    if args.db_url:
-        # Reflex' config can be overwritten via environment variables.  This needs to
-        # happen before reflex is imported below.
-        os.environ["REFLEX_DB_URL"] = args.db_url
+    try:
+        _session = connect_database(db_url_override=args.db_url, read_only=False)
+    except ValueError as e:
+        print(e, file=sys.stderr)
+        return 1
 
-    # Imported here, so the REFLEX_DB_URL override above is picked up and the script
-    # can print its help without loading the (slow) reflex imports.
-    import reflex as rx
+    # Imported here, so the REFLEX_DB_URL override in connect_database is picked up and
+    # the script can print its help without loading the (slow) reflex imports.
     from reflex_local_auth.auth_session import LocalAuthSession
     from reflex_local_auth.user import LocalUser
     from sqlmodel import select
@@ -142,7 +143,7 @@ def main() -> int:
     from aitutor import global_vars as gv
     from aitutor.models import UserInfo
 
-    with rx.session() as session:
+    with _session() as session:
         url = session.get_bind().engine.url
         print(f"Database: {url.render_as_string(hide_password=True)}")
 

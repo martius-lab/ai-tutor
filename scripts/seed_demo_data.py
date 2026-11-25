@@ -25,10 +25,11 @@ All created users share the password "1234".
 from __future__ import annotations
 
 import argparse
-import os
 import sys
 from datetime import datetime, timedelta
 from typing import TYPE_CHECKING, Any, Literal, NotRequired, TypedDict
+
+from aitutor.utilities.scripts import connect_database
 
 if TYPE_CHECKING:
     from sqlmodel import Session, SQLModel
@@ -743,20 +744,17 @@ def main() -> int:
     """Run the script."""
     args = parse_args()
 
-    if args.db_url:
-        # Reflex' config can be overwritten via environment variables.  This needs to
-        # happen before reflex is imported below.
-        os.environ["REFLEX_DB_URL"] = args.db_url
-
-    # Imported here, so the REFLEX_DB_URL override above is picked up and the script
-    # can print its help without loading the (slow) reflex imports.
-    import reflex as rx
+    try:
+        _session = connect_database(db_url_override=args.db_url, read_only=False)
+    except ValueError as e:
+        print(e, file=sys.stderr)
+        return 1
 
     from aitutor.utilities.first_setup import first_time_setup
 
     first_time_setup()
 
-    with rx.session() as session:
+    with _session() as session:
         url = session.get_bind().engine.url
         print(f"Database: {url.render_as_string(hide_password=True)}")
         adjust_defaults(session)
