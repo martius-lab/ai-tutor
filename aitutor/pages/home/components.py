@@ -42,9 +42,9 @@ def dashboard_card():
                         rx.text(LanguageState.next_deadline, weight="bold"),
                         rx.cond(
                             HomeState.next_deadline_task != None,
-                            rx.hstack(
-                                rx.text(HomeState.next_deadline_task[0]),  # type: ignore
-                                rx.html(" &mdash; "),
+                            rx.text(
+                                HomeState.next_deadline_task[0],  # type: ignore
+                                " — ",
                                 rx.moment(
                                     date=HomeState.next_deadline_task[1],  # type: ignore
                                     format=gv.MOMENT_DEADLINE_FORMAT,

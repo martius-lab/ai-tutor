@@ -14,7 +14,6 @@ from aitutor.global_vars import TIME_ZONE
 from aitutor.models import Exercise, ExerciseResult, Lecture, LinkUserLecture
 
 ExerciseWithResult = tuple[Exercise, ExerciseResult | None]
-LectureExerciseGroup = tuple[Lecture, list[ExerciseWithResult]]
 
 
 @dataclass
@@ -79,6 +78,11 @@ def build_home_exercises_statement(
     )
 
 
+def _is_submitted(result: ExerciseResult | None) -> bool:
+    """Check if an exercise result has been submitted."""
+    return result is not None and result.submit_time_stamp is not None
+
+
 class HomeState(SessionState):
     """The state for the home page."""
 
@@ -117,9 +121,7 @@ class HomeState(SessionState):
             ]
             self.num_total_exercises = len(exercises_with_result)
             self.num_completed_exercises = sum(
-                1
-                for _, result in exercises_with_result
-                if result and result.finished_conversation
+                1 for _, result in exercises_with_result if _is_submitted(result)
             )
             self.progress_value = (
                 int((self.num_completed_exercises / self.num_total_exercises) * 100)
@@ -136,7 +138,7 @@ class HomeState(SessionState):
     def _next_deadline_task(
         exercises_with_result: list[ExerciseWithResult],
     ) -> tuple[str, datetime] | None:
-        """Next task with deadline."""
+        """Get title and deadline of the task that is due next."""
         time_now = datetime.now(ZoneInfo(TIME_ZONE))
 
         tasks = [
@@ -144,7 +146,7 @@ class HomeState(SessionState):
             for ex, res in exercises_with_result
             if ex.deadline
             and ex.deadline.replace(tzinfo=ZoneInfo(TIME_ZONE)) > time_now
-            and not (res and res.finished_conversation)  # not submitted
+            and not _is_submitted(res)
         ]
 
         if not tasks:
@@ -173,8 +175,7 @@ class HomeState(SessionState):
                     id=exercise.id,
                     title=exercise.title,
                     deadline=exercise.deadline,
-                    is_submitted=result is not None
-                    and result.submit_time_stamp is not None,
+                    is_submitted=_is_submitted(result),
                 )
             )
         return list(grouped.values())
