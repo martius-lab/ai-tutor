@@ -67,3 +67,20 @@ def parse_query_keys(query: str, keys: list[str]) -> list[SearchTerm]:
         terms = grammar.parse_string(query.replace('"', ""), parse_all=True)
 
     return [term for term in terms if term.value.strip()]
+
+
+def format_query(terms: list[SearchTerm]) -> str:
+    """Turn search terms back into query text; the reverse of `parse_query_keys`.
+
+    example: format_query([SearchTerm("rest", "loops"),
+                           SearchTerm("tag", "for loop")])
+    'loops tag:"for loop"'
+    """
+    return " ".join(_format_term(term) for term in terms)
+
+
+def _format_term(term: SearchTerm) -> str:
+    value = term.value
+    if any(char.isspace() or char in '":' for char in value):
+        value = '"' + value.replace('"', '\\"') + '"'
+    return value if term.key == FREE_TEXT_KEY else f"{term.key}:{value}"
