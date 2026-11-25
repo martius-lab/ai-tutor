@@ -2438,6 +2438,21 @@ class BackendTranslations:
             en="Could not read text from the PDF.",
         )
 
+    @staticmethod
+    def exercise_does_not_exist_anymore(language: Language) -> str:
+        return translate(
+            language,
+            de=(
+                "Die ausgewählte Übung existiert nicht."
+                " Möglicherweise wurde sie von einem anderen Nutzer gelöscht."
+                " Bitte laden Sie die Seite neu."
+            ),
+            en=(
+                "The selected exercise does not exist anymore."
+                " Maybe it got deleted by another user. Please reload the page."
+            ),
+        )
+
     # FinishedViewState ----------------------------------------------------------------
     @staticmethod
     def submission_deleted_title(language: Language) -> str:

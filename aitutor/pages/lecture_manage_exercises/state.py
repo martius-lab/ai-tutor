@@ -835,7 +835,16 @@ class LectureManageExercisesState(SearchMixin, SessionState):
                     Exercise.id == exercise.id,
                     Exercise.lecture_id == self.current_lecture_id,
                 )
-            ).one()
+            ).one_or_none()
+
+            if _exercise is None:
+                return rx.toast.error(
+                    BT.exercise_does_not_exist_anymore(self.language),
+                    duration=7000,
+                    position="bottom-center",
+                    invert=True,
+                )
+
             # toggle visibility
             _exercise.is_hidden = not _exercise.is_hidden
             session.commit()
