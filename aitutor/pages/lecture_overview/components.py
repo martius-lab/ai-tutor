@@ -2,13 +2,11 @@
 
 import reflex as rx
 
-import aitutor.global_vars as gv
 from aitutor import routes
+from aitutor.components.exercises import exercise_status_overview
 from aitutor.language_state import LanguageState as LS
 from aitutor.pages.lecture_overview.state import LectureOverviewState
 from aitutor.pages.legal_infos.loader_functions import get_privacy_notice_short
-
-from aitutor.pages.home.components import brief_overview
 
 
 def lecture_information_content() -> rx.Component:
@@ -48,7 +46,7 @@ def lecture_information_content() -> rx.Component:
 def lecture_dashboard_card() -> rx.Component:
     """Render the lecture-specific dashboard card."""
     return rx.card(
-        brief_overview(
+        exercise_status_overview(
             headline=f"{LectureOverviewState.lecture_name} {LS.dashboard}",
             progress_value=LectureOverviewState.progress_value,
             num_total_exercises=LectureOverviewState.num_total_exercises,

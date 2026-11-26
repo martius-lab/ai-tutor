@@ -12,10 +12,12 @@ from aitutor.auth.protection import state_require_lecture_role
 from aitutor.auth.state import SessionState
 from aitutor.global_vars import TIME_ZONE
 from aitutor.models import Exercise, ExerciseResult, Lecture, LectureRole
-from aitutor.pages.home.state import is_submitted, next_deadline_task
+from aitutor.utilities.exercises import (
+    ExerciseWithMaybeResult,
+    is_submitted,
+    next_deadline_task,
+)
 from aitutor.utilities.lecture_permissions import user_may_view_lecture
-
-ExerciseWithMaybeResult = tuple[Exercise, ExerciseResult | None]
 
 
 class LectureOverviewState(SessionState):
