@@ -25,8 +25,9 @@ by default, so ``--quiet`` only prints something if there is anything to report.
 from __future__ import annotations
 
 import argparse
-import os
 import sys
+
+from aitutor.utilities.scripts import connect_database
 
 EXIT_ATTENTION_NEEDED = 2
 
@@ -61,14 +62,11 @@ def main() -> int:
     """Run the script."""
     args = parse_args()
 
-    if args.db_url:
-        # Reflex' config can be overwritten via environment variables.  This needs to
-        # happen before reflex is imported below.
-        os.environ["REFLEX_DB_URL"] = args.db_url
-
-    # Imported here, so the REFLEX_DB_URL override above is picked up and the script
-    # can print its help without loading the (slow) reflex imports.
-    import reflex as rx
+    try:
+        _session = connect_database(db_url_override=args.db_url, read_only=False)
+    except ValueError as e:
+        print(e, file=sys.stderr)
+        return 1
 
     from aitutor.account_cleanup import delete_unverified_accounts, purge_expired_tokens
 
@@ -78,7 +76,7 @@ def main() -> int:
 
     prefix = "[dry run] " if args.dry_run else ""
 
-    with rx.session() as session:
+    with _session() as session:
         url = session.get_bind().engine.url
         info(f"{prefix}Database: {url.render_as_string(hide_password=True)}")
 

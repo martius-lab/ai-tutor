@@ -20,13 +20,13 @@ from __future__ import annotations
 
 import argparse
 import json
-import os
 import sys
 from datetime import datetime
 from typing import TYPE_CHECKING, Any
 
+from aitutor.utilities.scripts import connect_database
+
 if TYPE_CHECKING:
-    from sqlalchemy import Engine
     from sqlmodel import Session
 
 
@@ -44,31 +44,6 @@ def parse_args() -> argparse.Namespace:
         ),
     )
     return parser.parse_args()
-
-
-def create_read_only_engine(db_url: str) -> Engine:
-    """Create an engine for ``db_url`` that rejects all writes.
-
-    Raises:
-        ValueError: If the database backend is not supported.
-    """
-    from sqlalchemy import create_engine
-    from sqlalchemy.engine import make_url
-
-    url = make_url(db_url)
-    if url.get_backend_name() == "sqlite":
-        if not url.database or url.database == ":memory:":
-            raise ValueError("In-memory SQLite databases are not supported.")
-        url = url.set(
-            database=f"file:{url.database}",
-            query={**url.query, "mode": "ro", "uri": "true"},
-        )
-        return create_engine(url)
-    if url.get_backend_name() == "postgresql":
-        return create_engine(
-            url, connect_args={"options": "-c default_transaction_read_only=on"}
-        )
-    raise ValueError(f"Unsupported database backend '{url.get_backend_name()}'.")
 
 
 def collect_statistics(session: Session) -> dict[str, Any]:
@@ -155,31 +130,16 @@ def main() -> int:
     """Run the script."""
     args = parse_args()
 
-    if args.db_url:
-        # Reflex' config can be overwritten via environment variables.  This needs to
-        # happen before reflex is imported below.
-        os.environ["REFLEX_DB_URL"] = args.db_url
-
-    # Imported here, so the REFLEX_DB_URL override above is picked up and the script
-    # can print its help without loading the (slow) reflex imports.
-    import reflex as rx
-    from sqlmodel import Session
-
-    db_url = rx.config.get_config().db_url
-    if not db_url:
-        print("No database URL configured.", file=sys.stderr)
-        return 1
     try:
-        engine = create_read_only_engine(db_url)
+        _session = connect_database(db_url_override=args.db_url, read_only=True)
     except ValueError as e:
         print(e, file=sys.stderr)
         return 1
 
-    print(
-        f"Database: {engine.url.render_as_string(hide_password=True)}",
-        file=sys.stderr,
-    )
-    with Session(engine) as session:
+    with _session() as session:
+        url = session.get_bind().engine.url
+        print(f"Database: {url.render_as_string(hide_password=True)}", file=sys.stderr)
+
         statistics = collect_statistics(session)
 
     print(json.dumps(statistics, indent=2, ensure_ascii=False))
