@@ -13,9 +13,10 @@ from aitutor.auth.state import SessionState
 from aitutor.global_vars import TIME_ZONE
 from aitutor.models import Exercise, ExerciseResult, Lecture, LectureRole
 from aitutor.utilities.exercises import (
+    ExerciseWithDeadline,
     ExerciseWithMaybeResult,
     is_submitted,
-    next_deadline_task,
+    next_due_exercise,
 )
 from aitutor.utilities.lecture_permissions import user_may_view_lecture
 
@@ -30,7 +31,7 @@ class LectureOverviewState(SessionState):
 
     num_total_exercises: int = 0
     num_completed_exercises: int = 0
-    next_deadline_task: tuple[str, datetime] | None = None
+    next_due_exercise: ExerciseWithDeadline | None = None
 
     @rx.event
     @state_require_lecture_role(LectureRole.STUDENT)
@@ -60,7 +61,7 @@ class LectureOverviewState(SessionState):
         self.num_completed_exercises = sum(
             1 for _, result in exercises_with_result if is_submitted(result)
         )
-        self.next_deadline_task = next_deadline_task(exercises_with_result)
+        self.next_due_exercise = next_due_exercise(exercises_with_result)
 
     def _reset_lecture_state(self) -> None:
         """Reset all page-local state values."""
@@ -70,7 +71,7 @@ class LectureOverviewState(SessionState):
         self.lecture_information_text = ""
         self.num_total_exercises = 0
         self.num_completed_exercises = 0
-        self.next_deadline_task = None
+        self.next_due_exercise = None
 
     def _apply_lecture_to_state(self, lecture: Lecture) -> None:
         """Copy the loaded lecture into state variables for rendering."""

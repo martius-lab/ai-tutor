@@ -24,7 +24,7 @@ def dashboard_card():
                     headline=LanguageState.dashboard,
                     num_total_exercises=HomeState.num_total_exercises,
                     num_completed_exercises=HomeState.num_completed_exercises,
-                    next_deadline_task=HomeState.next_deadline_task,
+                    next_due_exercise=HomeState.next_due_exercise,
                 ),
                 # dashboard for not logged in users
                 rx.vstack(
