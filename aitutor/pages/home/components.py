@@ -7,16 +7,13 @@ import reflex as rx
 import aitutor.global_vars as gv
 from aitutor import DisplayConfigState, routes
 from aitutor.language_state import LanguageState
-from aitutor.models import Exercise, ExerciseResult, Lecture
-from aitutor.pages.home.state import ExerciseWithResult, HomeState, LectureExerciseGroup
+from aitutor.pages.home.state import ExerciseData, HomeState, LectureExercisesData
 from aitutor.pages.legal_infos.loader_functions import get_privacy_notice_short
 from aitutor.routes import LOGIN, REGISTER
 
 
 def dashboard_card():
     """Render the dashboard card"""
-    exercises_num = HomeState.exercises_with_result.length()  # type: ignore
-
     return (
         rx.card(
             rx.cond(
@@ -31,10 +28,10 @@ def dashboard_card():
                     rx.hstack(
                         rx.icon("circle-check", color=gv.GREEN_CHECK_COLOR, size=20),
                         rx.cond(
-                            exercises_num > 0,
+                            HomeState.num_total_exercises > 0,
                             rx.text(
-                                f"{HomeState.completed_exercises_num} \
-                                /{exercises_num} \
+                                f"{HomeState.num_completed_exercises} \
+                                /{HomeState.num_total_exercises} \
                                     {LanguageState.open_exercises_submitted}"
                             ),
                             rx.text(LanguageState.no_pending_exercises),
@@ -44,8 +41,15 @@ def dashboard_card():
                     rx.hstack(
                         rx.text(LanguageState.next_deadline, weight="bold"),
                         rx.cond(
-                            HomeState.next_deadline_task,
-                            rx.text(HomeState.next_deadline_task),
+                            HomeState.next_deadline_task != None,
+                            rx.text(
+                                HomeState.next_deadline_task[0],  # type: ignore
+                                " — ",
+                                rx.moment(
+                                    date=HomeState.next_deadline_task[1],  # type: ignore
+                                    format=gv.MOMENT_DEADLINE_FORMAT,
+                                ),
+                            ),
                             rx.text(LanguageState.no_upcoming_deadlines),
                         ),
                     ),
@@ -111,25 +115,19 @@ def dashboard_card():
     )
 
 
-def global_exercise_card(exercise_with_result: ExerciseWithResult) -> rx.Component:
+def global_exercise_card(exercise_data: ExerciseData) -> rx.Component:
     """Render one exercise on the global home page."""
-    exercise: Exercise = exercise_with_result[0]
-    result: ExerciseResult | None = exercise_with_result[1]
-    is_submitted = (result != None) & (
-        result.finished_conversation.length() > 0  # type: ignore
-    )
-
     return rx.card(
         rx.vstack(
-            rx.heading(exercise.title, size="4"),
+            rx.heading(exercise_data.title, size="4"),
             rx.hstack(
                 rx.icon("calendar-clock", size=18),
                 rx.text(LanguageState.deadline, weight="bold", size="2"),
                 rx.cond(
-                    exercise.deadline,
+                    exercise_data.deadline,
                     rx.text(
                         rx.moment(
-                            date=exercise.deadline.to(datetime),  # type: ignore[union-attr]
+                            date=exercise_data.deadline.to(datetime),  # type: ignore[union-attr]
                             format=gv.MOMENT_DEADLINE_FORMAT,
                         ),
                         size="2",
@@ -140,7 +138,7 @@ def global_exercise_card(exercise_with_result: ExerciseWithResult) -> rx.Compone
                 wrap="wrap",
             ),
             rx.cond(
-                is_submitted,
+                exercise_data.is_submitted,
                 rx.hstack(
                     rx.icon("circle-check", color=gv.GREEN_CHECK_COLOR, size=18),
                     rx.text(LanguageState.view_your_submission, size="2"),
@@ -153,22 +151,19 @@ def global_exercise_card(exercise_with_result: ExerciseWithResult) -> rx.Compone
         ),
         width="100%",
         variant="surface",
-        on_click=rx.redirect(f"{routes.CHAT}/{exercise.id}"),
+        on_click=rx.redirect(f"{routes.CHAT}/{exercise_data.id}"),
         _hover={"cursor": "pointer"},
     )
 
 
-def lecture_exercise_group(group: LectureExerciseGroup) -> rx.Component:
+def lecture_exercise_group(data: LectureExercisesData) -> rx.Component:
     """Render all global-home exercises belonging to one lecture."""
-    lecture: Lecture = group[0]
-    exercises: list[ExerciseWithResult] = group[1]
-
     return rx.vstack(
         rx.link(
-            rx.heading(lecture.lecture_name, size="5"),
-            href=f"{routes.LECTURE_OVERVIEW}/{lecture.id}",
+            rx.heading(data.lecture_name, size="5"),
+            href=f"{routes.LECTURE_OVERVIEW}/{data.lecture_id}",
         ),
-        rx.foreach(exercises, global_exercise_card),
+        rx.foreach(data.exercises, global_exercise_card),
         spacing="3",
         align="start",
         width="100%",

@@ -1,6 +1,7 @@
 """The state for the home page."""
 
 from collections.abc import Sequence
+from dataclasses import dataclass
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
@@ -13,7 +14,25 @@ from aitutor.global_vars import TIME_ZONE
 from aitutor.models import Exercise, ExerciseResult, Lecture, LinkUserLecture
 
 ExerciseWithResult = tuple[Exercise, ExerciseResult | None]
-LectureExerciseGroup = tuple[Lecture, list[ExerciseWithResult]]
+
+
+@dataclass
+class ExerciseData:
+    """Bundles the data needed about an exercise for the home page."""
+
+    id: int
+    title: str
+    deadline: datetime | None
+    is_submitted: bool
+
+
+@dataclass
+class LectureExercisesData:
+    """Bundles the data needed about a lecture and its exercises for the home page."""
+
+    lecture_id: int
+    lecture_name: str
+    exercises: list[ExerciseData]
 
 
 def build_home_exercises_statement(
@@ -59,11 +78,19 @@ def build_home_exercises_statement(
     )
 
 
+def _is_submitted(result: ExerciseResult | None) -> bool:
+    """Check if an exercise result has been submitted."""
+    return result is not None and result.submit_time_stamp is not None
+
+
 class HomeState(SessionState):
     """The state for the home page."""
 
-    exercises_with_result: list[ExerciseWithResult] = []
-    lecture_exercise_groups: list[LectureExerciseGroup] = []
+    num_total_exercises: int = 0
+    num_completed_exercises: int = 0
+    progress_value: int = 0
+    next_deadline_task: tuple[str, datetime] | None = None
+    lecture_exercise_groups: list[LectureExercisesData] = []
 
     @rx.event
     @state_require_login()
@@ -88,56 +115,67 @@ class HomeState(SessionState):
                 for exercise, result, lecture in rows
                 if exercise.is_started
             ]
-            self.exercises_with_result = [
+
+            exercises_with_result: list[ExerciseWithResult] = [
                 (exercise, result) for exercise, result, _ in started_rows
             ]
+            self.num_total_exercises = len(exercises_with_result)
+            self.num_completed_exercises = sum(
+                1 for _, result in exercises_with_result if _is_submitted(result)
+            )
+            self.progress_value = (
+                int((self.num_completed_exercises / self.num_total_exercises) * 100)
+                if self.num_total_exercises > 0
+                else 100
+            )
+            self.next_deadline_task = self._next_deadline_task(exercises_with_result)
+
             self.lecture_exercise_groups = self._group_exercises_by_lecture(
                 started_rows
             )
 
-    @rx.var
-    def completed_exercises_num(self) -> int:
-        """Number of completed exercises."""
-        return sum(
-            1
-            for _, result in self.exercises_with_result
-            if result and result.finished_conversation
-        )
-
-    @rx.var
-    def progress_value(self) -> int:
-        """Progress value for the progress bar."""
-        total = len(self.exercises_with_result)
-        return int((self.completed_exercises_num / total) * 100) if total > 0 else 100
-
-    @rx.var
-    def next_deadline_task(self) -> str:
-        """Next task with deadline."""
+    @staticmethod
+    def _next_deadline_task(
+        exercises_with_result: list[ExerciseWithResult],
+    ) -> tuple[str, datetime] | None:
+        """Get title and deadline of the task that is due next."""
         time_now = datetime.now(ZoneInfo(TIME_ZONE))
 
         tasks = [
             (ex.title, ex.deadline.replace(tzinfo=ZoneInfo(TIME_ZONE)))
-            for ex, res in self.exercises_with_result
+            for ex, res in exercises_with_result
             if ex.deadline
             and ex.deadline.replace(tzinfo=ZoneInfo(TIME_ZONE)) > time_now
-            and not (res and res.finished_conversation)  # not submitted
+            and not _is_submitted(res)
         ]
 
         if not tasks:
-            return ""
+            return None
 
-        title, deadline = min(tasks, key=lambda t: t[1])
-        return f"{title} – {deadline.strftime('%d.%m.%Y, %H:%M')}"
+        return min(tasks, key=lambda t: t[1])
 
+    @staticmethod
     def _group_exercises_by_lecture(
-        self,
         rows: Sequence[tuple[Exercise, ExerciseResult | None, Lecture]],
-    ) -> list[LectureExerciseGroup]:
+    ) -> list[LectureExercisesData]:
         """Group exercise rows by lecture while preserving query order."""
-        grouped: dict[int, LectureExerciseGroup] = {}
+        grouped: dict[int, LectureExercisesData] = {}
         for exercise, result, lecture in rows:
             assert lecture.id is not None
+            assert exercise.id is not None
+
             if lecture.id not in grouped:
-                grouped[lecture.id] = (lecture, [])
-            grouped[lecture.id][1].append((exercise, result))
+                grouped[lecture.id] = LectureExercisesData(
+                    lecture_id=lecture.id,
+                    lecture_name=lecture.lecture_name,
+                    exercises=[],
+                )
+            grouped[lecture.id].exercises.append(
+                ExerciseData(
+                    id=exercise.id,
+                    title=exercise.title,
+                    deadline=exercise.deadline,
+                    is_submitted=_is_submitted(result),
+                )
+            )
         return list(grouped.values())
