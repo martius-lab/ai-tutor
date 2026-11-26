@@ -6,11 +6,11 @@ from zoneinfo import ZoneInfo
 
 from reflex_local_auth.auth_session import LocalAuthSession
 from reflex_local_auth.user import LocalUser
-from sqlalchemy.orm import aliased
-from sqlmodel import Session, col, exists, select
+from sqlmodel import Session, select
 
 from aitutor.global_vars import TIME_ZONE, UNVERIFIED_ACCOUNT_RETENTION
-from aitutor.models import LectureRole, LinkUserLecture, UserInfo, VerificationToken
+from aitutor.models import UserInfo, VerificationToken
+from aitutor.utilities.accounts import is_sole_owner_of_a_lecture
 
 
 def _reference_time(now: datetime | None) -> datetime:
@@ -127,7 +127,7 @@ def delete_unverified_accounts(
             created_at=user_info.created_at,
         )
 
-        if _is_sole_owner_of_a_lecture(session, local_user.id):
+        if is_sole_owner_of_a_lecture(session, local_user.id):
             result.skipped_sole_lecture_owner.append(summary)
             continue
 
@@ -135,22 +135,6 @@ def delete_unverified_accounts(
         result.deleted.append(summary)
 
     return result
-
-
-def _is_sole_owner_of_a_lecture(session: Session, user_id: int) -> bool:
-    """Check whether the user is the only owner of at least one lecture."""
-    other_owner = aliased(LinkUserLecture)
-    sole_owned_lecture = select(LinkUserLecture.lecture_id).where(
-        LinkUserLecture.user_id == user_id,
-        LinkUserLecture.role == LectureRole.OWNER,
-        ~exists().where(
-            col(other_owner.lecture_id) == LinkUserLecture.lecture_id,
-            col(other_owner.user_id) != user_id,
-            col(other_owner.role) == LectureRole.OWNER,
-        ),
-    )
-
-    return session.exec(select(exists(sole_owned_lecture))).one()
 
 
 def _delete_account(session: Session, local_user: LocalUser):
