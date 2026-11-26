@@ -35,6 +35,7 @@ from aitutor.search.query import (
     contains,
 )
 from aitutor.search.state import SearchKey, SearchMixin
+from aitutor.utilities.helper_functions import to_tz_aware
 from aitutor.utilities.lecture_permissions import user_may_manage_lecture_exercises
 
 LECTURE_MANAGE_EXERCISES_FIELD_MAX_LENGTHS = {
@@ -207,7 +208,13 @@ def _import_exercises(lecture_id: int, file_content: bytes):
 
             # Parse deadline
             deadline_str = ex_data["deadline"]
-            deadline_dt = datetime.fromisoformat(deadline_str) if deadline_str else None
+            deadline_dt = (
+                to_tz_aware(datetime.fromisoformat(deadline_str)).astimezone(
+                    ZoneInfo(gv.TIME_ZONE)
+                )
+                if deadline_str
+                else None
+            )
 
             # Create Exercise
             new_exercise = Exercise(
@@ -505,7 +512,11 @@ class LectureManageExercisesState(SearchMixin, SessionState):
                         ex.prompt.name if ex.prompt else "prompt not found error!"
                     ),
                     "is_hidden": ex.is_hidden,
-                    "deadline": ex.deadline.isoformat() if ex.deadline else None,
+                    "deadline": to_tz_aware(ex.deadline)
+                    .astimezone(ZoneInfo(gv.TIME_ZONE))
+                    .isoformat()
+                    if ex.deadline
+                    else None,
                     "days_to_complete": ex.days_to_complete,
                     "tags": [tag.name for tag in ex.tags],
                 }
@@ -737,12 +748,13 @@ class LectureManageExercisesState(SearchMixin, SessionState):
                 )
 
             # set deadline and days to complete
-            alert, deadline, days_to_complete = self.get_deadline_and_days_to_complete()
+            alert, deadline, days_to_complete = (
+                self._get_deadline_and_days_to_complete()
+            )
             # alert the user if no values were provided
             if alert:
                 return alert
-
-            exercise.deadline = datetime.fromisoformat(deadline) if deadline else None
+            exercise.deadline = deadline
             exercise.days_to_complete = days_to_complete
 
             session.add(exercise)
@@ -895,7 +907,11 @@ class LectureManageExercisesState(SearchMixin, SessionState):
         self.lesson_file_name = ""  # reset lesson_file_name
         self.current_hidden_state = exercise.is_hidden
         self.current_deadline = (
-            exercise.deadline.strftime("%Y-%m-%dT%H:%M") if exercise.deadline else ""
+            to_tz_aware(exercise.deadline)
+            .astimezone(ZoneInfo(gv.TIME_ZONE))
+            .strftime("%Y-%m-%dT%H:%M")
+            if exercise.deadline
+            else ""
         )
         self.current_days_to_complete = (
             str(exercise.days_to_complete) if exercise.days_to_complete else ""
@@ -933,18 +949,18 @@ class LectureManageExercisesState(SearchMixin, SessionState):
         self.edit_exercise_dialog_is_open = False
         self.reset_exercise_form()
 
-    def get_deadline_and_days_to_complete(self):
+    def _get_deadline_and_days_to_complete(
+        self,
+    ) -> tuple[rx.event.EventSpec | None, datetime | None, int | None]:
         """
         set deadline and days to complete if use_deadline is True
         returns a tuple of (alert, deadline, days_to_complete)
         """
         deadline = None
         days_to_complete = None
+
         if self.use_deadline:
-            if self.current_deadline != "" and self.current_days_to_complete != "":
-                deadline = self.current_deadline
-                days_to_complete = int(self.current_days_to_complete)
-            else:
+            if not self.current_deadline or not self.current_days_to_complete:
                 return (
                     rx.window_alert(
                         "Please enter both a deadline and days to complete."
@@ -952,6 +968,13 @@ class LectureManageExercisesState(SearchMixin, SessionState):
                     None,
                     None,
                 )
+
+            deadline = datetime.fromisoformat(self.current_deadline)
+            # The datetime set via the UI does not have a timezone specified, so we
+            # explicitly need to set it here.
+            deadline = deadline.replace(tzinfo=ZoneInfo(gv.TIME_ZONE))
+            days_to_complete = int(self.current_days_to_complete)
+
         return None, deadline, days_to_complete
 
 

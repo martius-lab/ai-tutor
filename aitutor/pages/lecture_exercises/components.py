@@ -1,7 +1,5 @@
 """Components for the exercises page."""
 
-from datetime import datetime
-
 import reflex as rx
 
 import aitutor.global_vars as gv
@@ -64,8 +62,9 @@ def render_exercise_card(exercise_with_res: ExerciseWithResult) -> rx.Component:
                             rx.text(LanguageState.deadline, weight="bold", size="2"),
                             rx.text(
                                 rx.moment(
-                                    date=exercise.deadline.to(datetime),  # type: ignore[union-attr]
+                                    date=exercise.deadline,
                                     format=gv.MOMENT_DEADLINE_FORMAT,
+                                    tz=gv.TIME_ZONE,
                                 ),
                                 size="2",
                             ),

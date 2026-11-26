@@ -4,6 +4,7 @@ import reflex as rx
 
 from aitutor import routes
 from aitutor.auth.protection import page_require_lecture_role
+from aitutor.global_vars import TIME_ZONE
 from aitutor.models import LectureRole
 from aitutor.pages.lecture_exercises.components import filter_options, render_exercises
 from aitutor.pages.lecture_exercises.state import LectureExercisesState
@@ -27,6 +28,7 @@ def lecture_exercises_page() -> rx.Component:
                 rx.moment(
                     format="HH:mm:ss",
                     interval=1000,
+                    tz=TIME_ZONE,
                     on_change=LectureExercisesState.update_time_left_strings,
                 ),
             ),

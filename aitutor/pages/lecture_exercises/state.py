@@ -20,6 +20,7 @@ from aitutor.search.query import (
     contains,
 )
 from aitutor.search.state import SearchKey, SearchMixin
+from aitutor.utilities.helper_functions import to_tz_aware
 from aitutor.utilities.lecture_permissions import (
     get_user_lecture_role,
     user_may_view_lecture,
@@ -148,7 +149,7 @@ class LectureExercisesState(SearchMixin, SessionState):
         """get the datetime time left for every exercise"""
         for exercise, _ in self.exercises_with_result:
             if exercise.deadline:
-                deadline = exercise.deadline.replace(tzinfo=ZoneInfo(TIME_ZONE))
+                deadline = to_tz_aware(exercise.deadline)
                 time_left = deadline - datetime.now(ZoneInfo(TIME_ZONE))
                 if time_left.total_seconds() <= 0:
                     self.time_left_strings[exercise.id] = ""  # type: ignore

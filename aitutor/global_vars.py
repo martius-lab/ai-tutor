@@ -5,7 +5,7 @@ from datetime import timedelta
 import reflex as rx
 
 TIME_FORMAT = "%d.%m.%Y %H:%M:%S MEZ"
-MOMENT_DEADLINE_FORMAT = "DD.MM.YYYY, HH:mm"
+MOMENT_DEADLINE_FORMAT = "DD.MM.YYYY HH:mm z"
 MOMENT_DATETIME_FORMAT = "YYYY-MM-DD HH:mm"
 TIME_ZONE = "Europe/Berlin"
 

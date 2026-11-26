@@ -48,6 +48,7 @@ def dashboard_card():
                                 rx.moment(
                                     date=HomeState.next_deadline_task[1],  # type: ignore
                                     format=gv.MOMENT_DEADLINE_FORMAT,
+                                    tz=gv.TIME_ZONE,
                                 ),
                             ),
                             rx.text(LanguageState.no_upcoming_deadlines),
@@ -129,6 +130,7 @@ def global_exercise_card(exercise_data: ExerciseData) -> rx.Component:
                         rx.moment(
                             date=exercise_data.deadline.to(datetime),  # type: ignore[union-attr]
                             format=gv.MOMENT_DEADLINE_FORMAT,
+                            tz=gv.TIME_ZONE,
                         ),
                         size="2",
                     ),

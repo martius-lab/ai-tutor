@@ -12,6 +12,7 @@ from aitutor.auth.protection import state_require_login
 from aitutor.auth.state import SessionState
 from aitutor.global_vars import TIME_ZONE
 from aitutor.models import Exercise, ExerciseResult, Lecture, LinkUserLecture
+from aitutor.utilities.helper_functions import to_tz_aware
 
 ExerciseWithResult = tuple[Exercise, ExerciseResult | None]
 
@@ -142,10 +143,10 @@ class HomeState(SessionState):
         time_now = datetime.now(ZoneInfo(TIME_ZONE))
 
         tasks = [
-            (ex.title, ex.deadline.replace(tzinfo=ZoneInfo(TIME_ZONE)))
+            (ex.title, to_tz_aware(ex.deadline))
             for ex, res in exercises_with_result
             if ex.deadline
-            and ex.deadline.replace(tzinfo=ZoneInfo(TIME_ZONE)) > time_now
+            and to_tz_aware(ex.deadline) > time_now
             and not _is_submitted(res)
         ]
 
@@ -174,7 +175,9 @@ class HomeState(SessionState):
                 ExerciseData(
                     id=exercise.id,
                     title=exercise.title,
-                    deadline=exercise.deadline,
+                    deadline=(
+                        to_tz_aware(exercise.deadline) if exercise.deadline else None
+                    ),
                     is_submitted=_is_submitted(result),
                 )
             )
