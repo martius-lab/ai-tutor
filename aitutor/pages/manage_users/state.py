@@ -14,17 +14,10 @@ from aitutor.account_emails import send_email_verification_email
 from aitutor.auth.protection import state_require_permission
 from aitutor.auth.state import SessionState
 from aitutor.language_state import BackendTranslations as BT
-from aitutor.models import (
-    GlobalPermission,
-    Language,
-    LectureRole,
-    LinkUserLecture,
-    LocalUser,
-    Permission,
-    UserInfo,
-)
+from aitutor.models import GlobalPermission, Language, LocalUser, Permission, UserInfo
 from aitutor.search.query import SearchFields, contains
 from aitutor.search.state import SearchKey, SearchMixin
+from aitutor.utilities.accounts import is_sole_owner_of_a_lecture
 from aitutor.verification import (
     cancel_pending_email_change,
     get_pending_email_changes,
@@ -497,29 +490,13 @@ class ManageUsersState(SearchMixin, SessionState):
 
             if row:
                 local_user, user_info = row
-
-                owner_links = session.exec(
-                    select(LinkUserLecture).where(
-                        LinkUserLecture.user_id == local_user.id,
-                        LinkUserLecture.role == LectureRole.OWNER,
-                    )
-                ).all()
+                assert local_user.id is not None
 
                 # Block deletion if the user is the sole owner of any lecture.
-                for owner_link in owner_links:
-                    if owner_link.lecture_id is None:
-                        continue
-                    other_owner = session.exec(
-                        select(LinkUserLecture).where(
-                            LinkUserLecture.lecture_id == owner_link.lecture_id,
-                            LinkUserLecture.user_id != local_user.id,
-                            LinkUserLecture.role == LectureRole.OWNER,
-                        )
-                    ).first()
-                    if other_owner is None:
-                        return error_toast(
-                            BT.cannot_delete_sole_lecture_owner(self.language)
-                        )
+                if is_sole_owner_of_a_lecture(session, local_user.id):
+                    return error_toast(
+                        BT.cannot_delete_sole_lecture_owner(self.language)
+                    )
 
                 # NOTE: The deletions below could be reduced to a single delete of
                 # LocalUser if delete cascades where set up properly.  However, since
