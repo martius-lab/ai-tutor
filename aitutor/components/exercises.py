@@ -1,11 +1,11 @@
 """Shared components regarding exercises."""
 
-from datetime import datetime
-
 import reflex as rx
 
 import aitutor.global_vars as gv
+from aitutor import routes
 from aitutor.language_state import LanguageState
+from aitutor.utilities.exercises import ExerciseWithDeadline
 
 
 def compute_progress_value(
@@ -24,7 +24,7 @@ def exercise_status_overview(
     headline: str | rx.vars.StringVar[str],
     num_total_exercises: int,
     num_completed_exercises: int,
-    next_deadline_task: tuple[str, datetime] | None,
+    next_due_exercise: ExerciseWithDeadline | None,
 ) -> rx.Component:
     """Render brief overview of the exercise status.
 
@@ -36,7 +36,7 @@ def exercise_status_overview(
         headline: The headline to display above the progress bar.
         num_total_exercises: The total number of exercises.
         num_completed_exercises: The number of completed exercises.
-        next_deadline_task: The title and deadline of the next due exercise, or None if
+        next_due_exercise: The title and deadline of the next due exercise, or None if
             there is no upcoming exercise.
     """
     progress_value = compute_progress_value(
@@ -60,15 +60,18 @@ def exercise_status_overview(
         rx.hstack(
             rx.text(LanguageState.next_deadline, weight="bold"),
             rx.cond(
-                next_deadline_task != None,
-                rx.text(
-                    next_deadline_task[0],  # type: ignore
-                    " — ",
-                    rx.moment(
-                        date=next_deadline_task[1],  # type: ignore
-                        format=gv.MOMENT_DEADLINE_FORMAT,
-                        tz=gv.TIME_ZONE,
+                next_due_exercise != None,
+                rx.link(
+                    rx.text(
+                        next_due_exercise.title,  # type: ignore
+                        " — ",
+                        rx.moment(
+                            date=next_due_exercise.deadline,  # type: ignore
+                            format=gv.MOMENT_DEADLINE_FORMAT,
+                            tz=gv.TIME_ZONE,
+                        ),
                     ),
+                    href=f"{routes.CHAT}/{next_due_exercise.id}",  # type: ignore
                 ),
                 rx.text(LanguageState.no_upcoming_deadlines),
             ),

@@ -14,8 +14,9 @@ from aitutor.auth.state import SessionState
 from aitutor.global_vars import TIME_ZONE
 from aitutor.models import Exercise, ExerciseResult, Lecture, LinkUserLecture
 from aitutor.utilities.exercises import (
+    ExerciseWithDeadline,
     is_submitted,
-    next_deadline_task,
+    next_due_exercise,
 )
 from aitutor.utilities.helper_functions import to_tz_aware
 
@@ -116,7 +117,7 @@ class HomeState(SessionState):
 
     num_total_exercises: int = 0
     num_completed_exercises: int = 0
-    next_deadline_task: tuple[str, datetime] | None = None
+    next_due_exercise: ExerciseWithDeadline | None = None
     lecture_exercise_groups: list[LectureExercisesData] = []
 
     @rx.event
@@ -150,6 +151,6 @@ class HomeState(SessionState):
             self.num_completed_exercises = sum(
                 1 for _, result in exercises_with_result if is_submitted(result)
             )
-            self.next_deadline_task = next_deadline_task(exercises_with_result)
+            self.next_due_exercise = next_due_exercise(exercises_with_result)
 
             self.lecture_exercise_groups = _group_exercises_by_lecture(started_rows)

@@ -50,7 +50,7 @@ def lecture_dashboard_card() -> rx.Component:
             headline=f"{LectureOverviewState.lecture_name} {LS.dashboard}",
             num_total_exercises=LectureOverviewState.num_total_exercises,
             num_completed_exercises=LectureOverviewState.num_completed_exercises,
-            next_deadline_task=LectureOverviewState.next_deadline_task,
+            next_due_exercise=LectureOverviewState.next_due_exercise,
         ),
         width="85vw",
         max_width="100%",
