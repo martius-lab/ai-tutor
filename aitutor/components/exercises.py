@@ -8,10 +8,20 @@ import aitutor.global_vars as gv
 from aitutor.language_state import LanguageState
 
 
+def compute_progress_value(
+    num_total_exercises: int, num_completed_exercises: int
+) -> rx.vars.Var[int | float]:
+    """Compute the progress value (0-100) for the progress bar."""
+    return rx.cond(
+        num_total_exercises > 0,
+        num_completed_exercises / num_total_exercises * 100,
+        100,
+    )
+
+
 def exercise_status_overview(
     *,
     headline: str | rx.vars.StringVar[str],
-    progress_value: int,
     num_total_exercises: int,
     num_completed_exercises: int,
     next_deadline_task: tuple[str, datetime] | None,
@@ -24,12 +34,14 @@ def exercise_status_overview(
 
     Args:
         headline: The headline to display above the progress bar.
-        progress_value: The value of the progress bar (0-100).
         num_total_exercises: The total number of exercises.
         num_completed_exercises: The number of completed exercises.
         next_deadline_task: The title and deadline of the next due exercise, or None if
             there is no upcoming exercise.
     """
+    progress_value = compute_progress_value(
+        num_total_exercises, num_completed_exercises
+    )
     return rx.vstack(
         rx.heading(headline),
         rx.progress(value=progress_value, max=100, width="100%"),  # type: ignore
@@ -38,9 +50,8 @@ def exercise_status_overview(
             rx.cond(
                 num_total_exercises > 0,
                 rx.text(
-                    f"{num_completed_exercises} \
-                                /{num_total_exercises} \
-                                    {LanguageState.open_exercises_submitted}"
+                    f"{num_completed_exercises} / {num_total_exercises}"
+                    f" {LanguageState.open_exercises_submitted}"
                 ),
                 rx.text(LanguageState.no_pending_exercises),
             ),

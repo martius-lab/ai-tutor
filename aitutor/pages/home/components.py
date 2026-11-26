@@ -22,7 +22,6 @@ def dashboard_card():
                 # dashboard for logged in users
                 exercise_status_overview(
                     headline=LanguageState.dashboard,
-                    progress_value=HomeState.progress_value,
                     num_total_exercises=HomeState.num_total_exercises,
                     num_completed_exercises=HomeState.num_completed_exercises,
                     next_deadline_task=HomeState.next_deadline_task,

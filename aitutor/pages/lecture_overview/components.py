@@ -48,7 +48,6 @@ def lecture_dashboard_card() -> rx.Component:
     return rx.card(
         exercise_status_overview(
             headline=f"{LectureOverviewState.lecture_name} {LS.dashboard}",
-            progress_value=LectureOverviewState.progress_value,
             num_total_exercises=LectureOverviewState.num_total_exercises,
             num_completed_exercises=LectureOverviewState.num_completed_exercises,
             next_deadline_task=LectureOverviewState.next_deadline_task,

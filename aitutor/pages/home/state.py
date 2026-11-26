@@ -116,7 +116,6 @@ class HomeState(SessionState):
 
     num_total_exercises: int = 0
     num_completed_exercises: int = 0
-    progress_value: int = 0
     next_deadline_task: tuple[str, datetime] | None = None
     lecture_exercise_groups: list[LectureExercisesData] = []
 
@@ -150,11 +149,6 @@ class HomeState(SessionState):
             self.num_total_exercises = len(exercises_with_result)
             self.num_completed_exercises = sum(
                 1 for _, result in exercises_with_result if is_submitted(result)
-            )
-            self.progress_value = (
-                int((self.num_completed_exercises / self.num_total_exercises) * 100)
-                if self.num_total_exercises > 0
-                else 100
             )
             self.next_deadline_task = next_deadline_task(exercises_with_result)
 

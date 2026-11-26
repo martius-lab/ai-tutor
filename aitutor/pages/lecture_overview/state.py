@@ -30,7 +30,6 @@ class LectureOverviewState(SessionState):
 
     num_total_exercises: int = 0
     num_completed_exercises: int = 0
-    progress_value: int = 0
     next_deadline_task: tuple[str, datetime] | None = None
 
     @rx.event
@@ -61,11 +60,6 @@ class LectureOverviewState(SessionState):
         self.num_completed_exercises = sum(
             1 for _, result in exercises_with_result if is_submitted(result)
         )
-        self.progress_value = (
-            int((self.num_completed_exercises / self.num_total_exercises) * 100)
-            if self.num_total_exercises > 0
-            else 100
-        )
         self.next_deadline_task = next_deadline_task(exercises_with_result)
 
     def _reset_lecture_state(self) -> None:
@@ -76,7 +70,6 @@ class LectureOverviewState(SessionState):
         self.lecture_information_text = ""
         self.num_total_exercises = 0
         self.num_completed_exercises = 0
-        self.progress_value = 0
         self.next_deadline_task = None
 
     def _apply_lecture_to_state(self, lecture: Lecture) -> None:
