@@ -717,7 +717,14 @@ class LectureManageExercisesState(SearchMixin, SessionState):
                         Exercise.id == self.edited_exercise_id,
                         Exercise.lecture_id == self.current_lecture_id,
                     )
-                ).one()
+                ).one_or_none()
+                if exercise is None:
+                    return rx.toast.error(
+                        BT.exercise_does_not_exist_anymore(self.language),
+                        duration=7000,
+                        position="bottom-center",
+                        invert=True,
+                    )
 
                 exercise.title = form_data["title"]
                 exercise.description = form_data["description"]
@@ -835,7 +842,16 @@ class LectureManageExercisesState(SearchMixin, SessionState):
                     Exercise.id == exercise.id,
                     Exercise.lecture_id == self.current_lecture_id,
                 )
-            ).one()
+            ).one_or_none()
+
+            if _exercise is None:
+                return rx.toast.error(
+                    BT.exercise_does_not_exist_anymore(self.language),
+                    duration=7000,
+                    position="bottom-center",
+                    invert=True,
+                )
+
             # toggle visibility
             _exercise.is_hidden = not _exercise.is_hidden
             session.commit()
@@ -865,7 +881,13 @@ class LectureManageExercisesState(SearchMixin, SessionState):
         with rx.session() as session:
             exercise = session.exec(select(Exercise).where(Exercise.id == id)).first()
             if exercise is None or exercise.lecture_id != self.current_lecture_id:
-                return rx.redirect(routes.MY_LECTURES)
+                return rx.toast.error(
+                    BT.exercise_does_not_exist_anymore(self.language),
+                    duration=7000,
+                    position="bottom-center",
+                    invert=True,
+                )
+
             session.delete(exercise)
             session.commit()
         self.load_exercises()
@@ -877,7 +899,7 @@ class LectureManageExercisesState(SearchMixin, SessionState):
             invert=True,
         )
 
-    def load_exercise(self, exercise: Exercise):
+    def _load_exercise(self, exercise: Exercise):
         """load the exercise into the state variables."""
         # load the exercise from the state variable so it also contains the tags.
         # Because the argument exercise for some reason does not have the tags loaded.
@@ -923,7 +945,7 @@ class LectureManageExercisesState(SearchMixin, SessionState):
     @rx.event
     def open_edit_dialog(self, exercise: Exercise):
         """Open the edit dialog for an exercise."""
-        self.load_exercise(exercise)
+        self._load_exercise(exercise)
         self.edit_exercise_dialog_is_open = True
 
     @rx.event
