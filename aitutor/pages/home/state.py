@@ -6,6 +6,7 @@ from datetime import datetime
 from zoneinfo import ZoneInfo
 
 import reflex as rx
+from sqlalchemy import Nullable
 from sqlmodel import and_, func, or_, select
 
 from aitutor.auth.protection import state_require_login
@@ -45,7 +46,8 @@ def build_home_exercises_statement(
 ):
     """Build the query for exercises visible on the global home page."""
     stmt = (
-        select(Exercise, ExerciseResult, Lecture)
+        # `Nullable` is just a type hint (can be null due to outer join)
+        select(Exercise, Nullable(ExerciseResult), Lecture)
         .join(Lecture, Exercise.lecture_id == Lecture.id)  # type: ignore[arg-type]
         .join(
             ExerciseResult,
@@ -117,7 +119,7 @@ class HomeState(SessionState):
                 if exercise.is_started
             ]
 
-            exercises_with_result: list[ExerciseWithResult] = [
+            exercises_with_result = [
                 (exercise, result) for exercise, result, _ in started_rows
             ]
             self.num_total_exercises = len(exercises_with_result)
