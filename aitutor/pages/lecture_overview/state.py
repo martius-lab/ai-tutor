@@ -5,7 +5,7 @@ from zoneinfo import ZoneInfo
 
 import reflex as rx
 from sqlalchemy import Nullable
-from sqlmodel import and_, or_, select
+from sqlmodel import and_, col, or_, select
 
 from aitutor import routes
 from aitutor.auth.protection import state_require_lecture_role
@@ -103,12 +103,12 @@ class LectureOverviewState(SessionState):
                 )
                 .where(
                     Exercise.lecture_id == self.current_lecture_id,
-                    Exercise.is_hidden.is_(False),  # type: ignore[attr-defined]
+                    col(Exercise.is_hidden).is_(False),
                     # only load exercises that have no deadline or the deadline is in
                     # the future
                     or_(
                         Exercise.deadline == None,
-                        Exercise.deadline > datetime.now(ZoneInfo(TIME_ZONE)),  # type: ignore
+                        col(Exercise.deadline) > datetime.now(ZoneInfo(TIME_ZONE)),
                     ),
                 )
             )

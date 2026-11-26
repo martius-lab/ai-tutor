@@ -7,7 +7,7 @@ from zoneinfo import ZoneInfo
 
 import reflex as rx
 from sqlalchemy import Nullable
-from sqlmodel import and_, func, or_, select
+from sqlmodel import and_, col, func, or_, select
 
 from aitutor.auth.protection import state_require_login
 from aitutor.auth.state import SessionState
@@ -48,7 +48,7 @@ def build_home_exercises_statement(
     stmt = (
         # `Nullable` is just a type hint (can be null due to outer join)
         select(Exercise, Nullable(ExerciseResult), Lecture)
-        .join(Lecture, Exercise.lecture_id == Lecture.id)  # type: ignore[arg-type]
+        .join(Lecture, col(Exercise.lecture_id) == Lecture.id)
         .join(
             ExerciseResult,
             and_(
@@ -58,10 +58,10 @@ def build_home_exercises_statement(
             isouter=True,
         )
         .where(
-            Exercise.is_hidden.is_(False),  # type: ignore[attr-defined]
+            col(Exercise.is_hidden).is_(False),
             or_(
                 Exercise.deadline == None,
-                Exercise.deadline > now,  # type: ignore[operator]
+                col(Exercise.deadline) > now,
             ),
         )
     )
@@ -77,7 +77,7 @@ def build_home_exercises_statement(
 
     return stmt.order_by(
         func.lower(Lecture.lecture_name),
-        Exercise.deadline,  # type: ignore[arg-type]
+        col(Exercise.deadline),
     )
 
 
