@@ -8,6 +8,8 @@ from aitutor.language_state import LanguageState as LS
 from aitutor.pages.lecture_overview.state import LectureOverviewState
 from aitutor.pages.legal_infos.loader_functions import get_privacy_notice_short
 
+from aitutor.pages.home.components import brief_overview
+
 
 def lecture_information_content() -> rx.Component:
     """Render selected lecture details inside the overview accordion."""
@@ -45,41 +47,13 @@ def lecture_information_content() -> rx.Component:
 
 def lecture_dashboard_card() -> rx.Component:
     """Render the lecture-specific dashboard card."""
-    exercises_num = LectureOverviewState.exercises_with_result.length()  # type: ignore
-
     return rx.card(
-        rx.vstack(
-            rx.heading(f"{LectureOverviewState.lecture_name} {LS.dashboard}"),
-            rx.text(LS.welcome_back, weight="medium"),
-            rx.progress(
-                value=LectureOverviewState.progress_value,  # type: ignore
-                max=100,
-                width="100%",
-            ),
-            rx.hstack(
-                rx.icon("circle-check", color=gv.GREEN_CHECK_COLOR, size=20),
-                rx.cond(
-                    exercises_num > 0,
-                    rx.text(
-                        f"{LectureOverviewState.completed_exercises_num} \
-                        /{exercises_num} \
-                            {LS.open_exercises_submitted}"
-                    ),
-                    rx.text(LS.no_pending_exercises),
-                ),
-                align="center",
-            ),
-            rx.hstack(
-                rx.text(LS.next_deadline, weight="bold"),
-                rx.cond(
-                    LectureOverviewState.next_deadline_task,
-                    rx.text(LectureOverviewState.next_deadline_task),
-                    rx.text(LS.no_upcoming_deadlines),
-                ),
-            ),
-            spacing="4",
-            align="start",
-            width="100%",
+        brief_overview(
+            headline=f"{LectureOverviewState.lecture_name} {LS.dashboard}",
+            progress_value=LectureOverviewState.progress_value,
+            num_total_exercises=LectureOverviewState.num_total_exercises,
+            num_completed_exercises=LectureOverviewState.num_completed_exercises,
+            next_deadline_task=LectureOverviewState.next_deadline_task,
         ),
         width="85vw",
         max_width="100%",
