@@ -749,11 +749,7 @@ class LectureManageExercisesState(SearchMixin, SessionState):
             session.commit()
 
             self.load_exercises()
-            self.selected_tags = []
-            self.lesson_context = ""
-            self.lesson_file_name = ""
-            self.add_exercise_dialog_is_open = False
-            self.edit_exercise_dialog_is_open = False
+            self.close_dialog()
 
         if update_existing:
             success_msg = BT.changes_saved(self.language)
