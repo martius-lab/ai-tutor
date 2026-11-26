@@ -25,8 +25,8 @@ def lecture_exercises_page() -> rx.Component:
             rx.hstack(
                 rx.icon(tag="clock"),
                 rx.moment(
-                    format="HH:mm:ss",
-                    interval=1000,
+                    format="HH:mm",
+                    interval=5_000,
                     on_change=LectureExercisesState.update_time_left_strings,
                 ),
             ),
