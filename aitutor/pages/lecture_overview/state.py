@@ -4,14 +4,19 @@ from datetime import datetime
 from zoneinfo import ZoneInfo
 
 import reflex as rx
-from sqlmodel import and_, or_, select
+from sqlalchemy import Nullable
+from sqlmodel import and_, col, or_, select
 
 from aitutor import routes
 from aitutor.auth.protection import state_require_lecture_role
 from aitutor.auth.state import SessionState
 from aitutor.global_vars import TIME_ZONE
 from aitutor.models import Exercise, ExerciseResult, Lecture, LectureRole
-from aitutor.utilities.helper_functions import to_tz_aware
+from aitutor.utilities.exercises import (
+    ExerciseWithMaybeResult,
+    is_submitted,
+    next_deadline_task,
+)
 from aitutor.utilities.lecture_permissions import user_may_view_lecture
 
 
@@ -22,7 +27,10 @@ class LectureOverviewState(SessionState):
     lecture_name: str = ""
     lecturer_name: str = ""
     lecture_information_text: str = ""
-    exercises_with_result: list[tuple[Exercise, ExerciseResult | None]] = []
+
+    num_total_exercises: int = 0
+    num_completed_exercises: int = 0
+    next_deadline_task: tuple[str, datetime] | None = None
 
     @rx.event
     @state_require_lecture_role(LectureRole.STUDENT)
@@ -46,7 +54,13 @@ class LectureOverviewState(SessionState):
             self._apply_lecture_to_state(lecture)
 
         assert self._authenticated_user_info is not None
-        self._load_lecture_exercises()
+        exercises_with_result = self._load_lecture_exercises()
+
+        self.num_total_exercises = len(exercises_with_result)
+        self.num_completed_exercises = sum(
+            1 for _, result in exercises_with_result if is_submitted(result)
+        )
+        self.next_deadline_task = next_deadline_task(exercises_with_result)
 
     def _reset_lecture_state(self) -> None:
         """Reset all page-local state values."""
@@ -54,7 +68,9 @@ class LectureOverviewState(SessionState):
         self.lecture_name = ""
         self.lecturer_name = ""
         self.lecture_information_text = ""
-        self.exercises_with_result = []
+        self.num_total_exercises = 0
+        self.num_completed_exercises = 0
+        self.next_deadline_task = None
 
     def _apply_lecture_to_state(self, lecture: Lecture) -> None:
         """Copy the loaded lecture into state variables for rendering."""
@@ -63,15 +79,15 @@ class LectureOverviewState(SessionState):
         self.lecturer_name = lecture.lecturer_name
         self.lecture_information_text = lecture.lecture_information_text
 
-    def _load_lecture_exercises(self) -> None:
+    def _load_lecture_exercises(self) -> list[ExerciseWithMaybeResult]:
         """Load visible, started exercises for the selected lecture and current user."""
         if self.current_lecture_id is None:
-            self.exercises_with_result = []
-            return
+            return []
 
         with rx.session() as session:
             stmt = (
-                select(Exercise, ExerciseResult)
+                # `Nullable` is just a type hint (can be null due to outer join)
+                select(Exercise, Nullable(ExerciseResult))
                 .join(
                     ExerciseResult,
                     and_(
@@ -82,60 +98,22 @@ class LectureOverviewState(SessionState):
                 )
                 .where(
                     Exercise.lecture_id == self.current_lecture_id,
-                    Exercise.is_hidden.is_(False),  # type: ignore[attr-defined]
-                )
-                # only load exercises that have no deadline
-                # or the deadline is in the future
-                .where(
+                    col(Exercise.is_hidden).is_(False),
+                    # only load exercises that have no deadline or the deadline is in
+                    # the future
                     or_(
                         Exercise.deadline == None,
-                        Exercise.deadline > datetime.now(ZoneInfo(TIME_ZONE)),  # type: ignore
-                    )
+                        col(Exercise.deadline) > datetime.now(ZoneInfo(TIME_ZONE)),
+                    ),
                 )
             )
+
             exercises_with_result = session.exec(stmt).all()
-
-            self.exercises_with_result = [(x[0], x[1]) for x in exercises_with_result]
-
-            self.exercises_with_result = [
+            return [
                 (exercise, result)
-                for exercise, result in self.exercises_with_result
+                for exercise, result in exercises_with_result
                 if exercise.is_started
             ]
-
-    @rx.var
-    def completed_exercises_num(self) -> int:
-        """Number of completed lecture exercises."""
-        return sum(
-            1
-            for _, result in self.exercises_with_result
-            if result and result.finished_conversation
-        )
-
-    @rx.var
-    def progress_value(self) -> int:
-        """Progress value for the lecture-specific progress bar."""
-        total = len(self.exercises_with_result)
-        return int((self.completed_exercises_num / total) * 100) if total > 0 else 100
-
-    @rx.var
-    def next_deadline_task(self) -> str:
-        """Next lecture exercise with a deadline."""
-        time_now = datetime.now(ZoneInfo(TIME_ZONE))
-
-        tasks = [
-            (ex.title, to_tz_aware(ex.deadline).astimezone(ZoneInfo(TIME_ZONE)))
-            for ex, res in self.exercises_with_result
-            if ex.deadline
-            and to_tz_aware(ex.deadline) > time_now
-            and not (res and res.finished_conversation)  # not submitted
-        ]
-
-        if not tasks:
-            return ""
-
-        title, deadline = min(tasks, key=lambda t: t[1])
-        return f"{title} – {deadline.strftime('%d.%m.%Y %H:%M %Z')}"
 
     def _user_may_view_lecture(self, lecture_id: int) -> bool:
         """Check whether the current user may open this lecture."""

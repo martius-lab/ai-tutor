@@ -6,6 +6,7 @@ import reflex as rx
 
 import aitutor.global_vars as gv
 from aitutor import DisplayConfigState, routes
+from aitutor.components.exercises import exercise_status_overview
 from aitutor.language_state import LanguageState
 from aitutor.pages.home.state import ExerciseData, HomeState, LectureExercisesData
 from aitutor.pages.legal_infos.loader_functions import get_privacy_notice_short
@@ -19,44 +20,11 @@ def dashboard_card():
             rx.cond(
                 HomeState.is_authenticated,
                 # dashboard for logged in users
-                rx.vstack(
-                    rx.heading(
-                        LanguageState.dashboard,
-                    ),
-                    rx.text(LanguageState.welcome_back, weight="medium"),
-                    rx.progress(value=HomeState.progress_value, max=100, width="100%"),  # type: ignore
-                    rx.hstack(
-                        rx.icon("circle-check", color=gv.GREEN_CHECK_COLOR, size=20),
-                        rx.cond(
-                            HomeState.num_total_exercises > 0,
-                            rx.text(
-                                f"{HomeState.num_completed_exercises} \
-                                /{HomeState.num_total_exercises} \
-                                    {LanguageState.open_exercises_submitted}"
-                            ),
-                            rx.text(LanguageState.no_pending_exercises),
-                        ),
-                        align="center",
-                    ),
-                    rx.hstack(
-                        rx.text(LanguageState.next_deadline, weight="bold"),
-                        rx.cond(
-                            HomeState.next_deadline_task != None,
-                            rx.text(
-                                HomeState.next_deadline_task[0],  # type: ignore
-                                " — ",
-                                rx.moment(
-                                    date=HomeState.next_deadline_task[1],  # type: ignore
-                                    format=gv.MOMENT_DEADLINE_FORMAT,
-                                    tz=gv.TIME_ZONE,
-                                ),
-                            ),
-                            rx.text(LanguageState.no_upcoming_deadlines),
-                        ),
-                    ),
-                    spacing="4",
-                    align="start",
-                    width="100%",
+                exercise_status_overview(
+                    headline=LanguageState.dashboard,
+                    num_total_exercises=HomeState.num_total_exercises,
+                    num_completed_exercises=HomeState.num_completed_exercises,
+                    next_deadline_task=HomeState.next_deadline_task,
                 ),
                 # dashboard for not logged in users
                 rx.vstack(

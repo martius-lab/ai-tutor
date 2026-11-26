@@ -6,15 +6,18 @@ from datetime import datetime
 from zoneinfo import ZoneInfo
 
 import reflex as rx
-from sqlmodel import and_, func, or_, select
+from sqlalchemy import Nullable
+from sqlmodel import and_, col, func, or_, select
 
 from aitutor.auth.protection import state_require_login
 from aitutor.auth.state import SessionState
 from aitutor.global_vars import TIME_ZONE
 from aitutor.models import Exercise, ExerciseResult, Lecture, LinkUserLecture
+from aitutor.utilities.exercises import (
+    is_submitted,
+    next_deadline_task,
+)
 from aitutor.utilities.helper_functions import to_tz_aware
-
-ExerciseWithResult = tuple[Exercise, ExerciseResult | None]
 
 
 @dataclass
@@ -45,8 +48,9 @@ def build_home_exercises_statement(
 ):
     """Build the query for exercises visible on the global home page."""
     stmt = (
-        select(Exercise, ExerciseResult, Lecture)
-        .join(Lecture, Exercise.lecture_id == Lecture.id)  # type: ignore[arg-type]
+        # `Nullable` is just a type hint (can be null due to outer join)
+        select(Exercise, Nullable(ExerciseResult), Lecture)
+        .join(Lecture, col(Exercise.lecture_id) == Lecture.id)
         .join(
             ExerciseResult,
             and_(
@@ -56,10 +60,10 @@ def build_home_exercises_statement(
             isouter=True,
         )
         .where(
-            Exercise.is_hidden.is_(False),  # type: ignore[attr-defined]
+            col(Exercise.is_hidden).is_(False),
             or_(
                 Exercise.deadline == None,
-                Exercise.deadline > now,  # type: ignore[operator]
+                col(Exercise.deadline) > now,
             ),
         )
     )
@@ -75,13 +79,36 @@ def build_home_exercises_statement(
 
     return stmt.order_by(
         func.lower(Lecture.lecture_name),
-        Exercise.deadline,  # type: ignore[arg-type]
+        col(Exercise.deadline),
     )
 
 
-def _is_submitted(result: ExerciseResult | None) -> bool:
-    """Check if an exercise result has been submitted."""
-    return result is not None and result.submit_time_stamp is not None
+def _group_exercises_by_lecture(
+    rows: Sequence[tuple[Exercise, ExerciseResult | None, Lecture]],
+) -> list[LectureExercisesData]:
+    """Group exercise rows by lecture while preserving query order."""
+    grouped: dict[int, LectureExercisesData] = {}
+    for exercise, result, lecture in rows:
+        assert lecture.id is not None
+        assert exercise.id is not None
+
+        if lecture.id not in grouped:
+            grouped[lecture.id] = LectureExercisesData(
+                lecture_id=lecture.id,
+                lecture_name=lecture.lecture_name,
+                exercises=[],
+            )
+        grouped[lecture.id].exercises.append(
+            ExerciseData(
+                id=exercise.id,
+                title=exercise.title,
+                deadline=(
+                    to_tz_aware(exercise.deadline) if exercise.deadline else None
+                ),
+                is_submitted=is_submitted(result),
+            )
+        )
+    return list(grouped.values())
 
 
 class HomeState(SessionState):
@@ -89,7 +116,6 @@ class HomeState(SessionState):
 
     num_total_exercises: int = 0
     num_completed_exercises: int = 0
-    progress_value: int = 0
     next_deadline_task: tuple[str, datetime] | None = None
     lecture_exercise_groups: list[LectureExercisesData] = []
 
@@ -117,68 +143,13 @@ class HomeState(SessionState):
                 if exercise.is_started
             ]
 
-            exercises_with_result: list[ExerciseWithResult] = [
+            exercises_with_result = [
                 (exercise, result) for exercise, result, _ in started_rows
             ]
             self.num_total_exercises = len(exercises_with_result)
             self.num_completed_exercises = sum(
-                1 for _, result in exercises_with_result if _is_submitted(result)
+                1 for _, result in exercises_with_result if is_submitted(result)
             )
-            self.progress_value = (
-                int((self.num_completed_exercises / self.num_total_exercises) * 100)
-                if self.num_total_exercises > 0
-                else 100
-            )
-            self.next_deadline_task = self._next_deadline_task(exercises_with_result)
+            self.next_deadline_task = next_deadline_task(exercises_with_result)
 
-            self.lecture_exercise_groups = self._group_exercises_by_lecture(
-                started_rows
-            )
-
-    @staticmethod
-    def _next_deadline_task(
-        exercises_with_result: list[ExerciseWithResult],
-    ) -> tuple[str, datetime] | None:
-        """Get title and deadline of the task that is due next."""
-        time_now = datetime.now(ZoneInfo(TIME_ZONE))
-
-        tasks = [
-            (ex.title, to_tz_aware(ex.deadline))
-            for ex, res in exercises_with_result
-            if ex.deadline
-            and to_tz_aware(ex.deadline) > time_now
-            and not _is_submitted(res)
-        ]
-
-        if not tasks:
-            return None
-
-        return min(tasks, key=lambda t: t[1])
-
-    @staticmethod
-    def _group_exercises_by_lecture(
-        rows: Sequence[tuple[Exercise, ExerciseResult | None, Lecture]],
-    ) -> list[LectureExercisesData]:
-        """Group exercise rows by lecture while preserving query order."""
-        grouped: dict[int, LectureExercisesData] = {}
-        for exercise, result, lecture in rows:
-            assert lecture.id is not None
-            assert exercise.id is not None
-
-            if lecture.id not in grouped:
-                grouped[lecture.id] = LectureExercisesData(
-                    lecture_id=lecture.id,
-                    lecture_name=lecture.lecture_name,
-                    exercises=[],
-                )
-            grouped[lecture.id].exercises.append(
-                ExerciseData(
-                    id=exercise.id,
-                    title=exercise.title,
-                    deadline=(
-                        to_tz_aware(exercise.deadline) if exercise.deadline else None
-                    ),
-                    is_submitted=_is_submitted(result),
-                )
-            )
-        return list(grouped.values())
+            self.lecture_exercise_groups = _group_exercises_by_lecture(started_rows)
