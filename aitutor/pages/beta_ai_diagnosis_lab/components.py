@@ -2,6 +2,7 @@
 
 import reflex as rx
 
+from aitutor.language_state import LanguageState as LS
 from aitutor.models import BetaConcept, BetaCorePoint, BetaExercise, BetaMisconception
 from aitutor.pages.beta_ai_diagnosis_lab.state import BetaAIDiagnosisLabState
 
@@ -9,10 +10,9 @@ from aitutor.pages.beta_ai_diagnosis_lab.state import BetaAIDiagnosisLabState
 def diagnosis_lab_header() -> rx.Component:
     """Render the diagnosis lab header."""
     return rx.vstack(
-        rx.heading("Beta AI Diagnosis Lab", size="7"),
+        rx.heading(LS.beta_ai_diagnosis_lab, size="7"),
         rx.text(
-            "inspect saved concept data and run structured LLM "
-            "diagnosis against the selected concept's core points.",
+            LS.beta_ai_diagnosis_subtitle,
             color_scheme="gray",
         ),
         align="start",
@@ -28,7 +28,7 @@ def exercise_row(exercise: BetaExercise) -> rx.Component:
         rx.table.cell(exercise.description, max_width="30em"),
         rx.table.cell(
             rx.button(
-                "Select",
+                LS.beta_ai_select,
                 size="2",
                 on_click=BetaAIDiagnosisLabState.select_exercise(exercise.id),
                 _hover={"cursor": "pointer"},
@@ -41,21 +41,20 @@ def exercise_selection_card() -> rx.Component:
     """Render saved exercise selection."""
     return rx.card(
         rx.vstack(
-            rx.heading("1. Select Beta AI Exercise", size="4"),
+            rx.heading(LS.beta_ai_select_exercise_step, size="4"),
             rx.cond(
                 BetaAIDiagnosisLabState.beta_exercises.length() == 0,  # type: ignore
                 rx.callout(
-                    "No Beta AI exercises saved yet. Create one in Beta AI "
-                    "Exercises first.",
+                    LS.beta_ai_no_saved_exercises,
                     icon="info",
                     width="100%",
                 ),
                 rx.table.root(
                     rx.table.header(
                         rx.table.row(
-                            rx.table.column_header_cell("Title"),
-                            rx.table.column_header_cell("Description"),
-                            rx.table.column_header_cell("Action"),
+                            rx.table.column_header_cell(LS.title),
+                            rx.table.column_header_cell(LS.description),
+                            rx.table.column_header_cell(LS.beta_ai_action),
                         )
                     ),
                     rx.table.body(
@@ -71,7 +70,7 @@ def exercise_selection_card() -> rx.Component:
             rx.cond(
                 BetaAIDiagnosisLabState.has_selected_exercise,
                 rx.callout(
-                    "Selected exercise: "
+                    LS.beta_ai_selected_exercise
                     + BetaAIDiagnosisLabState.selected_exercise_title,
                     icon="check",
                     color_scheme="green",
@@ -93,7 +92,7 @@ def concept_row(concept: BetaConcept) -> rx.Component:
         rx.table.cell(concept.description, max_width="30em"),
         rx.table.cell(
             rx.button(
-                "Select",
+                LS.beta_ai_select,
                 size="2",
                 on_click=BetaAIDiagnosisLabState.select_concept(concept.id),
                 _hover={"cursor": "pointer"},
@@ -106,14 +105,14 @@ def concept_selection_card() -> rx.Component:
     """Render concept selection for the selected exercise."""
     return rx.card(
         rx.vstack(
-            rx.heading("2. Select Concept", size="4"),
+            rx.heading(LS.beta_ai_select_concept_step, size="4"),
             rx.cond(
                 ~BetaAIDiagnosisLabState.has_selected_exercise,
-                rx.callout("Select an exercise first.", icon="info", width="100%"),
+                rx.callout(LS.beta_ai_select_exercise_first, icon="info", width="100%"),
                 rx.cond(
                     BetaAIDiagnosisLabState.concepts.length() == 0,  # type: ignore
                     rx.callout(
-                        "The selected exercise has no concepts.",
+                        LS.beta_ai_no_concepts_in_exercise,
                         icon="triangle-alert",
                         color_scheme="orange",
                         width="100%",
@@ -121,9 +120,9 @@ def concept_selection_card() -> rx.Component:
                     rx.table.root(
                         rx.table.header(
                             rx.table.row(
-                                rx.table.column_header_cell("Concept"),
-                                rx.table.column_header_cell("Description"),
-                                rx.table.column_header_cell("Action"),
+                                rx.table.column_header_cell(LS.beta_ai_concept),
+                                rx.table.column_header_cell(LS.description),
+                                rx.table.column_header_cell(LS.beta_ai_action),
                             )
                         ),
                         rx.table.body(
@@ -137,7 +136,7 @@ def concept_selection_card() -> rx.Component:
             rx.cond(
                 BetaAIDiagnosisLabState.has_selected_concept,
                 rx.callout(
-                    "Selected concept: "
+                    LS.beta_ai_selected_concept
                     + BetaAIDiagnosisLabState.selected_concept_label,
                     icon="check",
                     color_scheme="green",
@@ -178,15 +177,15 @@ def concept_details_card() -> rx.Component:
     """Render selected concept details."""
     return rx.card(
         rx.vstack(
-            rx.heading("3. Inspect Concept Data", size="4"),
+            rx.heading(LS.beta_ai_inspect_concept_step, size="4"),
             rx.cond(
                 ~BetaAIDiagnosisLabState.has_selected_concept,
-                rx.callout("Select a concept first.", icon="info", width="100%"),
+                rx.callout(LS.beta_ai_select_concept_first, icon="info", width="100%"),
                 rx.vstack(
-                    rx.text("Core Points", weight="bold"),
+                    rx.text(LS.beta_ai_core_points, weight="bold"),
                     rx.cond(
                         BetaAIDiagnosisLabState.core_points.length() == 0,  # type: ignore
-                        rx.text("No core points saved for this concept."),
+                        rx.text(LS.beta_ai_no_core_points),
                         rx.list.unordered(
                             rx.foreach(
                                 BetaAIDiagnosisLabState.core_points,
@@ -194,10 +193,10 @@ def concept_details_card() -> rx.Component:
                             )
                         ),
                     ),
-                    rx.text("Misconceptions", weight="bold"),
+                    rx.text(LS.beta_ai_misconceptions, weight="bold"),
                     rx.cond(
                         BetaAIDiagnosisLabState.misconceptions.length() == 0,  # type: ignore
-                        rx.text("No misconceptions saved for this concept."),
+                        rx.text(LS.beta_ai_no_misconceptions),
                         rx.list.unordered(
                             rx.foreach(
                                 BetaAIDiagnosisLabState.misconceptions,
@@ -222,15 +221,14 @@ def student_answer_card() -> rx.Component:
     """Render the student answer input and diagnosis actions."""
     return rx.card(
         rx.vstack(
-            rx.heading("4. Example Student Answer", size="4"),
+            rx.heading(LS.beta_ai_example_answer_step, size="4"),
             rx.text(
-                "Run the cheap mock diagnosis for UI checks or call OpenAI for a "
-                "structured diagnosis against the selected core points.",
+                LS.beta_ai_diagnosis_actions_info,
                 color_scheme="gray",
                 size="2",
             ),
             rx.text_area(
-                placeholder="Type a sample student answer here...",
+                placeholder=LS.beta_ai_sample_answer_placeholder,
                 value=BetaAIDiagnosisLabState.student_answer,
                 on_change=BetaAIDiagnosisLabState.set_student_answer,
                 rows="5",
@@ -238,7 +236,7 @@ def student_answer_card() -> rx.Component:
             ),
             rx.hstack(
                 rx.button(
-                    "Run Mock Diagnosis",
+                    LS.beta_ai_run_mock_diagnosis,
                     on_click=BetaAIDiagnosisLabState.run_mock_diagnosis,
                     disabled=~BetaAIDiagnosisLabState.has_selected_concept,
                     _hover=rx.cond(
@@ -248,7 +246,7 @@ def student_answer_card() -> rx.Component:
                     ),
                 ),
                 rx.button(
-                    "Run LLM Diagnosis",
+                    LS.beta_ai_run_llm_diagnosis,
                     on_click=BetaAIDiagnosisLabState.run_llm_diagnosis,
                     loading=BetaAIDiagnosisLabState.running_llm_diagnosis,
                     disabled=~BetaAIDiagnosisLabState.can_run_diagnosis,
@@ -273,12 +271,12 @@ def diagnosis_output_card() -> rx.Component:
     """Render diagnosis output."""
     return rx.card(
         rx.vstack(
-            rx.heading("5. Diagnosis Output", size="4"),
+            rx.heading(LS.beta_ai_diagnosis_output_step, size="4"),
             rx.cond(
                 BetaAIDiagnosisLabState.has_diagnosis,
                 rx.vstack(
                     rx.text(
-                        "Final app-normalized pattern",
+                        LS.beta_ai_final_pattern,
                         weight="bold",
                     ),
                     rx.hstack(
@@ -286,7 +284,7 @@ def diagnosis_output_card() -> rx.Component:
                         spacing="2",
                     ),
                     rx.text(
-                        "LLM suggested pattern: "
+                        LS.beta_ai_llm_suggested_pattern
                         + BetaAIDiagnosisLabState.llm_suggested_pattern,
                         size="2",
                         color_scheme="gray",
@@ -319,21 +317,22 @@ def diagnosis_output_card() -> rx.Component:
                         ),
                     ),
                     rx.text(
-                        "Task relevance: "
+                        LS.beta_ai_task_relevance
                         + BetaAIDiagnosisLabState.diagnosis_task_relevance
                     ),
                     rx.text(
-                        "Correctness: " + BetaAIDiagnosisLabState.diagnosis_correctness
+                        LS.beta_ai_correctness
+                        + BetaAIDiagnosisLabState.diagnosis_correctness
                     ),
                     rx.text(
-                        "Completeness: "
+                        LS.beta_ai_completeness
                         + BetaAIDiagnosisLabState.diagnosis_completeness
                     ),
-                    rx.text("Covered Core Point IDs", weight="bold"),
+                    rx.text(LS.beta_ai_covered_core_point_ids, weight="bold"),
                     rx.text(BetaAIDiagnosisLabState.diagnosis_covered_core_point_ids),
-                    rx.text("Missing Core Point IDs", weight="bold"),
+                    rx.text(LS.beta_ai_missing_core_point_ids, weight="bold"),
                     rx.text(BetaAIDiagnosisLabState.diagnosis_missing_core_point_ids),
-                    rx.text("Evidence Snippets", weight="bold"),
+                    rx.text(LS.beta_ai_evidence_snippets, weight="bold"),
                     rx.text(BetaAIDiagnosisLabState.diagnosis_evidence_snippets),
                     rx.callout(
                         BetaAIDiagnosisLabState.diagnosis_explanation,
@@ -344,14 +343,14 @@ def diagnosis_output_card() -> rx.Component:
                         BetaAIDiagnosisLabState.has_policy_preview,
                         rx.box(
                             rx.vstack(
-                                rx.heading("Policy Preview", size="3"),
+                                rx.heading(LS.beta_ai_policy_preview, size="3"),
                                 rx.hstack(
-                                    rx.text("Rule:", weight="bold"),
+                                    rx.text(LS.beta_ai_rule, weight="bold"),
                                     rx.badge(
                                         BetaAIDiagnosisLabState.policy_preview_rule_id,
                                         color_scheme="gray",
                                     ),
-                                    rx.text("Action:", weight="bold"),
+                                    rx.text(LS.beta_ai_policy_action, weight="bold"),
                                     rx.badge(
                                         BetaAIDiagnosisLabState.policy_preview_action,
                                         color_scheme="purple",
@@ -363,7 +362,9 @@ def diagnosis_output_card() -> rx.Component:
                                 rx.cond(
                                     BetaAIDiagnosisLabState.policy_preview_focus_core_point,
                                     rx.vstack(
-                                        rx.text("Focus core point", weight="bold"),
+                                        rx.text(
+                                            LS.beta_ai_focus_core_point, weight="bold"
+                                        ),
                                         rx.callout(
                                             BetaAIDiagnosisLabState.policy_preview_focus_core_point,
                                             icon="target",
@@ -374,15 +375,17 @@ def diagnosis_output_card() -> rx.Component:
                                         align="start",
                                     ),
                                 ),
-                                rx.text("Feedback brief", weight="bold"),
+                                rx.text(LS.beta_ai_feedback_brief, weight="bold"),
                                 rx.text(
                                     BetaAIDiagnosisLabState.policy_preview_feedback_brief
                                 ),
-                                rx.text("Rationale", weight="bold"),
+                                rx.text(LS.beta_ai_rationale, weight="bold"),
                                 rx.text(
                                     BetaAIDiagnosisLabState.policy_preview_rationale
                                 ),
-                                rx.text("Suggested tutor prompt", weight="bold"),
+                                rx.text(
+                                    LS.beta_ai_suggested_tutor_prompt, weight="bold"
+                                ),
                                 rx.callout(
                                     BetaAIDiagnosisLabState.policy_preview_suggested_prompt,
                                     icon="message-circle-question",
@@ -402,11 +405,9 @@ def diagnosis_output_card() -> rx.Component:
                         BetaAIDiagnosisLabState.has_diagnosis_trace,
                         rx.box(
                             rx.vstack(
-                                rx.heading("Audit Trace Preview", size="3"),
+                                rx.heading(LS.beta_ai_audit_trace_preview, size="3"),
                                 rx.text(
-                                    "Replayable preview of the diagnosis, "
-                                    "validation, and selected policy rule. "
-                                    "Not persisted yet.",
+                                    LS.beta_ai_audit_trace_info,
                                     size="2",
                                     color_scheme="gray",
                                 ),
@@ -430,8 +431,7 @@ def diagnosis_output_card() -> rx.Component:
                     width="100%",
                 ),
                 rx.callout(
-                    "No diagnosis yet. Select a concept, enter an answer, "
-                    "and run a diagnosis.",
+                    LS.beta_ai_no_diagnosis,
                     icon="info",
                     width="100%",
                 ),

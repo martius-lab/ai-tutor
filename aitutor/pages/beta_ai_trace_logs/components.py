@@ -2,6 +2,7 @@
 
 import reflex as rx
 
+from aitutor.language_state import LanguageState as LS
 from aitutor.pages.beta_ai_trace_logs.state import (
     BetaAITraceLogsState,
     TraceLogRow,
@@ -11,10 +12,9 @@ from aitutor.pages.beta_ai_trace_logs.state import (
 def trace_logs_header() -> rx.Component:
     """Render trace log inspector header."""
     return rx.vstack(
-        rx.heading("Beta AI Trace Logs", size="7"),
+        rx.heading(LS.beta_ai_trace_logs, size="7"),
         rx.text(
-            "Inspect persisted Beta AI chat conversations and per-turn "
-            "diagnosis/policy traces.",
+            LS.beta_ai_trace_logs_subtitle,
             color_scheme="gray",
         ),
         align="start",
@@ -42,7 +42,7 @@ def trace_log_row(row: TraceLogRow) -> rx.Component:
                     _hover={"cursor": "pointer"},
                 ),
                 rx.button(
-                    "Inspect",
+                    LS.beta_ai_inspect,
                     size="2",
                     on_click=BetaAITraceLogsState.select_trace_log(
                         row.beta_exercise_result_id
@@ -60,11 +60,11 @@ def trace_logs_table() -> rx.Component:
     return rx.card(
         rx.vstack(
             rx.hstack(
-                rx.heading("Persisted Trace Logs", size="4"),
+                rx.heading(LS.beta_ai_persisted_trace_logs, size="4"),
                 rx.spacer(),
                 rx.button(
                     rx.icon("download"),
-                    "Download all",
+                    LS.beta_ai_download_all,
                     size="2",
                     variant="soft",
                     on_click=BetaAITraceLogsState.copy_all_trace_logs,
@@ -74,17 +74,15 @@ def trace_logs_table() -> rx.Component:
             ),
             rx.cond(
                 BetaAITraceLogsState.trace_rows.length() == 0,  # type: ignore
-                rx.callout(
-                    "No Beta AI trace logs found yet.", icon="info", width="100%"
-                ),
+                rx.callout(LS.beta_ai_no_trace_logs, icon="info", width="100%"),
                 rx.table.root(
                     rx.table.header(
                         rx.table.row(
-                            rx.table.column_header_cell("Exercise"),
-                            rx.table.column_header_cell("User"),
-                            rx.table.column_header_cell("Trace count"),
-                            rx.table.column_header_cell("Updated at"),
-                            rx.table.column_header_cell("Actions"),
+                            rx.table.column_header_cell(LS.exercise),
+                            rx.table.column_header_cell(LS.user),
+                            rx.table.column_header_cell(LS.beta_ai_trace_count),
+                            rx.table.column_header_cell(LS.beta_ai_updated_at),
+                            rx.table.column_header_cell(LS.beta_ai_actions),
                         )
                     ),
                     rx.table.body(
@@ -109,10 +107,10 @@ def selected_trace_log_details() -> rx.Component:
         rx.card(
             rx.vstack(
                 rx.hstack(
-                    rx.heading("Selected Trace Log", size="4"),
+                    rx.heading(LS.beta_ai_selected_trace_log, size="4"),
                     rx.spacer(),
                     rx.button(
-                        "Close",
+                        LS.close,
                         size="2",
                         variant="outline",
                         on_click=BetaAITraceLogsState.clear_selection,
@@ -121,49 +119,49 @@ def selected_trace_log_details() -> rx.Component:
                     width="100%",
                 ),
                 rx.callout(
-                    "Exercise: " + BetaAITraceLogsState.selected_exercise_title,
+                    LS.exercise + ": " + BetaAITraceLogsState.selected_exercise_title,
                     icon="book-open",
                     width="100%",
                 ),
                 rx.callout(
-                    "User: " + BetaAITraceLogsState.selected_user_label,
+                    LS.user + ": " + BetaAITraceLogsState.selected_user_label,
                     icon="user",
                     width="100%",
                 ),
                 rx.cond(
                     BetaAITraceLogsState.selected_policy_basis,
                     rx.callout(
-                        "Policy based on: "
+                        LS.beta_ai_policy_based_on
                         + BetaAITraceLogsState.selected_policy_basis,
                         icon="route",
                         width="100%",
                     ),
                 ),
-                rx.text("Conversation JSON", weight="bold"),
+                rx.text(LS.beta_ai_conversation_json, weight="bold"),
                 rx.code_block(
                     BetaAITraceLogsState.selected_conversation_json,
                     language="json",
                     width="100%",
                 ),
-                rx.text("Latest Turn Diagnosis JSON", weight="bold"),
+                rx.text(LS.beta_ai_latest_turn_diagnosis_json, weight="bold"),
                 rx.code_block(
                     BetaAITraceLogsState.selected_latest_turn_diagnosis_json,
                     language="json",
                     width="100%",
                 ),
-                rx.text("Cumulative Diagnosis Used For Policy JSON", weight="bold"),
+                rx.text(LS.beta_ai_cumulative_diagnosis_json, weight="bold"),
                 rx.code_block(
                     BetaAITraceLogsState.selected_cumulative_diagnosis_json,
                     language="json",
                     width="100%",
                 ),
-                rx.text("Latest Trace JSON", weight="bold"),
+                rx.text(LS.beta_ai_latest_trace_json, weight="bold"),
                 rx.code_block(
                     BetaAITraceLogsState.selected_latest_trace_json,
                     language="json",
                     width="100%",
                 ),
-                rx.text("Full Trace History JSON", weight="bold"),
+                rx.text(LS.beta_ai_full_trace_history_json, weight="bold"),
                 rx.code_block(
                     BetaAITraceLogsState.selected_trace_history_json,
                     language="json",

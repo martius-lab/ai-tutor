@@ -4,6 +4,7 @@ import reflex as rx
 
 from aitutor.beta_ai.schemas import SavedConceptDetail
 from aitutor.components.dialogs import destructive_confirm
+from aitutor.language_state import LanguageState as LS
 from aitutor.models import BetaExercise
 from aitutor.pages.beta_ai_exercises.state import BetaAIExercisesState
 
@@ -11,17 +12,13 @@ from aitutor.pages.beta_ai_exercises.state import BetaAIExercisesState
 def delete_saved_exercise_button(exercise: BetaExercise) -> rx.Component:
     """Render a destructive confirmation dialog for deleting a saved exercise."""
     return destructive_confirm(
-        title=f"Delete Beta AI exercise '{exercise.title}'?",
-        description=(
-            "This cannot be undone. Deleting this Beta AI exercise also deletes "
-            "its concepts, core points, misconceptions, all student chats/results, "
-            "trace logs, and student concept states for this exercise."
-        ),
-        confirm_text="Delete",
-        cancel_text="Cancel",
+        title=LS.beta_ai_delete_exercise_question + exercise.title + "?",
+        description=LS.beta_ai_delete_exercise_description,
+        confirm_text=LS.delete,
+        cancel_text=LS.cancel,
         on_confirm=BetaAIExercisesState.delete_saved_exercise(exercise.id),
         trigger=rx.button(
-            "Delete",
+            LS.delete,
             size="2",
             variant="soft",
             color_scheme="red",
@@ -33,9 +30,9 @@ def delete_saved_exercise_button(exercise: BetaExercise) -> rx.Component:
 def builder_header() -> rx.Component:
     """Render the page header."""
     return rx.vstack(
-        rx.heading("Beta AI", size="7"),
+        rx.heading(LS.beta_ai, size="7"),
         rx.text(
-            "Create independent Beta AI Tutor exercises from PDFs",
+            LS.beta_ai_builder_subtitle,
             color_scheme="gray",
         ),
         align="start",
@@ -53,7 +50,7 @@ def saved_exercise_row(exercise: BetaExercise) -> rx.Component:
         rx.table.cell(
             rx.hstack(
                 rx.button(
-                    "Inspect",
+                    LS.beta_ai_inspect,
                     size="2",
                     on_click=BetaAIExercisesState.select_saved_exercise(exercise.id),
                     _hover={"cursor": "pointer"},
@@ -80,16 +77,16 @@ def saved_concept_detail_card(concept: SavedConceptDetail) -> rx.Component:
                 concept.description,
                 rx.text(concept.description, color_scheme="gray"),
             ),
-            rx.text("Core Points", weight="bold"),
+            rx.text(LS.beta_ai_core_points, weight="bold"),
             rx.cond(
                 concept.core_points.length() == 0,  # type: ignore
-                rx.text("No core points saved for this concept.", size="2"),
+                rx.text(LS.beta_ai_no_core_points, size="2"),
                 rx.list.unordered(rx.foreach(concept.core_points, rx.list.item)),
             ),
-            rx.text("Misconceptions", weight="bold"),
+            rx.text(LS.beta_ai_misconceptions, weight="bold"),
             rx.cond(
                 concept.misconceptions.length() == 0,  # type: ignore
-                rx.text("No misconceptions saved for this concept.", size="2"),
+                rx.text(LS.beta_ai_no_misconceptions, size="2"),
                 rx.list.unordered(rx.foreach(concept.misconceptions, rx.list.item)),
             ),
             spacing="2",
@@ -107,10 +104,10 @@ def saved_exercise_detail_card() -> rx.Component:
         rx.card(
             rx.vstack(
                 rx.hstack(
-                    rx.heading("Saved Exercise Details", size="4"),
+                    rx.heading(LS.beta_ai_saved_exercise_details, size="4"),
                     rx.spacer(),
                     rx.button(
-                        "Close",
+                        LS.close,
                         size="2",
                         variant="outline",
                         on_click=BetaAIExercisesState.clear_selected_saved_exercise,
@@ -119,30 +116,33 @@ def saved_exercise_detail_card() -> rx.Component:
                     width="100%",
                 ),
                 rx.text(
-                    "Title: " + BetaAIExercisesState.selected_saved_exercise_title,
+                    LS.title
+                    + ": "
+                    + BetaAIExercisesState.selected_saved_exercise_title,
                     weight="bold",
                 ),
                 rx.cond(
                     BetaAIExercisesState.selected_saved_exercise_description,
                     rx.text(
-                        "Description: "
+                        LS.description
+                        + ": "
                         + BetaAIExercisesState.selected_saved_exercise_description
                     ),
                 ),
                 rx.cond(
                     BetaAIExercisesState.selected_saved_exercise_source_file,
                     rx.callout(
-                        "Source file: "
+                        LS.beta_ai_source_file
                         + BetaAIExercisesState.selected_saved_exercise_source_file,
                         icon="file-text",
                         width="100%",
                     ),
                 ),
-                rx.text("Persisted Concept Registry", weight="bold"),
+                rx.text(LS.beta_ai_persisted_concept_registry, weight="bold"),
                 rx.cond(
                     BetaAIExercisesState.selected_saved_concepts.length() == 0,  # type: ignore
                     rx.callout(
-                        "No concepts saved for this exercise.",
+                        LS.beta_ai_no_concepts_saved,
                         icon="info",
                         width="100%",
                     ),
@@ -168,19 +168,17 @@ def saved_exercises_table() -> rx.Component:
     """Render saved Beta AI exercises."""
     return rx.card(
         rx.vstack(
-            rx.heading("Saved Beta AI Exercises", size="4"),
+            rx.heading(LS.beta_ai_saved_exercises, size="4"),
             rx.cond(
                 BetaAIExercisesState.beta_exercises.length() == 0,  # type: ignore
-                rx.callout(
-                    "No Beta AI exercises saved yet.", icon="info", width="100%"
-                ),
+                rx.callout(LS.beta_ai_no_saved_exercises, icon="info", width="100%"),
                 rx.table.root(
                     rx.table.header(
                         rx.table.row(
-                            rx.table.column_header_cell("Title"),
-                            rx.table.column_header_cell("Description"),
-                            rx.table.column_header_cell("Source file"),
-                            rx.table.column_header_cell("Actions"),
+                            rx.table.column_header_cell(LS.title),
+                            rx.table.column_header_cell(LS.description),
+                            rx.table.column_header_cell(LS.beta_ai_source_file),
+                            rx.table.column_header_cell(LS.beta_ai_actions),
                         )
                     ),
                     rx.table.body(
@@ -206,16 +204,16 @@ def source_material_card() -> rx.Component:
     """Render PDF upload and source preview."""
     return rx.card(
         rx.vstack(
-            rx.heading("1. Source material", size="4"),
+            rx.heading(LS.beta_ai_source_material, size="4"),
             rx.upload(
                 rx.vstack(
                     rx.button(
-                        "Select PDF",
+                        LS.beta_ai_select_pdf,
                         type="button",
                         loading=BetaAIExercisesState.extracting_source_material,
                         disabled=BetaAIExercisesState.extracting_source_material,
                     ),
-                    rx.text("Drop one or more lecture PDFs here."),
+                    rx.text(LS.beta_ai_drop_pdfs),
                     rx.text(rx.selected_files("beta_ai_pdf_upload"), color="yellow"),
                     align="center",
                 ),
@@ -242,7 +240,7 @@ def source_material_card() -> rx.Component:
             rx.cond(
                 BetaAIExercisesState.source_material_preview,
                 rx.box(
-                    rx.text("Preview", weight="bold", size="2"),
+                    rx.text(LS.beta_ai_preview, weight="bold", size="2"),
                     rx.text(
                         BetaAIExercisesState.source_material_preview,
                         size="2",
@@ -266,30 +264,30 @@ def metadata_card() -> rx.Component:
     """Render title, description, and generate button."""
     return rx.card(
         rx.vstack(
-            rx.heading("2. Exercise metadata", size="4"),
+            rx.heading(LS.beta_ai_exercise_metadata, size="4"),
             rx.input(
-                placeholder="Title",
+                placeholder=LS.title,
                 value=BetaAIExercisesState.title,
                 on_change=BetaAIExercisesState.set_title,
                 width="100%",
             ),
             rx.text_area(
-                placeholder="Description (optional)",
+                placeholder=LS.beta_ai_description_optional,
                 value=BetaAIExercisesState.description,
                 on_change=BetaAIExercisesState.set_description,
                 rows="4",
                 width="100%",
             ),
             rx.vstack(
-                rx.text("Generation targets", weight="bold", size="2"),
+                rx.text(LS.beta_ai_generation_targets, weight="bold", size="2"),
                 rx.text(
-                    "Approximate counts used by the AI prompt.",
+                    LS.beta_ai_generation_targets_info,
                     size="2",
                     color_scheme="gray",
                 ),
                 rx.hstack(
                     rx.vstack(
-                        rx.text("Concepts", size="2"),
+                        rx.text(LS.beta_ai_concepts, size="2"),
                         rx.input(
                             value=BetaAIExercisesState.concept_target_count_str,
                             on_change=BetaAIExercisesState.set_concept_target_count,
@@ -303,7 +301,7 @@ def metadata_card() -> rx.Component:
                         width="100%",
                     ),
                     rx.vstack(
-                        rx.text("Core points", size="2"),
+                        rx.text(LS.beta_ai_core_points, size="2"),
                         rx.input(
                             value=BetaAIExercisesState.core_point_target_count_str,
                             on_change=BetaAIExercisesState.set_core_point_target_count,
@@ -317,7 +315,7 @@ def metadata_card() -> rx.Component:
                         width="100%",
                     ),
                     rx.vstack(
-                        rx.text("Misconceptions", size="2"),
+                        rx.text(LS.beta_ai_misconceptions, size="2"),
                         rx.input(
                             value=BetaAIExercisesState.misconception_target_count_str,
                             on_change=BetaAIExercisesState.set_misconception_target_count,
@@ -343,7 +341,11 @@ def metadata_card() -> rx.Component:
             ),
             rx.button(
                 rx.icon("sparkles"),
-                BetaAIExercisesState.generate_concepts_button_label,
+                rx.cond(
+                    BetaAIExercisesState.generated_concepts.length() > 0,  # type: ignore
+                    LS.beta_ai_regenerate_concepts,
+                    LS.beta_ai_generate_concepts,
+                ),
                 on_click=BetaAIExercisesState.generate_concepts,
                 loading=BetaAIExercisesState.generating_concepts,
                 disabled=~BetaAIExercisesState.can_generate_concepts,
@@ -420,7 +422,7 @@ def concept_card(concept, concept_index) -> rx.Component:
             rx.hstack(
                 rx.hstack(
                     rx.icon("chevron-right", size=16, color="gray"),
-                    rx.badge("Concept", variant="soft"),
+                    rx.badge(LS.beta_ai_concept, variant="soft"),
                     rx.text(concept.label, weight="bold"),
                     spacing="2",
                     align="center",
@@ -451,7 +453,7 @@ def concept_card(concept, concept_index) -> rx.Component:
                 on_change=lambda value: BetaAIExercisesState.set_concept_label(
                     concept_index, value
                 ),
-                placeholder="Concept label",
+                placeholder=LS.beta_ai_concepts,
                 width="100%",
             ),
             rx.text_area(
@@ -459,12 +461,12 @@ def concept_card(concept, concept_index) -> rx.Component:
                 on_change=lambda value: BetaAIExercisesState.set_concept_description(
                     concept_index, value
                 ),
-                placeholder="Concept description",
+                placeholder=LS.description,
                 rows="3",
                 width="100%",
             ),
             rx.vstack(
-                rx.text("Core Points", weight="bold"),
+                rx.text(LS.beta_ai_core_points, weight="bold"),
                 rx.foreach(
                     concept.core_points,
                     lambda core_point, core_point_index: core_point_row(
@@ -473,7 +475,7 @@ def concept_card(concept, concept_index) -> rx.Component:
                 ),
                 rx.button(
                     rx.icon("plus", size=16),
-                    "Add Core Point",
+                    LS.beta_ai_add_core_point,
                     size="2",
                     variant="soft",
                     on_click=BetaAIExercisesState.add_core_point(concept_index),
@@ -484,7 +486,7 @@ def concept_card(concept, concept_index) -> rx.Component:
                 width="100%",
             ),
             rx.vstack(
-                rx.text("Misconceptions", weight="bold"),
+                rx.text(LS.beta_ai_misconceptions, weight="bold"),
                 rx.foreach(
                     concept.misconceptions,
                     lambda misconception, misconception_index: misconception_row(
@@ -493,7 +495,7 @@ def concept_card(concept, concept_index) -> rx.Component:
                 ),
                 rx.button(
                     rx.icon("plus", size=16),
-                    "Add Misconception",
+                    LS.beta_ai_add_misconception,
                     size="2",
                     variant="soft",
                     on_click=BetaAIExercisesState.add_misconception(concept_index),
@@ -521,11 +523,11 @@ def concepts_card() -> rx.Component:
     return rx.card(
         rx.vstack(
             rx.hstack(
-                rx.heading("3. Review concepts", size="4"),
+                rx.heading(LS.beta_ai_review_concepts, size="4"),
                 rx.spacer(),
                 rx.button(
                     rx.icon("plus"),
-                    "Add Concept",
+                    LS.beta_ai_add_concept,
                     variant="soft",
                     on_click=BetaAIExercisesState.add_concept,
                     _hover={"cursor": "pointer"},
@@ -535,7 +537,7 @@ def concepts_card() -> rx.Component:
             rx.cond(
                 BetaAIExercisesState.generated_concepts.length() == 0,  # type: ignore
                 rx.callout(
-                    "No concepts yet. Upload a PDF and generate concepts.",
+                    LS.beta_ai_no_concepts_yet,
                     icon="info",
                     width="100%",
                 ),
@@ -547,14 +549,14 @@ def concepts_card() -> rx.Component:
             ),
             rx.hstack(
                 rx.button(
-                    "Reset",
+                    LS.reset_string,
                     variant="outline",
                     on_click=BetaAIExercisesState.reset_builder,
                     _hover={"cursor": "pointer"},
                 ),
                 rx.button(
                     rx.icon("save"),
-                    "Save Exercise",
+                    LS.beta_ai_save_exercise,
                     color_scheme="green",
                     on_click=BetaAIExercisesState.save_beta_exercise,
                     loading=BetaAIExercisesState.saving_exercise,
